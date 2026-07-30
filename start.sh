@@ -7,6 +7,20 @@ echo "=================================================="
 echo "🚀 CS Fundamentals Platform - One-Cmd Launcher"
 echo "=================================================="
 
+detect_backend_port() {
+  if [ -n "$BACKEND_PORT" ]; then
+    return
+  fi
+  # Test if port 8080 is in use
+  if lsof -i :8080 &>/dev/null || ss -tulpn | grep -q ":8080 "; then
+    echo "⚠️ Port 8080 is currently in use on your host machine."
+    echo "👉 Assigning CS Fundamentals Backend host port to 8081..."
+    export BACKEND_PORT=8081
+  else
+    export BACKEND_PORT=8080
+  fi
+}
+
 run_docker() {
   echo "🐳 Checking Docker environment..."
   if command -v docker-compose &> /dev/null; then
@@ -18,7 +32,9 @@ run_docker() {
     return 1
   fi
 
-  echo "🔨 Building and launching containers via Docker Compose..."
+  detect_backend_port
+
+  echo "🔨 Building and launching containers via Docker Compose (Backend Host Port: ${BACKEND_PORT})..."
   $COMPOSE_CMD up --build
 }
 
@@ -33,7 +49,7 @@ run_local() {
   }
   trap cleanup SIGINT SIGTERM
 
-  echo "☕ Starting Spring Boot Backend (Port 8080)..."
+  echo "☕ Starting Spring Boot Backend..."
   (cd backend && mvn spring-boot:run) &
   BE_PID=$!
 

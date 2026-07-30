@@ -7,7 +7,7 @@ services:
       dockerfile: backend/Dockerfile
     container_name: cs-fundamentals-backend
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8081}:8080"
     volumes:
       - ./content:/app/content
     restart: unless-stopped
@@ -23,8 +23,8 @@ services:
       dockerfile: Dockerfile
     container_name: cs-fundamentals-frontend
     ports:
-      - "80:80"
-      - "5173:80"
+      - "${FRONTEND_PORT:-80}:80"
+      - "${FRONTEND_DEV_PORT:-5173}:80"
     depends_on:
       backend:
         condition: service_healthy
