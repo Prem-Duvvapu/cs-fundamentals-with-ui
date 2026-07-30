@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
+import { fetchCpuSchedulingSimulation } from '../../utils/api'
 
 const DEFAULT_PROCESSES = [
   { id: 'P1', arrivalTime: 0, burstTime: 5, priority: 2, color: '#3b82f6' },
@@ -25,13 +26,22 @@ export default function SchedulingVisualizer() {
   const [timeline, setTimeline] = useState([])
   const [metrics, setMetrics] = useState([])
 
-  // Calculate schedule on parameter changes
+  // Calculate schedule via Backend REST API
   useEffect(() => {
-    const { gantt, processMetrics } = computeSchedule(processes, algorithm, timeQuantum)
-    setTimeline(gantt)
-    setMetrics(processMetrics)
-    setCurrentTime(0)
-    setIsPlaying(false)
+    fetchCpuSchedulingSimulation({ processes, algorithm, timeQuantum })
+      .then(res => {
+        setTimeline(res.gantt || [])
+        setMetrics(res.processMetrics || [])
+        setCurrentTime(0)
+        setIsPlaying(false)
+      })
+      .catch(() => {
+        const { gantt, processMetrics } = computeSchedule(processes, algorithm, timeQuantum)
+        setTimeline(gantt)
+        setMetrics(processMetrics)
+        setCurrentTime(0)
+        setIsPlaying(false)
+      })
   }, [processes, algorithm, timeQuantum])
 
   // Timer for auto-play

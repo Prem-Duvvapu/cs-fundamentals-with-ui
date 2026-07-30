@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { fetchSubnetSimulation } from '../../utils/api'
 
 export default function NetworkingVisualizer() {
   const [activeTab, setActiveTab] = useState('encapsulation') // 'encapsulation', 'handshake', 'subnet'
@@ -10,6 +11,13 @@ export default function NetworkingVisualizer() {
   // Subnet state
   const [ipAddress, setIpAddress] = useState('192.168.1.50')
   const [cidr, setCidr] = useState(24)
+  const [sub, setSub] = useState({ valid: true, networkIp: '192.168.1.0', broadcastIp: '192.168.1.255', subnetMask: '255.255.255.0', firstHost: '192.168.1.1', lastHost: '192.168.1.254', totalHosts: 256, usableHosts: 254 })
+
+  useEffect(() => {
+    fetchSubnetSimulation({ ipAddress, cidr })
+      .then(setSub)
+      .catch(() => setSub(calcSubnet(ipAddress, cidr)))
+  }, [ipAddress, cidr])
 
   const handleEncapStep = (step) => {
     if (step < 0 || step > 5) return
@@ -25,21 +33,21 @@ export default function NetworkingVisualizer() {
     { name: '2. Data Link', header: 'Ethernet MAC (Src: AA:BB, Dst: CC:DD)', color: '#ef4444' },
   ]
 
-  // Subnet calculation
-  const calcSubnet = () => {
+  // Subnet calculation fallback
+  const calcSubnet = (ipVal, cidrVal) => {
     try {
-      const parts = ipAddress.split('.').map(Number)
+      const parts = (ipVal || '').split('.').map(Number)
       if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) {
         return { valid: false }
       }
       const ipNum = (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]
-      const maskNum = cidr === 0 ? 0 : (~0 << (32 - cidr)) >>> 0
+      const maskNum = cidrVal === 0 ? 0 : (~0 << (32 - cidrVal)) >>> 0
       const netNum = (ipNum & maskNum) >>> 0
       const bcastNum = (netNum | (~maskNum >>> 0)) >>> 0
 
       const numToIp = n => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.')
 
-      const totalHosts = Math.pow(2, 32 - cidr)
+      const totalHosts = Math.pow(2, 32 - cidrVal)
       const usableHosts = totalHosts > 2 ? totalHosts - 2 : totalHosts
 
       return {
@@ -56,8 +64,6 @@ export default function NetworkingVisualizer() {
       return { valid: false }
     }
   }
-
-  const sub = calcSubnet()
 
   return (
     <div className="visualizer-container">

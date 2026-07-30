@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { fetchBankersSimulation } from '../../utils/api'
 
 export default function DeadlockVisualizer() {
   const [allocation, setAllocation] = useState([
@@ -21,59 +22,58 @@ export default function DeadlockVisualizer() {
   const [result, setResult] = useState(null)
 
   const calculateSafety = () => {
-    const numProcesses = 5
-    const numResources = 3
+    fetchBankersSimulation({ allocation, max, available })
+      .then(res => {
+        setResult({
+          isSafe: res.isSafe,
+          sequence: res.sequence || [],
+          work: res.work || []
+        })
+      })
+      .catch(() => {
+        const numProcesses = 5
+        const numResources = 3
 
-    let work = [...available]
-    let finish = Array(numProcesses).fill(false)
-    let safeSequence = []
+        let work = [...available]
+        let finish = Array(numProcesses).fill(false)
+        let safeSequence = []
 
-    let need = allocation.map((allocRow, pIdx) =>
-      allocRow.map((allocVal, rIdx) => max[pIdx][rIdx] - allocVal)
-    )
+        let need = allocation.map((allocRow, pIdx) =>
+          allocRow.map((allocVal, rIdx) => max[pIdx][rIdx] - allocVal)
+        )
 
-    let count = 0
-    while (count < numProcesses) {
-      let found = false
-      for (let i = 0; i < numProcesses; i++) {
-        if (!finish[i]) {
-          // Check if Need_i <= Work
-          let canExecute = true
-          for (let j = 0; j < numResources; j++) {
-            if (need[i][j] > work[j]) {
-              canExecute = false
-              break
+        let count = 0
+        while (count < numProcesses) {
+          let found = false
+          for (let i = 0; i < numProcesses; i++) {
+            if (!finish[i]) {
+              let canExecute = true
+              for (let j = 0; j < numResources; j++) {
+                if (need[i][j] > work[j]) {
+                  canExecute = false
+                  break
+                }
+              }
+              if (canExecute) {
+                for (let j = 0; j < numResources; j++) {
+                  work[j] += allocation[i][j]
+                }
+                safeSequence.push(`P${i}`)
+                finish[i] = true
+                found = true
+                count++
+              }
             }
           }
-
-          if (canExecute) {
-            for (let j = 0; j < numResources; j++) {
-              work[j] += allocation[i][j]
-            }
-            safeSequence.push(`P${i}`)
-            finish[i] = true
-            found = true
-            count++
-          }
+          if (!found) break
         }
-      }
 
-      if (!found) break
-    }
-
-    if (count === numProcesses) {
-      setResult({
-        isSafe: true,
-        sequence: safeSequence,
-        work
+        setResult({
+          isSafe: count === numProcesses,
+          sequence: safeSequence,
+          work
+        })
       })
-    } else {
-      setResult({
-        isSafe: false,
-        sequence: [],
-        work
-      })
-    }
   }
 
   return (

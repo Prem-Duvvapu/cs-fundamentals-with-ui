@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { fetchPageReplacementSimulation } from '../../utils/api'
 
 export default function MemoryVisualizer() {
   const [algo, setAlgo] = useState('LRU') // LRU, FIFO, OPTIMAL
@@ -15,9 +16,16 @@ export default function MemoryVisualizer() {
   const [pageSizeKB, setPageSizeKB] = useState(4) // 4KB
 
   useEffect(() => {
-    const res = runPageReplacement(referenceStream, numFrames, algo)
-    setHistory(res.stepHistory)
-    setCurrentStep(0)
+    fetchPageReplacementSimulation({ stream: referenceStream, numFrames, algorithm: algo })
+      .then(res => {
+        setHistory(res.stepHistory || [])
+        setCurrentStep(0)
+      })
+      .catch(() => {
+        const res = runPageReplacement(referenceStream, numFrames, algo)
+        setHistory(res.stepHistory)
+        setCurrentStep(0)
+      })
   }, [referenceStream, numFrames, algo])
 
   const maxSteps = referenceStream.length
