@@ -189,17 +189,17 @@ export default function MemoryVisualizer() {
             <div className="mmu-box">
               <span className="mmu-label">Page Number (VPN)</span>
               <span className="mmu-val">{pageNumber}</span>
-              <span className="mmu-calc">$\lfloor {virtualAddress} / {pageSizeBytes} \rfloor$</span>
+              <span className="mmu-calc">floor({virtualAddress} / {pageSizeBytes})</span>
             </div>
             <div className="mmu-box">
               <span className="mmu-label">Offset</span>
               <span className="mmu-val">{offset}</span>
-              <span className="mmu-calc">${virtualAddress} \pmod{{ {pageSizeBytes} }}$</span>
+              <span className="mmu-calc">{virtualAddress} mod {pageSizeBytes}</span>
             </div>
             <div className="mmu-box result-box">
               <span className="mmu-label">Mapped Physical Address</span>
               <span className="mmu-val highlight-val">{physicalAddress}</span>
-              <span className="mmu-calc">Frame {simulatedFrameNumber} $\times {pageSizeBytes} + {offset}$</span>
+              <span className="mmu-calc">Frame {simulatedFrameNumber} × {pageSizeBytes} + {offset}</span>
             </div>
           </div>
         </div>
