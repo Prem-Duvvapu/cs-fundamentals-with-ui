@@ -6,6 +6,8 @@ import ProcessLifecycleVisualizer from '../components/visualizers/ProcessLifecyc
 import MemoryVisualizer from '../components/visualizers/MemoryVisualizer'
 import SynchronizationVisualizer from '../components/visualizers/SynchronizationVisualizer'
 import DeadlockVisualizer from '../components/visualizers/DeadlockVisualizer'
+import NetworkingVisualizer from '../components/visualizers/NetworkingVisualizer'
+import DbmsVisualizer from '../components/visualizers/DbmsVisualizer'
 
 export default function TopicPage() {
   const { topicId } = useParams()
@@ -19,6 +21,10 @@ export default function TopicPage() {
     'deadlocks': 'Deadlocks & Banker\'s Algorithm',
     'file-systems': 'File Systems & Inodes',
     'io-systems': 'I/O Systems & Kernel Architecture',
+    'osi-model': 'OSI 7-Layer & TCP/IP Reference Model',
+    'tcp-ip': 'TCP 3-Way Handshake & Protocols',
+    'relational-model': 'Relational Model, B+ Trees & ACID',
+    'dbms-indexing': 'B+ Tree Indexing & 2PL Concurrency Control',
   }
 
   const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -35,6 +41,14 @@ export default function TopicPage() {
         return <SynchronizationVisualizer />
       case 'deadlocks':
         return <DeadlockVisualizer />
+      case 'osi-model':
+      case 'tcp-ip':
+      case 'networking':
+        return <NetworkingVisualizer />
+      case 'relational-model':
+      case 'dbms-indexing':
+      case 'dbms':
+        return <DbmsVisualizer />
       default:
         return <SchedulingVisualizer />
     }

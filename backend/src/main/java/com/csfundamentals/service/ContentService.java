@@ -13,16 +13,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ContentService {
 
-    private Path contentDir;
+    private Path contentRootDir;
     private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public ContentService() {
         List<Path> candidates = List.of(
-            Paths.get("content/os"),
-            Paths.get("../content/os"),
-            Paths.get(".").resolve("content/os")
+            Paths.get("content"),
+            Paths.get("../content"),
+            Paths.get(".").resolve("content")
         );
-        contentDir = candidates.stream()
+        contentRootDir = candidates.stream()
             .filter(Files::isDirectory)
             .findFirst()
             .map(Path::toAbsolutePath)
@@ -31,7 +31,7 @@ public class ContentService {
     }
 
     public String getContent(String topicId) {
-        if (contentDir == null) return "Content directory not found";
+        if (contentRootDir == null) return "Content directory not found";
         return cache.computeIfAbsent(topicId, this::loadContent);
     }
 
@@ -48,8 +48,9 @@ public class ContentService {
     }
 
     private Path findFile(String topicId) {
-        try (var files = Files.list(contentDir)) {
-            return files
+        try (var stream = Files.walk(contentRootDir)) {
+            return stream
+                .filter(Files::isRegularFile)
                 .filter(f -> f.getFileName().toString().contains(topicId))
                 .findFirst()
                 .orElse(null);
