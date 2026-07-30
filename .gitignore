@@ -1,0 +1,15 @@
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build outputs
+target/
+dist/
+build/
+node_modules/
+
+# OS specific
+.DS_Store
+Thumbs.db
