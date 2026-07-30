@@ -75,5 +75,5 @@ docker-compose up --build
 npm test --prefix frontend
 
 # Run Backend Tests (JUnit 5 & Spring Boot Test)
-mvn test --prefix backend
+mvn test -f backend/pom.xml
 ```
