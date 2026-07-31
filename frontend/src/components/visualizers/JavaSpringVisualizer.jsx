@@ -1,0 +1,400 @@
+import React, { useState } from 'react'
+
+export default function JavaSpringVisualizer({ defaultTopicId }) {
+  // Determine initial sub-tab mode based on defaultTopicId prop
+  const getInitialTab = () => {
+    switch (defaultTopicId) {
+      case 'jvm-gc': return 'jvm'
+      case 'spring-bean-lifecycle': return 'bean'
+      case 'spring-mvc-lifecycle': return 'mvc'
+      case 'jpa-hibernate-lifecycle': return 'jpa'
+      case 'spring-batch-lifecycle': return 'batch'
+      case 'quartz-scheduler': return 'quartz'
+      default: return 'bean'
+    }
+  }
+
+  const [activeTab, setActiveTab] = useState(getInitialTab())
+
+  // ==========================================
+  // MODE 1: JVM MEMORY & THREAD 6-STATE MACHINE
+  // ==========================================
+  const [threadState, setThreadState] = useState('NEW')
+  const [threadType, setThreadType] = useState('platform') // 'platform', 'virtual'
+
+  // ==========================================
+  // MODE 2: SPRING BEAN LIFECYCLE PIPELINE
+  // ==========================================
+  const [beanStep, setBeanStep] = useState(0)
+  const beanSteps = [
+    { title: 'Step 1: Bean Definition Loading', desc: 'Spring scans @Component classes and registers BeanDefinition in BeanFactory registry.' },
+    { title: 'Step 2: Bean Instantiation', desc: 'Constructs raw Bean instance using Java reflection / constructor injection.' },
+    { title: 'Step 3: Populate Properties', desc: 'Injects dependencies annotated with @Autowired, @Value, or @Resource.' },
+    { title: 'Step 4: Aware Interfaces Execution', desc: 'Invokes BeanNameAware.setBeanName(), BeanFactoryAware.setBeanFactory(), ApplicationContextAware.' },
+    { title: 'Step 5: BeanPostProcessor (Before Initialization)', desc: 'Executes postProcessBeforeInitialization() across custom BeanPostProcessors.' },
+    { title: 'Step 6: @PostConstruct / InitializingBean', desc: 'Executes @PostConstruct method or InitializingBean.afterPropertiesSet() custom init logic.' },
+    { title: 'Step 7: BeanPostProcessor (After Initialization)', desc: 'Executes postProcessAfterInitialization() — Wraps bean in CGLIB/JDK AOP Proxy for @Transactional & @Async!' },
+    { title: 'Step 8: BEAN IS READY FOR USE', desc: 'Bean is fully initialized and stored in Spring Singleton Bean Registry.' },
+    { title: 'Step 9: @PreDestroy (Shutdown)', desc: 'Executes @PreDestroy / DisposableBean.destroy() when ApplicationContext closes.' }
+  ]
+
+  // ==========================================
+  // MODE 3: SPRING MVC REQUEST LIFECYCLE
+  // ==========================================
+  const [mvcStep, setMvcStep] = useState(0)
+  const mvcPipeline = [
+    { title: '1. Client HTTP Request', desc: 'GET /api/v1/orders/101 arrives at Tomcat / Jetty Servlet Container.' },
+    { title: '2. Security Filter Chain', desc: 'FilterChainProxy executes BearerTokenAuthenticationFilter & AuthorizationFilter (@PreAuthorize).' },
+    { title: '3. DispatcherServlet Front Controller', desc: 'Delegates request to Spring MVC infrastructure.' },
+    { title: '4. HandlerMapping Lookup', desc: 'Finds matching @GetMapping("/api/v1/orders/{id}") OrderController method.' },
+    { title: '5. HandlerAdapter Invocation', desc: 'Resolves method arguments (@PathVariable, @RequestBody) and invokes controller method.' },
+    { title: '6. Controller Business Execution', desc: 'OrderService executes business logic & fetches data from JPA repository.' },
+    { title: '7. HttpMessageConverter JSON Response', desc: 'Jackson HttpMessageConverter serializes Java DTO to HTTP 200 OK JSON response body.' }
+  ]
+
+  // ==========================================
+  // MODE 4: JPA / HIBERNATE ENTITY STATE MACHINE & N+1 SOLVER
+  // ==========================================
+  const [entityState, setEntityState] = useState('TRANSIENT')
+  const [dirtyField, setDirtyField] = useState('Alice')
+  const [isDirty, setIsDirty] = useState(false)
+  const [fetchStrategy, setFetchStrategy] = useState('lazy') // 'lazy', 'joinfetch'
+
+  const handleUpdateField = (val) => {
+    setDirtyField(val)
+    if (entityState === 'PERSISTENT') {
+      setIsDirty(true)
+    }
+  }
+
+  // ==========================================
+  // MODE 5: SPRING BATCH CHUNK EXECUTION ENGINE
+  // ==========================================
+  const [batchStep, setBatchStep] = useState(0)
+  const [chunkSize, setChunkSize] = useState(3)
+  const [processedCount, setProcessedCount] = useState(0)
+  const [skipCount, setSkipCount] = useState(0)
+
+  const handleRunChunk = () => {
+    setProcessedCount(prev => prev + chunkSize)
+  }
+
+  // ==========================================
+  // MODE 6: QUARTZ SCHEDULER & CLUSTER LOCKING
+  // ==========================================
+  const [quartzState, setQuartzState] = useState('IDLE')
+  const [disallowConcurrent, setDisallowConcurrent] = useState(true)
+  const [misfirePolicy, setMisfirePolicy] = useState('fire_now')
+
+  return (
+    <div className="visualizer-container">
+      {/* HEADER & SUB-NAVIGATION */}
+      <div className="viz-header">
+        <div className="viz-title-group">
+          <h2>☕ Java, Spring Boot, JPA & Enterprise Batch Engine</h2>
+          <p>Explore JVM Memory & Threads, Spring Bean Lifecycle, Spring MVC Pipeline, JPA Entity States, Spring Batch & Quartz.</p>
+        </div>
+
+        {/* SUB-TABS NAVIGATION */}
+        <div className="main-tab-switcher" style={{ marginTop: '1rem' }}>
+          <button
+            onClick={() => setActiveTab('jvm')}
+            className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
+          >
+            ☕ JVM Memory & Thread States
+          </button>
+          <button
+            onClick={() => setActiveTab('bean')}
+            className={`main-tab-btn ${activeTab === 'bean' ? 'active-tab' : ''}`}
+          >
+            🌱 Spring Bean Lifecycle
+          </button>
+          <button
+            onClick={() => setActiveTab('mvc')}
+            className={`main-tab-btn ${activeTab === 'mvc' ? 'active-tab' : ''}`}
+          >
+            🌐 Spring MVC Request Flow
+          </button>
+          <button
+            onClick={() => setActiveTab('jpa')}
+            className={`main-tab-btn ${activeTab === 'jpa' ? 'active-tab' : ''}`}
+          >
+            🗄 JPA Entity States & N+1
+          </button>
+          <button
+            onClick={() => setActiveTab('batch')}
+            className={`main-tab-btn ${activeTab === 'batch' ? 'active-tab' : ''}`}
+          >
+            📦 Spring Batch Chunk Engine
+          </button>
+          <button
+            onClick={() => setActiveTab('quartz')}
+            className={`main-tab-btn ${activeTab === 'quartz' ? 'active-tab' : ''}`}
+          >
+            ⏱ Quartz Scheduler & Cluster
+          </button>
+        </div>
+      </div>
+
+      {/* MODE 1: JVM MEMORY & THREAD STATES */}
+      {activeTab === 'jvm' && (
+        <div className="metrics-grid">
+          <div className="viz-card">
+            <h3>☕ Java Thread 6-State Lifecycle Machine</h3>
+
+            <div className="main-tab-switcher" style={{ margin: '1rem 0' }}>
+              <button onClick={() => setThreadType('platform')} className={`main-tab-btn ${threadType === 'platform' ? 'active-tab' : ''}`}>
+                Platform Thread (1:1 OS Thread)
+              </button>
+              <button onClick={() => setThreadType('virtual')} className={`main-tab-btn ${threadType === 'virtual' ? 'active-tab' : ''}`}>
+                Virtual Thread (Loom Carrier Unmounting)
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1rem' }}>
+              {['NEW', 'RUNNABLE', 'BLOCKED', 'WAITING', 'TIMED_WAITING', 'TERMINATED'].map(state => (
+                <button
+                  key={state}
+                  onClick={() => setThreadState(state)}
+                  className={`btn ${threadState === state ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 'bold' }}
+                >
+                  {state}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ marginTop: '1.25rem', background: '#0f172a', padding: '1rem', borderRadius: '10px' }}>
+              <h4>Current Thread State: <span style={{ color: 'var(--accent-purple)' }}>{threadState}</span></h4>
+              <p style={{ fontSize: '0.85rem', marginTop: '0.4rem' }}>
+                {threadType === 'virtual' && (threadState === 'WAITING' || threadState === 'TIMED_WAITING')
+                  ? '✨ Virtual Thread Unmounted from Carrier OS Thread! Carrier Thread is free to execute other Virtual Threads.'
+                  : `Standard JVM thread state behavior for ${threadType} thread.`}
+              </p>
+            </div>
+          </div>
+
+          <div className="viz-card">
+            <h3>📊 JVM Heap Memory & GC Generation Layout</h3>
+            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <span>Young Generation (Eden + S0 + S1):</span>
+                <strong style={{ color: 'var(--accent-green)' }}>Minor GC Active</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <span>Old Generation (Tenured):</span>
+                <strong style={{ color: 'var(--accent-amber)' }}>Major / Full GC</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Metaspace (Off-Heap Native Memory):</span>
+                <strong style={{ color: 'var(--accent-purple)' }}>Class Metadata</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODE 2: SPRING BEAN LIFECYCLE */}
+      {activeTab === 'bean' && (
+        <div className="viz-card">
+          <h3>🌱 Spring IoC Container & Bean Initialization Pipeline</h3>
+
+          <div className="action-buttons-group" style={{ margin: '1rem 0', display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => setBeanStep(0)} className="btn btn-secondary">⏮ Reset Context</button>
+            <button onClick={() => setBeanStep(prev => Math.min(8, prev + 1))} disabled={beanStep >= 8} className="btn btn-primary">
+              Next Lifecycle Step ▶
+            </button>
+          </div>
+
+          <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+            <h4 style={{ color: 'var(--accent-purple)' }}>{beanSteps[beanStep].title}</h4>
+            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{beanSteps[beanStep].desc}</p>
+          </div>
+        </div>
+      )}
+
+      {/* MODE 3: SPRING MVC REQUEST LIFECYCLE */}
+      {activeTab === 'mvc' && (
+        <div className="viz-card">
+          <h3>🌐 Spring MVC DispatcherServlet Request Execution Pipeline</h3>
+
+          <div className="action-buttons-group" style={{ margin: '1rem 0', display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => setMvcStep(0)} className="btn btn-secondary">⏮ Reset Request</button>
+            <button onClick={() => setMvcStep(prev => Math.min(6, prev + 1))} disabled={mvcStep >= 6} className="btn btn-primary">
+              Step Pipeline Forward ▶
+            </button>
+          </div>
+
+          <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+            <h4 style={{ color: 'var(--accent-blue)' }}>{mvcPipeline[mvcStep].title}</h4>
+            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{mvcPipeline[mvcStep].desc}</p>
+          </div>
+        </div>
+      )}
+
+      {/* MODE 4: JPA / HIBERNATE ENTITY STATE MACHINE */}
+      {activeTab === 'jpa' && (
+        <div className="metrics-grid">
+          <div className="viz-card">
+            <h3>🗄 JPA / Hibernate 4-State Entity Machine</h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '1rem' }}>
+              <button onClick={() => { setEntityState('TRANSIENT'); setIsDirty(false) }} className={`btn ${entityState === 'TRANSIENT' ? 'btn-primary' : 'btn-secondary'}`}>
+                1. Transient (new User())
+              </button>
+              <button onClick={() => { setEntityState('PERSISTENT'); setIsDirty(false) }} className={`btn ${entityState === 'PERSISTENT' ? 'btn-primary' : 'btn-secondary'}`}>
+                2. Persistent / Managed (em.persist())
+              </button>
+              <button onClick={() => setEntityState('DETACHED')} className={`btn ${entityState === 'DETACHED' ? 'btn-primary' : 'btn-secondary'}`}>
+                3. Detached (em.detach())
+              </button>
+              <button onClick={() => setEntityState('REMOVED')} className={`btn ${entityState === 'REMOVED' ? 'btn-primary' : 'btn-secondary'}`}>
+                4. Removed (em.remove())
+              </button>
+            </div>
+
+            <div style={{ marginTop: '1.25rem', background: '#0f172a', padding: '1rem', borderRadius: '10px' }}>
+              <h4>Current Entity State: <span style={{ color: 'var(--accent-purple)' }}>{entityState}</span></h4>
+              
+              <div style={{ marginTop: '0.75rem' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Test Dirty Checking (Modify Field):</label>
+                <input
+                  type="text"
+                  value={dirtyField}
+                  onChange={e => handleUpdateField(e.target.value)}
+                  className="num-input"
+                  style={{ width: '100%', marginTop: '0.3rem' }}
+                />
+              </div>
+
+              {isDirty && (
+                <div style={{ marginTop: '0.75rem', background: '#3f1212', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--accent-red)', fontSize: '0.85rem' }}>
+                  🔥 <strong>Automatic Dirty Checking Triggered!</strong> Hibernate tracked field change and will automatically execute SQL UPDATE upon transaction commit!
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="viz-card">
+            <h3>⚡ N+1 Query Problem vs JOIN FETCH Optimization</h3>
+
+            <div className="main-tab-switcher" style={{ margin: '1rem 0' }}>
+              <button onClick={() => setFetchStrategy('lazy')} className={`main-tab-btn ${fetchStrategy === 'lazy' ? 'active-tab' : ''}`}>
+                Unoptimized LAZY Fetch (N+1 Problem)
+              </button>
+              <button onClick={() => setFetchStrategy('joinfetch')} className={`main-tab-btn ${fetchStrategy === 'joinfetch' ? 'active-tab' : ''}`}>
+                Optimized JOIN FETCH (1 SQL Query)
+              </button>
+            </div>
+
+            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <span>SQL Queries Executed for 100 Orders:</span>
+                <strong style={{ color: fetchStrategy === 'lazy' ? 'var(--accent-red)' : 'var(--accent-green)', fontSize: '1.2rem' }}>
+                  {fetchStrategy === 'lazy' ? '101 SQL Queries (1 + 100 N+1 Queries!)' : '1 SQL Query (JOIN FETCH)'}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODE 5: SPRING BATCH CHUNK ENGINE */}
+      {activeTab === 'batch' && (
+        <div className="metrics-grid">
+          <div className="viz-card">
+            <h3>📦 Spring Batch Chunk-Oriented Processing Engine</h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Chunk Size (Items per DB Transaction): {chunkSize}</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={chunkSize}
+                  onChange={e => setChunkSize(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={handleRunChunk} className="btn btn-primary" style={{ flex: 1 }}>
+                  ▶ Process Chunk of {chunkSize} Items
+                </button>
+                <button onClick={() => { setProcessedCount(0); setSkipCount(0) }} className="btn btn-secondary">
+                  ⏮ Reset Batch
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="viz-card">
+            <h3>📊 JobRepository Batch Metrics (`BATCH_STEP_EXECUTION`)</h3>
+
+            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <span>Total Items Processed & Committed:</span>
+                <strong style={{ color: 'var(--accent-green)', fontSize: '1.3rem' }}>{processedCount} items</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <span>DB Transactions Committed:</span>
+                <strong>{Math.ceil(processedCount / chunkSize)} commits</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Skipped Corrupt Items:</span>
+                <strong>{skipCount} skipped</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODE 6: QUARTZ SCHEDULER & CLUSTER LOCKING */}
+      {activeTab === 'quartz' && (
+        <div className="metrics-grid">
+          <div className="viz-card">
+            <h3>⏱ Quartz Scheduler Execution & Misfire Engine</h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  id="disallowConc"
+                  checked={disallowConcurrent}
+                  onChange={e => setDisallowConcurrent(e.target.checked)}
+                />
+                <label htmlFor="disallowConc" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                  @DisallowConcurrentExecution (Block Parallel Job Runs)
+                </label>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>Misfire Handling Policy:</label>
+                <select
+                  value={misfirePolicy}
+                  onChange={e => setMisfirePolicy(e.target.value)}
+                  className="num-input"
+                  style={{ width: '100%' }}
+                >
+                  <option value="fire_now">MISFIRE_INSTRUCTION_FIRE_NOW (Run Missed Job Immediately)</option>
+                  <option value="do_nothing">MISFIRE_INSTRUCTION_DO_NOTHING (Ignore Missed Runs)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="viz-card">
+            <h3>🔒 Clustered `JobStoreTX` Database Locking (`QRTZ_LOCKS`)</h3>
+
+            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+              <p style={{ fontSize: '0.85rem' }}>
+                In a multi-pod Kubernetes deployment, Quartz acquires a row-level DB lock on <code>QRTZ_LOCKS (LOCK_NAME = 'TRIGGER_ACCESS')</code> to guarantee exactly-once execution across the microservice cluster!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

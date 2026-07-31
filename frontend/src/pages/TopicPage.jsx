@@ -8,6 +8,8 @@ import SynchronizationVisualizer from '../components/visualizers/Synchronization
 import DeadlockVisualizer from '../components/visualizers/DeadlockVisualizer'
 import NetworkingVisualizer from '../components/visualizers/NetworkingVisualizer'
 import DbmsVisualizer from '../components/visualizers/DbmsVisualizer'
+import AiMlVisualizer from '../components/visualizers/AiMlVisualizer'
+import JavaSpringVisualizer from '../components/visualizers/JavaSpringVisualizer'
 
 export default function TopicPage() {
   const { topicId } = useParams()
@@ -22,9 +24,33 @@ export default function TopicPage() {
     'file-systems': 'File Systems & Inodes',
     'io-systems': 'I/O Systems & Kernel Architecture',
     'osi-model': 'OSI 7-Layer & TCP/IP Reference Model',
-    'tcp-ip': 'TCP 3-Way Handshake & Protocols',
-    'relational-model': 'Relational Model, B+ Trees & ACID',
-    'dbms-indexing': 'B+ Tree Indexing & 2PL Concurrency Control',
+    'data-link-layer': 'Data Link Layer, MAC & ARQ Protocols',
+    'ip-subnetting': 'IP Addressing, CIDR Subnetting & Protocols',
+    'routing-algorithms': 'Routing Algorithms & Link-State vs Distance Vector',
+    'tcp-ip': 'TCP vs UDP & Connection Management',
+    'tcp-congestion': 'TCP Flow & Congestion Control',
+    'application-layer': 'Application Layer: DNS, HTTP/3 & TLS 1.3',
+    'network-security': 'Network Security, Cryptography & Threat Prevention',
+    'dbms-architecture': 'DBMS Architecture & Data Independence',
+    'er-model': 'ER Diagram Modeling & Relational Mapping',
+    'relational-model': 'Relational Model, Keys & Relational Algebra',
+    'normalization': 'Database Normalization & Functional Dependencies',
+    'dbms-indexing': 'B/B+ Tree Indexing & Storage Structures',
+    'transactions-acid': 'Transactions, States & ACID Properties',
+    'concurrency-control': 'Concurrency Control, 2PL & Serializability',
+    'query-optimization': 'Query Processing & Cost-Based Optimizer',
+    'embeddings-vector-db': 'Vector Embeddings, Similarity Search & Vector DBs',
+    'rag-architecture': 'Retrieval-Augmented Generation (RAG) Architecture',
+    'model-serving': 'LLM Model Serving & Low-Latency Inference',
+    'llm-parameters': 'LLM Sampling Parameters, Tokenization & ReAct Agents',
+    'feature-stores': 'Feature Stores, Data Drift & MLOps Architecture',
+    'recommendation-systems': '2-Stage Recommendation Engine Architecture',
+    'jvm-gc': 'JVM Memory Architecture, GC & Virtual Threads',
+    'spring-bean-lifecycle': 'Spring IoC Container & Bean Lifecycle',
+    'spring-mvc-lifecycle': 'Spring MVC Request Execution & Security Pipeline',
+    'jpa-hibernate-lifecycle': 'JPA / Hibernate Entity Lifecycle & N+1 Solver',
+    'spring-batch-lifecycle': 'Spring Batch Execution Architecture & Chunk Engine',
+    'quartz-scheduler': 'Quartz Scheduler Lifecycle & Clustered JobStoreTX',
   }
 
   const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -42,13 +68,41 @@ export default function TopicPage() {
       case 'deadlocks':
         return <DeadlockVisualizer />
       case 'osi-model':
+      case 'data-link-layer':
+      case 'ip-subnetting':
+      case 'routing-algorithms':
       case 'tcp-ip':
+      case 'tcp-congestion':
+      case 'application-layer':
+      case 'network-security':
       case 'networking':
-        return <NetworkingVisualizer />
+        return <NetworkingVisualizer defaultTopicId={topicId} />
+      case 'embeddings-vector-db':
+      case 'rag-architecture':
+      case 'model-serving':
+      case 'llm-parameters':
+      case 'feature-stores':
+      case 'recommendation-systems':
+      case 'aiml':
+        return <AiMlVisualizer defaultTopicId={topicId} />
+      case 'jvm-gc':
+      case 'spring-bean-lifecycle':
+      case 'spring-mvc-lifecycle':
+      case 'jpa-hibernate-lifecycle':
+      case 'spring-batch-lifecycle':
+      case 'quartz-scheduler':
+      case 'java-spring':
+        return <JavaSpringVisualizer defaultTopicId={topicId} />
+      case 'dbms-architecture':
+      case 'er-model':
       case 'relational-model':
+      case 'normalization':
       case 'dbms-indexing':
+      case 'transactions-acid':
+      case 'concurrency-control':
+      case 'query-optimization':
       case 'dbms':
-        return <DbmsVisualizer />
+        return <DbmsVisualizer defaultTopicId={topicId} />
       default:
         return <SchedulingVisualizer />
     }

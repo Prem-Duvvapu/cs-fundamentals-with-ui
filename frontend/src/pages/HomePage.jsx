@@ -24,12 +24,22 @@ export default function HomePage() {
           { id: 'io-systems', category: 'os', title: 'I/O Systems', level: 'expert', summary: 'DMA, interrupts, epoll, io_uring, kernel bypass' },
           
           // Computer Networks
-          { id: 'osi-model', category: 'networking', title: 'OSI & TCP/IP Reference Models', level: 'beginner', summary: '7-Layer OSI model, encapsulation, decapsulation, headers' },
-          { id: 'tcp-ip', category: 'networking', title: 'TCP 3-Way Handshake & Protocols', level: 'intermediate', summary: 'TCP vs UDP, 3-way handshake, sliding window, sockets' },
+          { id: 'osi-model', category: 'networking', title: 'OSI & TCP/IP Reference Models', level: 'beginner', summary: '7-Layer OSI model vs 4-Layer TCP/IP, PDU headers, encapsulation/decapsulation' },
+          { id: 'data-link-layer', category: 'networking', title: 'Data Link Layer, MAC & ARQ Protocols', level: 'beginner', summary: 'Framing, CRC error detection, Stop-and-Wait, Go-Back-N, Selective Repeat ARQ, CSMA/CD' },
+          { id: 'ip-subnetting', category: 'networking', title: 'IP Addressing, CIDR Subnetting & Protocols', level: 'intermediate', summary: 'IPv4 vs IPv6, CIDR subnet bitmasks, ARP, DHCP DORA, NAT translation' },
+          { id: 'routing-algorithms', category: 'networking', title: 'Routing Algorithms & Link-State vs Distance Vector', level: 'intermediate', summary: 'Distance Vector (Bellman-Ford), Link State (Dijkstra), OSPF, RIP, BGP path vectors' },
+          { id: 'tcp-ip', category: 'networking', title: 'TCP vs UDP & Connection Management', level: 'intermediate', summary: 'TCP vs UDP, 3-Way Handshake, 4-Way Teardown, Port multiplexing, Sockets' },
+          { id: 'tcp-congestion', category: 'networking', title: 'TCP Flow & Congestion Control', level: 'intermediate', summary: 'Sliding window, Receiver window (rwnd), Slow Start, Congestion Avoidance, cwnd, Reno/CUBIC' },
+          { id: 'application-layer', category: 'networking', title: 'Application Layer: DNS, HTTP/3 & TLS 1.3', level: 'expert', summary: 'DNS recursive lookup hierarchy, HTTP/1.1 vs HTTP/2 vs HTTP/3 (QUIC), TLS 1.3 1-RTT Handshake' },
+          { id: 'network-security', category: 'networking', title: 'Network Security, Cryptography & Threat Prevention', level: 'expert', summary: 'Symmetric (AES) vs Asymmetric (RSA), Digital Certificates, Firewalls, SYN Flood, DDoS' },
           
-          // DBMS
-          { id: 'relational-model', category: 'dbms', title: 'Relational Model, B+ Trees & ACID', level: 'intermediate', summary: 'Relational schema, B+ Tree indexing, ACID transactions' },
-          { id: 'dbms-indexing', category: 'dbms', title: 'B+ Tree Indexing & 2PL Locks', level: 'expert', summary: 'B+ Tree search/split, 2-Phase Locking (2PL), MVCC' },
+          // Java & Spring Ecosystem
+          { id: 'jvm-gc', category: 'java-spring', title: 'JVM Memory Architecture, GC & Virtual Threads', level: 'intermediate', summary: 'Heap, Young/Old Gen, Metaspace, G1GC vs ZGC, Thread 6-State Lifecycle, Virtual Threads Project Loom' },
+          { id: 'spring-bean-lifecycle', category: 'java-spring', title: 'Spring IoC Container & Bean Lifecycle', level: 'intermediate', summary: 'Bean instantiation, Aware interfaces, @PostConstruct, BeanPostProcessor, @PreDestroy, Auto-Configuration' },
+          { id: 'spring-mvc-lifecycle', category: 'java-spring', title: 'Spring MVC Request Execution & Security Pipeline', level: 'intermediate', summary: 'DispatcherServlet, HandlerMapping, HandlerAdapter, HttpMessageConverter, Security Filter Chain' },
+          { id: 'jpa-hibernate-lifecycle', category: 'java-spring', title: 'JPA / Hibernate Entity Lifecycle & N+1 Solver', level: 'expert', summary: 'Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs' },
+          { id: 'spring-batch-lifecycle', category: 'java-spring', title: 'Spring Batch Execution Architecture & Chunk Engine', level: 'expert', summary: 'JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry' },
+          { id: 'quartz-scheduler', category: 'java-spring', title: 'Quartz Scheduler Lifecycle & Clustered JobStoreTX', level: 'expert', summary: 'Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering' },
         ])
       })
   }, [])
@@ -52,8 +62,8 @@ export default function HomePage() {
       <div className="home-header">
         <h1>CS Fundamentals & Visualizations</h1>
         <p>
-          Master Operating Systems, Computer Networks, and Database Management Systems —
-          interactive animations and deep interview preparation.
+          Master Operating Systems, Computer Networks, Database Management Systems, AI/ML Systems, and Java/Spring Ecosystem —
+          interactive animations and deep SDE-2 interview preparation.
         </p>
 
         <div className="main-tab-switcher" style={{ margin: '1.5rem auto 0 auto' }}>
@@ -80,6 +90,18 @@ export default function HomePage() {
             className={`main-tab-btn ${selectedCategory === 'dbms' ? 'active-tab' : ''}`}
           >
             🗄 DBMS & SQL
+          </button>
+          <button
+            onClick={() => setSelectedCategory('aiml')}
+            className={`main-tab-btn ${selectedCategory === 'aiml' ? 'active-tab' : ''}`}
+          >
+            🤖 AI & ML Systems
+          </button>
+          <button
+            onClick={() => setSelectedCategory('java-spring')}
+            className={`main-tab-btn ${selectedCategory === 'java-spring' ? 'active-tab' : ''}`}
+          >
+            ☕ Java & Spring
           </button>
         </div>
       </div>
