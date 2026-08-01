@@ -1,0 +1,32 @@
+{
+  "virtualMemory": {
+    "id": "virtual-memory-paging",
+    "title": "Virtual Memory & Page Table Address Translation",
+    "subtitle": "Visualize MMU translation from Virtual Address → TLB Lookup (Hit/Miss) → Page Table Indexing → Physical Frame Address.",
+    "mentalModel": "Every process runs in a private virtual address space — the hardware MMU maps virtual pages to physical memory frames via page table arrays and accelerates translation using a TLB cache.",
+    "theoryData": {
+      "failureModes": [
+        "Page Fault Thrashing: When physical memory is over-committed, processes spend 99% of CPU time swapping pages to/from disk rather than executing application instructions.",
+        "TLB Miss Storms: Accessing scattered non-contiguous memory locations (e.g. huge sparse arrays or random pointer chasing) causes constant TLB cache misses, degrading CPU performance."
+      ],
+      "tradeOffs": [
+        "Single-Level vs Multi-Level Page Tables: Single-level page tables require a contiguous array per process (4MB per process for 32-bit), whereas Multi-Level (2-level/4-level x86_64) page tables allocate directory pages on-demand, saving vast RAM."
+      ],
+      "productionScenario": "A high-performance C++ cache service experienced intermittent 50ms memory latency spikes. Profiling revealed huge page table overhead. Enabling Linux Transparent Huge Pages (THP 2MB pages vs standard 4KB pages) reduced TLB entries by 500x and boosted cache lookup throughput by 22%.",
+      "codeSnippet": "// x86_64 4-Level Page Table Structure\n// Virtual Address (64-bit): [Sign Ext 16b | PML4 9b | Directory 9b | Page Table 9b | Offset 12b]\n\nuint64_t translateAddress(uint64_t virtualAddress) {\n    uint64_t pml4_index = (virtualAddress >> 39) & 0x1FF;\n    uint64_t pdpt_index = (virtualAddress >> 30) & 0x1FF;\n    uint64_t offset     = virtualAddress & 0xFFF;\n    return (physicalFrameBase << 12) | offset;\n}",
+      "interviewQA": [
+        {
+          "q": "What happens mechanically during a Page Fault?",
+          "a": "1. MMU detects valid bit = 0 in page table entry.\n2. CPU generates Interrupt 14 (Page Fault Exception) and saves instruction pointer.\n3. OS Kernel Page Fault Handler runs, locates page on disk/swap space.\n4. OS reads page from disk into an available physical frame, updates Page Table valid bit = 1, and re-executes faulting instruction."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "If a system uses 4KB page size (12-bit offset) and a virtual address is 0x2004, what is the Virtual Page Number (VPN) and Offset?",
+        "answer": "Offset = 0x2004 & 0xFFF = 0x004 (decimal 4). Virtual Page Number = 0x2004 >> 12 = 0x2 (Virtual Page #2).",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  }
+}

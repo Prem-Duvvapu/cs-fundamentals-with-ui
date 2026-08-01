@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ConsistentHashingVisualizer from './networking/ConsistentHashingVisualizer'
+import TcpCongestionVisualizer from './networking/TcpCongestionVisualizer'
 
 export default function NetworkingVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -455,31 +456,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
             </div>
           </div>
 
-          <div className="viz-card">
-            <h3>📈 TCP Congestion Control (`cwnd`) Engine</h3>
-
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span>Current Phase:</span>
-                <strong style={{ color: cwndPhase === 'slowstart' ? 'var(--accent-blue)' : cwndPhase === 'avoidance' ? 'var(--accent-green)' : 'var(--accent-red)' }}>
-                  {cwndPhase === 'slowstart' ? '🚀 Slow Start (Exponential)' : cwndPhase === 'avoidance' ? '📈 Congestion Avoidance (AIMD Linear)' : '⚡ Fast Retransmit (3 Dup ACKs)'}
-                </strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span>Congestion Window (`cwnd`):</span>
-                <strong style={{ fontSize: '1.4rem', color: 'var(--accent-purple)' }}>{cwndValue} MSS</strong>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={handleAdvanceCwnd} className="btn btn-primary" style={{ flex: 1 }}>
-                  ▶ Receive ACK (Grow cwnd)
-                </button>
-                <button onClick={triggerFastRetransmit} className="btn btn-secondary" style={{ flex: 1 }}>
-                  🚨 3 Duplicate ACKs (Fast Retransmit)
-                </button>
-              </div>
-            </div>
-          </div>
+          <TcpCongestionVisualizer />
         </div>
       )}
 

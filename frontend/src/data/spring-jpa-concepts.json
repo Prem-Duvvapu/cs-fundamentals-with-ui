@@ -1,0 +1,92 @@
+{
+  "springBean": {
+    "id": "spring-bean-lifecycle",
+    "title": "Spring IoC Container & 9-Stage Bean Lifecycle",
+    "subtitle": "Visualize bean instantiation, Aware interfaces, BeanPostProcessor (before & after), @PostConstruct, and AOP proxy wrapping.",
+    "mentalModel": "Spring beans pass through a 9-stage pipeline from definition scan to AOP proxy creation and singleton registry storage.",
+    "theoryData": {
+      "failureModes": [
+        "Circular Dependency in Constructor Injection: Spring fails to instantiate beans when Bean A requires Bean B in constructor and vice-versa (resolved via @Lazy or setter injection).",
+        "AOP Proxy Bypass via Self-Invocation: Calling a @Transactional or @Async method internally via `this.method()` bypasses the BeanPostProcessor proxy shell, failing to start a transaction."
+      ],
+      "tradeOffs": [
+        "JDK Dynamic Proxy vs CGLIB: JDK Dynamic Proxy creates proxies for interfaces (`Proxy.newProxyInstance`), while CGLIB creates subclass proxies by extending target concrete classes."
+      ],
+      "productionScenario": "An e-commerce order service had silently uncommitted transactions. Investigating revealed `orderService.processOrder()` was calling `this.saveAudit()` directly. Injecting the self-proxy or moving `@Transactional` to the entry point fixed the missing transaction boundaries.",
+      "codeSnippet": "@Service\npublic class OrderService {\n    // BeanPostProcessor wraps this bean in a CGLIB Proxy at Stage 7!\n    @Transactional\n    public void checkout(Order order) {\n        // Transaction is active\n    }\n}",
+      "interviewQA": [
+        {
+          "q": "At which stage of the Spring Bean lifecycle is AOP proxying created?",
+          "a": "AOP proxying (CGLIB/JDK dynamic proxy) is created at Stage 7 during `BeanPostProcessor.postProcessAfterInitialization()`. The container wraps the raw instance with a proxy that intercepts annotated methods."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "Why does calling a `@Transactional` method from within the same class using `this.method()` fail to run in a transaction?",
+        "answer": "Spring's `@Transactional` works via AOP proxies created during bean initialization. Calling `this.method()` invokes the target instance directly, completely bypassing the Spring proxy wrapper that manages the database transaction boundaries.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  },
+  "jpaEntity": {
+    "id": "jpa-entity-lifecycle",
+    "title": "JPA / Hibernate Entity Lifecycle & Automatic Dirty Checking",
+    "subtitle": "Visualize 4 Entity states (Transient, Managed, Detached, Removed), Persistence Context identity map, and automatic UPDATE SQL generation on transaction commit.",
+    "mentalModel": "Hibernate tracks managed entity field mutations inside the Persistence Context snapshot — when flush/commit occurs, it auto-generates SQL UPDATEs for modified fields.",
+    "theoryData": {
+      "failureModes": [
+        "LazyInitializationException: Accessing a LAZY-loaded entity relationship outside an active Hibernate session (after EntityManager close).",
+        "N+1 Query Problem: Executing 1 query for parents and N separate queries for lazy children instead of using JOIN FETCH or @EntityGraph."
+      ],
+      "tradeOffs": [
+        "LAZY vs EAGER Fetching: LAZY prevents fetching unwanted related records but risks `LazyInitializationException` and N+1 queries. EAGER loads everything upfront but risks catastrophic join sizes."
+      ],
+      "productionScenario": "A reporting query fetching 1,000 customers generated 1,001 SQL queries and spiked database CPU to 99%. Replacing default `FetchType.LAZY` loops with `SELECT c FROM Customer c JOIN FETCH c.orders` reduced execution to 1 SQL query, cutting latency from 3.2s to 12ms.",
+      "codeSnippet": "@Entity\npublic class Customer {\n    @Id @GeneratedValue\n    private Long id;\n    \n    // Optimized with JOIN FETCH to eliminate N+1 queries!\n    @OneToMany(mappedBy = \"customer\", fetch = FetchType.LAZY)\n    private List<Order> orders;\n}",
+      "interviewQA": [
+        {
+          "q": "How does Hibernate Automatic Dirty Checking work?",
+          "a": "When an entity is loaded into the Persistence Context (Managed state), Hibernate takes a baseline snapshot of its state. Upon transaction commit/flush, Hibernate compares the current state to the snapshot and generates SQL UPDATE statements for modified attributes."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "What is the difference between `em.persist(entity)` and `em.merge(entity)`?",
+        "answer": "`em.persist()` transitions a NEW (Transient) entity instance into MANAGED state. `em.merge()` takes a DETACHED entity, copies its state onto a managed instance in the persistence context, and returns the managed instance.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  },
+  "connectionPool": {
+    "id": "hikari-connection-pool",
+    "title": "HikariCP Connection Pool Mechanics & Exhaustion",
+    "subtitle": "Visualize thread connection borrowing, active connection leasing, pool boundary limits, and request thread waiting queues during load bursts.",
+    "mentalModel": "HikariCP maintains pre-allocated DB connections in a pool; threads borrow connections for queries and return them immediately — pool exhaustion causes request queuing and timeouts.",
+    "theoryData": {
+      "failureModes": [
+        "Connection Leak: Forgetting to close a connection or keeping long-running non-DB operations inside a transactional method holds the pooled connection hostage until pool exhaustion.",
+        "Pool Starvation: Configuring pool max-size lower than peak concurrent HTTP worker threads causes `SQLTransientConnectionException: Connection is not available, request timed out after 30000ms`."
+      ],
+      "tradeOffs": [
+        "Fixed Pool Size vs Dynamic Sizing: HikariCP recommends a FIXED pool size (`maximumPoolSize == minimumIdle`) to eliminate latency spikes caused by on-demand connection creation."
+      ],
+      "productionScenario": "An API Gateway crashed under peak load with 30-second HTTP timeouts. Diagnostics showed HikariCP pool size was set to 10 connections for 200 Tomcat worker threads. Tuning pool size to `(CPU cores * 2) + effective_spindle_count` = 32 and setting `leakDetectionThreshold=2000ms` resolved the bottleneck.",
+      "codeSnippet": "# HikariCP Production Configuration\nspring.datasource.hikari.maximum-pool-size=32\nspring.datasource.hikari.minimum-idle=32\nspring.datasource.hikari.connection-timeout=3000\nspring.datasource.hikari.idle-timeout=600000\nspring.datasource.hikari.leak-detection-threshold=2000",
+      "interviewQA": [
+        {
+          "q": "Why is HikariCP significantly faster than legacy connection pools like C3P0 or DBCP?",
+          "a": "HikariCP uses bytecode optimization, FastList (custom ArrayList replacement without range-checks), ConcurrentBag lock-free borrowing using ThreadLocal thread-level connection caching, and eliminates synchronized overhead."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "What happens when all connections in a HikariCP pool are in use and a new request thread arrives?",
+        "answer": "The new thread enters a FIFO waiting queue and blocks until an active connection is returned or until `connectionTimeout` (default 30s) expires, throwing `SQLTransientConnectionException`.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  }
+}

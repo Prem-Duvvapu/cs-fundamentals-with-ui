@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchPageReplacementSimulation } from '../../utils/api'
+import VirtualMemoryVisualizer from './os/VirtualMemoryVisualizer'
 
 export default function MemoryVisualizer() {
   const [algo, setAlgo] = useState('LRU') // LRU, FIFO, OPTIMAL
@@ -59,6 +60,8 @@ export default function MemoryVisualizer() {
           <p>Simulate Page Replacement Algorithms (LRU, FIFO, Optimal) and Virtual-to-Physical Address Translation.</p>
         </div>
       </div>
+
+      <VirtualMemoryVisualizer />
 
       {/* Control Panel */}
       <div className="viz-controls-card">

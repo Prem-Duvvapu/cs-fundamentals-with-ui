@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import JvmMemoryVisualizer from './java/JvmMemoryVisualizer'
 import HashMapVisualizer from './java/HashMapVisualizer'
 import VirtualThreadsVisualizer from './java/VirtualThreadsVisualizer'
+import ConnectionPoolVisualizer from './java/ConnectionPoolVisualizer'
+import SpringBatchVisualizer from './java/SpringBatchVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -131,6 +133,12 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             🌐 Spring MVC Request Flow
           </button>
           <button
+            onClick={() => setActiveTab('hikari-pool')}
+            className={`main-tab-btn ${activeTab === 'hikari-pool' ? 'active-tab' : ''}`}
+          >
+            🔌 HikariCP Connection Pool
+          </button>
+          <button
             onClick={() => setActiveTab('jpa')}
             className={`main-tab-btn ${activeTab === 'jpa' ? 'active-tab' : ''}`}
           >
@@ -164,6 +172,11 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       {/* MODE 3: VIRTUAL THREADS (LOOM) */}
       {activeTab === 'virtual-threads' && (
         <VirtualThreadsVisualizer />
+      )}
+
+      {/* MODE 4: HIKARICP CONNECTION POOL */}
+      {activeTab === 'hikari-pool' && (
+        <ConnectionPoolVisualizer />
       )}
 
       {/* MODE 2: SPRING BEAN LIFECYCLE */}
@@ -273,53 +286,7 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
 
       {/* MODE 5: SPRING BATCH CHUNK ENGINE */}
       {activeTab === 'batch' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>📦 Spring Batch Chunk-Oriented Processing Engine</h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Chunk Size (Items per DB Transaction): {chunkSize}</label>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={chunkSize}
-                  onChange={e => setChunkSize(Number(e.target.value))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={handleRunChunk} className="btn btn-primary" style={{ flex: 1 }}>
-                  ▶ Process Chunk of {chunkSize} Items
-                </button>
-                <button onClick={() => { setProcessedCount(0); setSkipCount(0) }} className="btn btn-secondary">
-                  ⏮ Reset Batch
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="viz-card">
-            <h3>📊 JobRepository Batch Metrics (`BATCH_STEP_EXECUTION`)</h3>
-
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span>Total Items Processed & Committed:</span>
-                <strong style={{ color: 'var(--accent-green)', fontSize: '1.3rem' }}>{processedCount} items</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span>DB Transactions Committed:</span>
-                <strong>{Math.ceil(processedCount / chunkSize)} commits</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Skipped Corrupt Items:</span>
-                <strong>{skipCount} skipped</strong>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SpringBatchVisualizer />
       )}
 
       {/* MODE 6: QUARTZ SCHEDULER & CLUSTER LOCKING */}

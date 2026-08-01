@@ -1,0 +1,31 @@
+{
+  "springBatch": {
+    "id": "spring-batch-chunk-engine",
+    "title": "Spring Batch Chunk Engine & Skip/Retry Policies",
+    "subtitle": "Visualize ItemReader → ItemProcessor → ItemWriter chunk commit boundaries, backoff retries, and skip limits.",
+    "mentalModel": "Spring Batch reads items one by one into a chunk buffer — when chunk size (e.g. 5) is met, all items write in a single DB transaction.",
+    "theoryData": {
+      "failureModes": [
+        "Corrupt Data Rollback Cascade: Without a SkipPolicy, a single invalid record in a 1,000,000-item job causes transaction rollback and kills the entire batch execution."
+      ],
+      "tradeOffs": [
+        "Chunk Size 10 vs 1000: Smaller chunk size minimizes rollback data churn on errors but increases DB transaction overhead. Larger chunk size maximizes write throughput at higher memory footprint."
+      ],
+      "productionScenario": "A nightly financial settlement job processing 5M records crashed midway every night due to bad customer records. Adding `skip(CorruptDataException.class)` with `skipLimit(100)` allowed the job to finish in 8 minutes while logging bad records into an audit skip table.",
+      "codeSnippet": "@Bean\npublic Step processOrderStep(JobRepository jobRepository, PlatformTransactionManager txManager) {\n    return new StepBuilder(\"processOrderStep\", jobRepository)\n        .<Order, ProcessedOrder>chunk(5, txManager)\n        .reader(orderReader())\n        .processor(orderProcessor())\n        .writer(orderWriter())\n        .faultTolerant()\n        .skip(ValidationException.class).skipLimit(10)\n        .retry(TransientDataAccessException.class).retryLimit(3)\n        .build();\n}",
+      "interviewQA": [
+        {
+          "q": "What happens when an exception occurs inside ItemProcessor during a chunk commit?",
+          "a": "Spring Batch rolls back the active transaction for the entire chunk. If a Skip Policy is configured, it re-reads the items one-by-one in non-chunked mode to isolate the single bad item, skips it, logs it to `BATCH_STEP_EXECUTION`, and resumes chunked processing."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "If chunk size is 100 and item 47 throws a skipped exception, how many items are committed in the database?",
+        "answer": "Item 47 is skipped. The remaining 99 valid items in that chunk are processed and committed together in the transaction.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  }
+}
