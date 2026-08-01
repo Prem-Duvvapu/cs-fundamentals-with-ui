@@ -48,15 +48,7 @@ export default function HomePage() {
           { id: 'dbms-indexing', category: 'dbms', title: 'B+ Tree Indexing & Storage Structures', level: 'intermediate', summary: 'Animated B+ tree node splits, O(log N) point lookups, doubly-linked leaf range scans' },
           { id: 'transactions-acid', category: 'dbms', title: 'Transactions & ACID Properties', level: 'intermediate', summary: 'ACID guarantees, WAL logging, crash recovery' },
           { id: 'concurrency-control', category: 'dbms', title: 'Concurrency & 2-Phase Locking (2PL)', level: 'expert', summary: 'Shared vs Exclusive locks, 2PL, deadlock wait-for graphs' },
-          { id: 'query-optimization', category: 'dbms', title: 'Query Optimizer (CBO)', level: 'expert', summary: 'Cost-based optimizer, Join algorithms (Nested Loop, Hash, Sort-Merge)' },
-
-          // AI & ML Systems
-          { id: 'embeddings-vector-db', category: 'aiml', title: 'Vector Embeddings & Similarity Search', level: 'beginner', summary: 'Dot product, Cosine Similarity, HNSW vector indexing' },
-          { id: 'rag-architecture', category: 'aiml', title: 'RAG Architecture & Vector Retrieval', level: 'intermediate', summary: '5-Stage Retrieval-Augmented Generation pipeline' },
-          { id: 'model-serving', category: 'aiml', title: 'vLLM & PagedAttention Serving', level: 'intermediate', summary: 'PagedAttention memory fragmentation reduction' },
-          { id: 'llm-parameters', category: 'aiml', title: 'LLM Sampling & Temperature Control', level: 'expert', summary: 'Temperature scaling, Top-P (nucleus), Top-K sampling' },
-          { id: 'feature-stores', category: 'aiml', title: 'Feature Stores & MLOps Architecture', level: 'expert', summary: 'Online vs Offline feature store sync, data drift detection' },
-          { id: 'recommendation-systems', category: 'aiml', title: 'Recommendation System Architecture', level: 'expert', summary: '2-Stage Candidate Retrieval & Ranking pipeline' }
+          { id: 'query-optimization', category: 'dbms', title: 'Query Optimizer (CBO)', level: 'expert', summary: 'Cost-based optimizer, Join algorithms (Nested Loop, Hash, Sort-Merge)' }
         ])
       })
   }, [])
@@ -79,8 +71,8 @@ export default function HomePage() {
       <div className="home-header">
         <h1>CS Fundamentals & Visualizations</h1>
         <p>
-          Master Operating Systems, Computer Networks, Database Management Systems, AI/ML Systems, and Java/Spring Ecosystem —
-          interactive animations and deep SDE-2 interview preparation.
+          Master Operating Systems, Computer Networks, Database Management Systems, and Java/Spring Ecosystem —
+          interactive animations and deep SDE-2 backend interview preparation.
         </p>
 
         <div className="main-tab-switcher" style={{ margin: '1.5rem auto 0 auto' }}>
@@ -109,16 +101,10 @@ export default function HomePage() {
             🗄 DBMS & SQL
           </button>
           <button
-            onClick={() => setSelectedCategory('aiml')}
-            className={`main-tab-btn ${selectedCategory === 'aiml' ? 'active-tab' : ''}`}
-          >
-            🤖 AI & ML Systems
-          </button>
-          <button
             onClick={() => setSelectedCategory('java-spring')}
             className={`main-tab-btn ${selectedCategory === 'java-spring' ? 'active-tab' : ''}`}
           >
-            ☕ Java & Spring
+            ☕ Java & Spring Ecosystem
           </button>
         </div>
       </div>
