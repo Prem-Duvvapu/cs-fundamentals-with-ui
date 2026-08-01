@@ -40,6 +40,23 @@ export default function HomePage() {
           { id: 'jpa-hibernate-lifecycle', category: 'java-spring', title: 'JPA / Hibernate Entity Lifecycle & N+1 Solver', level: 'expert', summary: 'Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs' },
           { id: 'spring-batch-lifecycle', category: 'java-spring', title: 'Spring Batch Execution Architecture & Chunk Engine', level: 'expert', summary: 'JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry' },
           { id: 'quartz-scheduler', category: 'java-spring', title: 'Quartz Scheduler Lifecycle & Clustered JobStoreTX', level: 'expert', summary: 'Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering' },
+
+          // DBMS & SQL
+          { id: 'dbms-architecture', category: 'dbms', title: 'DBMS Architecture & 3-Schema', level: 'beginner', summary: 'ANSI-SPARC 3-schema architecture, Physical vs Logical data independence' },
+          { id: 'er-model', category: 'dbms', title: 'ER Model & Functional Closures', level: 'beginner', summary: 'ER modeling, attribute closure solver, candidate key detection' },
+          { id: 'normalization', category: 'dbms', title: 'Database Normalization', level: 'intermediate', summary: '1NF, 2NF, 3NF, BCNF lossy vs lossless decomposition' },
+          { id: 'dbms-indexing', category: 'dbms', title: 'B+ Tree Indexing & Storage Structures', level: 'intermediate', summary: 'Animated B+ tree node splits, O(log N) point lookups, doubly-linked leaf range scans' },
+          { id: 'transactions-acid', category: 'dbms', title: 'Transactions & ACID Properties', level: 'intermediate', summary: 'ACID guarantees, WAL logging, crash recovery' },
+          { id: 'concurrency-control', category: 'dbms', title: 'Concurrency & 2-Phase Locking (2PL)', level: 'expert', summary: 'Shared vs Exclusive locks, 2PL, deadlock wait-for graphs' },
+          { id: 'query-optimization', category: 'dbms', title: 'Query Optimizer (CBO)', level: 'expert', summary: 'Cost-based optimizer, Join algorithms (Nested Loop, Hash, Sort-Merge)' },
+
+          // AI & ML Systems
+          { id: 'embeddings-vector-db', category: 'aiml', title: 'Vector Embeddings & Similarity Search', level: 'beginner', summary: 'Dot product, Cosine Similarity, HNSW vector indexing' },
+          { id: 'rag-architecture', category: 'aiml', title: 'RAG Architecture & Vector Retrieval', level: 'intermediate', summary: '5-Stage Retrieval-Augmented Generation pipeline' },
+          { id: 'model-serving', category: 'aiml', title: 'vLLM & PagedAttention Serving', level: 'intermediate', summary: 'PagedAttention memory fragmentation reduction' },
+          { id: 'llm-parameters', category: 'aiml', title: 'LLM Sampling & Temperature Control', level: 'expert', summary: 'Temperature scaling, Top-P (nucleus), Top-K sampling' },
+          { id: 'feature-stores', category: 'aiml', title: 'Feature Stores & MLOps Architecture', level: 'expert', summary: 'Online vs Offline feature store sync, data drift detection' },
+          { id: 'recommendation-systems', category: 'aiml', title: 'Recommendation System Architecture', level: 'expert', summary: '2-Stage Candidate Retrieval & Ranking pipeline' }
         ])
       })
   }, [])
