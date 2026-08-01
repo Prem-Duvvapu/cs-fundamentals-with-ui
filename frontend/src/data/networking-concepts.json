@@ -1,0 +1,62 @@
+{
+  "tcpCongestion": {
+    "id": "tcp-congestion-control",
+    "title": "TCP Flow & Congestion Control (cwnd & Sliding Window)",
+    "subtitle": "Visualize Congestion Window (cwnd) dynamics: Slow Start exponential growth, Congestion Avoidance AIMD, and Fast Recovery packet loss collapse.",
+    "mentalModel": "TCP constantly probes network capacity by doubling cwnd during Slow Start, increasing by +1 MSS per RTT during Congestion Avoidance, and halving/collapsing cwnd on packet loss.",
+    "theoryData": {
+      "failureModes": [
+        "Bufferbloat: Excessively large router queue buffers delay packet loss signals, causing RTT to swell to multi-second delays while TCP cwnd remains artificially high.",
+        "Global Synchronization: In networks with tail-drop queues, multiple TCP flows drop packets simultaneously, causing all connections to collapse cwnd to 1 MSS at the exact same moment."
+      ],
+      "tradeOffs": [
+        "TCP Reno vs CUBIC vs BBR: Reno/CUBIC use loss-based congestion detection (collapsing cwnd on packet loss). Google's BBR (Bottleneck Bandwidth and RTT) uses delay-based pacing, maximizing throughput without filling router buffers."
+      ],
+      "productionScenario": "A cross-region microservice communication pipeline experienced throughput degradation over 100ms RTT links. Tuning Linux TCP socket buffers (`sysctl -w net.ipv4.tcp_rmem='4096 87380 16777216'`) allowed the sliding receiver window (rwnd) to scale to 16MB, utilizing full 10Gbps link capacity.",
+      "codeSnippet": "// Linux Kernel TCP Congestion Control Configuration\n// sysctl net.ipv4.tcp_congestion_control=cubic\n// sysctl -w net.ipv4.tcp_wmem='4096 65536 16777216'\n// sysctl -w net.ipv4.tcp_rmem='4096 87380 16777216'",
+      "interviewQA": [
+        {
+          "q": "What is the difference between TCP Flow Control and TCP Congestion Control?",
+          "a": "Flow Control prevents the sender from overwhelming the RECEIVER's buffer (regulated by `rwnd` advertised in TCP headers). Congestion Control prevents senders from overwhelming the NETWORK (regulated by `cwnd` estimated via packet loss/delay)."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "In TCP Slow Start, if cwnd = 1 MSS initially, how many MSS packets are sent in the 4th Round Trip Time (RTT)?",
+        "answer": "In Slow Start, cwnd doubles every RTT (1 -> 2 -> 4 -> 8). In the 4th RTT, cwnd = 8 MSS packets.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  },
+  "consistentHashing": {
+    "id": "consistent-hashing",
+    "title": "Consistent Hashing & Ring Rebalancing",
+    "subtitle": "Visualize 360-degree hash ring distribution, node placement, virtual nodes, and minimal key re-mapping during server node additions or crashes.",
+    "mentalModel": "Consistent hashing maps both server nodes and keys onto a circular hash ring — when a server is added or fails, only 1/N of keys are remapped instead of all keys.",
+    "theoryData": {
+      "failureModes": [
+        "Hotspotting / Non-Uniform Key Distribution: Without Virtual Nodes, servers receive uneven key loads on the ring, overloading individual cache nodes.",
+        "Cascading Cache Failures: When one cache node dies, its entire key workload dumps onto its immediate clockwise neighbor, causing it to crash as well."
+      ],
+      "tradeOffs": [
+        "Naive Modulo Hashing `hash(key) % N` vs Consistent Hashing: Modulo hashing remaps ~100% of keys whenever N changes (catastrophic for distributed caches like Redis/Memcached). Consistent hashing remaps only $K/N$ keys."
+      ],
+      "productionScenario": "A distributed caching cluster with 20 nodes experienced database outages whenever a node was added. Switching from modulo hashing to Consistent Hashing with 150 Virtual Nodes per physical server reduced key cache invalidations from 95% to 4.8%.",
+      "codeSnippet": "// Consistent Hash Ring Virtual Node Routing\npublic class ConsistentHashRing {\n    private final TreeMap<Long, String> ring = new TreeMap<>();\n    private final int virtualNodes = 150;\n\n    public void addServer(String server) {\n        for (int i = 0; i < virtualNodes; i++) {\n            long hash = md5Hash(server + \"-vnode-\" + i);\n            ring.put(hash, server);\n        }\n    }\n\n    public String getServer(String key) {\n        if (ring.isEmpty()) return null;\n        long hash = md5Hash(key);\n        Map.Entry<Long, String> entry = ring.ceilingEntry(hash);\n        return (entry != null) ? entry.getValue() : ring.firstEntry().getValue();\n    }\n}",
+      "interviewQA": [
+        {
+          "q": "Why are Virtual Nodes necessary in Consistent Hashing?",
+          "a": "Virtual Nodes map each physical server to multiple positions (e.g. 100-200 points) across the hash ring. This ensures balanced key distribution and spreads a failed node's workload evenly across ALL remaining physical servers rather than overloading just one neighbor."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "If a Consistent Hash ring has 10 physical servers and 1 server fails, what percentage of keys must be remapped?",
+        "answer": "Only approximately 1/10 (10%) of the keys (the ones that belonged to the failed server) need to be remapped to remaining servers.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  }
+}

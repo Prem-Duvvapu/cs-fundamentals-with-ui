@@ -1,0 +1,103 @@
+{
+  "jvmMemory": {
+    "id": "jvm-memory-layout",
+    "title": "JVM Memory Architecture & Generation Allocations",
+    "subtitle": "Visualize heap memory regions (Eden, Survivor S0/S1, Old Gen), Metaspace off-heap metadata, and per-thread Execution Stacks during object instantiation.",
+    "mentalModel": "Objects live in generational heap regions based on age (Eden -> Survivor -> Old Gen), while method execution frames live on thread stacks and class metadata lives off-heap in Metaspace.",
+    "theoryData": {
+      "failureModes": [
+        "java.lang.OutOfMemoryError: Java heap space — Created when Old Gen fills up with reachable objects or uncollected memory leaks.",
+        "java.lang.OutOfMemoryError: Metaspace — Occurs when dynamic class generation (e.g. CGLIB proxies, reflection) continuously loads un-garbage-collected Class objects.",
+        "java.lang.StackOverflowError — Triggered when recursive method calls exceed the thread stack size (-Xss)."
+      ],
+      "tradeOffs": [
+        "Generational Heap vs Flat Memory: Generational hypothesis assumes 'most objects die young' (90%+), making Eden Minor GC fast by only copying surviving objects to Survivor space.",
+        "Metaspace vs legacy PermGen: Metaspace expands dynamically in native RAM (bounded by -XX:MaxMetaspaceSize) avoiding fixed PermGen allocation caps."
+      ],
+      "productionScenario": "A high-throughput notification service crashed every 6 hours with OutOfMemoryError. JVM heap dump analysis showed 1.2M uncollected UserContext instances pinned inside a static ThreadLocal registry that was never cleared after HTTP requests completed.",
+      "codeSnippet": "// JVM Memory Sizing Flags\n// java -Xms2g -Xmx4g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m -Xss512k -jar app.jar\n\npublic class MemoryAllocationDemo {\n    private static final List<byte[]> memoryLeakList = new ArrayList<>();\n\n    public void allocateEden() {\n        byte[] shortLived = new byte[1024 * 100]; // 100KB allocated in Eden\n    }\n}",
+      "interviewQA": [
+        {
+          "q": "What is the Weak Generational Hypothesis and how does JVM memory layout leverage it?",
+          "a": "The Weak Generational Hypothesis states that most objects die shortly after creation. JVM layout separates the heap into Young Gen (Eden + Survivor S0/S1) and Old Gen. Minor GC only scans Young Gen, making garbage collection fast because only a tiny fraction of live objects need copying."
+        },
+        {
+          "q": "How does object promotion from Young Gen to Old Gen work?",
+          "a": "Each time an object survives a Minor GC, its age counter increments in the Object Header (mark word). When its age reaches -XX:MaxTenuringThreshold (default up to 15), or when survivor space memory exceeds -XX:TargetSurvivorRatio (Dynamic Tenuring Threshold), it is promoted to Old Gen."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "Where are local primitive variables stored versus objects created with new MyObject() in Java?",
+        "answer": "Local primitive variables (e.g., int x = 5) and object reference variables are stored on the Thread Stack Frame. The actual object instance data created with new is allocated inside Heap memory (specifically Eden space initially).",
+        "difficulty": "SDE-2 Interview"
+      },
+      {
+        "question": "What happens when an object is too large to fit into the Eden space during initial allocation?",
+        "answer": "If an object size exceeds the available Eden space or the Large Object Threshold, the JVM bypasses Eden and Survivor spaces completely and allocates the large object directly inside the Old Generation.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  },
+  "g1Gc": {
+    "id": "g1-gc",
+    "title": "G1 Garbage Collector — Region Evacuation & STW Control",
+    "subtitle": "Visualize region-based memory collection, Eden/Survivor evacuation, concurrent marking phase, and Stop-The-World (STW) pause time optimization.",
+    "mentalModel": "G1 divides the heap into thousands of equal-sized regions and collects 'garbage first' — reclaiming regions with the most dead objects to satisfy target pause times.",
+    "theoryData": {
+      "failureModes": [
+        "To-Space Exhaustion: Occurs when G1 cannot find an empty region to evacuate live objects during GC, forcing a catastrophic fallback to a single-threaded Full GC STW pause.",
+        "Humongous Allocation Spikes: Objects larger than 50% of a G1 region size are classified as Humongous and allocated in contiguous regions, leading to heap fragmentation."
+      ],
+      "tradeOffs": [
+        "G1GC vs ZGC: G1 targets predictable pause times (<200ms) with high throughput. ZGC (Z Garbage Collector) achieves sub-millisecond (<1ms) pause times using colored pointers and load barriers at slightly higher CPU usage."
+      ],
+      "productionScenario": "An API Gateway experienced 1200ms p99 latency spikes. GC logs showed frequent 'To-Space Exhaustion'. Increasing -XX:G1HeapRegionSize=16m and raising -XX:InitiatingHeapOccupancyPercent=45 triggered concurrent marking earlier, bringing pause times down to <40ms.",
+      "codeSnippet": "// G1GC Production Configuration Parameters\n// java -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:G1HeapRegionSize=16m -XX:InitiatingHeapOccupancyPercent=45 -jar app.jar",
+      "interviewQA": [
+        {
+          "q": "How does G1GC select which regions to include in a Collection Set (CSet)?",
+          "a": "During the Concurrent Marking phase, G1 calculates the liveness ratio (percentage of live vs dead objects) for all Old regions. It sorts regions by reclaimable space efficiency and selects the highest-garbage regions that can be evacuated within the -XX:MaxGCPauseMillis goal."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "What is the purpose of Remembered Sets (RSets) in G1GC?",
+        "answer": "Remembered Sets track cross-region references (e.g., an Old Gen region object referencing a Young Gen region object). This allows G1 to collect a Young region without having to scan the entire Old Generation heap.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  },
+  "hashMap": {
+    "id": "hashmap-internals",
+    "title": "HashMap & ConcurrentHashMap Internals",
+    "subtitle": "Visualize array bucket indexing, hash collision chaining, treeification at 8 elements, resize rehashing at 0.75 load factor, and ConcurrentHashMap CAS + synchronized bucket locking.",
+    "mentalModel": "HashMap maps keys to array buckets via bitwise hash spread — collisions form linked lists that treeify into Red-Black trees when threshold 8 is reached.",
+    "theoryData": {
+      "failureModes": [
+        "Bad hashCode() Implementation: Returning a constant hash code (e.g. return 1) degrades HashMap operations from O(1) to O(log N) or O(N).",
+        "Infinite Loop in Java 7 HashMap: Concurrent put() during resize in Java 7 caused circular linked lists leading to 100% CPU usage (fixed in Java 8)."
+      ],
+      "tradeOffs": [
+        "Hashtable vs Collections.synchronizedMap vs ConcurrentHashMap: Hashtable locks the entire map on every operation. ConcurrentHashMap uses fine-grained CAS for empty buckets and locks only the specific bucket head during updates."
+      ],
+      "productionScenario": "A caching service using HashMap in a multi-threaded web application experienced random server hangs. Replacing unsafe HashMap with ConcurrentHashMap eliminated multi-threaded race conditions during bucket insertion.",
+      "codeSnippet": "// HashMap Treeification Threshold Constants\nstatic final int DEFAULT_INITIAL_CAPACITY = 1 << 4;\nstatic final float DEFAULT_LOAD_FACTOR = 0.75f;\nstatic final int TREEIFY_THRESHOLD = 8;\nstatic final int UNTREEIFY_THRESHOLD = 6;",
+      "interviewQA": [
+        {
+          "q": "Why must the HashMap capacity always be a power of 2?",
+          "a": "When capacity n is a power of 2, the modulo operation hash % n can be calculated using fast bitwise AND: (n - 1) & hash. This distributes bits uniformly across bucket indices."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "What happens when a HashMap bucket reaches 8 elements but the total capacity is only 32?",
+        "answer": "HashMap requires BOTH bucket size >= 8 AND total capacity >= 64 (MIN_TREEIFY_CAPACITY) to treeify. If capacity is < 64, HashMap triggers an array resize/rehash instead of converting the list to a tree.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  }
+}

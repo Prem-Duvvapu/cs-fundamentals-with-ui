@@ -1,4 +1,7 @@
 import React, { useState } from 'react'
+import JvmMemoryVisualizer from './java/JvmMemoryVisualizer'
+import HashMapVisualizer from './java/HashMapVisualizer'
+import VirtualThreadsVisualizer from './java/VirtualThreadsVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -101,7 +104,19 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
           >
-            ☕ JVM Memory & Thread States
+            ☕ JVM Memory & Heap Generations
+          </button>
+          <button
+            onClick={() => setActiveTab('hashmap')}
+            className={`main-tab-btn ${activeTab === 'hashmap' ? 'active-tab' : ''}`}
+          >
+            🔑 HashMap & Bucket Internals
+          </button>
+          <button
+            onClick={() => setActiveTab('virtual-threads')}
+            className={`main-tab-btn ${activeTab === 'virtual-threads' ? 'active-tab' : ''}`}
+          >
+            🌀 Virtual Threads (Loom)
           </button>
           <button
             onClick={() => setActiveTab('bean')}
@@ -136,62 +151,19 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
         </div>
       </div>
 
-      {/* MODE 1: JVM MEMORY & THREAD STATES */}
+      {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
       {activeTab === 'jvm' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>☕ Java Thread 6-State Lifecycle Machine</h3>
+        <JvmMemoryVisualizer />
+      )}
 
-            <div className="main-tab-switcher" style={{ margin: '1rem 0' }}>
-              <button onClick={() => setThreadType('platform')} className={`main-tab-btn ${threadType === 'platform' ? 'active-tab' : ''}`}>
-                Platform Thread (1:1 OS Thread)
-              </button>
-              <button onClick={() => setThreadType('virtual')} className={`main-tab-btn ${threadType === 'virtual' ? 'active-tab' : ''}`}>
-                Virtual Thread (Loom Carrier Unmounting)
-              </button>
-            </div>
+      {/* MODE 2: HASHMAP & BUCKET INTERNALS */}
+      {activeTab === 'hashmap' && (
+        <HashMapVisualizer />
+      )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1rem' }}>
-              {['NEW', 'RUNNABLE', 'BLOCKED', 'WAITING', 'TIMED_WAITING', 'TERMINATED'].map(state => (
-                <button
-                  key={state}
-                  onClick={() => setThreadState(state)}
-                  className={`btn ${threadState === state ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 'bold' }}
-                >
-                  {state}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ marginTop: '1.25rem', background: '#0f172a', padding: '1rem', borderRadius: '10px' }}>
-              <h4>Current Thread State: <span style={{ color: 'var(--accent-purple)' }}>{threadState}</span></h4>
-              <p style={{ fontSize: '0.85rem', marginTop: '0.4rem' }}>
-                {threadType === 'virtual' && (threadState === 'WAITING' || threadState === 'TIMED_WAITING')
-                  ? '✨ Virtual Thread Unmounted from Carrier OS Thread! Carrier Thread is free to execute other Virtual Threads.'
-                  : `Standard JVM thread state behavior for ${threadType} thread.`}
-              </p>
-            </div>
-          </div>
-
-          <div className="viz-card">
-            <h3>📊 JVM Heap Memory & GC Generation Layout</h3>
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span>Young Generation (Eden + S0 + S1):</span>
-                <strong style={{ color: 'var(--accent-green)' }}>Minor GC Active</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span>Old Generation (Tenured):</span>
-                <strong style={{ color: 'var(--accent-amber)' }}>Major / Full GC</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Metaspace (Off-Heap Native Memory):</span>
-                <strong style={{ color: 'var(--accent-purple)' }}>Class Metadata</strong>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* MODE 3: VIRTUAL THREADS (LOOM) */}
+      {activeTab === 'virtual-threads' && (
+        <VirtualThreadsVisualizer />
       )}
 
       {/* MODE 2: SPRING BEAN LIFECYCLE */}

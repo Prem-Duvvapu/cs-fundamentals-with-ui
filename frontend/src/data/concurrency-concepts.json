@@ -1,0 +1,62 @@
+{
+  "virtualThreads": {
+    "id": "virtual-threads-loom",
+    "title": "Virtual Threads (Project Loom) & Carrier Unmounting",
+    "subtitle": "Visualize lightweight user-mode Virtual Threads mounted on ForkJoinPool Carrier OS Threads, and automatic unmounting during blocking socket/DB I/O.",
+    "mentalModel": "Virtual Threads decouple Java threads from OS threads — when a Virtual Thread blocks on I/O, the JVM unmounts it from the Carrier OS thread so the OS thread can immediately execute another Virtual Thread.",
+    "theoryData": {
+      "failureModes": [
+        "Thread Pinning: Occurs when a Virtual Thread calls blocking I/O inside a `synchronized` block or native JNI method, preventing the JVM from unmounting it from the Carrier Thread.",
+        "Monolithic ThreadLocal Memory Leak: Spawning 100,000 Virtual Threads with large `ThreadLocal` allocations will consume gigabytes of heap memory."
+      ],
+      "tradeOffs": [
+        "Virtual Threads vs Reactive Programming (WebFlux): Virtual Threads allow writing standard imperative blocking code (`Thread.sleep()`, JDBC) while achieving reactive-level throughput without callback hell or Mono/Flux complexity."
+      ],
+      "productionScenario": "An enterprise payment gateway operating 200 platform threads hit 100% CPU and socket exhaustion at 500 RPS. Migrating to Java 21 Virtual Threads (`Executors.newVirtualThreadPerTaskExecutor()`) allowed the system to serve 15,000 concurrent RPS using only 8 Carrier OS Threads.",
+      "codeSnippet": "// Java 21 Virtual Thread Per Task Executor\ntry (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n    IntStream.range(0, 10_000).forEach(i -> {\n        executor.submit(() -> {\n            // Blocking DB/HTTP call - JVM unmounts virtual thread automatically!\n            HttpResponse<String> res = httpClient.send(req, BodyHandlers.ofString());\n            return res.body();\n        });\n    });\n}",
+      "interviewQA": [
+        {
+          "q": "What is Virtual Thread Pinning and how do you resolve it?",
+          "a": "Pinning happens when a Virtual Thread cannot be unmounted from its Carrier OS Thread during blocking I/O because it is executing inside a `synchronized` block/method. Fix it by replacing `synchronized` with `java.util.concurrent.locks.ReentrantLock`."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "Should you pool Virtual Threads using a fixed ThreadPoolExecutor (`newFixedThreadPool`)?",
+        "answer": "NO! Virtual Threads are extremely cheap (~1KB memory footprint) and intended to be created per-task and discarded. Pooling virtual threads limits concurrency and reintroduces resource contention bottlenecks.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  },
+  "threadPool": {
+    "id": "thread-pool-executor",
+    "title": "ThreadPoolExecutor Internals & Rejection Policies",
+    "subtitle": "Visualize task submission flow: Core Threads → Work Queue → Max Threads → Rejection Policy (Abort, CallerRuns, Discard, DiscardOldest).",
+    "mentalModel": "ThreadPoolExecutor processes tasks with Core Threads first; when busy, tasks buffer in the Work Queue; when queue fills, it spawns up to Max Threads; when full, Rejection Policy triggers.",
+    "theoryData": {
+      "failureModes": [
+        "Unbounded Queue OOM: Using `Executors.newFixedThreadPool(n)` uses an unbounded `LinkedBlockingQueue` (Integer.MAX_VALUE), which accumulates tasks under load until Java Heap OOM occurs.",
+        "Thread Starvation Deadlock: Submitting tasks that wait for other tasks submitted to the same fixed thread pool can cause complete deadlock."
+      ],
+      "tradeOffs": [
+        "CallerRunsPolicy vs AbortPolicy: `CallerRunsPolicy` degrades throughput gracefully by forcing the submitting thread (e.g. Tomcat HTTP thread) to run the task, providing natural backpressure; `AbortPolicy` throws `RejectedExecutionException` immediately."
+      ],
+      "productionScenario": "During a black Friday traffic spike, an asynchronous log exporter flooded its thread pool. Because it used `AbortPolicy`, thousands of order requests failed with `RejectedExecutionException`. Switching to `CallerRunsPolicy` throttled incoming HTTP requests safely without dropping orders.",
+      "codeSnippet": "// Production ThreadPoolExecutor Configuration\nThreadPoolExecutor pool = new ThreadPoolExecutor(\n    4,                      // corePoolSize\n    16,                     // maximumPoolSize\n    60L, TimeUnit.SECONDS,  // keepAliveTime\n    new ArrayBlockingQueue<>(500), // bounded work queue\n    new ThreadPoolExecutor.CallerRunsPolicy() // rejection handler\n);",
+      "interviewQA": [
+        {
+          "q": "What is the exact order ThreadPoolExecutor follows when a new task is submitted?",
+          "a": "1. If active threads < corePoolSize, spawn new core thread to run task.\n2. Else if work queue is not full, add task to work queue.\n3. Else if active threads < maximumPoolSize, spawn new non-core thread.\n4. Else execute Rejection Execution Handler policy."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "Why does `Executors.newCachedThreadPool()` risk server crash under heavy load?",
+        "answer": "`newCachedThreadPool()` sets core size to 0, max size to `Integer.MAX_VALUE`, and queue to `SynchronousQueue`. Under heavy traffic spikes, it will spawn thousands of OS threads, exhausting server native memory and CPU context-switching capacity.",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  }
+}

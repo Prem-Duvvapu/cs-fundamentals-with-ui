@@ -1,0 +1,52 @@
+{
+  "bplusTree": {
+    "id": "dbms-indexing",
+    "title": "B+ Tree Index — Lookup, Insert & Node Split Mechanics",
+    "subtitle": "Visualize why B+ trees maintain O(log N) lookup and how node splits propagate in relational databases like PostgreSQL (B-Tree) and MySQL InnoDB (Clustered Index).",
+    "mentalModel": "A B+ tree keeps data sorted and balanced so any lookup is O(log N) — internal nodes route queries using keys, while all actual data/pointers reside in linked leaf nodes.",
+    "theoryData": {
+      "failureModes": [
+        "Index Bloat: Frequent random inserts/deletes cause page splits and fragmentation, wasting memory and disk page reads.",
+        "Unindexed Sequential Scans: Missing appropriate composite indexes forces MySQL/Postgres to fall back to a full table scan ($O(N)$ disk I/O).",
+        "High Cardinality Index Overhead: Creating indexes on columns with continuous updates (e.g. timestamps or UUID v4) degrades insert throughput due to non-stop page splitting."
+      ],
+      "tradeOffs": [
+        "B-Tree vs B+ Tree: B+ Trees store data pointers exclusively in leaves, allowing higher fan-out (more keys per internal node) and fast sequential leaf scans via linked pointers.",
+        "B+ Tree vs LSM-Tree: B+ Trees offer faster read lookups ($O(\\log N)$ in-place pages), while LSM-Trees (used in Cassandra/RocksDB) offer faster append-only write throughput at the cost of read amplification."
+      ],
+      "productionScenario": "A multi-tenant e-commerce database saw query latency spike from 4ms to 4.2 seconds during Flash Sale events. Diagnosing `EXPLAIN ANALYZE` revealed `Seq Scan` on `orders (tenant_id, status)` because the index was created as `(status, tenant_id)`. Re-ordering the composite index prefix to high-cardinality `tenant_id` first reduced disk page reads from 45,000 to 3 pages per query.",
+      "codeSnippet": "-- PostgreSQL Composite B+ Tree Index Creation\nCREATE INDEX idx_orders_tenant_status ON orders (tenant_id, status);\n\n-- Inspect Query Execution Plan\nEXPLAIN ANALYZE \nSELECT * FROM orders \nWHERE tenant_id = 'tenant_9821' AND status = 'PENDING';\n\n/* Output:\n Index Scan using idx_orders_tenant_status on orders \n   (cost=0.42..8.44 rows=1 width=128) (actual time=0.031..0.034ms)\n   Index Cond: ((tenant_id = 'tenant_9821'::text) AND (status = 'PENDING'::text))\n*/",
+      "interviewQA": [
+        {
+          "q": "Why do relational databases use B+ Trees instead of Binary Search Trees (BST) or Red-Black Trees?",
+          "a": "Disk block access is the main bottleneck. BSTs have a low branching factor (fan-out of 2), requiring $O(\\log_2 N)$ disk seeks. A B+ Tree node matches the OS disk page size (4KB/16KB), giving a fan-out of 100+ keys per node, reducing tree height to 3 or 4 levels even for millions of rows."
+        },
+        {
+          "q": "What is the difference between a Clustered Index and a Secondary Non-Clustered Index?",
+          "a": "In InnoDB (MySQL), the Clustered Index stores full table row data inside the leaves of the primary key B+ Tree. A Secondary Index leaf stores only the Primary Key value, requiring a second B+ tree lookup ('bookmark lookup') to fetch full row data unless covered by an index."
+        },
+        {
+          "q": "What is a Covered Query in B+ Tree indexing?",
+          "a": "A query is 'covered' when all SELECT and WHERE columns exist directly inside the secondary index keys. The database answers the query directly from the index leaf without performing a secondary lookup to the clustered table data page."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "Suppose a B+ Tree of order M = 4 has a leaf node containing 3 keys [10, 20, 30]. If we insert key 25, what happens to the leaf node?",
+        "answer": "Inserting 25 makes 4 keys [10, 20, 25, 30], which exceeds maxKeys (M-1 = 3). The leaf splits into two leaves: Left leaf [10, 20] and Right leaf [25, 30]. The key 25 (first key of the right leaf) is promoted upward into the parent internal node.",
+        "difficulty": "SDE-2 Interview"
+      },
+      {
+        "question": "Why are sequential random UUID v4 primary keys considered an anti-pattern for B+ Tree indexes in MySQL InnoDB?",
+        "answer": "UUID v4 values are completely random, causing inserts to hit arbitrary page locations across the B+ tree. This triggers constant leaf node splits, page fragmentation, and heavy disk I/O thrashing compared to monotonically increasing AUTO_INCREMENT or TSID/ULID keys.",
+        "difficulty": "SDE-2 Interview"
+      },
+      {
+        "question": "How many disk page lookups are required for a 3-level B+ Tree with a root, internal layer, and leaf layer?",
+        "answer": "With a 3-level tree: 1 page read for Root + 1 page read for Internal Node + 1 page read for Leaf Node = 3 disk I/Os. If Root and Internal nodes are cached in memory (Buffer Pool), it requires only 1 physical disk read!",
+        "difficulty": "SDE-2 Interview"
+      }
+    ]
+  }
+}

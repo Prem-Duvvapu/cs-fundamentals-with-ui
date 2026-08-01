@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import BPlusTreeVisualizer from './dbms/BPlusTreeVisualizer'
 
 export default function DbmsVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -679,111 +680,7 @@ export default function DbmsVisualizer({ defaultTopicId }) {
 
       {/* SUB-TAB CONTENT 4: B+ TREE INDEX SIMULATOR */}
       {activeTab === 'btree' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>🌳 Dynamic B+ Tree Index Visualizer</h3>
-
-            <div className="btree-container">
-              <div className="btree-level">
-                <div className="btree-node root-node">
-                  <span className="node-title">Root Node</span>
-                  <div className="keys-row">
-                    {rootKeys.map(k => <span key={k} className="key-badge">{k}</span>)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="btree-level leaf-level">
-                <div className="btree-node leaf-node">
-                  <span className="node-title">Leaf Node #1 (Values &lt; {rootKeys[0] || 'Mid'})</span>
-                  <div className="keys-row">
-                    {leftLeaf.map(k => <span key={k} className="key-badge leaf-key">{k}</span>)}
-                  </div>
-                </div>
-
-                <div className="leaf-pointer">⇄ (Doubly Linked)</div>
-
-                <div className="btree-node leaf-node">
-                  <span className="node-title">Leaf Node #2 (Values ≥ {rootKeys[0] || 'Mid'})</span>
-                  <div className="keys-row">
-                    {rightLeaf.map(k => <span key={k} className="key-badge leaf-key">{k}</span>)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="btree-controls" style={{ marginTop: '1.5rem' }}>
-              <form onSubmit={handleInsertKey} className="form-row">
-                <input
-                  type="number"
-                  placeholder="New Key to Insert"
-                  value={newKey}
-                  onChange={e => setNewKey(e.target.value)}
-                  className="num-input"
-                />
-                <button type="submit" className="btn btn-primary">+ Insert Key & Auto-Split</button>
-              </form>
-
-              <div className="form-row" style={{ marginTop: '0.75rem' }}>
-                <input
-                  type="number"
-                  placeholder="Search Point Key"
-                  value={searchKey}
-                  onChange={e => setSearchKey(e.target.value)}
-                  className="num-input"
-                />
-                <button onClick={handleSearchKey} className="btn btn-action">🔍 Point Search</button>
-              </div>
-
-              {searchResult && (
-                <div className={`result-banner ${searchResult.found ? 'banner-safe' : 'banner-unsafe'}`} style={{ marginTop: '1rem' }}>
-                  <strong>{searchResult.found ? '✅ Key Found!' : '❌ Key Not Found'}</strong>
-                  <p style={{ fontSize: '0.85rem' }}>{searchResult.path}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="viz-card">
-            <h3>🔍 Range Query Execution (`BETWEEN Start AND End`)</h3>
-
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', margin: '1rem 0' }}>
-              <input
-                type="number"
-                value={rangeStart}
-                onChange={e => setRangeStart(e.target.value)}
-                className="num-input"
-                placeholder="Start"
-              />
-              <span>AND</span>
-              <input
-                type="number"
-                value={rangeEnd}
-                onChange={e => setRangeEnd(e.target.value)}
-                className="num-input"
-                placeholder="End"
-              />
-              <button onClick={handleRangeSearch} className="btn btn-primary">
-                ⚡ Range Scan
-              </button>
-            </div>
-
-            {rangeResult && (
-              <div style={{ background: '#0f172a', padding: '1rem', borderRadius: '10px' }}>
-                <h4>Range Scan Result [{rangeResult.start} ... {rangeResult.end}]</h4>
-                <p style={{ fontSize: '0.85rem', margin: '0.5rem 0' }}>
-                  Traversed directly through Leaf Node doubly-linked list without repeated root tree lookups!
-                </p>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                  {rangeResult.matched.map(k => (
-                    <span key={k} className="header-pill" style={{ background: '#059669', fontSize: '1.1rem' }}>{k}</span>
-                  ))}
-                  {rangeResult.matched.length === 0 && <span className="empty-text">No keys in specified range.</span>}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <BPlusTreeVisualizer />
       )}
 
       {/* SUB-TAB CONTENT 5: CONCURRENCY CONTROL & 2PL */}

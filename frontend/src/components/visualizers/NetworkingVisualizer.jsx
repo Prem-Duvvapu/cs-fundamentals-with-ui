@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import ConsistentHashingVisualizer from './networking/ConsistentHashingVisualizer'
 
 export default function NetworkingVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -195,6 +196,12 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
             className={`main-tab-btn ${activeTab === 'dns' ? 'active-tab' : ''}`}
           >
             🌐 DNS & HTTP/3 QUIC
+          </button>
+          <button
+            onClick={() => setActiveTab('consistent-hashing')}
+            className={`main-tab-btn ${activeTab === 'consistent-hashing' ? 'active-tab' : ''}`}
+          >
+            ⭕ Consistent Hashing Ring
           </button>
         </div>
       </div>
@@ -504,6 +511,11 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODE 7: CONSISTENT HASHING RING */}
+      {activeTab === 'consistent-hashing' && (
+        <ConsistentHashingVisualizer />
       )}
     </div>
   )
