@@ -4,18 +4,20 @@ import HashMapVisualizer from './java/HashMapVisualizer'
 import VirtualThreadsVisualizer from './java/VirtualThreadsVisualizer'
 import ConnectionPoolVisualizer from './java/ConnectionPoolVisualizer'
 import SpringBatchVisualizer from './java/SpringBatchVisualizer'
+import JavaExecutionPipelineVisualizer from './java/JavaExecutionPipelineVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
   const getInitialTab = () => {
     switch (defaultTopicId) {
+      case 'java-execution-pipeline': return 'pipeline'
       case 'jvm-gc': return 'jvm'
       case 'spring-bean-lifecycle': return 'bean'
       case 'spring-mvc-lifecycle': return 'mvc'
       case 'jpa-hibernate-lifecycle': return 'jpa'
       case 'spring-batch-lifecycle': return 'batch'
       case 'quartz-scheduler': return 'quartz'
-      default: return 'bean'
+      default: return 'pipeline'
     }
   }
 
@@ -101,12 +103,18 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
         </div>
 
         {/* SUB-TABS NAVIGATION */}
-        <div className="main-tab-switcher" style={{ marginTop: '1rem' }}>
+        <div className="main-tab-switcher" style={{ margin: '0 auto 1.5rem auto' }}>
+          <button
+            onClick={() => setActiveTab('pipeline')}
+            className={`main-tab-btn ${activeTab === 'pipeline' ? 'active-tab' : ''}`}
+          >
+            ⚙️ Execution Pipeline
+          </button>
           <button
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
           >
-            ☕ JVM Memory & Heap Generations
+            🧠 JVM Heap & GC
           </button>
           <button
             onClick={() => setActiveTab('hashmap')}
@@ -158,6 +166,11 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
           </button>
         </div>
       </div>
+
+      {/* MODE 0: JAVA EXECUTION PIPELINE */}
+      {activeTab === 'pipeline' && (
+        <JavaExecutionPipelineVisualizer />
+      )}
 
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
       {activeTab === 'jvm' && (

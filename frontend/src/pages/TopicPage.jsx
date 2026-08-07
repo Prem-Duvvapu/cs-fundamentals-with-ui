@@ -45,6 +45,7 @@ export default function TopicPage() {
     'llm-parameters': 'LLM Sampling Parameters, Tokenization & ReAct Agents',
     'feature-stores': 'Feature Stores, Data Drift & MLOps Architecture',
     'recommendation-systems': '2-Stage Recommendation Engine Architecture',
+    'java-execution-pipeline': 'Java Execution Pipeline & JDK/JRE/JVM Architecture',
     'jvm-gc': 'JVM Memory Architecture, GC & Virtual Threads',
     'spring-bean-lifecycle': 'Spring IoC Container & Bean Lifecycle',
     'spring-mvc-lifecycle': 'Spring MVC Request Execution & Security Pipeline',
@@ -85,6 +86,7 @@ export default function TopicPage() {
       case 'recommendation-systems':
       case 'aiml':
         return <AiMlVisualizer defaultTopicId={topicId} />
+      case 'java-execution-pipeline':
       case 'jvm-gc':
       case 'spring-bean-lifecycle':
       case 'spring-mvc-lifecycle':
