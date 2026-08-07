@@ -87,7 +87,17 @@ export default function TopicPage() {
       case 'aiml':
         return <AiMlVisualizer defaultTopicId={topicId} />
       case 'java-execution-pipeline':
+      case 'java-memory-model':
+      case 'java-oop-pillars':
+      case 'java-static-final-records':
       case 'jvm-gc':
+      case 'java-functional-lambdas':
+      case 'java-generics':
+      case 'java-collections-framework':
+      case 'java-hashmap-internals':
+      case 'java-streams-optional':
+      case 'java-reflection-exceptions':
+      case 'java-multithreading-concurrency':
       case 'spring-bean-lifecycle':
       case 'spring-mvc-lifecycle':
       case 'jpa-hibernate-lifecycle':
