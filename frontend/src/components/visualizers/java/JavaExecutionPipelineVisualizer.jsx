@@ -148,70 +148,80 @@ export default function JavaExecutionPipelineVisualizer() {
         💡 <strong>{currentStep?.title}:</strong> {currentStep?.description}
       </div>
 
-      {/* Stage Specific Pipeline Visualizers */}
+      {/* Stage Specific Pipeline Visualizers (Progressive Flow) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Stage 1: Source Editor */}
-        <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'SOURCE' ? '4px solid #3b82f6' : '4px solid #334155' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#60a5fa' }}>📄 1. Source File (`Main.java`)</h4>
-          <CodePanel code={state.sourceCode} language="java" />
-        </div>
+        {currentStepIdx >= 0 && (
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'SOURCE' ? '4px solid #3b82f6' : '4px solid #334155' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: '#60a5fa' }}>📄 1. Source File (`Main.java`)</h4>
+            <CodePanel code={state.sourceCode} language="java" />
+          </div>
+        )}
 
         {/* Stage 2: Bytecode Output */}
-        <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'COMPILATION' ? '4px solid #10b981' : '4px solid #334155' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399' }}>⚙️ 2. javac Bytecode (`Main.class`)</h4>
-          <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#a7f3d0' }}>
-            {state.bytecode.map((line, idx) => (
-              <div key={idx} style={{ marginBottom: '0.2rem' }}>{line}</div>
-            ))}
+        {currentStepIdx >= 1 && (
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'COMPILATION' ? '4px solid #10b981' : '4px solid #334155' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399' }}>⚙️ 2. javac Bytecode (`Main.class`)</h4>
+            <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#a7f3d0' }}>
+              {state.bytecode.map((line, idx) => (
+                <div key={idx} style={{ marginBottom: '0.2rem' }}>{line}</div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stage 3: ClassLoader Delegation Flow */}
-        <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'CLASSLOADER' ? '4px solid #f59e0b' : '4px solid #334155' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#fbbf24' }}>🌳 3. ClassLoader Parent Delegation Flow</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {state.classLoaders.map((cl, idx) => (
-              <div key={idx} style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                  <strong style={{ color: '#f8fafc' }}>{cl.name}</strong>
-                  <span className="header-pill" style={{ background: cl.level === 1 ? '#059669' : cl.level === 2 ? '#d97706' : '#2563eb', fontSize: '0.72rem' }}>
-                    {cl.status}
-                  </span>
+        {currentStepIdx >= 2 && (
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'CLASSLOADER' ? '4px solid #f59e0b' : '4px solid #334155' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: '#fbbf24' }}>🌳 3. ClassLoader Parent Delegation Flow</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {state.classLoaders.map((cl, idx) => (
+                <div key={idx} style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                    <strong style={{ color: '#f8fafc' }}>{cl.name}</strong>
+                    <span className="header-pill" style={{ background: cl.level === 1 ? '#059669' : cl.level === 2 ? '#d97706' : '#2563eb', fontSize: '0.72rem' }}>
+                      {cl.status}
+                    </span>
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{cl.path}</div>
                 </div>
-                <div style={{ color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{cl.path}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stage 4: Verifier & Memory */}
-        <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'VERIFIER' ? '4px solid #f43f5e' : '4px solid #334155' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#f43f5e' }}>🛡️ 4. Bytecode Verifier & Memory</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
-            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
-              🔒 Type Safety Check: <strong>PASSED</strong>
-            </div>
-            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
-              📏 Stack Bounds Check: <strong>PASSED</strong>
-            </div>
-            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#c084fc' }}>
-              🧠 Metaspace: Allocated <code>Main.class</code>
-            </div>
-            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#4ade80' }}>
-              📚 Thread Stack: Pushed <code>main(String[])</code>
+        {currentStepIdx >= 3 && (
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'VERIFIER' ? '4px solid #f43f5e' : '4px solid #334155' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: '#f43f5e' }}>🛡️ 4. Bytecode Verifier & Memory</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
+              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
+                🔒 Type Safety Check: <strong>PASSED</strong>
+              </div>
+              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
+                📏 Stack Bounds Check: <strong>PASSED</strong>
+              </div>
+              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#c084fc' }}>
+                🧠 Metaspace: Allocated <code>Main.class</code>
+              </div>
+              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#4ade80' }}>
+                📚 Thread Stack: Pushed <code>main(String[])</code>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Stage 5: Native CPU Assembly */}
-        <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'EXECUTION' ? '4px solid #a855f7' : '4px solid #334155' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc' }}>🔥 5. JIT Native Machine Code (x86_64)</h4>
-          <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#e9d5ff' }}>
-            {state.nativeAssembly.map((line, idx) => (
-              <div key={idx} style={{ marginBottom: '0.2rem' }}>{line}</div>
-            ))}
+        {currentStepIdx >= 4 && (
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'EXECUTION' ? '4px solid #a855f7' : '4px solid #334155' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc' }}>🔥 5. JIT Native Machine Code (x86_64)</h4>
+            <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#e9d5ff' }}>
+              {state.nativeAssembly.map((line, idx) => (
+                <div key={idx} style={{ marginBottom: '0.2rem' }}>{line}</div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Console Output & Metrics Inspector */}
