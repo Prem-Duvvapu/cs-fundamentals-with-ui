@@ -81,3 +81,7 @@ Each `.md` file follows this pattern:
 - **Code comments**: Minimal — use self-documenting code
 - **Backend API**: RESTful, `/api/v1/...` prefix
 - **Frontend state**: React hooks (useState/useReducer), no Redux unless complexity demands
+
+## Command Execution Environment
+- **Commands Rule**: ALWAYS prefix shell commands with `wsl` (e.g. `wsl npm test`, `wsl npm run build`, `wsl git status`, `wsl git commit ...`).
+
