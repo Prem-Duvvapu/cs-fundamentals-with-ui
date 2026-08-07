@@ -148,10 +148,37 @@ export default function JavaExecutionPipelineVisualizer() {
         💡 <strong>{currentStep?.title}:</strong> {currentStep?.description}
       </div>
 
-      {/* Stage Specific Pipeline Visualizers (Progressive Flow) */}
+      {/* Stage Navigation Header with < and > Buttons */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <button
+          onClick={() => setCurrentStepIdx(prev => Math.max(0, prev - 1))}
+          disabled={currentStepIdx === 0}
+          className="btn btn-secondary"
+          style={{ padding: '0.4rem 0.85rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+        >
+          <span>◀</span>
+          <span>Previous Step</span>
+        </button>
+
+        <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>
+          Showing Active Window ({currentStepIdx === 0 ? 'Step 1' : `Steps ${currentStepIdx} & ${currentStepIdx + 1}`} of 5)
+        </span>
+
+        <button
+          onClick={() => setCurrentStepIdx(prev => Math.min(steps.length - 1, prev + 1))}
+          disabled={currentStepIdx >= steps.length - 1}
+          className="btn btn-primary"
+          style={{ padding: '0.4rem 0.85rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+        >
+          <span>Next Step</span>
+          <span>▶</span>
+        </button>
+      </div>
+
+      {/* Stage Specific Pipeline Visualizers (Max 2 Cards View Window) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Stage 1: Source Editor */}
-        {currentStepIdx >= 0 && (
+        {(currentStepIdx === 0 || currentStepIdx === 1) && (
           <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'SOURCE' ? '4px solid #3b82f6' : '4px solid #334155' }}>
             <h4 style={{ margin: '0 0 0.75rem 0', color: '#60a5fa' }}>📄 1. Source File (`Main.java`)</h4>
             <CodePanel code={state.sourceCode} language="java" />
@@ -159,7 +186,7 @@ export default function JavaExecutionPipelineVisualizer() {
         )}
 
         {/* Stage 2: Bytecode Output */}
-        {currentStepIdx >= 1 && (
+        {(currentStepIdx === 1 || currentStepIdx === 2 || (currentStepIdx === 0 && false)) && (
           <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'COMPILATION' ? '4px solid #10b981' : '4px solid #334155' }}>
             <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399' }}>⚙️ 2. javac Bytecode (`Main.class`)</h4>
             <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#a7f3d0' }}>
@@ -171,7 +198,7 @@ export default function JavaExecutionPipelineVisualizer() {
         )}
 
         {/* Stage 3: ClassLoader Delegation Flow */}
-        {currentStepIdx >= 2 && (
+        {(currentStepIdx === 2 || currentStepIdx === 3) && (
           <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'CLASSLOADER' ? '4px solid #f59e0b' : '4px solid #334155' }}>
             <h4 style={{ margin: '0 0 0.75rem 0', color: '#fbbf24' }}>🌳 3. ClassLoader Parent Delegation Flow</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -191,7 +218,7 @@ export default function JavaExecutionPipelineVisualizer() {
         )}
 
         {/* Stage 4: Verifier & Memory */}
-        {currentStepIdx >= 3 && (
+        {(currentStepIdx === 3 || currentStepIdx === 4) && (
           <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'VERIFIER' ? '4px solid #f43f5e' : '4px solid #334155' }}>
             <h4 style={{ margin: '0 0 0.75rem 0', color: '#f43f5e' }}>🛡️ 4. Bytecode Verifier & Memory</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
@@ -212,7 +239,7 @@ export default function JavaExecutionPipelineVisualizer() {
         )}
 
         {/* Stage 5: Native CPU Assembly */}
-        {currentStepIdx >= 4 && (
+        {currentStepIdx === 4 && (
           <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'EXECUTION' ? '4px solid #a855f7' : '4px solid #334155' }}>
             <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc' }}>🔥 5. JIT Native Machine Code (x86_64)</h4>
             <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#e9d5ff' }}>
