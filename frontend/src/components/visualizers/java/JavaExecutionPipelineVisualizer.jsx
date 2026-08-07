@@ -104,6 +104,25 @@ export default function JavaExecutionPipelineVisualizer() {
             ))}
           </div>
         </div>
+
+        {/* Bytecode Verifier & Runtime Data Area */}
+        <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'VERIFIER' ? '4px solid #e11d48' : '4px solid #334155' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: '#f43f5e' }}>🛡️ 4. Bytecode Verifier & Runtime Data Area</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
+            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
+              🔒 Type Safety & Format Verification: <strong>PASSED</strong>
+            </div>
+            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
+              📏 Stack Bounds & Pointer Checks: <strong>PASSED</strong>
+            </div>
+            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#c084fc' }}>
+              🧠 Metaspace Class Metadata: <code>Main.class</code> Allocated
+            </div>
+            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#4ade80' }}>
+              📚 Thread Stack Frame: <code>main(String[])</code> Pushed
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Output & State Inspector */}
