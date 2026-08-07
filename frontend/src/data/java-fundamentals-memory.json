@@ -1,0 +1,36 @@
+{
+  "javaMemory": {
+    "id": "java-memory-model",
+    "title": "Java Memory Model: Primitives, References, Stack & Heap",
+    "subtitle": "Visualize Thread Stack Frames, Primitive Values, Heap Object Allocations, Pointer References, and Pass-by-Value mechanics.",
+    "mentalModel": "The Thread Stack manages short-lived method execution frames and primitive local variables. The Heap manages long-lived dynamically allocated objects. Variables on the Stack hold either raw primitive values or reference pointer addresses (@0xADDR) pointing to Heap objects.",
+    "theoryData": {
+      "failureModes": [
+        "StackOverflowError vs OutOfMemoryError: StackOverflowError occurs when infinite recursion fills up Thread Stack memory. OutOfMemoryError: Java Heap Space occurs when the Heap fills up with unreachable/retained objects faster than Garbage Collection can free them."
+      ],
+      "tradeOffs": [
+        "Stack Memory vs Heap Memory: Stack allocation is lightning fast (L1/L2 CPU cache friendly, single pointer movement) but short-lived. Heap allocation supports dynamic lifetimes and thread sharing but incurs Garbage Collection overhead."
+      ],
+      "productionScenario": "A production payment service crashed with `java.lang.OutOfMemoryError: Java Heap Space`. Thread dump analysis revealed an unbounded static HashMap holding references to User objects, preventing them from becoming Unreachable and blocking Garbage Collection.",
+      "codeSnippet": "public class MemoryDemo {\n    public static void main(String[] args) {\n        int age = 25;                       // Primitive on Stack\n        User user = new User(\"Alice\", 100);  // Reference on Stack -> Object on Heap\n        updateUser(user, 50);\n        user = null;                        // Pointer cleared -> Heap object becomes GC candidate!\n    }\n\n    static void updateUser(User u, int bonus) {\n        u.setScore(u.getScore() + bonus);   // Mutates Heap object at @0x5F3A\n    }\n}",
+      "interviewQA": [
+        {
+          "q": "Is Java Pass-by-Value or Pass-by-Reference?",
+          "a": "Java is strictly PASS-BY-VALUE. When passing an object reference to a method, Java passes a COPY of the 64-bit reference pointer address. Modifying object fields affects the shared Heap object, but reassigning the reference inside the method does not change the caller's reference variable."
+        }
+      ]
+    },
+    "quizData": [
+      {
+        "question": "What happens to local primitive variables declared inside a method when the method finishes executing?",
+        "answer": "Their containing Stack Frame is instantly popped and deallocated from CPU stack memory without needing Garbage Collection.",
+        "difficulty": "Core Fundamental"
+      },
+      {
+        "question": "If a method receives `User u` and executes `u = new User(\"Bob\")`, does the caller's `user` variable change?",
+        "answer": "NO! Because Java passes a copy of the reference pointer, reassigning `u` only points the local stack copy to a new object on the Heap. The caller's `user` variable still points to the original object.",
+        "difficulty": "Core Fundamental"
+      }
+    ]
+  }
+}

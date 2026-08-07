@@ -5,12 +5,14 @@ import VirtualThreadsVisualizer from './java/VirtualThreadsVisualizer'
 import ConnectionPoolVisualizer from './java/ConnectionPoolVisualizer'
 import SpringBatchVisualizer from './java/SpringBatchVisualizer'
 import JavaExecutionPipelineVisualizer from './java/JavaExecutionPipelineVisualizer'
+import JavaMemoryModelVisualizer from './java/JavaMemoryModelVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
   const getInitialTab = () => {
     switch (defaultTopicId) {
       case 'java-execution-pipeline': return 'pipeline'
+      case 'java-memory-model': return 'memory-model'
       case 'jvm-gc': return 'jvm'
       case 'spring-bean-lifecycle': return 'bean'
       case 'spring-mvc-lifecycle': return 'mvc'
@@ -111,6 +113,12 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             ⚙️ Execution Pipeline
           </button>
           <button
+            onClick={() => setActiveTab('memory-model')}
+            className={`main-tab-btn ${activeTab === 'memory-model' ? 'active-tab' : ''}`}
+          >
+            💾 Memory Model (Stack vs Heap)
+          </button>
+          <button
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
           >
@@ -170,6 +178,11 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       {/* MODE 0: JAVA EXECUTION PIPELINE */}
       {activeTab === 'pipeline' && (
         <JavaExecutionPipelineVisualizer />
+      )}
+
+      {/* MODE 0.5: JAVA MEMORY MODEL (STACK VS HEAP) */}
+      {activeTab === 'memory-model' && (
+        <JavaMemoryModelVisualizer />
       )}
 
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
