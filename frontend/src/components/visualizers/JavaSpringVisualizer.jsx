@@ -6,6 +6,7 @@ import ConnectionPoolVisualizer from './java/ConnectionPoolVisualizer'
 import SpringBatchVisualizer from './java/SpringBatchVisualizer'
 import JavaExecutionPipelineVisualizer from './java/JavaExecutionPipelineVisualizer'
 import JavaMemoryModelVisualizer from './java/JavaMemoryModelVisualizer'
+import JavaOopVisualizer from './java/JavaOopVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -13,6 +14,7 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
     switch (defaultTopicId) {
       case 'java-execution-pipeline': return 'pipeline'
       case 'java-memory-model': return 'memory-model'
+      case 'java-oop-vtable': return 'oop-vtable'
       case 'jvm-gc': return 'jvm'
       case 'spring-bean-lifecycle': return 'bean'
       case 'spring-mvc-lifecycle': return 'mvc'
@@ -119,6 +121,12 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             💾 Memory Model (Stack vs Heap)
           </button>
           <button
+            onClick={() => setActiveTab('oop-vtable')}
+            className={`main-tab-btn ${activeTab === 'oop-vtable' ? 'active-tab' : ''}`}
+          >
+            🐕 OOP & vtable Dispatch
+          </button>
+          <button
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
           >
@@ -183,6 +191,11 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       {/* MODE 0.5: JAVA MEMORY MODEL (STACK VS HEAP) */}
       {activeTab === 'memory-model' && (
         <JavaMemoryModelVisualizer />
+      )}
+
+      {/* MODE 0.75: JAVA OOP & DYNAMIC METHOD DISPATCH (VTABLE) */}
+      {activeTab === 'oop-vtable' && (
+        <JavaOopVisualizer />
       )}
 
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
