@@ -25,7 +25,7 @@
       {
         "question": "In TCP Slow Start, if cwnd = 1 MSS initially, how many MSS packets are sent in the 4th Round Trip Time (RTT)?",
         "answer": "In Slow Start, cwnd doubles every RTT (1 -> 2 -> 4 -> 8). In the 4th RTT, cwnd = 8 MSS packets.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   },
@@ -55,7 +55,7 @@
       {
         "question": "If a Consistent Hash ring has 10 physical servers and 1 server fails, what percentage of keys must be remapped?",
         "answer": "Only approximately 1/10 (10%) of the keys (the ones that belonged to the failed server) need to be remapped to remaining servers.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   }

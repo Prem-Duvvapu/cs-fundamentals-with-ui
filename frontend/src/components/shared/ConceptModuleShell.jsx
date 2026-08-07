@@ -128,7 +128,7 @@ export default function ConceptModuleShell({
             {theoryData.interviewQA && theoryData.interviewQA.length > 0 && (
               <div className="viz-card">
                 <h3 style={{ color: '#a78bfa', margin: '0 0 1rem 0', fontSize: '1.1rem' }}>
-                  💬 High-Frequency SDE-2 Interview Questions
+                  💬 High-Frequency Technical & Architecture Questions
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {theoryData.interviewQA.map((qa, idx) => (
@@ -148,10 +148,13 @@ export default function ConceptModuleShell({
         )}
 
         {activeTab === 'quiz' && (
-          <div className="tab-quiz-panel">
-            <p style={{ color: '#94a3b8', marginBottom: '1rem', fontSize: '0.9rem' }}>
-              Test your understanding against typical SDE-2 backend interview probe questions. Click "Reveal Answer" to check your response.
-            </p>
+          <div className="quiz-section">
+            <div className="quiz-intro">
+              <h3>✅ Interactive Self-Check & Knowledge Assessment</h3>
+              <p>
+                Test your understanding against core fundamental and architecture questions. Click "Reveal Answer" to check your response.
+              </p>
+            </div>
             {quizData.map((quiz, idx) => (
               <QuizCard key={idx} {...quiz} />
             ))}

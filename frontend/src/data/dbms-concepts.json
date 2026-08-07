@@ -35,17 +35,17 @@
       {
         "question": "Suppose a B+ Tree of order M = 4 has a leaf node containing 3 keys [10, 20, 30]. If we insert key 25, what happens to the leaf node?",
         "answer": "Inserting 25 makes 4 keys [10, 20, 25, 30], which exceeds maxKeys (M-1 = 3). The leaf splits into two leaves: Left leaf [10, 20] and Right leaf [25, 30]. The key 25 (first key of the right leaf) is promoted upward into the parent internal node.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       },
       {
         "question": "Why are sequential random UUID v4 primary keys considered an anti-pattern for B+ Tree indexes in MySQL InnoDB?",
         "answer": "UUID v4 values are completely random, causing inserts to hit arbitrary page locations across the B+ tree. This triggers constant leaf node splits, page fragmentation, and heavy disk I/O thrashing compared to monotonically increasing AUTO_INCREMENT or TSID/ULID keys.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       },
       {
         "question": "How many disk page lookups are required for a 3-level B+ Tree with a root, internal layer, and leaf layer?",
         "answer": "With a 3-level tree: 1 page read for Root + 1 page read for Internal Node + 1 page read for Leaf Node = 3 disk I/Os. If Root and Internal nodes are cached in memory (Buffer Pool), it requires only 1 physical disk read!",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   }

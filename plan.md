@@ -24,7 +24,7 @@ The full master plan is stored in the workspace and artifact system at:
 
 ### 2. Standardized 3-Tab Concept Module Pattern
 1. ⚡ **Interactive Visual Simulation** (Play/pause, step, sliders, inputs, live SVG/Canvas state inspector).
-2. 📖 **Deep Dive & Interview Theory ("Probe Stack")**: Mental Model, Failure Modes, Trade-offs, Production Scenario, Code, SDE-2 Interview Q&A.
+2. 📖 **Deep Dive & Fundamental Theory ("Probe Stack")**: Mental Model, Failure Modes, Trade-offs, Production Scenario, Code, Technical Q&A.
 3. ✅ **Interview Self-Check Quiz**: Interactive questions with collapsible answer reveals.
 
 ---

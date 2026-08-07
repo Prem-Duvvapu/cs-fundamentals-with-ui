@@ -25,7 +25,7 @@
       {
         "question": "Why does calling a `@Transactional` method from within the same class using `this.method()` fail to run in a transaction?",
         "answer": "Spring's `@Transactional` works via AOP proxies created during bean initialization. Calling `this.method()` invokes the target instance directly, completely bypassing the Spring proxy wrapper that manages the database transaction boundaries.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   },
@@ -55,7 +55,7 @@
       {
         "question": "What is the difference between `em.persist(entity)` and `em.merge(entity)`?",
         "answer": "`em.persist()` transitions a NEW (Transient) entity instance into MANAGED state. `em.merge()` takes a DETACHED entity, copies its state onto a managed instance in the persistence context, and returns the managed instance.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   },
@@ -85,7 +85,7 @@
       {
         "question": "What happens when all connections in a HikariCP pool are in use and a new request thread arrives?",
         "answer": "The new thread enters a FIFO waiting queue and blocks until an active connection is returned or until `connectionTimeout` (default 30s) expires, throwing `SQLTransientConnectionException`.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   }

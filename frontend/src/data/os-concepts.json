@@ -25,7 +25,7 @@
       {
         "question": "If a system uses 4KB page size (12-bit offset) and a virtual address is 0x2004, what is the Virtual Page Number (VPN) and Offset?",
         "answer": "Offset = 0x2004 & 0xFFF = 0x004 (decimal 4). Virtual Page Number = 0x2004 >> 12 = 0x2 (Virtual Page #2).",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   }

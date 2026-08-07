@@ -31,12 +31,12 @@
       {
         "question": "Where are local primitive variables stored versus objects created with new MyObject() in Java?",
         "answer": "Local primitive variables (e.g., int x = 5) and object reference variables are stored on the Thread Stack Frame. The actual object instance data created with new is allocated inside Heap memory (specifically Eden space initially).",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       },
       {
         "question": "What happens when an object is too large to fit into the Eden space during initial allocation?",
         "answer": "If an object size exceeds the available Eden space or the Large Object Threshold, the JVM bypasses Eden and Survivor spaces completely and allocates the large object directly inside the Old Generation.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   },
@@ -66,7 +66,7 @@
       {
         "question": "What is the purpose of Remembered Sets (RSets) in G1GC?",
         "answer": "Remembered Sets track cross-region references (e.g., an Old Gen region object referencing a Young Gen region object). This allows G1 to collect a Young region without having to scan the entire Old Generation heap.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   },
@@ -96,7 +96,7 @@
       {
         "question": "What happens when a HashMap bucket reaches 8 elements but the total capacity is only 32?",
         "answer": "HashMap requires BOTH bucket size >= 8 AND total capacity >= 64 (MIN_TREEIFY_CAPACITY) to treeify. If capacity is < 64, HashMap triggers an array resize/rehash instead of converting the list to a tree.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   }

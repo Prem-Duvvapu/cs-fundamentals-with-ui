@@ -25,7 +25,7 @@
       {
         "question": "Should you pool Virtual Threads using a fixed ThreadPoolExecutor (`newFixedThreadPool`)?",
         "answer": "NO! Virtual Threads are extremely cheap (~1KB memory footprint) and intended to be created per-task and discarded. Pooling virtual threads limits concurrency and reintroduces resource contention bottlenecks.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   },
@@ -55,7 +55,7 @@
       {
         "question": "Why does `Executors.newCachedThreadPool()` risk server crash under heavy load?",
         "answer": "`newCachedThreadPool()` sets core size to 0, max size to `Integer.MAX_VALUE`, and queue to `SynchronousQueue`. Under heavy traffic spikes, it will spawn thousands of OS threads, exhausting server native memory and CPU context-switching capacity.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   }

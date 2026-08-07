@@ -40,7 +40,7 @@ Trigger Fires ──► Fetches JobDetail ──► Instantiates Job Class ─�
 
 ## 🔴 Expert Level
 
-### SDE-2 Distributed Clustering & JobStoreTX Database Locking
+### Distributed Clustering & JobStoreTX Database Locking
 
 In distributed microservice deployments (e.g. 10 Kubernetes pods running Spring Boot), Quartz prevents duplicate job executions using a **Clustered `JobStoreTX`** backed by relational database tables.
 

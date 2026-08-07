@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-export default function QuizCard({ question, answer, codeSnippet, difficulty = 'SDE-2 Interview' }) {
+export default function QuizCard({ question, answer, codeSnippet, difficulty = 'Core Fundamental' }) {
   const [showAnswer, setShowAnswer] = useState(false)
 
   return (

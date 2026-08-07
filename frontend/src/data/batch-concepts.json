@@ -24,7 +24,7 @@
       {
         "question": "If chunk size is 100 and item 47 throws a skipped exception, how many items are committed in the database?",
         "answer": "Item 47 is skipped. The remaining 99 valid items in that chunk are processed and committed together in the transaction.",
-        "difficulty": "SDE-2 Interview"
+        "difficulty": "Core Fundamental"
       }
     ]
   }

@@ -83,7 +83,7 @@ export default function HomePage() {
         <h1>CS Fundamentals & Visualizations</h1>
         <p>
           Master Operating Systems, Computer Networks, Database Management Systems, and Java/Spring Ecosystem —
-          interactive animations and deep SDE-2 backend interview preparation.
+          interactive animations and comprehensive software engineering fundamentals.
         </p>
 
         <div className="main-tab-switcher" style={{ margin: '1.5rem auto 0 auto' }}>

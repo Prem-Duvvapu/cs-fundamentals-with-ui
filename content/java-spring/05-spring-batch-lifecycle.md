@@ -58,7 +58,7 @@ Spring Batch persists complete execution state inside relational database tables
 
 ## 🔴 Expert Level
 
-### SDE-2 Advanced Batch Patterns: Fault-Tolerance, Partitioning & Parallel Steps
+### Advanced Batch Patterns: Fault-Tolerance, Partitioning & Parallel Steps
 
 1. **Skip & Retry Policies**:
    - `skip(FlatFileParseException.class).skipLimit(10)`: Skips corrupt input records without failing the entire batch job.
