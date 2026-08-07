@@ -38,16 +38,19 @@ public class TopicService {
         new Topic("concurrency-control", "Concurrency Control, 2PL & Serializability", "dbms", "expert", "Precedence graphs, Conflict serializability, Strict 2PL, MVCC, Deadlocks & Wait-For graphs"),
         new Topic("query-optimization", "Query Processing & Cost-Based Optimizer", "dbms", "expert", "Query trees, predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE"),
 
-        // AI & Machine Learning Systems for SDE-2
-        new Topic("embeddings-vector-db", "Vector Embeddings, Similarity Search & Vector DBs", "aiml", "intermediate", "Embeddings, Cosine Similarity, HNSW, IVF-PQ, Pinecone, Qdrant, pgvector"),
-        new Topic("rag-architecture", "Retrieval-Augmented Generation (RAG) Architecture", "aiml", "intermediate", "Document Chunking, Vector Retrieval, Context Injection, Ragas evaluation, Hybrid Search"),
-        new Topic("model-serving", "LLM Model Serving & Low-Latency Inference", "aiml", "expert", "vLLM PagedAttention, KV Caching, Dynamic Batching, Quantization (INT8/INT4), Triton Engine"),
-        new Topic("llm-parameters", "LLM Sampling Parameters, Tokenization & ReAct Agents", "aiml", "intermediate", "BPE Tokenization, Temperature, Top-P Nucleus, ReAct Agent Loops, Function Calling"),
-        new Topic("feature-stores", "Feature Stores, Data Drift & MLOps Architecture", "aiml", "expert", "Online (Redis) vs Offline (S3) Feature Stores, Time-travel joins, PSI Data Drift, Canary Deployments"),
-        new Topic("recommendation-systems", "2-Stage Recommendation Engine Architecture", "aiml", "expert", "Candidate Generation (Retrieval 1M -> 500 via Two-Tower Nets) -> Deep Ranking & Scoring"),
-
         // Java, Advanced Java, Spring Boot, JPA/Hibernate, Spring Batch & Quartz
+        new Topic("java-execution-pipeline", "Java Execution Pipeline & JVM Architecture", "java-spring", "beginner", "javac bytecode compilation, ClassLoader Parent Delegation Model, Bytecode Verifier, Interpreter & JIT Compiler"),
+        new Topic("java-memory-model", "Java Memory Model: Primitives, References, Stack & Heap", "java-spring", "beginner", "Primitive types vs Reference pointers, Stack frames, Method call stack, Heap object allocation"),
+        new Topic("java-oop-pillars", "OOP Pillars & Dynamic Method Dispatch (vtable)", "java-spring", "beginner", "Encapsulation, Abstraction, Inheritance, Polymorphism, Method overloading vs overriding, vtable lookup"),
+        new Topic("java-static-final-records", "Static, Final, Immutable Classes & Java Records", "java-spring", "intermediate", "Metaspace static allocation, final fields/methods, Immutable class pattern, Java 14+ Records"),
         new Topic("jvm-gc", "JVM Memory Architecture, GC & Virtual Threads", "java-spring", "intermediate", "Heap, Young/Old Gen, Metaspace, G1GC vs ZGC, Thread 6-State Lifecycle, Virtual Threads Project Loom"),
+        new Topic("java-functional-lambdas", "Interfaces, Functional Interfaces & Lambda Expressions", "java-spring", "intermediate", "Default/static methods, @FunctionalInterface, Lambda syntax, Method references, invokedynamic opcode"),
+        new Topic("java-generics", "Generics, Wildcards (PECS) & Type Erasure", "java-spring", "intermediate", "Type bounds, Producer Extends Consumer Super (PECS), Bytecode Type Erasure & Bridge methods"),
+        new Topic("java-collections-framework", "Collections Framework: List, Set, Queue & PriorityQueue", "java-spring", "intermediate", "ArrayList dynamic growth (1.5x), LinkedList nodes, HashSet, PriorityQueue Min-Heap sift-up/down"),
+        new Topic("java-hashmap-internals", "HashMap Bucket Internals, Treeification & TreeMap", "java-spring", "intermediate", "Bitwise hash & (n-1), bucket chaining, treeification at 8 nodes to Red-Black Tree, load factor 0.75"),
+        new Topic("java-streams-optional", "Java Streams API Lazy Pipeline & Optional", "java-spring", "intermediate", "Stream source -> lazy filter/map operations -> terminal collect/reduce flow, Optional safe null checks"),
+        new Topic("java-reflection-exceptions", "Reflection API, Annotations & Exception Unwinding", "java-spring", "expert", "Class<?> introspection, setAccessible(true), custom annotations, try-with-resources, stack unwinding"),
+        new Topic("java-multithreading-concurrency", "Multithreading, Monitors, CAS & ThreadPool Executors", "java-spring", "expert", "Thread 6-State lifecycle, synchronized Object Monitor entry/wait sets, volatile barrier, CAS, ThreadPoolExecutor"),
         new Topic("spring-bean-lifecycle", "Spring IoC Container & Bean Lifecycle", "java-spring", "intermediate", "Bean instantiation, Aware interfaces, @PostConstruct, BeanPostProcessor, @PreDestroy, Auto-Configuration"),
         new Topic("spring-mvc-lifecycle", "Spring MVC Request Execution & Security Pipeline", "java-spring", "intermediate", "DispatcherServlet, HandlerMapping, HandlerAdapter, HttpMessageConverter, Security Filter Chain"),
         new Topic("jpa-hibernate-lifecycle", "JPA / Hibernate Entity Lifecycle & N+1 Solver", "java-spring", "expert", "Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs"),
