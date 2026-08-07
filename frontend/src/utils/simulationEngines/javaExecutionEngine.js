@@ -12,10 +12,16 @@ export class JavaExecutionEngine {
       '5: invokevirtual #4 // Method java/io/PrintStream.println:(Ljava/lang/String;)V',
       '8: return'
     ]
+    this.nativeAssembly = [
+      'MOV RAX, [System.out]',
+      'LEA RDX, "Hello Java!"',
+      'CALL PrintStream.println',
+      'RET'
+    ]
     this.classLoaders = [
-      { name: 'Application ClassLoader', status: 'DELEGATING_UP', level: 3 },
-      { name: 'Platform ClassLoader', status: 'DELEGATING_UP', level: 2 },
-      { name: 'Bootstrap ClassLoader', status: 'LOADING_CORE_CLASSES', level: 1 }
+      { name: 'Application ClassLoader', status: 'WAITING', level: 3, path: 'Classpath: ./target/classes/Main.class' },
+      { name: 'Platform ClassLoader', status: 'WAITING', level: 2, path: 'JDK Ext: lib/ext/*.jar' },
+      { name: 'Bootstrap ClassLoader', status: 'WAITING', level: 1, path: 'Core Runtime: java.base/java.lang.*' }
     ]
     this.hotspotCount = 0
     this.isJitCompiled = false
@@ -26,6 +32,7 @@ export class JavaExecutionEngine {
     return {
       sourceCode: this.sourceCode,
       bytecode: [...this.bytecode],
+      nativeAssembly: [...this.nativeAssembly],
       classLoaders: this.classLoaders.map(c => ({ ...c })),
       hotspotCount: this.hotspotCount,
       isJitCompiled: this.isJitCompiled,
@@ -36,49 +43,64 @@ export class JavaExecutionEngine {
   getExecutionSteps() {
     const steps = []
 
-    // Step 1: Source Code
+    // Step 1: Write Code
     steps.push({
       stage: 'SOURCE',
-      title: '1. Java Source Code (.java)',
-      description: 'Human-readable Java code written in editor.',
-      state: { ...this.cloneState(), output: '' }
+      stepNumber: 1,
+      title: '1. Write Source Code (Main.java)',
+      command: '$ cat Main.java',
+      artifact: 'Main.java (Source Code File)',
+      description: 'Developer writes human-readable Java code in editor/IDE.',
+      state: { ...this.cloneState(), output: 'File created: Main.java' }
     })
 
-    // Step 2: Javac Compilation
+    // Step 2: javac Compilation
     steps.push({
       stage: 'COMPILATION',
+      stepNumber: 2,
       title: '2. javac Compiler (Bytecode Generation)',
-      description: 'javac converts high-level Java syntax into JVM-understandable Bytecode (.class file).',
-      state: { ...this.cloneState(), output: 'Compiled successfully to Main.class' }
+      command: '$ javac Main.java',
+      artifact: 'Main.class (JVM Bytecode Binary)',
+      description: 'javac parses Abstract Syntax Tree (AST), checks syntax, and compiles source code into platform-independent Bytecode (Main.class).',
+      state: { ...this.cloneState(), output: 'javac: Compiled Main.java -> Main.class successfully' }
     })
 
     // Step 3: ClassLoader Delegation
     const loadersDelegating = [
-      { name: 'Application ClassLoader', status: 'DELEGATE -> Platform', level: 3 },
-      { name: 'Platform ClassLoader', status: 'DELEGATE -> Bootstrap', level: 2 },
-      { name: 'Bootstrap ClassLoader', status: 'LOADED java.lang.Object & System', level: 1 }
+      { name: 'Application ClassLoader', status: '1. Delegate UP -> Platform', level: 3, path: './target/classes' },
+      { name: 'Platform ClassLoader', status: '2. Delegate UP -> Bootstrap', level: 2, path: 'JDK Ext' },
+      { name: 'Bootstrap ClassLoader', status: '3. Loaded java.lang.Object & System', level: 1, path: 'rt.jar / java.base' }
     ]
     steps.push({
       stage: 'CLASSLOADER',
-      title: '3. ClassLoader Parent Delegation Model',
-      description: 'Application ClassLoader delegates parent-first to Platform and Bootstrap ClassLoaders before loading Main.class.',
-      state: { ...this.cloneState(), classLoaders: loadersDelegating, output: 'Main.class loaded into JVM Metaspace' }
+      stepNumber: 3,
+      title: '3. ClassLoader Parent Delegation Flow',
+      command: '$ java Main',
+      artifact: 'Metaspace: Main.class Symbol Table',
+      description: 'Application ClassLoader delegates parent-first to Platform & Bootstrap ClassLoaders. Bootstrap loads core System classes before Application ClassLoader loads Main.class.',
+      state: { ...this.cloneState(), classLoaders: loadersDelegating, output: 'JVM: Delegated up. Main.class loaded into Metaspace.' }
     })
 
-    // Step 4: Bytecode Verification & Memory Initialization
+    // Step 4: Bytecode Verification & Memory Allocation
     steps.push({
       stage: 'VERIFIER',
+      stepNumber: 4,
       title: '4. Bytecode Verifier & Runtime Data Area',
-      description: 'JVM Bytecode Verifier checks type safety, stack bounds, and memory references. Allocates Metaspace & Stack frame.',
-      state: { ...this.cloneState(), output: 'Bytecode verified. Main.main() stack frame pushed.' }
+      command: '$ verifier --check Main.class',
+      artifact: 'Thread Stack Frame: main(String[])',
+      description: 'JVM Bytecode Verifier checks type safety, stack bounds, and pointer integrity. Pushes initial main() frame onto Thread Stack.',
+      state: { ...this.cloneState(), output: 'Verifier: 100% Security Checks Passed. Stack frame initialized.' }
     })
 
-    // Step 5: Execution Engine (Interpreter + JIT)
+    // Step 5: Execution Engine (Interpreter -> JIT Compiler)
     steps.push({
       stage: 'EXECUTION',
-      title: '5. Execution Engine (Interpreter -> JIT Compiler)',
-      description: 'Interpreter executes bytecode instructions sequentially. Hotspot loops (count > 10,000) get JIT compiled to native machine code.',
-      state: { ...this.cloneState(), hotspotCount: 10001, isJitCompiled: true, output: 'Hello Java!' }
+      stepNumber: 5,
+      title: '5. Execution Engine (Interpreter -> JIT Hotspot Compilation)',
+      command: '$ java -XX:+TieredCompilation Main',
+      artifact: 'CPU Native Machine Code (x86_64)',
+      description: 'Interpreter executes bytecode sequentially. As loop counter crosses 10,000 threshold, JIT Compiler compiles bytecode directly to native CPU assembly instructions!',
+      state: { ...this.cloneState(), hotspotCount: 10000, isJitCompiled: true, output: 'Hello Java!' }
     })
 
     return steps
