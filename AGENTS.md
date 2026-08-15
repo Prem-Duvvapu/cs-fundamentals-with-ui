@@ -1,38 +1,33 @@
 # AI Agent Context — CS Fundamentals with UI
 
 ## Project Overview
-Educational platform for Computer Science fundamentals, structured for **beginner → expert** learning paths with interactive visualizations. Purpose: interview preparation and deep understanding through visual flows.
+Educational platform for Computer Science fundamentals, structured for **beginner → expert** learning paths with interactive visualizations. Purpose: interview preparation and deep understanding through visual flows across Operating Systems, Computer Networks, Database Management Systems, and Java / Spring Boot.
 
 ## Tech Stack
 - **Backend**: Java 17+, Spring Boot 3.x, Maven
 - **Frontend**: React 18+, Vite, React Router v6
-- **Data**: No database needed (static content-driven); JSON for animations/configs
-- **Styling**: CSS modules or Tailwind CSS
+- **Data**: Static content-driven (`content/<category>/`); JSON for animations/configs
+- **Styling**: Vanilla CSS, Glassmorphism, CSS Modules, Dark Theme Tokens
 
 ## Directory Structure
 ```
 /
-├── AGENTS.md              # This file — context for AI agents
-├── README.md              # Project overview
-├── content/               # Markdown educational content
-│   ├── os/                # Operating Systems
-│   │   ├── 01-process-management.md
-│   │   ├── 02-memory-management.md
-│   │   ├── 03-cpu-scheduling.md
-│   │   ├── 04-synchronization.md
-│   │   ├── 05-deadlocks.md
-│   │   ├── 06-file-systems.md
-│   │   └── 07-io-systems.md
-│   ├── networking/        # (future)
-│   ├── dbms/              # (future)
-│   └── ...                # (future topics)
+├── AGENTS.md              # Context for AI agents
+├── README.md              # Project overview & quickstart
+├── CONTEXT.md             # System architecture & API documentation
+├── content/               # Markdown educational content (44 topics)
+│   ├── os/                # Operating Systems (7 topics)
+│   ├── networking/        # Computer Networks (12 topics)
+│   ├── dbms/              # Database Management Systems (8 topics)
+│   ├── java-spring/       # Java & Spring Boot Ecosystem (17 topics)
+│   └── aiml/              # AI / ML Architecture (6 topics)
 ├── backend/               # Spring Boot application
 │   ├── pom.xml
 │   └── src/main/java/com/csfundamentals/
 │       ├── CsFundamentalsApplication.java
-│       ├── controller/    # REST endpoints
-│       ├── model/         # Domain models
-│       ├── service/       # Business logic
+│       ├── controller/    # REST endpoints (/api/v1/...)
+│       ├── model/         # Domain models (Topic, etc.)
+│       ├── service/       # TopicService, ContentService, SimulationService
 │       └── config/        # CORS, security config
 ├── frontend/              # React application
 │   ├── package.json
@@ -41,32 +36,25 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 │   └── src/
 │       ├── main.jsx
 │       ├── App.jsx
-│       ├── components/    # Reusable UI components
-│       ├── pages/         # Route pages
-│       └── utils/         # Helper functions
+│       ├── components/    # Reusable UI & visualizer components
+│       │   ├── visualizers/
+│       │   │   ├── java/        # Java execution, memory, OOP, records, collections
+│       │   │   ├── networking/  # Topologies, TCP segment, QoS, DHCP, ARP, NAT
+│       │   │   ├── dbms/        # B+ Tree indexing, Concurrency control
+│       │   │   └── os/          # Scheduling, process lifecycle, memory, deadlocks
+│       ├── pages/         # Route pages (HomePage, TopicPage, VisualizerPage)
+│       └── utils/         # Helper functions & simulation engines
 ```
 
 ## Content Structure (per topic)
-Each `.md` file follows this pattern:
-- `## 🟢 Beginner Level` — Simple explanations, analogies, basic diagrams
-- `## 🟡 Intermediate Level` — Deeper concepts, algorithms, code examples
-- `## 🔴 Expert Level` — Implementation details, Linux kernel, advanced topics, interview Qs
+Each `.md` file follows this strict 3-tier educational pattern:
+- `## 🟢 Beginner Level` — Simple explanations, analogies, mental models, basic diagrams
+- `## 🟡 Intermediate Level` — Deeper concepts, mathematical formulas, algorithms, code examples
+- `## 🔴 Expert Level` — Implementation details, Linux kernel / JVM internals, trade-offs, and Interview Q&As
 
-## How to Extend
+## Curriculum Roadmaps (44 Complete Topics)
 
-### Add a new topic
-1. Create `content/<category>/<NN>-<topic>.md` following the 3-level pattern
-2. Add a route in `frontend/src/App.jsx`
-3. Add a controller in `backend/.../controller/` if dynamic data needed
-4. Update `content/<category>/_index.json` (or the frontend nav config)
-
-### Add a visualization
-- Components go in `frontend/src/components/`
-- Each component should accept a `config` prop for animation parameters
-- Use CSS transitions or Framer Motion for animations
-- Example: `SchedulingVisualizer.jsx` shows Gantt chart of CPU scheduling
-
-## OS Topic Roadmap
+### 💻 Operating Systems (7/7 Topics)
 - [x] Process Management (states, PCB, threads, fork, COW)
 - [x] Memory Management (paging, segmentation, virtual memory, LRU)
 - [x] CPU Scheduling (FCFS, SJF, RR, MLFQ, CFS)
@@ -75,7 +63,7 @@ Each `.md` file follows this pattern:
 - [x] File Systems (inodes, Ext4, Btrfs, ZFS, VFS)
 - [x] I/O Systems (DMA, interrupts, epoll, io_uring)
 
-## Computer Networks Topic Roadmap
+### 🌐 Computer Networks (12/12 Topics)
 - [x] Network Fundamentals (types, devices, topologies, packet vs circuit switching)
 - [x] Physical Layer & Media (guided/unguided media, NRZ/Manchester encoding, Nyquist/Shannon, multiplexing)
 - [x] OSI & TCP/IP Reference Models (7-layer vs 4-layer, PDU encapsulation/decapsulation)
@@ -89,13 +77,41 @@ Each `.md` file follows this pattern:
 - [x] Network Security & Cryptography (AES, RSA, X.509 certificates, firewalls, SYN flood, DDoS)
 - [x] Network QoS & Traffic Shaping (Token Bucket, Leaky Bucket, IntServ/DiffServ, CDN, SDN/NFV, 5G slicing)
 
+### 🗄️ Database Management Systems (8/8 Topics)
+- [x] DBMS Architecture & Data Independence (3-Schema ANSI-SPARC)
+- [x] ER Diagram Modeling & Relational Mapping (Attribute Closures, Candidate Keys)
+- [x] Relational Model, Keys & Relational Algebra (Tuple Relational Calculus, SQL Joins)
+- [x] Database Normalization (1NF, 2NF, 3NF, BCNF, Functional Dependencies)
+- [x] B/B+ Tree Indexing & Storage Structures (Clustered/Secondary, Node Splits, Range Scans)
+- [x] Transactions, States & ACID Properties (WAL Logging, ARIES Crash Recovery)
+- [x] Concurrency Control, 2PL & Serializability (Precedence Graphs, Strict 2PL, MVCC)
+- [x] Query Processing & Cost-Based Optimizer (Query Trees, Hash Joins, EXPLAIN ANALYZE)
+
+### ☕ Java & Spring Ecosystem (17/17 Topics)
+- [x] Java Execution Pipeline (javac, ClassLoader Parent Delegation, Bytecode Verifier, Tiered JIT)
+- [x] Java Memory Model (Primitives, References, Stack Frames, Heap Objects, 100% Pass-by-Value)
+- [x] OOP Pillars & Dynamic Method Dispatch (Encapsulation, Polymorphism, JVM vtable)
+- [x] Static, Final, Immutability & Java Records (Metaspace allocation, Defensive Copying, Records)
+- [x] JVM Memory Architecture, GC & Virtual Threads (G1GC, ZGC, Thread States, Project Loom)
+- [x] Functional Interfaces & Lambda Expressions (SAM Contracts, Method References, invokedynamic)
+- [x] Generics, Wildcards (PECS) & Type Erasure (Invariance, Upper/Lower Bounds, Bridge Methods)
+- [x] Collections Framework & PriorityQueue (ArrayList 1.5x, ArrayDeque, Min-Heap sift operations)
+- [x] HashMap Bucket Internals & Treeification (Bitwise masking, Red-Black Trees, ConcurrentHashMap)
+- [x] Java Streams API & Optional (Lazy evaluation, Vertical loop fusion, Optional monad)
+- [x] Reflection API, Annotations & Exceptions (Introspection, Dynamic Proxies, Try-With-Resources)
+- [x] Multithreading, Monitors & ThreadPools (Volatile barriers, Object Monitors, CAS, ThreadPoolExecutor)
+- [x] Spring Bean Lifecycle (BeanDefinition, Instantiation, Aware Interfaces, BeanPostProcessors)
+- [x] Spring MVC Request Execution Flow (DispatcherServlet, HandlerMapping, Security Filter Chain)
+- [x] JPA / Hibernate Entity Lifecycle (Transient, Managed, Detached, Removed, N+1 Query Solver)
+- [x] Spring Batch Execution Architecture (JobLauncher, Step, Chunk ItemReader/Processor/Writer)
+- [x] Quartz Scheduler Lifecycle (JobDetail, Trigger, Clustered JobStoreTX)
+
 ## Conventions
 - **Commits**: `feat/<date>-<topic>` pattern
 - **Branches**: `feat/<YYYY-MM-DD>-<topic>` or `fix/<description>`
 - **Code comments**: Minimal — use self-documenting code
 - **Backend API**: RESTful, `/api/v1/...` prefix
-- **Frontend state**: React hooks (useState/useReducer), no Redux unless complexity demands
+- **Frontend state**: React hooks (`useState`/`useReducer`), simulation engine classes in `src/utils/simulationEngines/`
 
 ## Command Execution Environment
 - **Commands Rule**: ALWAYS prefix shell commands with `wsl` (e.g. `wsl npm test`, `wsl npm run build`, `wsl git status`, `wsl git commit ...`).
-
