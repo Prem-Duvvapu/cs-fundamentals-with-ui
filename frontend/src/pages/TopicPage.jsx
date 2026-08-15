@@ -23,14 +23,18 @@ export default function TopicPage() {
     'deadlocks': 'Deadlocks & Banker\'s Algorithm',
     'file-systems': 'File Systems & Inodes',
     'io-systems': 'I/O Systems & Kernel Architecture',
+    'network-fundamentals': 'Computer Network Fundamentals, Devices & Topologies',
+    'physical-layer-media': 'Physical Layer: Transmission Media, Modes & Encoding',
     'osi-model': 'OSI 7-Layer & TCP/IP Reference Model',
     'data-link-layer': 'Data Link Layer, MAC & ARQ Protocols',
     'ip-subnetting': 'IP Addressing, CIDR Subnetting & Protocols',
     'routing-algorithms': 'Routing Algorithms & Link-State vs Distance Vector',
     'tcp-ip': 'TCP vs UDP & Connection Management',
     'tcp-congestion': 'TCP Flow & Congestion Control',
+    'transport-layer-protocols': 'Transport Protocols: QUIC, SCTP & TCP Segment Internals',
     'application-layer': 'Application Layer: DNS, HTTP/3 & TLS 1.3',
     'network-security': 'Network Security, Cryptography & Threat Prevention',
+    'network-performance-qos': 'Network QoS, Traffic Shaping & Modern Networking',
     'dbms-architecture': 'DBMS Architecture & Data Independence',
     'er-model': 'ER Diagram Modeling & Relational Mapping',
     'relational-model': 'Relational Model, Keys & Relational Algebra',
@@ -46,6 +50,13 @@ export default function TopicPage() {
     'feature-stores': 'Feature Stores, Data Drift & MLOps Architecture',
     'recommendation-systems': '2-Stage Recommendation Engine Architecture',
     'java-execution-pipeline': 'Java Execution Pipeline & JDK/JRE/JVM Architecture',
+    'java-memory-model': 'Java Memory Model: Primitives, References, Stack & Heap',
+    'java-oop-pillars': 'OOP Pillars & Dynamic Method Dispatch (vtable)',
+    'java-static-final-records': 'Static, Final, Immutability & Java Records',
+    'java-functional-lambdas': 'Interfaces, Functional Interfaces & Lambda Expressions',
+    'java-generics': 'Generics, Wildcards (PECS) & Type Erasure',
+    'java-collections-framework': 'Collections Framework: List, Set, Queue & PriorityQueue',
+    'java-streams-optional': 'Java Streams API Lazy Pipeline & Optional',
     'jvm-gc': 'JVM Memory Architecture, GC & Virtual Threads',
     'spring-bean-lifecycle': 'Spring IoC Container & Bean Lifecycle',
     'spring-mvc-lifecycle': 'Spring MVC Request Execution & Security Pipeline',
@@ -68,14 +79,18 @@ export default function TopicPage() {
         return <SynchronizationVisualizer />
       case 'deadlocks':
         return <DeadlockVisualizer />
+      case 'network-fundamentals':
+      case 'physical-layer-media':
       case 'osi-model':
       case 'data-link-layer':
       case 'ip-subnetting':
       case 'routing-algorithms':
       case 'tcp-ip':
       case 'tcp-congestion':
+      case 'transport-layer-protocols':
       case 'application-layer':
       case 'network-security':
+      case 'network-performance-qos':
       case 'networking':
         return <NetworkingVisualizer defaultTopicId={topicId} />
       case 'embeddings-vector-db':
@@ -116,7 +131,7 @@ export default function TopicPage() {
       case 'dbms':
         return <DbmsVisualizer defaultTopicId={topicId} />
       default:
-        return <SchedulingVisualizer />
+        return <div className="viz-card"><h3>Visualizer coming soon for this topic.</h3></div>
     }
   }
 

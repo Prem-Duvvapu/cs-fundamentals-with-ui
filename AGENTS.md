@@ -66,7 +66,7 @@ Each `.md` file follows this pattern:
 - Use CSS transitions or Framer Motion for animations
 - Example: `SchedulingVisualizer.jsx` shows Gantt chart of CPU scheduling
 
-## OS Topic Roadmap (Current Sprint)
+## OS Topic Roadmap
 - [x] Process Management (states, PCB, threads, fork, COW)
 - [x] Memory Management (paging, segmentation, virtual memory, LRU)
 - [x] CPU Scheduling (FCFS, SJF, RR, MLFQ, CFS)
@@ -74,6 +74,20 @@ Each `.md` file follows this pattern:
 - [x] Deadlocks (banker's algorithm, detection, prevention)
 - [x] File Systems (inodes, Ext4, Btrfs, ZFS, VFS)
 - [x] I/O Systems (DMA, interrupts, epoll, io_uring)
+
+## Computer Networks Topic Roadmap
+- [x] Network Fundamentals (types, devices, topologies, packet vs circuit switching)
+- [x] Physical Layer & Media (guided/unguided media, NRZ/Manchester encoding, Nyquist/Shannon, multiplexing)
+- [x] OSI & TCP/IP Reference Models (7-layer vs 4-layer, PDU encapsulation/decapsulation)
+- [x] Data Link Layer, MAC & ARQ Protocols (framing, CRC, GBN, SR, CSMA/CD)
+- [x] IP Addressing, CIDR Subnetting & Protocols (IPv4/IPv6, CIDR, ARP, DHCP DORA, NAT)
+- [x] Routing Algorithms (Distance Vector Bellman-Ford, Link-State Dijkstra, OSPF, BGP)
+- [x] TCP vs UDP & Connection Management (3-way handshake, 4-way teardown, port multiplexing)
+- [x] TCP Flow & Congestion Control (sliding window, rwnd, cwnd, Slow Start, AIMD, Reno/CUBIC)
+- [x] Transport Protocols (TCP 20B header, UDP 8B header, QUIC 0-RTT, SCTP multi-streaming)
+- [x] Application Layer (DNS recursive hierarchy, HTTP/1.1 vs HTTP/2 vs HTTP/3, TLS 1.3)
+- [x] Network Security & Cryptography (AES, RSA, X.509 certificates, firewalls, SYN flood, DDoS)
+- [x] Network QoS & Traffic Shaping (Token Bucket, Leaky Bucket, IntServ/DiffServ, CDN, SDN/NFV, 5G slicing)
 
 ## Conventions
 - **Commits**: `feat/<date>-<topic>` pattern

@@ -1,24 +1,55 @@
 import React, { useState, useEffect } from 'react'
 import ConsistentHashingVisualizer from './networking/ConsistentHashingVisualizer'
 import TcpCongestionVisualizer from './networking/TcpCongestionVisualizer'
+import TcpSegmentVisualizer from './networking/TcpSegmentVisualizer'
+import TrafficShapingVisualizer from './networking/TrafficShapingVisualizer'
+import DhcpDoraVisualizer from './networking/DhcpDoraVisualizer'
+import ArpResolutionVisualizer from './networking/ArpResolutionVisualizer'
+import NatTranslationVisualizer from './networking/NatTranslationVisualizer'
+import DistanceVectorVisualizer from './networking/DistanceVectorVisualizer'
+import { networkTopologies } from '../../utils/networkTopologyData'
+import { computeWaveform } from '../../utils/encodingWaveform'
 
 export default function NetworkingVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
   const getInitialTab = () => {
     switch (defaultTopicId) {
+      case 'network-fundamentals': return 'topology'
+      case 'physical-layer-media': return 'physical'
       case 'osi-model': return 'encapsulation'
       case 'data-link-layer': return 'arq'
       case 'ip-subnetting': return 'subnet'
       case 'routing-algorithms': return 'routing'
       case 'tcp-ip':
       case 'tcp-congestion': return 'handshake'
+      case 'transport-layer-protocols': return 'tcp-segment'
       case 'application-layer':
       case 'network-security': return 'dns'
+      case 'network-performance-qos': return 'traffic-shaping'
       default: return 'encapsulation'
     }
   }
 
   const [activeTab, setActiveTab] = useState(getInitialTab())
+
+  useEffect(() => {
+    if (defaultTopicId) {
+      setActiveTab(getInitialTab())
+    }
+  }, [defaultTopicId])
+
+  // ==========================================
+  // TOPOLOGY EXPLORER STATE
+  // ==========================================
+  const [selectedTopologyKey, setSelectedTopologyKey] = useState('star')
+  const currentTopo = networkTopologies[selectedTopologyKey] || networkTopologies.star
+
+  // ==========================================
+  // PHYSICAL LAYER & WAVEFORM ENCODING STATE
+  // ==========================================
+  const [bitInput, setBitInput] = useState('10110010')
+  const [encodingType, setEncodingType] = useState('manchester')
+  const waveformData = computeWaveform(bitInput, encodingType)
 
   // ==========================================
   // MODE 1: OSI 7-LAYER ENCAPSULATION
@@ -69,10 +100,6 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
   const [cidr, setCidr] = useState(24)
   const [sub, setSub] = useState({ valid: true })
 
-  useEffect(() => {
-    setSub(calcSubnet(ipAddress, cidr))
-  }, [ipAddress, cidr])
-
   const calcSubnet = (ipVal, cidrVal) => {
     try {
       const parts = (ipVal || '').split('.').map(Number)
@@ -103,6 +130,10 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
     }
   }
 
+  useEffect(() => {
+    setSub(calcSubnet(ipAddress, cidr))
+  }, [ipAddress, cidr])
+
   // ==========================================
   // MODE 4: ROUTING ALGORITHMS (DIJKSTRA SHORTEST PATH)
   // ==========================================
@@ -115,30 +146,9 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
   }
 
   // ==========================================
-  // MODE 5: TCP HANDSHAKE & CONGESTION CONTROL (cwnd)
+  // MODE 5: TCP HANDSHAKE & CONGESTION CONTROL
   // ==========================================
   const [handshakeStep, setHandshakeStep] = useState(0)
-  const [cwndPhase, setCwndPhase] = useState('slowstart') // 'slowstart', 'avoidance', 'fastack'
-  const [cwndValue, setCwndValue] = useState(1)
-
-  const handleAdvanceCwnd = () => {
-    if (cwndPhase === 'slowstart') {
-      const nextVal = cwndValue * 2
-      if (nextVal >= 16) {
-        setCwndPhase('avoidance')
-        setCwndValue(16)
-      } else {
-        setCwndValue(nextVal)
-      }
-    } else if (cwndPhase === 'avoidance') {
-      setCwndValue(prev => prev + 1)
-    }
-  }
-
-  const triggerFastRetransmit = () => {
-    setCwndPhase('fastack')
-    setCwndValue(Math.max(1, Math.floor(cwndValue / 2) + 3))
-  }
 
   // ==========================================
   // MODE 6: DNS RESOLUTION & HTTP/3 QUIC
@@ -157,57 +167,319 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
       <div className="viz-header">
         <div className="viz-title-group">
           <h2>🌐 Interactive Computer Networks Visualizer Suite</h2>
-          <p>Explore OSI Encapsulation, ARQ Error Control, CIDR Subnetting, Dijkstra Routing, TCP Congestion & DNS/HTTP/3.</p>
+          <p>Explore Topologies, Physical Signals, OSI Encapsulation, ARQ Error Control, Subnetting, Routing, Protocols & QoS.</p>
         </div>
 
         {/* SUB-TABS NAVIGATION */}
-        <div className="main-tab-switcher" style={{ marginTop: '1rem' }}>
+        <div className="main-tab-switcher" style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+          <button
+            onClick={() => setActiveTab('topology')}
+            className={`main-tab-btn ${activeTab === 'topology' ? 'active-tab' : ''}`}
+          >
+            🔗 Topologies
+          </button>
+          <button
+            onClick={() => setActiveTab('physical')}
+            className={`main-tab-btn ${activeTab === 'physical' ? 'active-tab' : ''}`}
+          >
+            📡 Physical & Signals
+          </button>
           <button
             onClick={() => setActiveTab('encapsulation')}
             className={`main-tab-btn ${activeTab === 'encapsulation' ? 'active-tab' : ''}`}
           >
-            📦 OSI 7-Layer Encapsulation
+            📦 OSI 7-Layer
           </button>
           <button
             onClick={() => setActiveTab('arq')}
             className={`main-tab-btn ${activeTab === 'arq' ? 'active-tab' : ''}`}
           >
-            🔄 ARQ Error Control (GBN vs SR)
+            🔄 ARQ Flow Control
           </button>
           <button
             onClick={() => setActiveTab('subnet')}
             className={`main-tab-btn ${activeTab === 'subnet' ? 'active-tab' : ''}`}
           >
-            🧮 CIDR Subnet Calculator
+            🧮 CIDR Subnetting
+          </button>
+          <button
+            onClick={() => setActiveTab('dhcp')}
+            className={`main-tab-btn ${activeTab === 'dhcp' ? 'active-tab' : ''}`}
+          >
+            📡 DHCP DORA
+          </button>
+          <button
+            onClick={() => setActiveTab('arp')}
+            className={`main-tab-btn ${activeTab === 'arp' ? 'active-tab' : ''}`}
+          >
+            🔍 ARP Resolution
+          </button>
+          <button
+            onClick={() => setActiveTab('nat')}
+            className={`main-tab-btn ${activeTab === 'nat' ? 'active-tab' : ''}`}
+          >
+            🔄 NAT Table
           </button>
           <button
             onClick={() => setActiveTab('routing')}
             className={`main-tab-btn ${activeTab === 'routing' ? 'active-tab' : ''}`}
           >
-            🗺️ Routing (Dijkstra)
+            🗺️ Dijkstra Routing
+          </button>
+          <button
+            onClick={() => setActiveTab('distance-vector')}
+            className={`main-tab-btn ${activeTab === 'distance-vector' ? 'active-tab' : ''}`}
+          >
+            📊 Distance Vector
           </button>
           <button
             onClick={() => setActiveTab('handshake')}
             className={`main-tab-btn ${activeTab === 'handshake' ? 'active-tab' : ''}`}
           >
-            🤝 TCP Handshake & cwnd
+            🤝 TCP Handshake
+          </button>
+          <button
+            onClick={() => setActiveTab('tcp-segment')}
+            className={`main-tab-btn ${activeTab === 'tcp-segment' ? 'active-tab' : ''}`}
+          >
+            📋 TCP/UDP Headers
           </button>
           <button
             onClick={() => setActiveTab('dns')}
             className={`main-tab-btn ${activeTab === 'dns' ? 'active-tab' : ''}`}
           >
-            🌐 DNS & HTTP/3 QUIC
+            🌐 DNS & QUIC
+          </button>
+          <button
+            onClick={() => setActiveTab('traffic-shaping')}
+            className={`main-tab-btn ${activeTab === 'traffic-shaping' ? 'active-tab' : ''}`}
+          >
+            🪣 Traffic Shaping (QoS)
           </button>
           <button
             onClick={() => setActiveTab('consistent-hashing')}
             className={`main-tab-btn ${activeTab === 'consistent-hashing' ? 'active-tab' : ''}`}
           >
-            ⭕ Consistent Hashing Ring
+            ⭕ Consistent Hashing
           </button>
         </div>
       </div>
 
-      {/* MODE 1: OSI ENCAPSULATION */}
+      {/* SUB-TAB 1: TOPOLOGY EXPLORER */}
+      {activeTab === 'topology' && (
+        <div className="viz-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
+              🔗 Network Topologies & Architectural Fault Tolerance
+            </h3>
+            <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+              Select a topology to inspect connection geometries, cabling cost formulas, and failure isolation boundaries.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+            {Object.keys(networkTopologies).map(key => (
+              <button
+                key={key}
+                onClick={() => setSelectedTopologyKey(key)}
+                className={`btn ${selectedTopologyKey === key ? 'btn-primary' : 'btn-secondary'}`}
+              >
+                {networkTopologies[key].name}
+              </button>
+            ))}
+          </div>
+
+          {/* TOPOLOGY VISUAL ARCHITECTURE */}
+          <div style={{ background: '#020617', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.25rem', border: '1px solid rgba(59,130,246,0.15)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <span className="header-pill" style={{ background: '#312e81', color: '#c7d2fe', fontSize: '0.9rem' }}>
+                {currentTopo.name} Architecture
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
+              {selectedTopologyKey === 'star' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', alignItems: 'center', maxWidth: '400px', margin: '0 auto' }}>
+                  <div />
+                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node A</div>
+                  <div />
+                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node D</div>
+                  <div style={{ background: '#4338ca', color: '#fff', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: 700 }}>🔀 Switch</div>
+                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node B</div>
+                  <div />
+                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node C</div>
+                  <div />
+                </div>
+              )}
+
+              {selectedTopologyKey === 'bus' && (
+                <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host A</div>
+                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host B</div>
+                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host C</div>
+                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host D</div>
+                  </div>
+                  <div style={{ height: '8px', background: 'linear-gradient(to right, #ef4444, #f59e0b, #10b981, #3b82f6)', borderRadius: '4px', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '-5px', top: '-6px', background: '#dc2626', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>Terminator</div>
+                    <div style={{ position: 'absolute', right: '-5px', top: '-6px', background: '#dc2626', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>Terminator</div>
+                  </div>
+                  <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                    Shared Coaxial / Ethernet Backbone Trunk
+                  </div>
+                </div>
+              )}
+
+              {selectedTopologyKey === 'ring' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '350px', margin: '0 auto', textAlign: 'center' }}>
+                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>💻 Node A ➔</div>
+                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>💻 Node B ➔</div>
+                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>▲ 💻 Node D</div>
+                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>▼ 💻 Node C</div>
+                </div>
+              )}
+
+              {selectedTopologyKey === 'mesh' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', width: '100%', maxWidth: '500px' }}>
+                  {['A', 'B', 'C', 'D'].map(node => (
+                    <div key={node} style={{ background: '#1e293b', border: '1px solid #8b5cf6', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700 }}>💻 Node {node}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '0.2rem' }}>3 Dedicated Links</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {selectedTopologyKey === 'hybrid' && (
+                <div style={{ width: '100%', maxWidth: '450px', textAlign: 'center' }}>
+                  <div style={{ background: '#4338ca', color: '#fff', padding: '0.6rem', borderRadius: '8px', display: 'inline-block', fontWeight: 700, marginBottom: '1rem' }}>
+                    🌐 Core Backbone Switch
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px' }}>
+                      <div style={{ color: '#38bdf8', fontWeight: 600 }}>Branch 1 (Star)</div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Hosts A1, A2</div>
+                    </div>
+                    <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px' }}>
+                      <div style={{ color: '#34d399', fontWeight: 600 }}>Branch 2 (Star)</div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Hosts B1, B2</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* TOPOLOGY ATTRIBUTES BREAKDOWN */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+            <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #8b5cf6' }}>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Fault Tolerance</div>
+              <div style={{ fontSize: '0.9rem', color: '#f8fafc', marginTop: '0.3rem', lineHeight: '1.4' }}>{currentTopo.faultTolerance}</div>
+            </div>
+
+            <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #38bdf8' }}>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Cabling & Port Count</div>
+              <div style={{ fontSize: '0.9rem', color: '#f8fafc', marginTop: '0.3rem', fontFamily: 'monospace' }}>{currentTopo.cableCount}</div>
+            </div>
+
+            <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #10b981' }}>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Broadcast Behavior</div>
+              <div style={{ fontSize: '0.9rem', color: '#f8fafc', marginTop: '0.3rem' }}>{currentTopo.broadcastBehavior}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB 2: PHYSICAL LAYER & SIGNALS */}
+      {activeTab === 'physical' && (
+        <div className="viz-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
+              📡 Physical Layer Line Encoding & Digital Waveform Generator
+            </h3>
+            <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+              Enter binary bitstream to visualize real-time clock recovery, voltage transitions, and DC baseline characteristics.
+            </p>
+          </div>
+
+          {/* CONTROLS */}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.25rem', background: '#0b1329', padding: '1rem', borderRadius: '10px' }}>
+            <div>
+              <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
+                Binary Bitstream Input (0s and 1s):
+              </label>
+              <input
+                type="text"
+                value={bitInput}
+                maxLength={16}
+                onChange={(e) => setBitInput(e.target.value.replace(/[^01]/g, ''))}
+                style={{ background: '#020617', border: '1px solid rgba(255,255,255,0.15)', color: '#4ade80', padding: '0.4rem 0.6rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.15em' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
+                Line Encoding Scheme:
+              </label>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                {[
+                  { id: 'manchester', name: 'Manchester (802.3)' },
+                  { id: 'nrz-l', name: 'NRZ-L' },
+                  { id: 'nrz-i', name: 'NRZ-I' },
+                  { id: 'diff-manchester', name: 'Diff Manchester' }
+                ].map(enc => (
+                  <button
+                    key={enc.id}
+                    onClick={() => setEncodingType(enc.id)}
+                    className={`btn ${encodingType === enc.id ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.6rem' }}
+                  >
+                    {enc.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* DIGITAL OSCILLOSCOPE WAVEFORM */}
+          <div style={{ background: '#020617', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(59,130,246,0.2)', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
+              <span>+V Level</span>
+              <span>Oscilloscope Signal Waveform Time Domain</span>
+              <span>0V Level</span>
+            </div>
+
+            <div style={{ display: 'flex', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+              {waveformData.map((item, idx) => (
+                <div key={idx} style={{ minWidth: '60px', flex: '1', borderRight: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#38bdf8', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+                    Bit '{item.bit}'
+                  </div>
+
+                  {/* 2-HALF INTERVAL WAVEFORM BOX */}
+                  <div style={{ height: '70px', display: 'flex', background: '#090d16', borderRadius: '4px', padding: '0 2px', alignItems: 'center' }}>
+                    <div style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: item.firstHalf === 'H' ? 'flex-start' : 'flex-end' }}>
+                      <div style={{ height: '8px', background: '#10b981', borderRadius: '2px', width: '100%' }} />
+                    </div>
+                    {item.firstHalf !== item.secondHalf && (
+                      <div style={{ width: '4px', height: '100%', background: '#f59e0b' }} />
+                    )}
+                    <div style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: item.secondHalf === 'H' ? 'flex-start' : 'flex-end' }}>
+                      <div style={{ height: '8px', background: '#10b981', borderRadius: '2px', width: '100%' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '0.4rem', lineHeight: '1.2' }}>
+                    {item.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB 3: OSI ENCAPSULATION */}
       {activeTab === 'encapsulation' && (
         <div className="viz-card">
           <h3>📦 Layered Packet Encapsulation & Header PDU Inspection</h3>
@@ -249,190 +521,138 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         </div>
       )}
 
-      {/* MODE 2: ARQ FLOW CONTROL */}
+      {/* SUB-TAB 4: ARQ ERROR & FLOW CONTROL */}
       {activeTab === 'arq' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>🔄 ARQ Error Control Protocol Simulator</h3>
+        <div className="viz-card">
+          <h3>🔄 Sliding Window ARQ Error Control</h3>
 
-            <div className="main-tab-switcher" style={{ margin: '1rem 0' }}>
-              <button onClick={() => setArqMode('gbn')} className={`main-tab-btn ${arqMode === 'gbn' ? 'active-tab' : ''}`}>
-                Go-Back-N ARQ (Window N=4)
+          <div className="tab-control-panel" style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div className="btn-group">
+              <button onClick={() => setArqMode('gbn')} className={`btn ${arqMode === 'gbn' ? 'btn-primary' : 'btn-secondary'}`}>
+                Go-Back-N (GBN)
               </button>
-              <button onClick={() => setArqMode('sr')} className={`main-tab-btn ${arqMode === 'sr' ? 'active-tab' : ''}`}>
-                Selective Repeat ARQ (Window N=4)
-              </button>
-            </div>
-
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px', marginTop: '1rem' }}>
-              <h4>Sender Window Frames State</h4>
-              <div style={{ display: 'flex', gap: '0.75rem', margin: '1rem 0' }}>
-                {frames.map(f => (
-                  <div
-                    key={f.id}
-                    style={{
-                      background: f.acked ? '#059669' : f.status === 'lost' ? '#dc2626' : f.status === 'buffered' ? '#d97706' : '#1e293b',
-                      padding: '1rem',
-                      borderRadius: '8px',
-                      textAlign: 'center',
-                      flex: 1,
-                      border: '1px solid var(--border-color)'
-                    }}
-                  >
-                    <strong>Frame #{f.id}</strong>
-                    <div style={{ fontSize: '0.75rem', marginTop: '0.3rem' }}>
-                      {f.acked ? 'ACKed ✅' : f.status.toUpperCase()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button onClick={handleSimulateLoss} className="btn btn-primary" style={{ width: '100%' }}>
-                ⚡ Simulate Frame #1 Packet Loss
+              <button onClick={() => setArqMode('sr')} className={`btn ${arqMode === 'sr' ? 'btn-primary' : 'btn-secondary'}`}>
+                Selective Repeat (SR)
               </button>
             </div>
+            <button onClick={handleSimulateLoss} className="btn btn-danger">Simulate Packet Loss 💥</button>
           </div>
 
-          <div className="viz-card">
-            <h3>📜 ARQ Retransmission Audit Log</h3>
-            <div className="event-log-container" style={{ maxHeight: '220px' }}>
-              {arqLog.map((log, idx) => (
-                <div key={idx} className="log-entry"><span className="log-text">{log}</span></div>
-              ))}
-              {arqLog.length === 0 && (
-                <span className="empty-text">Click "Simulate Frame #1 Packet Loss" to compare Go-Back-N vs Selective Repeat handling!</span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODE 3: CIDR SUBNET CALCULATOR */}
-      {activeTab === 'subnet' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>🧮 CIDR IPv4 Subnet Mask Solver</h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>IP Address:</label>
-                <input
-                  type="text"
-                  value={ipAddress}
-                  onChange={e => setIpAddress(e.target.value)}
-                  className="num-input"
-                  style={{ width: '100%', marginTop: '0.3rem' }}
-                />
+          <div className="frames-pipeline">
+            {frames.map(f => (
+              <div key={f.id} className={`frame-box frame-${f.status}`}>
+                <div className="frame-header">Frame #{f.id}</div>
+                <div className="frame-status">{f.status.toUpperCase()}</div>
               </div>
-
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>CIDR Prefix (/{cidr}):</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="30"
-                  value={cidr}
-                  onChange={e => setCidr(Number(e.target.value))}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
+            ))}
           </div>
 
-          <div className="viz-card">
-            <h3>📊 Network Subnet Breakdown</h3>
-
-            {sub.valid ? (
-              <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span>Network Address:</span>
-                  <strong style={{ color: 'var(--accent-purple)' }}>{sub.networkIp} /{cidr}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span>Subnet Mask:</span>
-                  <strong>{sub.subnetMask}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span>Broadcast Address:</span>
-                  <strong>{sub.broadcastIp}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span>Usable Host IP Range:</span>
-                  <strong style={{ color: 'var(--accent-green)' }}>{sub.firstHost} — {sub.lastHost}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Total Usable Hosts:</span>
-                  <strong>{sub.usableHosts} hosts</strong>
-                </div>
-              </div>
+          <div className="arq-console">
+            <h4>📋 Protocol Transmission Log:</h4>
+            {arqLog.length === 0 ? (
+              <p className="empty-log">Click "Simulate Packet Loss" to trigger retransmission flow.</p>
             ) : (
-              <span className="empty-text">Invalid IP Address format.</span>
+              arqLog.map((log, i) => <div key={i} className="log-line">{log}</div>)
             )}
           </div>
         </div>
       )}
 
-      {/* MODE 4: ROUTING ALGORITHMS (DIJKSTRA) */}
-      {activeTab === 'routing' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>🗺️ Link State Dijkstra Shortest Path Engine</h3>
+      {/* SUB-TAB 5: CIDR SUBNET CALCULATOR */}
+      {activeTab === 'subnet' && (
+        <div className="viz-card">
+          <h3>🧮 CIDR IPv4 Subnet Calculator & Bitmask Explorer</h3>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px', marginTop: '1rem' }}>
-              <h4>Source Node: Router A</h4>
-              <div style={{ margin: '1rem 0' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Select Destination Router:</label>
-                <select
-                  value={targetRouter}
-                  onChange={e => setTargetRouter(e.target.value)}
-                  className="num-input"
-                  style={{ width: '100%', marginTop: '0.3rem' }}
-                >
-                  <option value="Router B">Router B (Direct Link)</option>
-                  <option value="Router C">Router C (Via B)</option>
-                  <option value="Router D">Router D (Direct Link)</option>
-                  <option value="Router E">Router E (Via D)</option>
-                </select>
-              </div>
+          <div className="input-group-inline" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div>
+              <label>IP Address:</label>
+              <input type="text" value={ipAddress} onChange={e => setIpAddress(e.target.value)} className="text-input" />
+            </div>
+            <div>
+              <label>CIDR Prefix (/{cidr}):</label>
+              <input type="range" min="8" max="30" value={cidr} onChange={e => setCidr(Number(e.target.value))} />
             </div>
           </div>
 
-          <div className="viz-card">
-            <h3>📊 Dijkstra Optimal Routing Table Result</h3>
+          {sub.valid ? (
+            <div className="subnet-results-grid">
+              <div className="res-card">
+                <span className="res-label">Network IP</span>
+                <span className="res-val">{sub.networkIp}</span>
+              </div>
+              <div className="res-card">
+                <span className="res-label">Subnet Mask</span>
+                <span className="res-val">{sub.subnetMask}</span>
+              </div>
+              <div className="res-card">
+                <span className="res-label">Broadcast IP</span>
+                <span className="res-val">{sub.broadcastIp}</span>
+              </div>
+              <div className="res-card">
+                <span className="res-label">Usable Host Range</span>
+                <span className="res-val">{sub.firstHost} ➔ {sub.lastHost}</span>
+              </div>
+              <div className="res-card">
+                <span className="res-label">Usable Host Capacity</span>
+                <span className="res-val">{sub.usableHosts?.toLocaleString()} hosts</span>
+              </div>
+            </div>
+          ) : (
+            <div className="alert-error">Invalid IP address or CIDR mask provided.</div>
+          )}
+        </div>
+      )}
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span>Shortest Path:</span>
-                <strong style={{ color: 'var(--accent-green)' }}>{routes[targetRouter]?.path}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <span>Accumulated Path Metric Cost:</span>
-                <strong style={{ color: 'var(--accent-purple)', fontSize: '1.2rem' }}>{routes[targetRouter]?.cost} units</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Total Hop Count:</span>
-                <strong>{routes[targetRouter]?.hops} hops</strong>
-              </div>
+      {/* SUB-TAB 6: DHCP DORA */}
+      {activeTab === 'dhcp' && <DhcpDoraVisualizer />}
+
+      {/* SUB-TAB 7: ARP RESOLUTION */}
+      {activeTab === 'arp' && <ArpResolutionVisualizer />}
+
+      {/* SUB-TAB 8: NAT TRANSLATION TABLE */}
+      {activeTab === 'nat' && <NatTranslationVisualizer />}
+
+      {/* SUB-TAB 9: DIJKSTRA ROUTING */}
+      {activeTab === 'routing' && (
+        <div className="viz-card">
+          <h3>🗺️ Dijkstra Link-State Shortest Path Routing</h3>
+          <div style={{ marginBottom: '1rem' }}>
+            <label>Compute Shortest Path from Router A to: </label>
+            <select value={targetRouter} onChange={e => setTargetRouter(e.target.value)} className="select-input">
+              {Object.keys(routes).map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="route-result-box">
+            <h4>Computed Least-Cost Path:</h4>
+            <div className="path-display">{routes[targetRouter].path}</div>
+            <div className="path-metrics">
+              <span>Total Link Metric Cost: <strong>{routes[targetRouter].cost}</strong></span>
+              <span>Intermediate Hops: <strong>{routes[targetRouter].hops}</strong></span>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODE 5: TCP HANDSHAKE & CONGESTION CONTROL */}
-      {activeTab === 'handshake' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>🤝 TCP 3-Way Handshake Connection State</h3>
+      {/* SUB-TAB 10: DISTANCE VECTOR */}
+      {activeTab === 'distance-vector' && <DistanceVectorVisualizer />}
 
-            <div className="action-buttons-group" style={{ marginBottom: '1.25rem', display: 'flex', gap: '0.5rem' }}>
+      {/* SUB-TAB 11: TCP HANDSHAKE & CWND */}
+      {activeTab === 'handshake' && (
+        <div>
+          <div className="viz-card">
+            <h3>🤝 TCP 3-Way Handshake & Connection State Machine</h3>
+            <div className="action-buttons-group" style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => setHandshakeStep(0)} className="btn btn-secondary">⏮ Reset</button>
-              <button onClick={() => setHandshakeStep(prev => Math.min(3, prev + 1))} disabled={handshakeStep >= 3} className="btn btn-primary">
-                Advance Step ▶
+              <button onClick={() => setHandshakeStep(prev => Math.min(2, prev + 1))} disabled={handshakeStep >= 2} className="btn btn-primary">
+                Next Handshake Step ▶
               </button>
             </div>
 
-            <div className="handshake-diagram">
-              <div className="host-column">
+            <div className="handshake-nodes-container">
+              <div className="node-box client-node">
                 <h4>Client</h4>
                 <div className="host-badge">192.168.1.50:5173</div>
                 <div className="host-state">
@@ -440,13 +660,13 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
                 </div>
               </div>
 
-              <div className="packets-channel">
-                {handshakeStep >= 1 && <div className="packet-arrow">1. SYN (Seq=100)</div>}
-                {handshakeStep >= 2 && <div className="packet-arrow">2. SYN-ACK (Seq=300, Ack=101)</div>}
-                {handshakeStep >= 3 && <div className="packet-arrow">3. ACK (Ack=301)</div>}
+              <div className="handshake-flow-area">
+                <div className={`flow-msg ${handshakeStep >= 0 ? 'active' : ''}`}>1. SYN (seq=100) ➔</div>
+                <div className={`flow-msg ${handshakeStep >= 1 ? 'active' : ''}`}>2. ◄ SYN-ACK (seq=300, ack=101)</div>
+                <div className={`flow-msg ${handshakeStep >= 2 ? 'active' : ''}`}>3. ACK (ack=301) ➔ [ESTABLISHED]</div>
               </div>
 
-              <div className="host-column">
+              <div className="node-box server-node">
                 <h4>Server</h4>
                 <div className="host-badge">142.250.190.46:80</div>
                 <div className="host-state">
@@ -460,7 +680,10 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         </div>
       )}
 
-      {/* MODE 6: DNS RESOLUTION & HTTP/3 QUIC */}
+      {/* SUB-TAB 12: TCP/UDP HEADERS */}
+      {activeTab === 'tcp-segment' && <TcpSegmentVisualizer />}
+
+      {/* SUB-TAB 13: DNS RESOLUTION & HTTP/3 QUIC */}
       {activeTab === 'dns' && (
         <div className="metrics-grid">
           <div className="viz-card">
@@ -490,7 +713,10 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         </div>
       )}
 
-      {/* MODE 7: CONSISTENT HASHING RING */}
+      {/* SUB-TAB 14: TRAFFIC SHAPING */}
+      {activeTab === 'traffic-shaping' && <TrafficShapingVisualizer />}
+
+      {/* SUB-TAB 15: CONSISTENT HASHING RING */}
       {activeTab === 'consistent-hashing' && (
         <ConsistentHashingVisualizer />
       )}

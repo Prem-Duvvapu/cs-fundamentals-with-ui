@@ -1,0 +1,39 @@
+{
+  "id": "java-generics",
+  "title": "Generics, Wildcards (PECS) & Type Erasure",
+  "subtitle": "Master Java Generics type invariance, bounded wildcards (? extends T vs ? super T), the PECS design rule, and bytecode Type Erasure with synthetic bridge methods.",
+  "mentalModel": "Generics exist strictly at compile time for type safety. Invariance prevents heap pollution; PECS (Producer Extends, Consumer Super) grants flexible read/write permissions; Type Erasure strips generic types in bytecode.",
+  "theoryData": {
+    "failureModes": [
+      "Heap Pollution & Unchecked Cast Warnings: Mixing raw types (`List list = new ArrayList()`) with generic types leads to runtime ClassCastException when unexpected objects are retrieved from the collection.",
+      "Cannot Create Generic Arrays: Code like `T[] arr = new T[10]` is illegal because array types are reified at runtime while generic types are erased at compile time."
+    ],
+    "tradeOffs": [
+      "Wildcard Flexibility vs Type Exactness: Using `List<? extends T>` allows accepting `List<Dog>` or `List<Cat>`, but forbids adding elements to the list."
+    ],
+    "productionScenario": "In enterprise framework design (Spring Data Repositories, Kafka Producer/Consumer abstractions), using PECS (`public void ingestAll(Collection<? extends Event> events)`) allows consumer microservices to accept any subclass event payload without compiler type incompatibility errors.",
+    "codeSnippet": "// PECS in Custom Repository Pipeline\npublic class EventBus {\n    public <T extends Event> void publishAll(List<? extends T> incomingEvents) {\n        for (T event : incomingEvents) {\n            dispatch(event);\n        }\n    }\n}",
+    "interviewQA": [
+      {
+        "q": "What is the difference between `List<Object>` and `List<?>` (Unbounded Wildcard)?",
+        "a": "`List<Object>` can only accept an exact `List<Object>` (it cannot accept `List<String>`). `List<?>` is an unbounded wildcard that can hold a reference to a list of ANY type (`List<String>`, `List<Integer>`, etc.), but elements read from it are typed as `Object` and no elements (except null) can be added."
+      },
+      {
+        "q": "What is a Synthetic Bridge Method in Java Generics?",
+        "a": "When a generic class overrides a method from a parameterized superclass/interface, Type Erasure changes the superclass method signature to `method(Object)`. The compiler automatically injects a synthetic 'bridge method' with the `Object` signature in the subclass that delegates to the specialized typed method, preserving polymorphic overriding."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "If you have `List<? extends Number> list`, can you execute `list.add(10)`?",
+      "answer": "No! `? extends Number` represents an unknown subtype of Number (e.g. `List<Double>`). Adding an Integer (10) would violate type safety, so the compiler prohibits adding anything other than null.",
+      "difficulty": "Core Fundamental"
+    },
+    {
+      "question": "Are generic type parameters available at runtime via standard object inspection (e.g., `list.getClass()`)?",
+      "answer": "No. Due to Type Erasure, `ArrayList<String>.class` and `ArrayList<Integer>.class` are both erased to `ArrayList.class` at runtime.",
+      "difficulty": "Intermediate"
+    }
+  ]
+}

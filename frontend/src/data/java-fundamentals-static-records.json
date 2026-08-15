@@ -1,0 +1,39 @@
+{
+  "id": "java-static-final-records",
+  "title": "Static, Final, Immutability & Java Records",
+  "subtitle": "Master class-level static allocation in Metaspace, the final modifier, defensive copying for immutability, and modern Java 14+ Records.",
+  "mentalModel": "Static binds to the class in Metaspace; final prevents reassignment and overrides; immutability guarantees thread safety via encapsulation; Records eliminate boilerplate by generating immutable value-based data carriers.",
+  "theoryData": {
+    "failureModes": [
+      "Leaking Internal Mutable State: Returning a direct reference to a mutable Date, List, or Map from an immutable class getter allows external callers to mutate the internal object state.",
+      "Static Memory Leaks: Storing large collections in static fields persists them for the entire JVM lifetime, preventing Garbage Collection."
+    ],
+    "tradeOffs": [
+      "Class vs Record: Records provide zero-boilerplate immutability and structural equality, but cannot extend other classes (they implicitly extend java.lang.Record) and cannot declare mutable instance fields."
+    ],
+    "productionScenario": "In high-throughput Spring Boot microservices, replacing mutable JPA entity DTOs with Java Records (`public record OrderEvent(UUID id, BigDecimal amount, Instant timestamp)`) eliminated defensive copying boilerplate and prevented accidental thread-unsafe state mutation across async threads.",
+    "codeSnippet": "// Java 14+ Record with Compact Constructor Validation\npublic record Account(UUID id, BigDecimal balance) {\n    public Account {\n        if (balance.compareTo(BigDecimal.ZERO) < 0) {\n            throw new IllegalArgumentException(\"Negative balance disallowed\");\n        }\n    }\n}",
+    "interviewQA": [
+      {
+        "q": "Why is String immutable and final in Java?",
+        "a": "1) Security (Strings are used for network sockets, class loading paths, and DB URLs; mutability would allow TOCTOU security exploits), 2) String Constant Pool caching (multiple references share the same instance), 3) Thread safety (safe to share across threads without synchronization), 4) Hash code caching (hashCode is computed once and cached)."
+      },
+      {
+        "q": "What is the difference between a canonical constructor and a compact constructor in Java Records?",
+        "a": "A canonical constructor explicitly declares all record components `(id, balance)`. A compact constructor omits the parameter list entirely `public Account { ... }` and is used solely for parameter validation and normalization before implicit field assignment."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "Can a Java Record extend another class like `class BaseEntity`?",
+      "answer": "No. All Java Records implicitly extend `java.lang.Record` and Java does not support multiple class inheritance. Records can, however, implement multiple interfaces.",
+      "difficulty": "Core Fundamental"
+    },
+    {
+      "question": "What happens if a method is declared `final` in a superclass?",
+      "answer": "Subclasses cannot override the method. This provides compile-time guarantee of algorithm integrity and enables the JIT compiler to perform method inlining devirtualization.",
+      "difficulty": "Intermediate"
+    }
+  ]
+}

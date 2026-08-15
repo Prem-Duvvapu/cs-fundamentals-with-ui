@@ -19,14 +19,18 @@ public class TopicService {
         new Topic("io-systems", "I/O Systems", "os", "expert", "DMA, interrupts, epoll, io_uring, kernel bypass"),
 
         // Computer Networks
+        new Topic("network-fundamentals", "Computer Network Fundamentals, Devices & Topologies", "networking", "beginner", "Network types (LAN/WAN/MAN), devices (router, switch, hub, modem), star/ring/bus/mesh topologies, packet switching vs circuit switching"),
+        new Topic("physical-layer-media", "Physical Layer: Transmission Media, Modes & Encoding", "networking", "beginner", "Guided (coaxial, twisted pair, fiber) vs unguided (radio, microwave, infrared) media, NRZ/Manchester encoding, multiplexing"),
         new Topic("osi-model", "OSI & TCP/IP Reference Models", "networking", "beginner", "7-Layer OSI model vs 4-Layer TCP/IP, PDU headers, encapsulation/decapsulation"),
         new Topic("data-link-layer", "Data Link Layer, MAC & ARQ Protocols", "networking", "beginner", "Framing, CRC error detection, Stop-and-Wait, Go-Back-N, Selective Repeat ARQ, CSMA/CD"),
         new Topic("ip-subnetting", "IP Addressing, CIDR Subnetting & Protocols", "networking", "intermediate", "IPv4 vs IPv6, CIDR subnet bitmasks, ARP, DHCP DORA, NAT translation"),
         new Topic("routing-algorithms", "Routing Algorithms & Link-State vs Distance Vector", "networking", "intermediate", "Distance Vector (Bellman-Ford), Link State (Dijkstra), OSPF, RIP, BGP path vectors"),
         new Topic("tcp-ip", "TCP vs UDP & Connection Management", "networking", "intermediate", "TCP vs UDP, 3-Way Handshake, 4-Way Teardown, Port multiplexing, Sockets"),
         new Topic("tcp-congestion", "TCP Flow & Congestion Control", "networking", "intermediate", "Sliding window, Receiver window (rwnd), Slow Start, Congestion Avoidance, cwnd, Reno/CUBIC"),
+        new Topic("transport-layer-protocols", "Transport Protocols: QUIC, SCTP & TCP Segment Internals", "networking", "intermediate", "TCP segment structure (20-byte header fields), UDP datagram format, QUIC 0-RTT, SCTP multi-streaming, port multiplexing"),
         new Topic("application-layer", "Application Layer: DNS, HTTP/3 & TLS 1.3", "networking", "expert", "DNS recursive lookup hierarchy, HTTP/1.1 vs HTTP/2 vs HTTP/3 (QUIC), TLS 1.3 1-RTT Handshake"),
         new Topic("network-security", "Network Security, Cryptography & Threat Prevention", "networking", "expert", "Symmetric (AES) vs Asymmetric (RSA), Digital Certificates, Firewalls, SYN Flood, DDoS"),
+        new Topic("network-performance-qos", "Network QoS, Traffic Shaping & Modern Networking", "networking", "expert", "Token Bucket vs Leaky Bucket traffic shaping, IntServ vs DiffServ QoS, CDN architecture, SDN/NFV, IoT networking, 5G slicing"),
 
         // Database Management Systems
         new Topic("dbms-architecture", "DBMS Architecture & Data Independence", "dbms", "beginner", "DBMS vs File Systems, 3-Schema ANSI-SPARC architecture, physical/logical data independence"),

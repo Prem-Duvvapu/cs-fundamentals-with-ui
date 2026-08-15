@@ -7,6 +7,11 @@ import SpringBatchVisualizer from './java/SpringBatchVisualizer'
 import JavaExecutionPipelineVisualizer from './java/JavaExecutionPipelineVisualizer'
 import JavaMemoryModelVisualizer from './java/JavaMemoryModelVisualizer'
 import JavaOopVisualizer from './java/JavaOopVisualizer'
+import JavaStaticRecordsVisualizer from './java/JavaStaticRecordsVisualizer'
+import JavaFunctionalLambdasVisualizer from './java/JavaFunctionalLambdasVisualizer'
+import JavaGenericsVisualizer from './java/JavaGenericsVisualizer'
+import JavaCollectionsVisualizer from './java/JavaCollectionsVisualizer'
+import JavaStreamsOptionalVisualizer from './java/JavaStreamsOptionalVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -14,7 +19,13 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
     switch (defaultTopicId) {
       case 'java-execution-pipeline': return 'pipeline'
       case 'java-memory-model': return 'memory-model'
+      case 'java-oop-pillars':
       case 'java-oop-vtable': return 'oop-vtable'
+      case 'java-static-final-records': return 'static-records'
+      case 'java-functional-lambdas': return 'functional-lambdas'
+      case 'java-generics': return 'generics'
+      case 'java-collections-framework': return 'collections'
+      case 'java-streams-optional': return 'streams-optional'
       case 'jvm-gc': return 'jvm'
       case 'spring-bean-lifecycle': return 'bean'
       case 'spring-mvc-lifecycle': return 'mvc'
@@ -127,6 +138,36 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             🐕 OOP & vtable Dispatch
           </button>
           <button
+            onClick={() => setActiveTab('static-records')}
+            className={`main-tab-btn ${activeTab === 'static-records' ? 'active-tab' : ''}`}
+          >
+            🔒 Static, Final & Records
+          </button>
+          <button
+            onClick={() => setActiveTab('functional-lambdas')}
+            className={`main-tab-btn ${activeTab === 'functional-lambdas' ? 'active-tab' : ''}`}
+          >
+            ⚡ Lambdas & invokedynamic
+          </button>
+          <button
+            onClick={() => setActiveTab('generics')}
+            className={`main-tab-btn ${activeTab === 'generics' ? 'active-tab' : ''}`}
+          >
+            🧬 Generics & PECS
+          </button>
+          <button
+            onClick={() => setActiveTab('collections')}
+            className={`main-tab-btn ${activeTab === 'collections' ? 'active-tab' : ''}`}
+          >
+            📚 Collections & Heap
+          </button>
+          <button
+            onClick={() => setActiveTab('streams-optional')}
+            className={`main-tab-btn ${activeTab === 'streams-optional' ? 'active-tab' : ''}`}
+          >
+            🌊 Streams & Optional
+          </button>
+          <button
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
           >
@@ -196,6 +237,31 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       {/* MODE 0.75: JAVA OOP & DYNAMIC METHOD DISPATCH (VTABLE) */}
       {activeTab === 'oop-vtable' && (
         <JavaOopVisualizer />
+      )}
+
+      {/* MODE 0.85: STATIC, FINAL, IMMUTABILITY & JAVA RECORDS */}
+      {activeTab === 'static-records' && (
+        <JavaStaticRecordsVisualizer />
+      )}
+
+      {/* MODE 0.90: FUNCTIONAL INTERFACES & LAMBDAS */}
+      {activeTab === 'functional-lambdas' && (
+        <JavaFunctionalLambdasVisualizer />
+      )}
+
+      {/* MODE 0.92: GENERICS & PECS */}
+      {activeTab === 'generics' && (
+        <JavaGenericsVisualizer />
+      )}
+
+      {/* MODE 0.94: COLLECTIONS FRAMEWORK & PRIORITYQUEUE */}
+      {activeTab === 'collections' && (
+        <JavaCollectionsVisualizer />
+      )}
+
+      {/* MODE 0.96: STREAMS API & OPTIONAL */}
+      {activeTab === 'streams-optional' && (
+        <JavaStreamsOptionalVisualizer />
       )}
 
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
