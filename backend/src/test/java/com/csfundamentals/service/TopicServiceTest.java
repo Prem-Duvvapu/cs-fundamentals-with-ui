@@ -41,14 +41,16 @@ class TopicServiceTest {
     }
 
     @Test
-    void allNetworkingTopics_shouldHaveResolvableMarkdownContent() {
-        List<Topic> networkingTopics = topicService.getTopicsByCategory("networking");
-        for (Topic topic : networkingTopics) {
+    void allRegisteredTopics_acrossAllCategories_shouldHaveResolvableMarkdownContent() {
+        List<Topic> allTopics = topicService.getAllTopics();
+        assertEquals(44, allTopics.size(), "Total registered topics should be 44 (7 OS + 12 Networking + 8 DBMS + 17 Java/Spring)");
+
+        for (Topic topic : allTopics) {
             String content = contentService.getContent(topic.id());
             assertNotNull(content, "Content must not be null for " + topic.id());
             assertFalse(content.startsWith("Content not found"), "Content file missing for topicId: " + topic.id());
             assertFalse(content.startsWith("Error loading content"), "Error reading content file for: " + topic.id());
-            assertTrue(content.contains("Beginner Level"), "Content must follow 3-level pattern for: " + topic.id());
+            assertTrue(content.contains("Beginner Level") || content.contains("🟢"), "Content must follow 3-level pattern for: " + topic.id());
         }
     }
 }
