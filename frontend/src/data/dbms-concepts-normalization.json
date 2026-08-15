@@ -1,0 +1,61 @@
+{
+  "id": "database-normalization",
+  "title": "Database Normalization (1NF to BCNF) & Decompositions",
+  "subtitle": "Anomalies, 1NF, 2NF, 3NF, BCNF & Lossless Join Decompositions",
+  "mentalModel": "Normalization is systematic schema hygiene that decomposes wide, redundant tables into tightly-coupled, anomaly-free relations while preserving mathematical join lossless-ness.",
+  "theoryData": {
+    "failureModes": [
+      "Update Anomaly: Modifying a duplicated attribute (e.g. DeptHead) in some rows but missing others creates inconsistent split-brain database states.",
+      "Lossy Join Decomposition: Decomposing R(A, B, C) without ensuring R1 ∩ R2 is a candidate key creates spurious phantom rows upon SQL JOIN.",
+      "Dependency Loss in BCNF: Over-normalizing into BCNF can sometimes break dependency preservation, requiring expensive cross-table joins for simple constraint checks."
+    ],
+    "tradeOffs": [
+      {
+        "aspect": "3NF vs BCNF Decomposition",
+        "optionA": "3NF: Always guarantees both Lossless Join AND Dependency Preservation.",
+        "optionB": "BCNF: Eliminates 100% of redundancy from functional dependencies, but may sacrifice Dependency Preservation."
+      },
+      {
+        "aspect": "Normalized OLTP vs Denormalized OLAP Data Warehouse",
+        "optionA": "3NF / BCNF: Zero redundancy, ultra-fast single-row writes and updates for OLTP.",
+        "optionB": "Star Schema (Fact + Dimension Tables): Intentionally denormalized with wide redundant columns to avoid JOINs across millions of rows in analytical queries."
+      }
+    ],
+    "productionScenario": "A FinTech ledger recorded transactions with CurrencyExchangeRate duplicated across 50,000,000 ledger rows. When exchange rates fluctuated, batch update locks halted transaction processing for 45 minutes. Normalizing ExchangeRates(currency, rate, timestamp) eliminated row locks and shrunk database disk storage from 80GB to 12GB.",
+    "codeSnippet": "-- Decomposing 2NF Partial Dependency Violation:\n-- UNNORMALIZED: OrderItems(order_id, item_id, order_date, item_price, quantity)\n\nCREATE TABLE Orders (\n    order_id INT PRIMARY KEY,\n    order_date DATE NOT NULL\n);\n\nCREATE TABLE Items (\n    item_id INT PRIMARY KEY,\n    item_price DECIMAL(10,2) NOT NULL\n);\n\nCREATE TABLE OrderDetails (\n    order_id INT REFERENCES Orders(order_id),\n    item_id INT REFERENCES Items(item_id),\n    quantity INT NOT NULL,\n    PRIMARY KEY (order_id, item_id)\n);",
+    "interviewQA": [
+      {
+        "question": "What are the 3 conditions for a decomposition of R into R1 and R2 to be Lossless?",
+        "answer": "A decomposition {R1, R2} is Lossless Join if and only if: 1. R1 ∪ R2 = R (all attributes preserved). 2. R1 ∩ R2 ≠ ∅ (common attributes exist). 3. (R1 ∩ R2) -> R1 OR (R1 ∩ R2) -> R2 holds in F+ (the common attribute set must be a Super Key for at least one sub-relation)."
+      },
+      {
+        "question": "Why does 3NF allow X -> Y if Y is a Prime Attribute, whereas BCNF forbids it?",
+        "answer": "3NF permits Y to be a prime attribute to guarantee that every relation can be decomposed into 3NF while simultaneously preserving all functional dependencies without requiring inter-relation join validations."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "A relation is in 2NF if it is in 1NF and contains no:",
+      "options": [
+        "Partial dependencies",
+        "Transitive dependencies",
+        "Multi-valued dependencies",
+        "Join dependencies"
+      ],
+      "correct": 0,
+      "explanation": "2NF forbids Partial Dependencies (non-prime attributes depending on a proper subset of a composite candidate key)."
+    },
+    {
+      "question": "Which normal form guarantees both Lossless Join and Dependency Preservation in all possible relations?",
+      "options": [
+        "BCNF",
+        "3NF",
+        "4NF",
+        "5NF"
+      ],
+      "correct": 1,
+      "explanation": "3NF is mathematically proven to always be achievable with both Lossless Join and Dependency Preservation."
+    }
+  ]
+}

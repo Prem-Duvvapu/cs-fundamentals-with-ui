@@ -35,14 +35,17 @@ export default function TopicPage() {
     'application-layer': 'Application Layer: DNS, HTTP/3 & TLS 1.3',
     'network-security': 'Network Security, Cryptography & Threat Prevention',
     'network-performance-qos': 'Network QoS, Traffic Shaping & Modern Networking',
-    'dbms-architecture': 'DBMS Architecture & Data Independence',
+    'dbms-architecture': 'DBMS Architecture & 3-Schema ANSI-SPARC',
     'er-model': 'ER Diagram Modeling & Relational Mapping',
-    'relational-model': 'Relational Model, Keys & Relational Algebra',
-    'normalization': 'Database Normalization & Functional Dependencies',
+    'relational-algebra-calculus': 'Relational Algebra, Tuple Calculus & Joins',
+    'functional-dependencies-keys': 'Keys, Functional Dependencies & Canonical Cover',
+    'database-normalization': 'Database Normalization (1NF to BCNF) & Decompositions',
     'dbms-indexing': 'B/B+ Tree Indexing & Storage Structures',
-    'transactions-acid': 'Transactions, States & ACID Properties',
-    'concurrency-control': 'Concurrency Control, 2PL & Serializability',
+    'storage-raid-indexing': 'File Organization, RAID Storage & Advanced Indexing',
+    'transactions-acid': 'Transactions, ACID States & Crash Recovery',
+    'concurrency-control': 'Concurrency Control, 2PL & Timestamp Ordering',
     'query-optimization': 'Query Processing & Cost-Based Optimizer',
+    'distributed-databases-cap': 'Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem',
     'embeddings-vector-db': 'Vector Embeddings, Similarity Search & Vector DBs',
     'rag-architecture': 'Retrieval-Augmented Generation (RAG) Architecture',
     'model-serving': 'LLM Model Serving & Low-Latency Inference',
@@ -56,7 +59,10 @@ export default function TopicPage() {
     'java-functional-lambdas': 'Interfaces, Functional Interfaces & Lambda Expressions',
     'java-generics': 'Generics, Wildcards (PECS) & Type Erasure',
     'java-collections-framework': 'Collections Framework: List, Set, Queue & PriorityQueue',
+    'java-hashmap-internals': 'HashMap Bucket Internals, Treeification & TreeMap',
     'java-streams-optional': 'Java Streams API Lazy Pipeline & Optional',
+    'java-reflection-exceptions': 'Reflection API, Annotations & Exception Unwinding',
+    'java-multithreading-concurrency': 'Multithreading, Monitors, CAS & ThreadPool Executors',
     'jvm-gc': 'JVM Memory Architecture, GC & Virtual Threads',
     'spring-bean-lifecycle': 'Spring IoC Container & Bean Lifecycle',
     'spring-mvc-lifecycle': 'Spring MVC Request Execution & Security Pipeline',
@@ -122,12 +128,15 @@ export default function TopicPage() {
         return <JavaSpringVisualizer defaultTopicId={topicId} />
       case 'dbms-architecture':
       case 'er-model':
-      case 'relational-model':
-      case 'normalization':
+      case 'relational-algebra-calculus':
+      case 'functional-dependencies-keys':
+      case 'database-normalization':
       case 'dbms-indexing':
+      case 'storage-raid-indexing':
       case 'transactions-acid':
       case 'concurrency-control':
       case 'query-optimization':
+      case 'distributed-databases-cap':
       case 'dbms':
         return <DbmsVisualizer defaultTopicId={topicId} />
       default:

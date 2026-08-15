@@ -1,0 +1,61 @@
+{
+  "id": "concurrency-control",
+  "title": "Concurrency Control, 2PL & Timestamp Ordering",
+  "subtitle": "Strict 2PL, Rigorous 2PL, Timestamp Ordering, Thomas Write Rule & Wait-For Deadlock Detection",
+  "mentalModel": "Concurrency control allows thousands of concurrent transactions to interleave operations on shared data items while guaranteeing Conflict Serializability and preventing Dirty Reads, Lost Updates, and Cascading Rollbacks.",
+  "theoryData": {
+    "failureModes": [
+      "Deadlock cycle formation: Two transactions waiting for resources held by each other stall indefinitely without active cycle detection or timeout aborts.",
+      "Cascading aborts in basic 2PL: If T1 releases shared locks before committing and subsequently aborts, all transactions that read T1's dirty uncommitted writes must cascade abort.",
+      "Starvation in lock managers: High-priority read locks continuously granted can starve pending exclusive write lock requests indefinitely."
+    ],
+    "tradeOffs": [
+      {
+        "aspect": "Pessimistic Locking (Strict 2PL) vs Optimistic Concurrency Control (OCC) / MVCC",
+        "optionA": "Pessimistic 2PL: Acquires locks upfront. Best under high write contention where conflicts are frequent.",
+        "optionB": "MVCC / OCC: Non-blocking reads from Undo log snapshots; validates conflicts at commit time. Best in modern web workloads."
+      },
+      {
+        "aspect": "Wait-Die vs Wound-Wait Deadlock Prevention",
+        "optionA": "Wait-Die (Non-preemptive): Older transaction waits for younger; younger transaction dies and restarts with original timestamp.",
+        "optionB": "Wound-Wait (Preemptive): Older transaction preempts ('wounds') younger transaction immediately, minimizing overall transaction abort counts."
+      }
+    ],
+    "productionScenario": "A flash sale ticket reservation system suffered severe locking contention when 20,000 users attempted to reserve the same seat concurrently using SELECT ... FOR UPDATE. Migrating from pessimistic row locking to Optimistic Concurrency with version counters (WHERE seat_id = 10 AND version = 3) reduced p99 latency from 8.2s to 45ms.",
+    "codeSnippet": "-- Strict 2-Phase Locking SQL Simulation:\nBEGIN TRANSACTION; -- Growing Phase Starts\nSELECT * FROM Accounts WHERE id = 101 FOR UPDATE; -- Exclusive Lock X(101) Granted\nUPDATE Accounts SET balance = balance - 100 WHERE id = 101;\nCOMMIT; -- Shrinking Phase: All Exclusive Locks Released Atomically!",
+    "interviewQA": [
+      {
+        "question": "What is the difference between Strict 2PL and Rigorous 2PL?",
+        "answer": "In Strict 2PL, all EXCLUSIVE (write) locks must be held until transaction commit/abort. In Rigorous 2PL, ALL locks (both Shared read locks AND Exclusive write locks) must be held until transaction commit/abort, guaranteeing serializability in commit order."
+      },
+      {
+        "question": "How does Multi-Version Concurrency Control (MVCC) eliminate read-write blocking?",
+        "answer": "MVCC creates a new version of a row on every UPDATE and keeps historical versions in Undo logs. Readers read historical snapshot versions without acquiring read locks, allowing concurrent writers to write without blocking readers."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "Which concurrency control protocol holds all exclusive locks until transaction completion to prevent cascading aborts?",
+      "options": [
+        "Basic 2PL",
+        "Strict 2PL",
+        "Timestamp Ordering",
+        "Thomas Write Rule"
+      ],
+      "correct": 1,
+      "explanation": "Strict 2PL holds exclusive write locks until COMMIT/ABORT, ensuring no transaction reads uncommitted dirty data."
+    },
+    {
+      "question": "In a Wait-For Graph (WFG), what condition indicates that a deadlock has occurred?",
+      "options": [
+        "The graph is bipartite",
+        "A directed cycle exists in the graph",
+        "All transactions are in WAITING state",
+        "The graph has disconnected components"
+      ],
+      "correct": 1,
+      "explanation": "A directed cycle (e.g. T1 -> T2 -> T1) in a Wait-For Graph represents a mutual resource dependency deadlock."
+    }
+  ]
+}

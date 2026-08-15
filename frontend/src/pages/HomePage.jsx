@@ -56,14 +56,18 @@ export default function HomePage() {
           { id: 'spring-batch-lifecycle', category: 'java-spring', title: 'Spring Batch Execution Architecture & Chunk Engine', level: 'expert', summary: 'JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry' },
           { id: 'quartz-scheduler', category: 'java-spring', title: 'Quartz Scheduler Lifecycle & Clustered JobStoreTX', level: 'expert', summary: 'Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering' },
 
-          // DBMS & SQL
-          { id: 'dbms-architecture', category: 'dbms', title: 'DBMS Architecture & 3-Schema', level: 'beginner', summary: 'ANSI-SPARC 3-schema architecture, Physical vs Logical data independence' },
-          { id: 'er-model', category: 'dbms', title: 'ER Model & Functional Closures', level: 'beginner', summary: 'ER modeling, attribute closure solver, candidate key detection' },
-          { id: 'normalization', category: 'dbms', title: 'Database Normalization', level: 'intermediate', summary: '1NF, 2NF, 3NF, BCNF lossy vs lossless decomposition' },
-          { id: 'dbms-indexing', category: 'dbms', title: 'B+ Tree Indexing & Storage Structures', level: 'intermediate', summary: 'Animated B+ tree node splits, O(log N) point lookups, doubly-linked leaf range scans' },
-          { id: 'transactions-acid', category: 'dbms', title: 'Transactions & ACID Properties', level: 'intermediate', summary: 'ACID guarantees, WAL logging, crash recovery' },
-          { id: 'concurrency-control', category: 'dbms', title: 'Concurrency & 2-Phase Locking (2PL)', level: 'expert', summary: 'Shared vs Exclusive locks, 2PL, deadlock wait-for graphs' },
-          { id: 'query-optimization', category: 'dbms', title: 'Query Optimizer (CBO)', level: 'expert', summary: 'Cost-based optimizer, Join algorithms (Nested Loop, Hash, Sort-Merge)' }
+          // DBMS & SQL (11 Comprehensive Topics)
+          { id: 'dbms-architecture', category: 'dbms', title: 'DBMS Architecture & 3-Schema ANSI-SPARC', level: 'beginner', summary: 'ANSI-SPARC 3-schema architecture, Physical vs Logical data independence' },
+          { id: 'er-model', category: 'dbms', title: 'ER Diagram Modeling & Relational Mapping', level: 'beginner', summary: 'Entity sets, attributes, cardinalities, weak entities, Generalization, Specialization, ER-to-Table mapping rules' },
+          { id: 'relational-algebra-calculus', category: 'dbms', title: 'Relational Algebra, Tuple Calculus & Joins', level: 'intermediate', summary: 'Selection (σ), Projection (π), Cartesian Product (×), Joins (Inner, Theta, Outer), Tuple Relational Calculus (TRC)' },
+          { id: 'functional-dependencies-keys', category: 'dbms', title: 'Keys, Functional Dependencies & Canonical Cover', level: 'intermediate', summary: 'Super, Candidate, Primary and Foreign keys, Armstrong\'s Axioms, Attribute Closure, Minimal Canonical Cover' },
+          { id: 'database-normalization', category: 'dbms', title: 'Database Normalization (1NF to BCNF) & Decompositions', level: 'intermediate', summary: 'Insertion/Deletion/Update Anomalies, 1NF, 2NF, 3NF, BCNF, Lossless Join Decomposition, Dependency Preservation' },
+          { id: 'dbms-indexing', category: 'dbms', title: 'B/B+ Tree Indexing & Storage Structures', level: 'intermediate', summary: 'Clustered vs Secondary indexes, Dense vs Sparse, B+ Tree search, dynamic node splits, leaf linked-list range scans' },
+          { id: 'storage-raid-indexing', category: 'dbms', title: 'File Organization, RAID Storage & Advanced Indexing', level: 'intermediate', summary: 'Heap vs Sequential vs Hash files, RAID 0/1/5/6/10, Bitmap Indexing, Inverted Indexes for search engines' },
+          { id: 'transactions-acid', category: 'dbms', title: 'Transactions, ACID States & Crash Recovery', level: 'intermediate', summary: 'ACID guarantees, Transaction State Machine, Write-Ahead Logging (WAL), Checkpoints, ARIES crash recovery' },
+          { id: 'concurrency-control', category: 'dbms', title: 'Concurrency Control, 2PL & Timestamp Ordering', level: 'expert', summary: 'Conflict serializability, Precedence Graphs, Shared/Exclusive locks, Strict 2PL, Thomas Write Rule, Wait-For Deadlock graphs' },
+          { id: 'query-optimization', category: 'dbms', title: 'Query Processing, Relational Trees & Cost-Based Optimizer', level: 'expert', summary: 'Relational algebra query trees, Predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE' },
+          { id: 'distributed-databases-cap', category: 'dbms', title: 'Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem', level: 'expert', summary: 'Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus' }
         ])
       })
   }, [])

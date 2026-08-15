@@ -41,9 +41,29 @@ class TopicServiceTest {
     }
 
     @Test
+    void getTopicsByCategory_dbms_shouldContainAll11Topics() {
+        List<Topic> dbmsTopics = topicService.getTopicsByCategory("dbms");
+        assertNotNull(dbmsTopics);
+        assertEquals(11, dbmsTopics.size(), "DBMS category must have exactly 11 registered topics");
+
+        List<String> topicIds = dbmsTopics.stream().map(Topic::id).toList();
+        assertTrue(topicIds.contains("dbms-architecture"));
+        assertTrue(topicIds.contains("er-model"));
+        assertTrue(topicIds.contains("relational-algebra-calculus"));
+        assertTrue(topicIds.contains("functional-dependencies-keys"));
+        assertTrue(topicIds.contains("database-normalization"));
+        assertTrue(topicIds.contains("dbms-indexing"));
+        assertTrue(topicIds.contains("storage-raid-indexing"));
+        assertTrue(topicIds.contains("transactions-acid"));
+        assertTrue(topicIds.contains("concurrency-control"));
+        assertTrue(topicIds.contains("query-optimization"));
+        assertTrue(topicIds.contains("distributed-databases-cap"));
+    }
+
+    @Test
     void allRegisteredTopics_acrossAllCategories_shouldHaveResolvableMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
-        assertEquals(44, allTopics.size(), "Total registered topics should be 44 (7 OS + 12 Networking + 8 DBMS + 17 Java/Spring)");
+        assertEquals(47, allTopics.size(), "Total registered topics should be 47 (7 OS + 12 Networking + 11 DBMS + 17 Java/Spring)");
 
         for (Topic topic : allTopics) {
             String content = contentService.getContent(topic.id());

@@ -1,0 +1,61 @@
+{
+  "id": "functional-dependencies-keys",
+  "title": "Keys, Functional Dependencies & Minimal Canonical Cover",
+  "subtitle": "Super Keys, Candidate Keys, Armstrong's Axioms & Attribute Closure Solvers",
+  "mentalModel": "Functional dependencies define business invariants and data constraints between attributes. Attribute Closure (X)⁺ calculates the full reachability of attribute sets under Armstrong's Axioms, enabling automatic detection of Candidate Keys and minimal canonical covers.",
+  "theoryData": {
+    "failureModes": [
+      "Extraneous attribute bloat: Defining composite candidate keys with redundant attributes (Super Keys) increases index tree height and reduces write throughput.",
+      "Redundant dependency cycles: Non-minimal FD sets cause redundant constraint verification checks inside database transaction engines.",
+      "Partial key violations: Failing to enforce that all non-prime attributes depend on full Candidate Keys causes update and deletion anomalies in production."
+    ],
+    "tradeOffs": [
+      {
+        "aspect": "Synthetic Surrogate Key (UUID/BigInt AUTO_INCREMENT) vs Natural Composite Key",
+        "optionA": "Surrogate Key: Fixed 8-byte integer size, fast B+ Tree clustered indexing, immune to business attribute mutations.",
+        "optionB": "Natural Key: Enforces domain uniqueness without secondary indexes, but larger key bytes reduce page branching factor."
+      },
+      {
+        "aspect": "Armstrong Axiom Closure Computation (O(N * |F|))",
+        "optionA": "Full Closure Precomputation: Identifies all normal forms and candidate keys at compile time.",
+        "optionB": "On-demand Closure: Evaluates single dependency validity dynamically."
+      }
+    ],
+    "productionScenario": "A healthcare provider table PatientVisits(patient_id, doctor_id, clinic_id, appointment_time, doctor_specialty) experienced data corruption because doctor_specialty depended only on doctor_id (Partial Dependency). Decomposing into Doctors(doctor_id, doctor_specialty) and Appointments(patient_id, doctor_id, clinic_id, appointment_time) eliminated 100,000 duplicate specialty updates per day.",
+    "codeSnippet": "// Armstrong's Axioms Applied in Code:\n// 1. Reflexivity: If Y ⊆ X => X -> Y\n// 2. Augmentation: If X -> Y => XZ -> YZ\n// 3. Transitivity: If X -> Y and Y -> Z => X -> Z",
+    "interviewQA": [
+      {
+        "question": "What is the difference between a Prime Attribute and a Non-Prime Attribute?",
+        "answer": "A Prime Attribute is any attribute that is a member of AT LEAST ONE candidate key for the relation. A Non-Prime Attribute does not belong to any candidate key."
+      },
+      {
+        "question": "What is a Minimal Canonical Cover (Fc) of a set of functional dependencies?",
+        "answer": "A Canonical Cover Fc is an equivalent minimal set of FDs such that: 1. Every right-hand side is a single attribute. 2. No dependency contains extraneous left-hand side attributes. 3. No dependency in Fc is redundant."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "If attribute set X has closure (X)⁺ containing all attributes of relation R, what is X guaranteed to be?",
+      "options": [
+        "Foreign Key",
+        "Super Key",
+        "Non-Prime Attribute",
+        "Alternate Key"
+      ],
+      "correct": 1,
+      "explanation": "Any attribute set whose closure covers all relation attributes is a Super Key (and a Candidate Key if it is minimal)."
+    },
+    {
+      "question": "Which of the following is NOT one of Armstrong's primary axioms?",
+      "options": [
+        "Reflexivity",
+        "Augmentation",
+        "Transitivity",
+        "Composition"
+      ],
+      "correct": 3,
+      "explanation": "The 3 fundamental Armstrong's Axioms are Reflexivity, Augmentation, and Transitivity. Composition/Union are derived secondary rules."
+    }
+  ]
+}

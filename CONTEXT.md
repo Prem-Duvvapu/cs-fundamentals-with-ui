@@ -65,8 +65,14 @@
 - **Distance Vector Bellman-Ford (`DistanceVectorVisualizer.jsx`)**: Multi-router vector exchange convergence.
 
 ### 🗄️ Database Management Systems (`DbmsVisualizer.jsx`)
-- **B+ Tree Indexing Engine**: Dynamic multi-way node insertion, node splitting, and leaf range scans.
-- **Concurrency Control & 2PL**: 2-Phase Locking, precedence graph cycle detection, and serializability verification.
+- **Relational Algebra Simulator (`RelationalAlgebraVisualizer.jsx`)**: Animated Selection ($\sigma$), Projection ($\pi$), Equi-Join ($\bowtie$), Left Outer Join ($\$), and TRC query translation.
+- **Keys & Closures (`FunctionalDependencyVisualizer.jsx`)**: Attribute Closure $(X)^+$ solver, Armstrong's Axioms inference, Candidate Key detection, and Minimal Canonical Cover ($F_c$).
+- **Normalization Engine (`NormalizationVisualizer.jsx`)**: Step-by-step anomaly detection (Insertion, Deletion, Update) and lossless join decomposition simulator.
+- **B+ Tree Indexing Engine (`BPlusTreeVisualizer.jsx`)**: Dynamic multi-way node insertion, node splitting, and leaf range scans.
+- **Storage Engine & RAID (`StorageIndexingVisualizer.jsx`)**: RAID 0/1/5/6/10 parity reconstruction simulator, Bitmap Indexing bitwise ops, and Inverted Index postings lists.
+- **Concurrency Control & 2PL (`ConcurrencyControlVisualizer.jsx`)**: Conflict serializability, Strict 2PL locks, Timestamp Ordering, Thomas Write Rule, and deadlock wait-for graphs.
+- **Query Optimizer & CBO (`QueryOptimizerVisualizer.jsx`)**: Relational algebra query trees, Predicate/Projection pushdown heuristics, and join algorithm cost formulas (Nested Loop vs Hash vs Sort-Merge).
+- **Distributed DBMS (`DistributedDbVisualizer.jsx`)**: 2-Phase Commit (2PC), CAP theorem network partition simulator, and Quorum consensus ($R+W>N$).
 
 ### ☕ Java & Spring Ecosystem (`JavaSpringVisualizer.jsx`)
 - **Java Execution Pipeline (`JavaExecutionPipelineVisualizer.jsx`)**: Source $\rightarrow$ javac $\rightarrow$ ClassLoader $\rightarrow$ Verifier $\rightarrow$ JIT Machine Assembly.
@@ -87,7 +93,7 @@
 
 ## 🔌 REST API Endpoints
 
-- `GET /api/v1/topics` — Lists all 44 curriculum topics with level and summary metadata.
+- `GET /api/v1/topics` — Lists all 47 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 
@@ -96,10 +102,10 @@
 ## 🧪 Testing & Verification Commands
 
 ```bash
-# Run All Backend Tests (15 test suites across 44 topics)
+# Run All Backend Tests (16 test suites across 47 topics)
 wsl mvn test -f backend/pom.xml
 
-# Run All Frontend Tests (18 test files, 43 unit/integration tests)
+# Run All Frontend Tests (25 test files, 63 unit/integration tests)
 wsl npm test --prefix frontend
 
 # Build Frontend Production Bundle

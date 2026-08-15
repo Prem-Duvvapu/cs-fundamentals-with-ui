@@ -15,10 +15,10 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 ├── AGENTS.md              # Context for AI agents
 ├── README.md              # Project overview & quickstart
 ├── CONTEXT.md             # System architecture & API documentation
-├── content/               # Markdown educational content (44 topics)
+├── content/               # Markdown educational content (47 topics)
 │   ├── os/                # Operating Systems (7 topics)
 │   ├── networking/        # Computer Networks (12 topics)
-│   ├── dbms/              # Database Management Systems (8 topics)
+│   ├── dbms/              # Database Management Systems (11 topics)
 │   ├── java-spring/       # Java & Spring Boot Ecosystem (17 topics)
 │   └── aiml/              # AI / ML Architecture (6 topics)
 ├── backend/               # Spring Boot application
@@ -52,7 +52,7 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - `## 🟡 Intermediate Level` — Deeper concepts, mathematical formulas, algorithms, code examples
 - `## 🔴 Expert Level` — Implementation details, Linux kernel / JVM internals, trade-offs, and Interview Q&As
 
-## Curriculum Roadmaps (44 Complete Topics)
+## Curriculum Roadmaps (47 Complete Topics)
 
 ### 💻 Operating Systems (7/7 Topics)
 - [x] Process Management (states, PCB, threads, fork, COW)
@@ -77,15 +77,18 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - [x] Network Security & Cryptography (AES, RSA, X.509 certificates, firewalls, SYN flood, DDoS)
 - [x] Network QoS & Traffic Shaping (Token Bucket, Leaky Bucket, IntServ/DiffServ, CDN, SDN/NFV, 5G slicing)
 
-### 🗄️ Database Management Systems (8/8 Topics)
+### 🗄️ Database Management Systems (11/11 Topics)
 - [x] DBMS Architecture & Data Independence (3-Schema ANSI-SPARC)
-- [x] ER Diagram Modeling & Relational Mapping (Attribute Closures, Candidate Keys)
-- [x] Relational Model, Keys & Relational Algebra (Tuple Relational Calculus, SQL Joins)
-- [x] Database Normalization (1NF, 2NF, 3NF, BCNF, Functional Dependencies)
+- [x] ER Diagram Modeling & Relational Mapping (Entity sets, attributes, weak entities, ER-to-Table mapping)
+- [x] Relational Algebra, Calculus & Joins (Selection, Projection, Joins, Division, TRC)
+- [x] Keys, Functional Dependencies & Canonical Cover (Armstrong's Axioms, Attribute Closure, Minimal Cover)
+- [x] Database Normalization (1NF, 2NF, 3NF, BCNF, Lossless Join Decompositions)
 - [x] B/B+ Tree Indexing & Storage Structures (Clustered/Secondary, Node Splits, Range Scans)
-- [x] Transactions, States & ACID Properties (WAL Logging, ARIES Crash Recovery)
-- [x] Concurrency Control, 2PL & Serializability (Precedence Graphs, Strict 2PL, MVCC)
-- [x] Query Processing & Cost-Based Optimizer (Query Trees, Hash Joins, EXPLAIN ANALYZE)
+- [x] Storage Engine, RAID & Advanced Indexing (RAID 0/1/5/6/10, Bitmap Indexing, Inverted Indexes)
+- [x] Transactions, States & ACID Properties (WAL Logging, Checkpoints, ARIES Crash Recovery)
+- [x] Concurrency Control, 2PL & Serializability (Precedence Graphs, Strict 2PL, Timestamp Ordering, Deadlocks)
+- [x] Query Processing & Cost-Based Optimizer (Query Trees, Predicate Pushdown, Hash Joins, EXPLAIN ANALYZE)
+- [x] Distributed DBMS, 2PC & CAP Theorem (2-Phase Commit, 3PC, CAP Theorem, Quorum Consensus)
 
 ### ☕ Java & Spring Ecosystem (17/17 Topics)
 - [x] Java Execution Pipeline (javac, ClassLoader Parent Delegation, Bytecode Verifier, Tiered JIT)

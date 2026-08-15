@@ -1,0 +1,62 @@
+{
+  "id": "query-optimization",
+  "title": "Query Processing, Relational Trees & Cost-Based Optimizer",
+  "subtitle": "Predicate Pushdown, Projection Pushdown, Join Algorithms (Nested Loop vs Hash vs Sort-Merge) & EXPLAIN ANALYZE",
+  "mentalModel": "Query optimization is the brain of a database engine. It parses declarative SQL into relational algebra trees, applies heuristic transformation rules to prune search spaces, and uses cost models based on disk I/O and statistics to select the fastest physical execution plan.",
+  "theoryData": {
+    "failureModes": [
+      "Missing statistics causing bad join plans: Outdated histogram statistics fool the CBO into selecting Nested Loop over Hash Join, slowing queries 1000x.",
+      "Non-SARGable WHERE predicates: Wrapping indexed columns in functions (e.g. WHERE YEAR(created_at) = 2026) disables index seeks and forces full table scans.",
+      "Memory spill in Hash Join: When build relations exceed work_mem / buffer pool sizes, hash partitions spill to temporary disk files."
+    ],
+    "tradeOffs": [
+      {
+        "aspect": "Nested Loop Join vs Hash Join vs Sort-Merge Join",
+        "optionA": "Nested Loop: Best for small outer inputs with an indexed inner table lookup.",
+        "optionB": "Hash Join: Best for large unsorted inputs with equi-join predicates.",
+        "optionC": "Sort-Merge Join: Best when inputs are already sorted or during memory constraints."
+      },
+      {
+        "aspect": "Heuristic Rule-Based Optimizer (RBO) vs Cost-Based Optimizer (CBO)",
+        "optionA": "RBO: Uses static algebraic equivalence rules (always push down filters).",
+        "optionB": "CBO: Evaluates physical disk block I/Os, CPU cycles, and histogram cardinality estimates."
+      }
+    ],
+    "productionScenario": "A critical analytics dashboard query ran in 24 seconds due to a full table scan on 20,000,000 orders. Running EXPLAIN ANALYZE revealed that the optimizer was performing an unindexed Filter after joining. By rewriting the query to push down date predicates (σ_date > '2026-01-01') and creating a composite index, query time dropped from 24s to 8ms.",
+    "codeSnippet": "-- EXPLAIN ANALYZE Inspection:\nEXPLAIN ANALYZE\nSELECT e.name, d.dept_name\nFROM Employees e\nJOIN Departments d ON e.dept_id = d.dept_id\nWHERE e.salary > 80000;\n\n-- Execution Plan Output:\n-- -> Hash Join (cost=14.50..45.20 rows=350)\n--      Hash Cond: (e.dept_id = d.dept_id)\n--      -> Seq Scan on Employees e (Filter: salary > 80000)\n--      -> Hash on Departments d",
+    "interviewQA": [
+      {
+        "question": "What is Predicate Pushdown (Filter Pushdown) and why is it effective?",
+        "answer": "Predicate Pushdown moves Selection (σ) operations as close to physical table scan leaf nodes as possible. By filtering rows early, it drastically reduces the number of intermediate tuples that must be copied into memory buffers and joined."
+      },
+      {
+        "question": "What does EXPLAIN ANALYZE do that standard EXPLAIN does not?",
+        "answer": "Standard EXPLAIN only displays the estimated query plan and estimated costs from optimizer statistics. EXPLAIN ANALYZE actually executes the query on the database engine, outputting both estimated vs ACTUAL execution time and actual row counts per node."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "Which heuristic query optimization rule moves selection filters down closest to table scans?",
+      "options": [
+        "Projection Pushdown",
+        "Predicate Pushdown",
+        "Join Commutativity",
+        "Subquery Flattening"
+      ],
+      "correct": 1,
+      "explanation": "Predicate Pushdown applies Selection (σ) filters immediately at the base table scan level to minimize intermediate tuple sizes."
+    },
+    {
+      "question": "When is Sort-Merge Join typically preferred over Hash Join?",
+      "options": [
+        "When inputs are already sorted by the join key",
+        "When join keys are floating point numbers",
+        "When one table contains only 1 row",
+        "When there is no common attribute"
+      ],
+      "correct": 0,
+      "explanation": "If both inputs are already sorted on the join key (e.g. from clustered B+ Tree indexes), Sort-Merge Join avoids sorting and executes in linear O(M + N) time."
+    }
+  ]
+}

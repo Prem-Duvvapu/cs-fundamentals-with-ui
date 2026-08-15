@@ -32,15 +32,18 @@ public class TopicService {
         new Topic("network-security", "Network Security, Cryptography & Threat Prevention", "networking", "expert", "Symmetric (AES) vs Asymmetric (RSA), Digital Certificates, Firewalls, SYN Flood, DDoS"),
         new Topic("network-performance-qos", "Network QoS, Traffic Shaping & Modern Networking", "networking", "expert", "Token Bucket vs Leaky Bucket traffic shaping, IntServ vs DiffServ QoS, CDN architecture, SDN/NFV, IoT networking, 5G slicing"),
 
-        // Database Management Systems
-        new Topic("dbms-architecture", "DBMS Architecture & Data Independence", "dbms", "beginner", "DBMS vs File Systems, 3-Schema ANSI-SPARC architecture, physical/logical data independence"),
-        new Topic("er-model", "ER Diagram Modeling & Relational Mapping", "dbms", "beginner", "Entity sets, attributes, cardinalities, weak entities, ER-to-Table mapping rules"),
-        new Topic("relational-model", "Relational Model, Keys & Relational Algebra", "dbms", "intermediate", "Relational schema, Candidate/Primary/Foreign keys, Relational Algebra, SQL joins"),
-        new Topic("normalization", "Database Normalization & Functional Dependencies", "dbms", "intermediate", "Anomalies, Functional Dependencies, Attribute Closure, 1NF, 2NF, 3NF, BCNF"),
-        new Topic("dbms-indexing", "B/B+ Tree Indexing & Storage Structures", "dbms", "intermediate", "Clustered/Secondary indexes, B+ Tree search/insertion split algorithms, range scans"),
-        new Topic("transactions-acid", "Transactions, States & ACID Properties", "dbms", "intermediate", "ACID properties, transaction state machine, Write-Ahead Logging (WAL), ARIES recovery"),
-        new Topic("concurrency-control", "Concurrency Control, 2PL & Serializability", "dbms", "expert", "Precedence graphs, Conflict serializability, Strict 2PL, MVCC, Deadlocks & Wait-For graphs"),
-        new Topic("query-optimization", "Query Processing & Cost-Based Optimizer", "dbms", "expert", "Query trees, predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE"),
+        // Database Management Systems (11 Comprehensive Topics)
+        new Topic("dbms-architecture", "DBMS Architecture & 3-Schema ANSI-SPARC", "dbms", "beginner", "DBMS vs File Systems, 3-Schema ANSI-SPARC architecture, physical and logical data independence"),
+        new Topic("er-model", "ER Diagram Modeling & Relational Mapping", "dbms", "beginner", "Entity sets, attributes, cardinalities, weak entities, Generalization, Specialization, ER-to-Table mapping rules"),
+        new Topic("relational-algebra-calculus", "Relational Algebra, Tuple Calculus & Joins", "dbms", "intermediate", "Selection (σ), Projection (π), Cartesian Product (×), Joins (Inner, Theta, Outer), Tuple Relational Calculus (TRC)"),
+        new Topic("functional-dependencies-keys", "Keys, Functional Dependencies & Canonical Cover", "dbms", "intermediate", "Super, Candidate, Primary and Foreign keys, Armstrong's Axioms, Attribute Closure, Minimal Canonical Cover"),
+        new Topic("database-normalization", "Database Normalization (1NF to BCNF) & Decompositions", "dbms", "intermediate", "Insertion/Deletion/Update Anomalies, 1NF, 2NF, 3NF, BCNF, Lossless Join Decomposition, Dependency Preservation"),
+        new Topic("dbms-indexing", "B/B+ Tree Indexing & Storage Structures", "dbms", "intermediate", "Clustered vs Secondary indexes, Dense vs Sparse, B+ Tree search, dynamic node splits, leaf linked-list range scans"),
+        new Topic("storage-raid-indexing", "File Organization, RAID Storage & Advanced Indexing", "dbms", "intermediate", "Heap vs Sequential vs Hash files, RAID 0/1/5/6/10, Bitmap Indexing, Inverted Indexes for search engines"),
+        new Topic("transactions-acid", "Transactions, ACID States & Crash Recovery", "dbms", "intermediate", "ACID guarantees, Transaction State Machine, Write-Ahead Logging (WAL), Checkpoints, ARIES crash recovery"),
+        new Topic("concurrency-control", "Concurrency Control, 2PL & Timestamp Ordering", "dbms", "expert", "Conflict serializability, Precedence Graphs, Shared/Exclusive locks, Strict 2PL, Thomas Write Rule, Wait-For Deadlock graphs"),
+        new Topic("query-optimization", "Query Processing, Relational Trees & Cost-Based Optimizer", "dbms", "expert", "Relational algebra query trees, Predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE"),
+        new Topic("distributed-databases-cap", "Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem", "dbms", "expert", "Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus"),
 
         // Java, Advanced Java, Spring Boot, JPA/Hibernate, Spring Batch & Quartz
         new Topic("java-execution-pipeline", "Java Execution Pipeline & JVM Architecture", "java-spring", "beginner", "javac bytecode compilation, ClassLoader Parent Delegation Model, Bytecode Verifier, Interpreter & JIT Compiler"),

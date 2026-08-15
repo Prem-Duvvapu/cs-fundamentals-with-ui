@@ -1,0 +1,61 @@
+{
+  "id": "relational-algebra-calculus",
+  "title": "Relational Algebra, Tuple Calculus & Joins",
+  "subtitle": "Selection, Projection, Joins, Division & TRC Mathematical Query Foundations",
+  "mentalModel": "Relational Algebra is the procedural math that powers SQL execution engines. Relations are sets of tuples, operations produce new relations, and query optimizers transform declarative SQL into optimized relational algebra operator trees.",
+  "theoryData": {
+    "failureModes": [
+      "Cartesian Product explosion: Unindexed Cross Joins between tables of size M and N produce M * N tuples, causing memory overflow and disk thrashing.",
+      "Loss of NULL tuples in Inner Joins: Equi-joins drop unmatched foreign keys without developer awareness, requiring Outer Joins (Left/Right/Full).",
+      "Projection duplicate elimination overhead: In relational algebra, projection eliminates duplicates (DISTINCT), which requires sorting or hashing full tables."
+    ],
+    "tradeOffs": [
+      {
+        "aspect": "Procedural (Relational Algebra) vs Declarative (SQL / TRC)",
+        "optionA": "Relational Algebra: Explicit step-by-step operator graph execution.",
+        "optionB": "SQL / TRC: Declares 'what' data to retrieve; leaves execution plan to the Cost-Based Optimizer (CBO)."
+      },
+      {
+        "aspect": "Row-Oriented vs Column-Oriented Joins",
+        "optionA": "Row Store: Ideal for OLTP where full tuple attributes are written or updated together.",
+        "optionB": "Column Store: Reads only relevant join key columns into memory, achieving 5x-10x compression in OLAP."
+      }
+    ],
+    "productionScenario": "In high-throughput e-commerce microservices, an unindexed LEFT JOIN between 10M Orders and 50M OrderItems caused 100% database CPU exhaustion. By pushing the predicate down (σ_created_at > '2026-01-01') before the join, the optimizer reduced intermediate joined tuples from 50M to 2,000, reducing query latency from 14s to 12ms.",
+    "codeSnippet": "-- Equivalent SQL Formulation:\nSELECT e.emp_id, e.name, d.dept_name\nFROM Employees e\nLEFT JOIN Departments d ON e.dept_id = d.dept_id\nWHERE e.salary > 65000;\n\n-- Relational Algebra Formulation:\n-- π_{emp_id, name, dept_name} ( σ_{salary > 65000}(Employees) ⟕_{dept_id} Departments )",
+    "interviewQA": [
+      {
+        "question": "What is the difference between Theta Join, Equi-Join, and Natural Join?",
+        "answer": "Theta Join (⋈_θ) allows any general boolean condition (e.g. R.val > S.val). Equi-Join is a Theta Join specifically using equality comparison (=). Natural Join (⋈) is an Equi-Join that automatically equates all attributes with identical names in both relations and eliminates duplicate join columns from the result schema."
+      },
+      {
+        "question": "Explain the Relational Algebra Division operator (R ÷ S).",
+        "answer": "Division R ÷ S finds all tuples in R that are paired with EVERY tuple in relation S. A classic SQL equivalent is 'Find students who have enrolled in ALL courses taught by Professor Smith' using correlated NOT EXISTS subqueries."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "Which relational algebra operation selects rows that satisfy a given boolean condition?",
+      "options": [
+        "Projection (π)",
+        "Selection (σ)",
+        "Cartesian Product (×)",
+        "Rename (ρ)"
+      ],
+      "correct": 1,
+      "explanation": "Selection (σ) acts as a horizontal filter on tuples based on a boolean predicate."
+    },
+    {
+      "question": "What is the cardinality of the Cartesian Product of relation R (5 rows) and relation S (10 rows)?",
+      "options": [
+        "15 rows",
+        "50 rows",
+        "2 rows",
+        "0 rows"
+      ],
+      "correct": 1,
+      "explanation": "Cartesian Product multiplies cardinalities: 5 × 10 = 50 rows."
+    }
+  ]
+}
