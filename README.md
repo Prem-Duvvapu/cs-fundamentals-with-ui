@@ -79,13 +79,13 @@ docker-compose up --build
 
 ---
 
-## 📚 47 Complete Curriculum Topics Covered
+## 📚 48 Complete Curriculum Topics Covered
 
 | Category | Topics Count | Key Areas Covered |
 | :--- | :--- | :--- |
 | **Operating Systems** | 7 Topics | Process Management, Memory Management, CPU Scheduling, Synchronization, Deadlocks, File Systems, I/O Systems |
 | **Computer Networks** | 12 Topics | Network Fundamentals, Physical Media, OSI & TCP/IP, Data Link Layer & ARQ, IP Subnetting & CIDR, Routing Algorithms, TCP/UDP Handshakes, TCP Flow & Congestion Control, Transport Protocols (QUIC/SCTP), Application Layer (HTTP/3, DNS), Network Security (TLS 1.3), QoS & Traffic Shaping |
-| **DBMS** | 11 Topics | DBMS Architecture & 3-Schema, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control (Strict 2PL/Timestamps), Query Optimizer (CBO), Distributed Databases & CAP Theorem |
+| **DBMS** | 12 Topics | DBMS Introduction & Architecture, 3-Schema ANSI-SPARC, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control (Strict 2PL/Timestamps), Query Optimizer (CBO), Distributed Databases & CAP Theorem |
 | **Java & Spring** | 17 Topics | JVM Execution Pipeline, Memory Model, OOP & vtable, Static/Final/Records, JVM GC & Virtual Threads, Functional & Lambdas, Generics & PECS, Collections & Heap, HashMap Internals, Streams & Optional, Reflection & Exceptions, Multithreading & Monitors, Spring Bean Lifecycle, Spring MVC Flow, JPA/Hibernate States, Spring Batch, Quartz Scheduler |
 
 ---

@@ -55,7 +55,7 @@ class ContentServiceTest {
     @Test
     void getContent_shouldResolveDbmsTopicsWith3Levels() {
         String[] dbmsTopics = {
-            "dbms-architecture", "er-model", "relational-algebra-calculus",
+            "dbms-introduction", "dbms-architecture", "er-model", "relational-algebra-calculus",
             "functional-dependencies-keys", "database-normalization", "dbms-indexing",
             "storage-raid-indexing", "transactions-acid", "concurrency-control",
             "query-optimization", "distributed-databases-cap"

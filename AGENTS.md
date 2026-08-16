@@ -52,7 +52,7 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - `## 🟡 Intermediate Level` — Deeper concepts, mathematical formulas, algorithms, code examples
 - `## 🔴 Expert Level` — Implementation details, Linux kernel / JVM internals, trade-offs, and Interview Q&As
 
-## Curriculum Roadmaps (47 Complete Topics)
+## Curriculum Roadmaps (48 Complete Topics)
 
 ### 💻 Operating Systems (7/7 Topics)
 - [x] Process Management (states, PCB, threads, fork, COW)
@@ -77,7 +77,8 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - [x] Network Security & Cryptography (AES, RSA, X.509 certificates, firewalls, SYN flood, DDoS)
 - [x] Network QoS & Traffic Shaping (Token Bucket, Leaky Bucket, IntServ/DiffServ, CDN, SDN/NFV, 5G slicing)
 
-### 🗄️ Database Management Systems (11/11 Topics)
+### 🗄️ Database Management Systems (12/12 Topics)
+- [x] DBMS Introduction & Architecture (What is DBMS, 6 Components, File System vs DBMS, Languages, Types)
 - [x] DBMS Architecture & Data Independence (3-Schema ANSI-SPARC)
 - [x] ER Diagram Modeling & Relational Mapping (Entity sets, attributes, weak entities, ER-to-Table mapping)
 - [x] Relational Algebra, Calculus & Joins (Selection, Projection, Joins, Division, TRC)

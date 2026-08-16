@@ -32,7 +32,8 @@ public class TopicService {
         new Topic("network-security", "Network Security, Cryptography & Threat Prevention", "networking", "expert", "Symmetric (AES) vs Asymmetric (RSA), Digital Certificates, Firewalls, SYN Flood, DDoS"),
         new Topic("network-performance-qos", "Network QoS, Traffic Shaping & Modern Networking", "networking", "expert", "Token Bucket vs Leaky Bucket traffic shaping, IntServ vs DiffServ QoS, CDN architecture, SDN/NFV, IoT networking, 5G slicing"),
 
-        // Database Management Systems (11 Comprehensive Topics)
+        // Database Management Systems (12 Comprehensive Topics)
+        new Topic("dbms-introduction", "DBMS Introduction & Architecture", "dbms", "beginner", "What is DBMS, types, components, database languages, file system problems"),
         new Topic("dbms-architecture", "DBMS Architecture & 3-Schema ANSI-SPARC", "dbms", "beginner", "DBMS vs File Systems, 3-Schema ANSI-SPARC architecture, physical and logical data independence"),
         new Topic("er-model", "ER Diagram Modeling & Relational Mapping", "dbms", "beginner", "Entity sets, attributes, cardinalities, weak entities, Generalization, Specialization, ER-to-Table mapping rules"),
         new Topic("relational-algebra-calculus", "Relational Algebra, Tuple Calculus & Joins", "dbms", "intermediate", "Selection (σ), Projection (π), Cartesian Product (×), Joins (Inner, Theta, Outer), Tuple Relational Calculus (TRC)"),

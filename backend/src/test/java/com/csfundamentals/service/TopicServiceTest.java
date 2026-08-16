@@ -41,12 +41,13 @@ class TopicServiceTest {
     }
 
     @Test
-    void getTopicsByCategory_dbms_shouldContainAll11Topics() {
+    void getTopicsByCategory_dbms_shouldContainAll12Topics() {
         List<Topic> dbmsTopics = topicService.getTopicsByCategory("dbms");
         assertNotNull(dbmsTopics);
-        assertEquals(11, dbmsTopics.size(), "DBMS category must have exactly 11 registered topics");
+        assertEquals(12, dbmsTopics.size(), "DBMS category must have exactly 12 registered topics");
 
         List<String> topicIds = dbmsTopics.stream().map(Topic::id).toList();
+        assertTrue(topicIds.contains("dbms-introduction"));
         assertTrue(topicIds.contains("dbms-architecture"));
         assertTrue(topicIds.contains("er-model"));
         assertTrue(topicIds.contains("relational-algebra-calculus"));
@@ -104,9 +105,9 @@ class TopicServiceTest {
 
     @Test
     void getTopicById_shouldReturnCorrectTopic_whenExists() {
-        Topic topic = topicService.getTopicById("dbms-architecture");
+        Topic topic = topicService.getTopicById("dbms-introduction");
         assertNotNull(topic);
-        assertEquals("dbms-architecture", topic.id());
+        assertEquals("dbms-introduction", topic.id());
         assertEquals("dbms", topic.category());
         assertEquals("beginner", topic.level());
     }
@@ -120,7 +121,7 @@ class TopicServiceTest {
     @Test
     void allRegisteredTopics_acrossAllCategories_shouldHaveResolvableMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
-        assertEquals(47, allTopics.size(), "Total registered topics should be 47 (7 OS + 12 Networking + 11 DBMS + 17 Java/Spring)");
+        assertEquals(48, allTopics.size(), "Total registered topics should be 48 (7 OS + 12 Networking + 12 DBMS + 17 Java/Spring)");
 
         for (Topic topic : allTopics) {
             String content = contentService.getContent(topic.id());

@@ -4,6 +4,12 @@ import React from 'react'
 import DbmsVisualizer from '../visualizers/DbmsVisualizer'
 
 describe('DbmsVisualizer Component Hub', () => {
+  it('should render DbmsVisualizer with dbms-introduction tab', () => {
+    const { container } = render(<DbmsVisualizer defaultTopicId="dbms-introduction" />)
+    expect(container).toBeDefined()
+    expect(screen.getByText(/Interactive DBMS Concept Visualizer Suite/i)).toBeDefined()
+  })
+
   it('should render DbmsVisualizer with default architecture tab', () => {
     const { container } = render(<DbmsVisualizer defaultTopicId="dbms-architecture" />)
     expect(container).toBeDefined()

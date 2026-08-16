@@ -35,6 +35,7 @@ export default function TopicPage() {
     'application-layer': 'Application Layer: DNS, HTTP/3 & TLS 1.3',
     'network-security': 'Network Security, Cryptography & Threat Prevention',
     'network-performance-qos': 'Network QoS, Traffic Shaping & Modern Networking',
+    'dbms-introduction': 'DBMS Introduction, Architecture & Components',
     'dbms-architecture': 'DBMS Architecture & 3-Schema ANSI-SPARC',
     'er-model': 'ER Diagram Modeling & Relational Mapping',
     'relational-algebra-calculus': 'Relational Algebra, Tuple Calculus & Joins',

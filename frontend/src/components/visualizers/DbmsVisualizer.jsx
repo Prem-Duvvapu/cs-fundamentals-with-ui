@@ -12,6 +12,7 @@ export default function DbmsVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
   const getInitialTab = () => {
     switch (defaultTopicId) {
+      case 'dbms-introduction':
       case 'dbms-architecture': return 'architecture'
       case 'er-model':
       case 'functional-dependencies-keys': return 'closure'

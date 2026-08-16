@@ -93,7 +93,7 @@
 
 ## 🔌 REST API Endpoints
 
-- `GET /api/v1/topics` — Lists all 47 curriculum topics with level and summary metadata.
+- `GET /api/v1/topics` — Lists all 48 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 
@@ -102,10 +102,10 @@
 ## 🧪 Testing & Verification Commands
 
 ```bash
-# Run All Backend Tests (30 test suites across 47 topics)
+# Run All Backend Tests (30 test suites across 48 topics)
 wsl mvn test -f backend/pom.xml
 
-# Run All Frontend Tests (29 test files, 91 unit/integration tests)
+# Run All Frontend Tests (29 test files, 92 unit/integration tests)
 wsl npm test --prefix frontend
 
 # Build Frontend Production Bundle
