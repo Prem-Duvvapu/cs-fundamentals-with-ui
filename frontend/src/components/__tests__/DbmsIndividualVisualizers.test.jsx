@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
 import DbmsIntroVisualizer from '../visualizers/dbms/DbmsIntroVisualizer'
+import ErModelVisualizer from '../visualizers/dbms/ErModelVisualizer'
 import RelationalAlgebraVisualizer from '../visualizers/dbms/RelationalAlgebraVisualizer'
 import FunctionalDependencyVisualizer from '../visualizers/dbms/FunctionalDependencyVisualizer'
 import NormalizationVisualizer from '../visualizers/dbms/NormalizationVisualizer'
@@ -16,6 +17,13 @@ describe('Individual DBMS Visualizers', () => {
     expect(container).toBeDefined()
     expect(screen.getByText(/DBMS Introduction, Need & Architecture/i)).toBeDefined()
     expect(screen.getAllByText(/Traditional File System/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('should render ErModelVisualizer with student-course scenario', () => {
+    const { container } = render(<ErModelVisualizer />)
+    expect(container).toBeDefined()
+    expect(screen.getByText(/Entity-Relationship \(ER\) Modeling & Relational Table Converter/i)).toBeDefined()
+    expect(screen.getAllByText(/STUDENT \[Strong\]/i).length).toBeGreaterThanOrEqual(1)
   })
 
   it('should render RelationalAlgebraVisualizer with initial selection operation', () => {

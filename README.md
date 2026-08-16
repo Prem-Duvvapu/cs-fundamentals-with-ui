@@ -55,6 +55,7 @@ docker-compose up --build
 
 ### 🗄️ Database Management Systems (DBMS)
 - **📁 File System vs DBMS Simulator**: Interactive anomaly simulator for data redundancy, multi-user Lost Update race conditions, mid-flight power outage ARIES crash recovery, and B+ Tree index seek vs linear file scan.
+- **📐 ER Model & Relational Mapping Simulator**: Interactive ER diagram blueprint builder (strong/weak entities, composite, multivalued, derived attributes), cardinality mapping (1:1, 1:N, M:N, recursive), and real-time SQL DDL table synthesis.
 - **🧮 Relational Algebra, Calculus & Joins Simulator**: Animated Selection ($\sigma$), Projection ($\pi$), Equi-Join ($\bowtie$), Left Outer Join ($\$), and Tuple Relational Calculus (TRC) translation.
 - **🗝️ Keys, Functional Dependencies & (X)⁺ Closures**: Attribute Closure solver, Armstrong's Axioms inference, Candidate Key detection, and Minimal Canonical Cover ($F_c$).
 - **📊 Database Normalization (1NF–BCNF)**: Step-by-step anomaly detection (Insertion, Deletion, Update) and lossless join decomposition simulator.

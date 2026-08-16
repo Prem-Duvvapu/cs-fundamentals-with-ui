@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import DbmsIntroVisualizer from './dbms/DbmsIntroVisualizer'
+import ErModelVisualizer from './dbms/ErModelVisualizer'
 import BPlusTreeVisualizer from './dbms/BPlusTreeVisualizer'
 import RelationalAlgebraVisualizer from './dbms/RelationalAlgebraVisualizer'
 import FunctionalDependencyVisualizer from './dbms/FunctionalDependencyVisualizer'
@@ -15,7 +16,7 @@ export default function DbmsVisualizer({ defaultTopicId }) {
     switch (defaultTopicId) {
       case 'dbms-introduction': return 'intro'
       case 'dbms-architecture': return 'architecture'
-      case 'er-model':
+      case 'er-model': return 'er-model'
       case 'functional-dependencies-keys': return 'closure'
       case 'relational-algebra-calculus':
       case 'relational-model': return 'relational-algebra'
@@ -86,6 +87,12 @@ export default function DbmsVisualizer({ defaultTopicId }) {
             className={`main-tab-btn ${activeTab === 'architecture' ? 'active-tab' : ''}`}
           >
             🏗 3-Schema Architecture
+          </button>
+          <button
+            onClick={() => setActiveTab('er-model')}
+            className={`main-tab-btn ${activeTab === 'er-model' ? 'active-tab' : ''}`}
+          >
+            📐 ER Model & Mapping
           </button>
           <button
             onClick={() => setActiveTab('relational-algebra')}
@@ -205,6 +212,11 @@ export default function DbmsVisualizer({ defaultTopicId }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* SUB-TAB CONTENT 1.5: ER MODEL & RELATIONAL MAPPING */}
+      {activeTab === 'er-model' && (
+        <ErModelVisualizer />
       )}
 
       {/* SUB-TAB CONTENT 2: RELATIONAL ALGEBRA */}
