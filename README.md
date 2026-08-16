@@ -54,14 +54,15 @@ docker-compose up --build
 - **🛣️ Distance Vector Routing (Bellman-Ford)**: Step-by-step multi-router routing vector exchange and convergence rounds.
 
 ### 🗄️ Database Management Systems (DBMS)
+- **📁 File System vs DBMS Simulator**: Interactive anomaly simulator for data redundancy, multi-user Lost Update race conditions, mid-flight power outage ARIES crash recovery, and B+ Tree index seek vs linear file scan.
 - **🧮 Relational Algebra, Calculus & Joins Simulator**: Animated Selection ($\sigma$), Projection ($\pi$), Equi-Join ($\bowtie$), Left Outer Join ($\$), and Tuple Relational Calculus (TRC) translation.
 - **🗝️ Keys, Functional Dependencies & (X)⁺ Closures**: Attribute Closure solver, Armstrong's Axioms inference, Candidate Key detection, and Minimal Canonical Cover ($F_c$).
 - **📊 Database Normalization (1NF–BCNF)**: Step-by-step anomaly detection (Insertion, Deletion, Update) and lossless join decomposition simulator.
 - **🌲 B+ Tree Indexing & Storage Engine**: Complete binary/multi-way B+ Tree search, dynamic node splits, and leaf range scans.
-- **💾 Storage Engine, RAID & Advanced Indexing**: RAID 0/1/5/6/10 parity reconstruction simulator, Bitmap Indexing bitwise ops, and Inverted Index postings lists.
-- **🔒 Concurrency Control & 2-Phase Locking (2PL)**: Conflict serializability, Strict 2PL locks, Timestamp Ordering, Thomas Write Rule, and deadlock wait-for graphs.
-- **⚡ Query Processing & Cost-Based Optimizer (CBO)**: Relational algebra query trees, Predicate/Projection pushdown heuristics, and join algorithm cost formulas (Nested Loop vs Hash vs Sort-Merge).
-- **🌐 Distributed DBMS & CAP Theorem**: 2-Phase Commit (2PC), CAP theorem network partition simulator, and Quorum consensus ($R+W>N$).
+- **💾 RAID Storage & Advanced Indexing**: RAID 0/1/5/6/10 disk failure parity reconstruction, Bitmap Indexing bitwise operations, and Inverted Index search postings lists.
+- **🔒 Concurrency Control & 2PL**: Conflict serializability, Strict 2PL locking, Timestamp Ordering, Thomas Write Rule, and deadlock wait-for graphs.
+- **⚡ Cost-Based Query Optimizer (CBO)**: Relational query tree generation, Predicate/Projection pushdown heuristics, and join algorithm cost evaluation (Nested Loop vs Hash vs Sort-Merge).
+- **🌐 Distributed DBMS, 2PC & CAP**: 2-Phase Commit (2PC) coordinator/participant state machine, CAP Theorem network partition simulator, and Quorum consensus ($R+W>N$).
 
 ### ☕ Java & Spring Ecosystem
 - **⚙️ Java Execution Pipeline**: Step conveyor belt from `javac` compilation to ClassLoader parent delegation, Bytecode Verifier, and JIT native assembly.
@@ -85,7 +86,7 @@ docker-compose up --build
 | :--- | :--- | :--- |
 | **Operating Systems** | 7 Topics | Process Management, Memory Management, CPU Scheduling, Synchronization, Deadlocks, File Systems, I/O Systems |
 | **Computer Networks** | 12 Topics | Network Fundamentals, Physical Media, OSI & TCP/IP, Data Link Layer & ARQ, IP Subnetting & CIDR, Routing Algorithms, TCP/UDP Handshakes, TCP Flow & Congestion Control, Transport Protocols (QUIC/SCTP), Application Layer (HTTP/3, DNS), Network Security (TLS 1.3), QoS & Traffic Shaping |
-| **DBMS** | 12 Topics | DBMS Introduction & Architecture, 3-Schema ANSI-SPARC, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control (Strict 2PL/Timestamps), Query Optimizer (CBO), Distributed Databases & CAP Theorem |
+| **DBMS** | 13 Topics | DBMS Introduction & Architecture, File System vs DBMS, 3-Schema ANSI-SPARC, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control (Strict 2PL/Timestamps), Query Optimizer (CBO), Distributed Databases & CAP Theorem |
 | **Java & Spring** | 17 Topics | JVM Execution Pipeline, Memory Model, OOP & vtable, Static/Final/Records, JVM GC & Virtual Threads, Functional & Lambdas, Generics & PECS, Collections & Heap, HashMap Internals, Streams & Optional, Reflection & Exceptions, Multithreading & Monitors, Spring Bean Lifecycle, Spring MVC Flow, JPA/Hibernate States, Spring Batch, Quartz Scheduler |
 
 ---
@@ -103,9 +104,9 @@ docker-compose up --build
 ## 🧪 Automated Testing
 
 ```bash
-# Run Frontend Tests (29 test files, 91 unit & integration tests)
+# Run Frontend Tests (30 test files, 97+ unit & integration tests)
 cd frontend && npm test
 
-# Run Backend Tests (30 test suites across all 47 topics)
+# Run Backend Tests (30 test suites across all 49 topics)
 cd backend && mvn test
 ```

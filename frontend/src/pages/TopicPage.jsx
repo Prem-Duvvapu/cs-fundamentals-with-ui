@@ -127,6 +127,7 @@ export default function TopicPage() {
       case 'quartz-scheduler':
       case 'java-spring':
         return <JavaSpringVisualizer defaultTopicId={topicId} />
+      case 'dbms-introduction':
       case 'dbms-architecture':
       case 'er-model':
       case 'relational-algebra-calculus':

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
+import DbmsIntroVisualizer from '../visualizers/dbms/DbmsIntroVisualizer'
 import RelationalAlgebraVisualizer from '../visualizers/dbms/RelationalAlgebraVisualizer'
 import FunctionalDependencyVisualizer from '../visualizers/dbms/FunctionalDependencyVisualizer'
 import NormalizationVisualizer from '../visualizers/dbms/NormalizationVisualizer'
@@ -10,6 +11,13 @@ import QueryOptimizerVisualizer from '../visualizers/dbms/QueryOptimizerVisualiz
 import DistributedDbVisualizer from '../visualizers/dbms/DistributedDbVisualizer'
 
 describe('Individual DBMS Visualizers', () => {
+  it('should render DbmsIntroVisualizer with redundancy anomaly scenario', () => {
+    const { container } = render(<DbmsIntroVisualizer />)
+    expect(container).toBeDefined()
+    expect(screen.getByText(/DBMS Introduction, Need & Architecture/i)).toBeDefined()
+    expect(screen.getAllByText(/Traditional File System/i).length).toBeGreaterThanOrEqual(1)
+  })
+
   it('should render RelationalAlgebraVisualizer with initial selection operation', () => {
     const { container } = render(<RelationalAlgebraVisualizer />)
     expect(container).toBeDefined()

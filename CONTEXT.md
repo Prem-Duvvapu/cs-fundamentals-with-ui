@@ -65,6 +65,7 @@
 - **Distance Vector Bellman-Ford (`DistanceVectorVisualizer.jsx`)**: Multi-router vector exchange convergence.
 
 ### 🗄️ Database Management Systems (`DbmsVisualizer.jsx`)
+- **File System vs DBMS Simulator (`DbmsIntroVisualizer.jsx`)**: Interactive data redundancy anomalies, Lost Update race conditions, mid-flight power outage ARIES rollback, and B+ Tree seek vs linear file scan cost analysis.
 - **Relational Algebra Simulator (`RelationalAlgebraVisualizer.jsx`)**: Animated Selection ($\sigma$), Projection ($\pi$), Equi-Join ($\bowtie$), Left Outer Join ($\$), and TRC query translation.
 - **Keys & Closures (`FunctionalDependencyVisualizer.jsx`)**: Attribute Closure $(X)^+$ solver, Armstrong's Axioms inference, Candidate Key detection, and Minimal Canonical Cover ($F_c$).
 - **Normalization Engine (`NormalizationVisualizer.jsx`)**: Step-by-step anomaly detection (Insertion, Deletion, Update) and lossless join decomposition simulator.

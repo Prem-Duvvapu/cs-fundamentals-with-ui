@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import DbmsIntroVisualizer from './dbms/DbmsIntroVisualizer'
 import BPlusTreeVisualizer from './dbms/BPlusTreeVisualizer'
 import RelationalAlgebraVisualizer from './dbms/RelationalAlgebraVisualizer'
 import FunctionalDependencyVisualizer from './dbms/FunctionalDependencyVisualizer'
@@ -12,7 +13,7 @@ export default function DbmsVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
   const getInitialTab = () => {
     switch (defaultTopicId) {
-      case 'dbms-introduction':
+      case 'dbms-introduction': return 'intro'
       case 'dbms-architecture': return 'architecture'
       case 'er-model':
       case 'functional-dependencies-keys': return 'closure'
@@ -75,6 +76,12 @@ export default function DbmsVisualizer({ defaultTopicId }) {
         {/* SUB-TABS NAVIGATION */}
         <div className="main-tab-switcher" style={{ marginTop: '1rem', flexWrap: 'wrap', gap: '0.4rem' }}>
           <button
+            onClick={() => setActiveTab('intro')}
+            className={`main-tab-btn ${activeTab === 'intro' ? 'active-tab' : ''}`}
+          >
+            📁 File System vs DBMS
+          </button>
+          <button
             onClick={() => setActiveTab('architecture')}
             className={`main-tab-btn ${activeTab === 'architecture' ? 'active-tab' : ''}`}
           >
@@ -130,6 +137,11 @@ export default function DbmsVisualizer({ defaultTopicId }) {
           </button>
         </div>
       </div>
+
+      {/* SUB-TAB CONTENT 0: FILE SYSTEM VS DBMS INTRO */}
+      {activeTab === 'intro' && (
+        <DbmsIntroVisualizer />
+      )}
 
       {/* SUB-TAB CONTENT 1: ARCHITECTURE & DATA INDEPENDENCE */}
       {activeTab === 'architecture' && (

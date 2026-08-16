@@ -186,28 +186,70 @@ DBMS access languages are grouped into five distinct sub-languages:
 
 ### DBMS Architectures (1-Tier, 2-Tier, 3-Tier)
 
+A DBMS architecture defines how users interact with the database to read, write, or update information.
+
 ```
 [1-Tier Architecture]
-+-----------------------------------------------------+
-| Embedded Client UI + Business Logic + DBMS Engine   |  (e.g., SQLite in Mobile App)
-+-----------------------------------------------------+
++-------------------------------------------------------------------+
+| Single Machine: Client UI + Processing Logic + Local Database     |  (e.g., MS Access, SQLite)
++-------------------------------------------------------------------+
 
 [2-Tier Client-Server Architecture]
-+-------------------------------+       Direct DB Connection       +-------------------------------+
-| Client Tier (Fat Client UI    | -------------------------------> | Database Tier (RDBMS Server)  |
-|  + Embedded Business Logic)   | <------------------------------- | (Data Storage, Query Engine)  |
-+-------------------------------+           (JDBC/ODBC)            +-------------------------------+
++-------------------------------+       Direct JDBC / ODBC       +-------------------------------+
+| Tier 1: Client Application    | -----------------------------> | Tier 2: Database Server       |
+| (UI + Embedded Business Logic)| <----------------------------- | (Query Processing, Storage)   |
++-------------------------------+                                +-------------------------------+
 
 [3-Tier Enterprise Web Architecture]
-+-------------------------------+       HTTP / JSON REST API       +-------------------------------+       Connection Pool Socket +-------------------------------+
-| Presentation Tier             | -------------------------------> | Application Tier              | ---------------------------> | Database Tier                 |
-| (React Web, iOS/Android App)  | <------------------------------- | (Spring Boot, Node, Django)   | <--------------------------- | (PostgreSQL, MySQL Cluster)   |
-+-------------------------------+                                  +-------------------------------+                              +-------------------------------+
++-------------------------------+       HTTP / JSON REST API     +-------------------------------+       Connection Pool (JDBC)  +-------------------------------+
+| Tier 1: Client Presentation   | -----------------------------> | Tier 2: Application Server    | ----------------------------> | Tier 3: Database Server       |
+| (Browser, React Web, iOS App) | <----------------------------- | (Spring Boot, Business Logic) | <---------------------------- | (PostgreSQL, MySQL Cluster)   |
++-------------------------------+                                +-------------------------------+                               +-------------------------------+
 ```
 
-- **1-Tier Architecture**: The user interface, business rules, and DBMS engine reside in the same physical memory space on a single machine.
-- **2-Tier Architecture (Client-Server)**: Direct communication between fat client applications and the database server over TCP (ODBC/JDBC). Business logic embedded on client devices makes maintenance and security harder at scale.
-- **3-Tier Architecture**: The standard architecture of modern web applications. The **Application Server** isolates database credentials, performs authentication, applies business domain validation, and manages connection pools (`HikariCP`), shielding database clusters behind private VPC subnets.
+#### 1. 1-Tier Architecture
+The user works directly with the database on the same local device. The client interface, processing logic, and database storage reside in a single standalone binary program.
+- **Classic Example**: **Microsoft Access** or standalone **SQLite** running on a personal desktop.
+- **Advantages**:
+  - *Simple Architecture*: Only a single machine required to maintain and run it.
+  - *Cost-Effective*: Zero server hardware, networking gear, or database server licensing costs.
+  - *Easy Implementation*: Ideal for standalone personal productivity and small single-user tools.
+- **Disadvantages**:
+  - *Limited to Single User*: Cannot support simultaneous multi-user collaboration.
+  - *Poor Security*: If someone gains access to the local machine, they have full access to both the application and the raw database files.
+  - *No Centralized Control*: Storing files locally makes automated network backups and centralized governance difficult.
+  - *Hard to Share Data*: Data cannot be dynamically queried or updated across networked devices.
+
+#### 2. 2-Tier Architecture (Client-Server Model)
+The application at the client end communicates directly with the database server over network protocols using APIs like **ODBC** and **JDBC**. The client machine runs user interfaces and application logic, while the server provides query execution, transaction management, and persistence.
+- **Classic Example**: A **Library Management System** in a school or a **Point-of-Sale (POS) terminal** in a local retail store.
+  - *Tier 1 (Client Layer)*: Desktop software used by librarians to search books, issue checkouts, and calculate late fines.
+  - *Tier 2 (Database Layer)*: Central database server storing book inventory, member profiles, and circulation logs.
+- **Advantages**:
+  - *Fast & Direct Access*: Direct socket connection yields low latency for small, local LAN networks.
+  - *Low Cost*: Much cheaper and simpler to maintain than multi-tier cloud infrastructure.
+  - *Simple Deployment*: Only two physical tiers to configure and manage.
+- **Disadvantages**:
+  - *Limited Scalability*: As user count grows, the database server runs out of concurrent socket connections and compute resources.
+  - *Security Risks*: Client applications hold direct database connection credentials (username/password), exposing the database to credential sniffing.
+  - *Tight Coupling*: Changes to database schemas often require rebuilding and redistributing desktop client software across all employee computers.
+  - *Difficult Maintenance*: Deploying business logic bug fixes requires updating every client terminal individually.
+
+#### 3. 3-Tier Architecture (Enterprise Web Tier Model)
+An intermediate **Application Server** layer sits between the client user interface and the backend database server. The client never talks directly to the database; instead, it talks to the application server via REST/gRPC APIs, which validates business rules, orchestrates transactions, and queries the database.
+- **Classic Example**: An **E-Commerce Store (e.g., Amazon, Flipkart)**:
+  - *Tier 1 (Presentation Layer)*: Web browser or mobile app where customers browse products, search items, and add them to their shopping cart.
+  - *Tier 2 (Application Processing Layer)*: Microservices that check warehouse stock, calculate personalized discounts, charge credit cards, and enforce security.
+  - *Tier 3 (Database Layer)*: Secure database clusters storing product catalogs, customer profiles, payment ledgers, and order history.
+- **Advantages**:
+  - *Enhanced Scalability*: Application servers scale horizontally behind load balancers; connection pools (`HikariCP`) multiplex thousands of clients over minimal database connections.
+  - *Data Integrity*: Business validation in the middle tier prevents corrupted or invalid client requests from ever touching the database.
+  - *Maximum Security*: The database server lives in a private subnet with no public IP address, shielded from direct internet access.
+  - *Modular Maintenance*: The UI, business logic, and database schemas can be modified, tested, and deployed independently without disrupting other tiers.
+- **Disadvantages**:
+  - *Higher Architecture Complexity*: Requires managing APIs, microservices, load balancers, and network gateways.
+  - *Slight Latency Overhead*: Extra network hop between Client $\rightarrow$ App Server $\rightarrow$ Database Server.
+  - *Higher Cost*: Requires provisioning multiple server instances, container orchestrators, and specialized DevOps/DBA teams.
 
 ---
 

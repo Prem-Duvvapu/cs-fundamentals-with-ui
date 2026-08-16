@@ -1,0 +1,38 @@
+{
+  "id": "dbms-introduction",
+  "title": "DBMS Introduction, Need & Architecture",
+  "subtitle": "Interactive Comparison: Traditional File Systems vs. Relational Database Management Systems",
+  "mentalModel": "Think of a traditional file system like physical filing cabinets in separate rooms with no locks or coordination. If one department changes an address, other cabinets remain out of date, and two people editing a folder at the same time cause lost pages. A DBMS acts like a secure, automated vault with an intelligent librarian: every record is stored once, access is strictly governed, changes are atomic, and queries find answers in microseconds.",
+  "theoryData": {
+    "keyTakeaways": [
+      "Traditional file systems suffer from high data redundancy, inconsistent copies, no concurrent transaction serialization, and zero automatic crash recovery.",
+      "A DBMS enforces ACID guarantees, single-point-of-truth normalization, Role-Based Access Control (RBAC), and physical/logical data independence.",
+      "The Cost-Based Optimizer (CBO) uses B+ Tree indexes and statistical models to deliver sub-millisecond query execution compared to linear O(N) file scans.",
+      "Operating system file systems remain the right tool for personal computing (NTFS/Ext4), embedded IoT logging, and raw media/CDN content delivery."
+    ]
+  },
+  "quizData": [
+    {
+      "question": "What is the primary advantage of Write-Ahead Logging (WAL) over direct in-place file system writes?",
+      "options": [
+        "It eliminates the need for RAM cache memory.",
+        "It allows undo/redo crash recovery and converts random disk page writes into fast sequential log appends.",
+        "It replaces B+ Tree indexing completely.",
+        "It makes SQL queries run without query parsing."
+      ],
+      "correctAnswer": 1,
+      "explanation": "WAL guarantees Durability and Atomicity by flushing sequential log changes to disk before dirty data pages in the buffer pool are written asynchronously."
+    },
+    {
+      "question": "In a traditional file system, two users concurrently updating an account balance leads to which anomaly?",
+      "options": [
+        "Phantom Read",
+        "Lost Update Anomaly",
+        "Dirty Read",
+        "Non-Repeatable Read"
+      ],
+      "correctAnswer": 1,
+      "explanation": "Without a centralized Lock Manager or MVCC, the second user's write overwrites the first user's update without incorporating it, causing the Lost Update anomaly."
+    }
+  ]
+}
