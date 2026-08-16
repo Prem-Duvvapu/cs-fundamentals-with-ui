@@ -115,6 +115,7 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - **Code comments**: Minimal — use self-documenting code
 - **Backend API**: RESTful, `/api/v1/...` prefix
 - **Frontend state**: React hooks (`useState`/`useReducer`), simulation engine classes in `src/utils/simulationEngines/`
+- **Documentation & Test Synchronization Rule**: After ANY code, architectural, or feature changes, ALWAYS update the required documentation markdown files (`README.md`, `CONTEXT.md`, `AGENTS.md`) and write/update unit & integration tests (`frontend` Vitest suites and `backend` JUnit 5 tests), verifying all tests pass cleanly before completing the task.
 
 ## Command Execution Environment
 - **Commands Rule**: ALWAYS prefix shell commands with `wsl` (e.g. `wsl npm test`, `wsl npm run build`, `wsl git status`, `wsl git commit ...`).

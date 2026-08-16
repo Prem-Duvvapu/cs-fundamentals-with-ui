@@ -31,6 +31,7 @@ public class ContentService {
     }
 
     public String getContent(String topicId) {
+        if (topicId == null || topicId.isBlank()) return "Content not found for: " + topicId;
         if (contentRootDir == null) return "Content directory not found";
         return cache.computeIfAbsent(topicId, this::loadContent);
     }

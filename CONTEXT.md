@@ -102,10 +102,10 @@
 ## 🧪 Testing & Verification Commands
 
 ```bash
-# Run All Backend Tests (16 test suites across 47 topics)
+# Run All Backend Tests (30 test suites across 47 topics)
 wsl mvn test -f backend/pom.xml
 
-# Run All Frontend Tests (25 test files, 63 unit/integration tests)
+# Run All Frontend Tests (29 test files, 91 unit/integration tests)
 wsl npm test --prefix frontend
 
 # Build Frontend Production Bundle

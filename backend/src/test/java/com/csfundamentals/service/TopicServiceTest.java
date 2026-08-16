@@ -61,6 +61,63 @@ class TopicServiceTest {
     }
 
     @Test
+    void getTopicsByCategory_os_shouldContainAll7Topics() {
+        List<Topic> osTopics = topicService.getTopicsByCategory("os");
+        assertNotNull(osTopics);
+        assertEquals(7, osTopics.size(), "OS category must have exactly 7 registered topics");
+
+        List<String> topicIds = osTopics.stream().map(Topic::id).toList();
+        assertTrue(topicIds.contains("process-management"));
+        assertTrue(topicIds.contains("memory-management"));
+        assertTrue(topicIds.contains("cpu-scheduling"));
+        assertTrue(topicIds.contains("synchronization"));
+        assertTrue(topicIds.contains("deadlocks"));
+        assertTrue(topicIds.contains("file-systems"));
+        assertTrue(topicIds.contains("io-systems"));
+    }
+
+    @Test
+    void getTopicsByCategory_javaSpring_shouldContainAll17Topics() {
+        List<Topic> javaTopics = topicService.getTopicsByCategory("java-spring");
+        assertNotNull(javaTopics);
+        assertEquals(17, javaTopics.size(), "Java/Spring category must have exactly 17 registered topics");
+
+        List<String> topicIds = javaTopics.stream().map(Topic::id).toList();
+        assertTrue(topicIds.contains("java-execution-pipeline"));
+        assertTrue(topicIds.contains("java-memory-model"));
+        assertTrue(topicIds.contains("java-oop-pillars"));
+        assertTrue(topicIds.contains("java-static-final-records"));
+        assertTrue(topicIds.contains("jvm-gc"));
+        assertTrue(topicIds.contains("java-functional-lambdas"));
+        assertTrue(topicIds.contains("java-generics"));
+        assertTrue(topicIds.contains("java-collections-framework"));
+        assertTrue(topicIds.contains("java-hashmap-internals"));
+        assertTrue(topicIds.contains("java-streams-optional"));
+        assertTrue(topicIds.contains("java-reflection-exceptions"));
+        assertTrue(topicIds.contains("java-multithreading-concurrency"));
+        assertTrue(topicIds.contains("spring-bean-lifecycle"));
+        assertTrue(topicIds.contains("spring-mvc-lifecycle"));
+        assertTrue(topicIds.contains("jpa-hibernate-lifecycle"));
+        assertTrue(topicIds.contains("spring-batch-lifecycle"));
+        assertTrue(topicIds.contains("quartz-scheduler"));
+    }
+
+    @Test
+    void getTopicById_shouldReturnCorrectTopic_whenExists() {
+        Topic topic = topicService.getTopicById("dbms-architecture");
+        assertNotNull(topic);
+        assertEquals("dbms-architecture", topic.id());
+        assertEquals("dbms", topic.category());
+        assertEquals("beginner", topic.level());
+    }
+
+    @Test
+    void getTopicById_shouldReturnNull_whenTopicDoesNotExist() {
+        Topic topic = topicService.getTopicById("invalid-non-existent-topic-12345");
+        assertNull(topic);
+    }
+
+    @Test
     void allRegisteredTopics_acrossAllCategories_shouldHaveResolvableMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
         assertEquals(47, allTopics.size(), "Total registered topics should be 47 (7 OS + 12 Networking + 11 DBMS + 17 Java/Spring)");

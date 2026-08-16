@@ -103,9 +103,9 @@ docker-compose up --build
 ## 🧪 Automated Testing
 
 ```bash
-# Run Frontend Tests (25 test files, 63 tests)
+# Run Frontend Tests (29 test files, 91 unit & integration tests)
 cd frontend && npm test
 
-# Run Backend Tests (16 test suites across all 47 topics)
+# Run Backend Tests (30 test suites across all 47 topics)
 cd backend && mvn test
 ```

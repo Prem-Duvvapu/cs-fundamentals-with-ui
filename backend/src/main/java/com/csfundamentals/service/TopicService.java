@@ -74,4 +74,12 @@ public class TopicService {
                 .filter(t -> t.category().equals(category))
                 .toList();
     }
+
+    public Topic getTopicById(String id) {
+        if (id == null) return null;
+        return topics.stream()
+                .filter(t -> t.id().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
 }

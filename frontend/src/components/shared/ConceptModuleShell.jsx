@@ -6,6 +6,7 @@ export default function ConceptModuleShell({
   subtitle,
   mentalModel,
   simulationComponent,
+  children,
   theoryData, // { failureModes, tradeOffs, productionScenario, codeSnippet, interviewQA }
   quizData = [], // array of { question, answer, codeSnippet, difficulty }
   defaultTab = 'simulation'
@@ -65,7 +66,7 @@ export default function ConceptModuleShell({
       <div className="module-content-area" style={{ marginTop: '1rem' }}>
         {activeTab === 'simulation' && (
           <div className="tab-simulation-panel">
-            {simulationComponent}
+            {simulationComponent || children}
           </div>
         )}
 
