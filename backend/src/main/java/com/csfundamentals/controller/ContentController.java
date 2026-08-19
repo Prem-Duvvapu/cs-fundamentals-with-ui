@@ -15,6 +15,6 @@ public class ContentController {
 
     @GetMapping("/{category}/{topicId}")
     public String getContent(@PathVariable String category, @PathVariable String topicId) {
-        return contentService.getContent(topicId);
+        return contentService.getContent(category, topicId);
     }
 }

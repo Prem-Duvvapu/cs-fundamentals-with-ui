@@ -52,9 +52,9 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - `## 🟡 Intermediate Level` — Deeper concepts, mathematical formulas, algorithms, code examples
 - `## 🔴 Expert Level` — Implementation details, Linux kernel / JVM internals, trade-offs, and Interview Q&As
 
-## Curriculum Roadmaps (48 Complete Topics)
+## Curriculum Roadmaps (56 Complete Topics)
 
-### 💻 Operating Systems (7/7 Topics)
+### 💻 Operating Systems (8/8 Topics)
 - [x] Process Management (states, PCB, threads, fork, COW)
 - [x] Memory Management (paging, segmentation, virtual memory, LRU)
 - [x] CPU Scheduling (FCFS, SJF, RR, MLFQ, CFS)
@@ -62,6 +62,7 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - [x] Deadlocks (banker's algorithm, detection, prevention)
 - [x] File Systems (inodes, Ext4, Btrfs, ZFS, VFS)
 - [x] I/O Systems (DMA, interrupts, epoll, io_uring)
+- [x] Disk Scheduling & File Allocation (FCFS, SSTF, SCAN, C-SCAN, allocation methods)
 
 ### 🌐 Computer Networks (12/12 Topics)
 - [x] Network Fundamentals (types, devices, topologies, packet vs circuit switching)
@@ -91,7 +92,7 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - [x] Query Processing & Cost-Based Optimizer (Query Trees, Predicate Pushdown, Hash Joins, EXPLAIN ANALYZE)
 - [x] Distributed DBMS, 2PC & CAP Theorem (2-Phase Commit, 3PC, CAP Theorem, Quorum Consensus)
 
-### ☕ Java & Spring Ecosystem (17/17 Topics)
+### ☕ Java & Spring Ecosystem (18/18 Topics)
 - [x] Java Execution Pipeline (javac, ClassLoader Parent Delegation, Bytecode Verifier, Tiered JIT)
 - [x] Java Memory Model (Primitives, References, Stack Frames, Heap Objects, 100% Pass-by-Value)
 - [x] OOP Pillars & Dynamic Method Dispatch (Encapsulation, Polymorphism, JVM vtable)
@@ -109,6 +110,15 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - [x] JPA / Hibernate Entity Lifecycle (Transient, Managed, Detached, Removed, N+1 Query Solver)
 - [x] Spring Batch Execution Architecture (JobLauncher, Step, Chunk ItemReader/Processor/Writer)
 - [x] Quartz Scheduler Lifecycle (JobDetail, Trigger, Clustered JobStoreTX)
+- [x] SOLID Principles & Design Patterns (SRP, OCP, LSP, ISP, DIP, Singleton, Observer, Factory, Strategy)
+
+### 🤖 AI / ML Architecture (6/6 Topics)
+- [x] Vector Embeddings & Vector DBs (Embedding vectors, cosine similarity, HNSW ANN search, pgvector)
+- [x] RAG Architecture (Chunking strategies, dense/sparse retrieval, context assembly, reranking)
+- [x] LLM Model Serving & Low-Latency Inference (vLLM PagedAttention, KV caching, continuous batching)
+- [x] LLM Sampling Parameters & ReAct Agents (Temperature, Top-P, tokenization, ReAct tool execution)
+- [x] Feature Stores & MLOps Architecture (Online/offline stores, PSI data drift detection, retraining)
+- [x] 2-Stage Recommendation Engine (Two-tower candidate retrieval, deep ranking models, pCTR scoring)
 
 ## Conventions
 - **Commits**: `feat/<date>-<topic>` pattern

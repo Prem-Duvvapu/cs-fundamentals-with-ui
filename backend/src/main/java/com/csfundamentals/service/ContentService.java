@@ -7,14 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ContentService {
 
     private Path contentRootDir;
-    private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public ContentService() {
         List<Path> candidates = List.of(
@@ -30,15 +27,15 @@ public class ContentService {
             .orElse(null);
     }
 
-    public String getContent(String topicId) {
+    public String getContent(String category, String topicId) {
         if (topicId == null || topicId.isBlank()) return "Content not found for: " + topicId;
         if (contentRootDir == null) return "Content directory not found";
-        return cache.computeIfAbsent(topicId, this::loadContent);
+        return loadContent(category, topicId);
     }
 
-    private String loadContent(String topicId) {
+    private String loadContent(String category, String topicId) {
         try {
-            Path file = findFile(topicId);
+            Path file = findFile(category, topicId);
             if (file != null) {
                 return Files.readString(file);
             }
@@ -48,15 +45,34 @@ public class ContentService {
         }
     }
 
-    private Path findFile(String topicId) {
-        try (var stream = Files.walk(contentRootDir)) {
-            return stream
-                .filter(Files::isRegularFile)
-                .filter(f -> f.getFileName().toString().contains(topicId))
+    private Path findFile(String category, String topicId) {
+        if (category == null || category.isBlank() || topicId == null || topicId.isBlank()) return null;
+        Path categoryDir = contentRootDir.resolve(category);
+        if (!Files.isDirectory(categoryDir)) return null;
+        String targetFilename = topicId + ".md";
+        String prefixTarget = topicId + "-";
+        try (var stream = Files.list(categoryDir)) {
+            List<Path> files = stream.filter(Files::isRegularFile).toList();
+            // 1. Try exact match after stripping numeric/letter prefix
+            Path exact = files.stream()
+                .filter(f -> stripPrefix(f.getFileName().toString()).equals(targetFilename))
+                .findFirst()
+                .orElse(null);
+            if (exact != null) return exact;
+
+            // 2. Fall back to prefix match after stripping numeric/letter prefix
+            return files.stream()
+                .filter(f -> stripPrefix(f.getFileName().toString()).startsWith(topicId))
                 .findFirst()
                 .orElse(null);
         } catch (IOException e) {
             return null;
         }
+    }
+
+    // Strips a leading "00-", "01b-", "05c-" style numeric+optional-letter prefix
+    // so "01b-java-execution-pipeline.md" matches topicId "java-execution-pipeline".
+    private String stripPrefix(String filename) {
+        return filename.replaceFirst("^\\d+[a-z]?-", "");
     }
 }

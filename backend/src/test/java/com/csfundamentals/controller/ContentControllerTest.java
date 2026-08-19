@@ -22,7 +22,7 @@ class ContentControllerTest {
 
     @Test
     void getContent_shouldReturnMarkdown() throws Exception {
-        when(contentService.getContent("process-management")).thenReturn("# Process Management\n\nContent here");
+        when(contentService.getContent("os", "process-management")).thenReturn("# Process Management\n\nContent here");
 
         mockMvc.perform(get("/api/v1/content/os/process-management"))
             .andExpect(status().isOk())
@@ -31,7 +31,7 @@ class ContentControllerTest {
 
     @Test
     void getContent_shouldReturnNotFound_whenMissing() throws Exception {
-        when(contentService.getContent("unknown")).thenReturn("Content not found for: unknown");
+        when(contentService.getContent("os", "unknown")).thenReturn("Content not found for: unknown");
 
         mockMvc.perform(get("/api/v1/content/os/unknown"))
             .andExpect(status().isOk())

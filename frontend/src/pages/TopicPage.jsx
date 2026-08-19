@@ -1,15 +1,19 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import TopicViewer from '../components/TopicViewer'
-import SchedulingVisualizer from '../components/visualizers/SchedulingVisualizer'
-import ProcessLifecycleVisualizer from '../components/visualizers/ProcessLifecycleVisualizer'
-import MemoryVisualizer from '../components/visualizers/MemoryVisualizer'
-import SynchronizationVisualizer from '../components/visualizers/SynchronizationVisualizer'
-import DeadlockVisualizer from '../components/visualizers/DeadlockVisualizer'
-import NetworkingVisualizer from '../components/visualizers/NetworkingVisualizer'
-import DbmsVisualizer from '../components/visualizers/DbmsVisualizer'
-import AiMlVisualizer from '../components/visualizers/AiMlVisualizer'
-import JavaSpringVisualizer from '../components/visualizers/JavaSpringVisualizer'
+
+const SchedulingVisualizer = lazy(() => import('../components/visualizers/SchedulingVisualizer'))
+const ProcessLifecycleVisualizer = lazy(() => import('../components/visualizers/ProcessLifecycleVisualizer'))
+const MemoryVisualizer = lazy(() => import('../components/visualizers/MemoryVisualizer'))
+const SynchronizationVisualizer = lazy(() => import('../components/visualizers/SynchronizationVisualizer'))
+const DeadlockVisualizer = lazy(() => import('../components/visualizers/DeadlockVisualizer'))
+const NetworkingVisualizer = lazy(() => import('../components/visualizers/NetworkingVisualizer'))
+const DbmsVisualizer = lazy(() => import('../components/visualizers/DbmsVisualizer'))
+const AiMlVisualizer = lazy(() => import('../components/visualizers/AiMlVisualizer'))
+const JavaSpringVisualizer = lazy(() => import('../components/visualizers/JavaSpringVisualizer'))
+const FileSystemVisualizer = lazy(() => import('../components/visualizers/os/FileSystemVisualizer'))
+const IoSystemsVisualizer = lazy(() => import('../components/visualizers/os/IoSystemsVisualizer'))
+const DiskSchedulingVisualizer = lazy(() => import('../components/visualizers/os/DiskSchedulingVisualizer'))
 
 export default function TopicPage() {
   const { topicId } = useParams()
@@ -23,6 +27,7 @@ export default function TopicPage() {
     'deadlocks': 'Deadlocks & Banker\'s Algorithm',
     'file-systems': 'File Systems & Inodes',
     'io-systems': 'I/O Systems & Kernel Architecture',
+    'disk-scheduling': 'Disk Scheduling Algorithms & File Allocation',
     'network-fundamentals': 'Computer Network Fundamentals, Devices & Topologies',
     'physical-layer-media': 'Physical Layer: Transmission Media, Modes & Encoding',
     'osi-model': 'OSI 7-Layer & TCP/IP Reference Model',
@@ -70,6 +75,7 @@ export default function TopicPage() {
     'jpa-hibernate-lifecycle': 'JPA / Hibernate Entity Lifecycle & N+1 Solver',
     'spring-batch-lifecycle': 'Spring Batch Execution Architecture & Chunk Engine',
     'quartz-scheduler': 'Quartz Scheduler Lifecycle & Clustered JobStoreTX',
+    'design-patterns-solid': 'SOLID Principles & Design Patterns',
   }
 
   const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -86,6 +92,12 @@ export default function TopicPage() {
         return <SynchronizationVisualizer />
       case 'deadlocks':
         return <DeadlockVisualizer />
+      case 'file-systems':
+        return <FileSystemVisualizer />
+      case 'io-systems':
+        return <IoSystemsVisualizer />
+      case 'disk-scheduling':
+        return <DiskSchedulingVisualizer />
       case 'network-fundamentals':
       case 'physical-layer-media':
       case 'osi-model':
@@ -125,6 +137,7 @@ export default function TopicPage() {
       case 'jpa-hibernate-lifecycle':
       case 'spring-batch-lifecycle':
       case 'quartz-scheduler':
+      case 'design-patterns-solid':
       case 'java-spring':
         return <JavaSpringVisualizer defaultTopicId={topicId} />
       case 'dbms-introduction':
@@ -172,7 +185,9 @@ export default function TopicPage() {
 
       <div className="tab-content-area">
         {activeTab === 'simulator' ? (
-          renderVisualizer()
+          <Suspense fallback={<div className="viz-card"><h3>Loading visualizer…</h3></div>}>
+            {renderVisualizer()}
+          </Suspense>
         ) : (
           <TopicViewer topicId={topicId} />
         )}

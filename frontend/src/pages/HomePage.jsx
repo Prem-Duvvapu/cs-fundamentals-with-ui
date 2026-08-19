@@ -22,6 +22,7 @@ export default function HomePage() {
           { id: 'deadlocks', category: 'os', title: 'Deadlocks', level: 'intermediate', summary: 'Banker\'s algorithm, detection, prevention, recovery' },
           { id: 'file-systems', category: 'os', title: 'File Systems', level: 'expert', summary: 'Inodes, Ext4, Btrfs, ZFS, VFS architecture' },
           { id: 'io-systems', category: 'os', title: 'I/O Systems', level: 'expert', summary: 'DMA, interrupts, epoll, io_uring, kernel bypass' },
+          { id: 'disk-scheduling', category: 'os', title: 'Disk Scheduling Algorithms & File Allocation', level: 'intermediate', summary: 'FCFS, SSTF, SCAN, C-SCAN seek algorithms, contiguous vs linked vs indexed file allocation' },
           
           // Computer Networks
           { id: 'network-fundamentals', category: 'networking', title: 'Computer Network Fundamentals, Devices & Topologies', level: 'beginner', summary: 'Network types (LAN/WAN/MAN), devices (router, switch, hub, modem), star/ring/bus/mesh topologies, packet switching vs circuit switching' },
@@ -55,8 +56,10 @@ export default function HomePage() {
           { id: 'jpa-hibernate-lifecycle', category: 'java-spring', title: 'JPA / Hibernate Entity Lifecycle & N+1 Solver', level: 'expert', summary: 'Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs' },
           { id: 'spring-batch-lifecycle', category: 'java-spring', title: 'Spring Batch Execution Architecture & Chunk Engine', level: 'expert', summary: 'JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry' },
           { id: 'quartz-scheduler', category: 'java-spring', title: 'Quartz Scheduler Lifecycle & Clustered JobStoreTX', level: 'expert', summary: 'Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering' },
+          { id: 'design-patterns-solid', category: 'java-spring', title: 'SOLID Principles & Design Patterns', level: 'intermediate', summary: 'SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns' },
 
-          // DBMS & SQL (11 Comprehensive Topics)
+          // DBMS & SQL (12 Comprehensive Topics)
+          { id: 'dbms-introduction', category: 'dbms', title: 'DBMS Introduction & Architecture', level: 'beginner', summary: 'What is DBMS, types, components, database languages, file system problems' },
           { id: 'dbms-architecture', category: 'dbms', title: 'DBMS Architecture & 3-Schema ANSI-SPARC', level: 'beginner', summary: 'ANSI-SPARC 3-schema architecture, Physical vs Logical data independence' },
           { id: 'er-model', category: 'dbms', title: 'ER Diagram Modeling & Relational Mapping', level: 'beginner', summary: 'Entity sets, attributes, cardinalities, weak entities, Generalization, Specialization, ER-to-Table mapping rules' },
           { id: 'relational-algebra-calculus', category: 'dbms', title: 'Relational Algebra, Tuple Calculus & Joins', level: 'intermediate', summary: 'Selection (σ), Projection (π), Cartesian Product (×), Joins (Inner, Theta, Outer), Tuple Relational Calculus (TRC)' },
@@ -67,7 +70,15 @@ export default function HomePage() {
           { id: 'transactions-acid', category: 'dbms', title: 'Transactions, ACID States & Crash Recovery', level: 'intermediate', summary: 'ACID guarantees, Transaction State Machine, Write-Ahead Logging (WAL), Checkpoints, ARIES crash recovery' },
           { id: 'concurrency-control', category: 'dbms', title: 'Concurrency Control, 2PL & Timestamp Ordering', level: 'expert', summary: 'Conflict serializability, Precedence Graphs, Shared/Exclusive locks, Strict 2PL, Thomas Write Rule, Wait-For Deadlock graphs' },
           { id: 'query-optimization', category: 'dbms', title: 'Query Processing, Relational Trees & Cost-Based Optimizer', level: 'expert', summary: 'Relational algebra query trees, Predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE' },
-          { id: 'distributed-databases-cap', category: 'dbms', title: 'Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem', level: 'expert', summary: 'Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus' }
+          { id: 'distributed-databases-cap', category: 'dbms', title: 'Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem', level: 'expert', summary: 'Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus' },
+
+          // AI / ML Systems
+          { id: 'embeddings-vector-db', category: 'aiml', title: 'Vector Embeddings, Similarity Search & Vector DBs', level: 'beginner', summary: 'Embedding vectors, cosine similarity, HNSW ANN search, pgvector/Qdrant' },
+          { id: 'rag-architecture', category: 'aiml', title: 'Retrieval-Augmented Generation (RAG) Architecture', level: 'intermediate', summary: 'Chunking, retrieval, context assembly, grounded generation pipeline' },
+          { id: 'model-serving', category: 'aiml', title: 'LLM Model Serving & Low-Latency Inference', level: 'expert', summary: 'vLLM PagedAttention, KV cache management, batching, GPU memory allocation' },
+          { id: 'llm-parameters', category: 'aiml', title: 'LLM Sampling Parameters, Tokenization & ReAct Agents', level: 'intermediate', summary: 'Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops' },
+          { id: 'feature-stores', category: 'aiml', title: 'Feature Stores, Data Drift & MLOps Architecture', level: 'expert', summary: 'Online vs offline feature stores, PSI drift detection, retraining pipelines' },
+          { id: 'recommendation-systems', category: 'aiml', title: '2-Stage Recommendation Engine Architecture', level: 'expert', summary: 'Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring' }
         ])
       })
   }, [])
@@ -90,7 +101,7 @@ export default function HomePage() {
       <div className="home-header">
         <h1>CS Fundamentals & Visualizations</h1>
         <p>
-          Master Operating Systems, Computer Networks, Database Management Systems, and Java/Spring Ecosystem —
+          Master Operating Systems, Computer Networks, Database Management Systems, Java/Spring Ecosystem, and AI/ML Systems —
           interactive animations and comprehensive software engineering fundamentals.
         </p>
 
@@ -124,6 +135,12 @@ export default function HomePage() {
             className={`main-tab-btn ${selectedCategory === 'java-spring' ? 'active-tab' : ''}`}
           >
             ☕ Java & Spring Ecosystem
+          </button>
+          <button
+            onClick={() => setSelectedCategory('aiml')}
+            className={`main-tab-btn ${selectedCategory === 'aiml' ? 'active-tab' : ''}`}
+          >
+            🤖 AI/ML Systems
           </button>
         </div>
       </div>

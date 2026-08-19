@@ -62,10 +62,10 @@ class TopicServiceTest {
     }
 
     @Test
-    void getTopicsByCategory_os_shouldContainAll7Topics() {
+    void getTopicsByCategory_os_shouldContainAll8Topics() {
         List<Topic> osTopics = topicService.getTopicsByCategory("os");
         assertNotNull(osTopics);
-        assertEquals(7, osTopics.size(), "OS category must have exactly 7 registered topics");
+        assertEquals(8, osTopics.size(), "OS category must have exactly 8 registered topics");
 
         List<String> topicIds = osTopics.stream().map(Topic::id).toList();
         assertTrue(topicIds.contains("process-management"));
@@ -75,13 +75,14 @@ class TopicServiceTest {
         assertTrue(topicIds.contains("deadlocks"));
         assertTrue(topicIds.contains("file-systems"));
         assertTrue(topicIds.contains("io-systems"));
+        assertTrue(topicIds.contains("disk-scheduling"));
     }
 
     @Test
-    void getTopicsByCategory_javaSpring_shouldContainAll17Topics() {
+    void getTopicsByCategory_javaSpring_shouldContainAll18Topics() {
         List<Topic> javaTopics = topicService.getTopicsByCategory("java-spring");
         assertNotNull(javaTopics);
-        assertEquals(17, javaTopics.size(), "Java/Spring category must have exactly 17 registered topics");
+        assertEquals(18, javaTopics.size(), "Java/Spring category must have exactly 18 registered topics");
 
         List<String> topicIds = javaTopics.stream().map(Topic::id).toList();
         assertTrue(topicIds.contains("java-execution-pipeline"));
@@ -101,6 +102,22 @@ class TopicServiceTest {
         assertTrue(topicIds.contains("jpa-hibernate-lifecycle"));
         assertTrue(topicIds.contains("spring-batch-lifecycle"));
         assertTrue(topicIds.contains("quartz-scheduler"));
+        assertTrue(topicIds.contains("design-patterns-solid"));
+    }
+
+    @Test
+    void getTopicsByCategory_aiml_shouldContainAll6Topics() {
+        List<Topic> aimlTopics = topicService.getTopicsByCategory("aiml");
+        assertNotNull(aimlTopics);
+        assertEquals(6, aimlTopics.size(), "AI/ML category must have exactly 6 registered topics");
+
+        List<String> topicIds = aimlTopics.stream().map(Topic::id).toList();
+        assertTrue(topicIds.contains("embeddings-vector-db"));
+        assertTrue(topicIds.contains("rag-architecture"));
+        assertTrue(topicIds.contains("model-serving"));
+        assertTrue(topicIds.contains("llm-parameters"));
+        assertTrue(topicIds.contains("feature-stores"));
+        assertTrue(topicIds.contains("recommendation-systems"));
     }
 
     @Test
@@ -121,10 +138,10 @@ class TopicServiceTest {
     @Test
     void allRegisteredTopics_acrossAllCategories_shouldHaveResolvableMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
-        assertEquals(48, allTopics.size(), "Total registered topics should be 48 (7 OS + 12 Networking + 12 DBMS + 17 Java/Spring)");
+        assertEquals(56, allTopics.size(), "Total registered topics should be 56 (8 OS + 12 Networking + 12 DBMS + 18 Java/Spring + 6 AI/ML)");
 
         for (Topic topic : allTopics) {
-            String content = contentService.getContent(topic.id());
+            String content = contentService.getContent(topic.category(), topic.id());
             assertNotNull(content, "Content must not be null for " + topic.id());
             assertFalse(content.startsWith("Content not found"), "Content file missing for topicId: " + topic.id());
             assertFalse(content.startsWith("Error loading content"), "Error reading content file for: " + topic.id());

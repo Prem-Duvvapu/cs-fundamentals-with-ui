@@ -17,6 +17,7 @@ public class TopicService {
         new Topic("deadlocks", "Deadlocks", "os", "intermediate", "Banker's algorithm, detection, prevention, recovery"),
         new Topic("file-systems", "File Systems", "os", "expert", "Inodes, Ext4, Btrfs, ZFS, VFS architecture"),
         new Topic("io-systems", "I/O Systems", "os", "expert", "DMA, interrupts, epoll, io_uring, kernel bypass"),
+        new Topic("disk-scheduling", "Disk Scheduling Algorithms & File Allocation", "os", "intermediate", "FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK seek algorithms, contiguous vs linked vs indexed file allocation"),
 
         // Computer Networks
         new Topic("network-fundamentals", "Computer Network Fundamentals, Devices & Topologies", "networking", "beginner", "Network types (LAN/WAN/MAN), devices (router, switch, hub, modem), star/ring/bus/mesh topologies, packet switching vs circuit switching"),
@@ -63,7 +64,16 @@ public class TopicService {
         new Topic("spring-mvc-lifecycle", "Spring MVC Request Execution & Security Pipeline", "java-spring", "intermediate", "DispatcherServlet, HandlerMapping, HandlerAdapter, HttpMessageConverter, Security Filter Chain"),
         new Topic("jpa-hibernate-lifecycle", "JPA / Hibernate Entity Lifecycle & N+1 Solver", "java-spring", "expert", "Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs"),
         new Topic("spring-batch-lifecycle", "Spring Batch Execution Architecture & Chunk Engine", "java-spring", "expert", "JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry"),
-        new Topic("quartz-scheduler", "Quartz Scheduler Lifecycle & Clustered JobStoreTX", "java-spring", "expert", "Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering")
+        new Topic("quartz-scheduler", "Quartz Scheduler Lifecycle & Clustered JobStoreTX", "java-spring", "expert", "Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering"),
+        new Topic("design-patterns-solid", "SOLID Principles & Design Patterns", "java-spring", "intermediate", "SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns"),
+
+        // AI / ML Systems
+        new Topic("embeddings-vector-db", "Vector Embeddings, Similarity Search & Vector DBs", "aiml", "beginner", "Embedding vectors, cosine similarity, HNSW ANN search, pgvector/Qdrant"),
+        new Topic("rag-architecture", "Retrieval-Augmented Generation (RAG) Architecture", "aiml", "intermediate", "Chunking, retrieval, context assembly, grounded generation pipeline"),
+        new Topic("model-serving", "LLM Model Serving & Low-Latency Inference", "aiml", "expert", "vLLM PagedAttention, KV cache management, batching, GPU memory allocation"),
+        new Topic("llm-parameters", "LLM Sampling Parameters, Tokenization & ReAct Agents", "aiml", "intermediate", "Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops"),
+        new Topic("feature-stores", "Feature Stores, Data Drift & MLOps Architecture", "aiml", "expert", "Online vs offline feature stores, PSI drift detection, retraining pipelines"),
+        new Topic("recommendation-systems", "2-Stage Recommendation Engine Architecture", "aiml", "expert", "Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring")
     );
 
     public List<Topic> getAllTopics() {

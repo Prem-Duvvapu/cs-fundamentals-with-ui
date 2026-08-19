@@ -16,7 +16,7 @@ class ContentServiceTest {
 
     @Test
     void getContent_shouldReturnContent_whenTopicExists() {
-        String content = service.getContent("process-management");
+        String content = service.getContent("os", "process-management");
         assertNotNull(content);
         assertTrue(content.contains("Process Management"));
         assertTrue(content.contains("Beginner Level"));
@@ -25,26 +25,25 @@ class ContentServiceTest {
 
     @Test
     void getContent_shouldReturnNotFoundMessage_whenTopicDoesNotExist() {
-        String content = service.getContent("non-existent-topic");
+        String content = service.getContent("os", "non-existent-topic");
+        assertTrue(content.startsWith("Content not found"));
+    }
+
+    @Test
+    void getContent_shouldReturnNotFoundMessage_whenCategoryIsIncorrect() {
+        String content = service.getContent("networking", "process-management");
         assertTrue(content.startsWith("Content not found"));
     }
 
     @Test
     void getContent_shouldNotReturnNull() {
-        assertNotNull(service.getContent("process-management"));
-        assertNotNull(service.getContent("memory-management"));
-    }
-
-    @Test
-    void getContent_shouldBeCached() {
-        String first = service.getContent("process-management");
-        String second = service.getContent("process-management");
-        assertSame(first, second);
+        assertNotNull(service.getContent("os", "process-management"));
+        assertNotNull(service.getContent("os", "memory-management"));
     }
 
     @Test
     void getContent_shouldResolveNetworkingTopicsWith3Levels() {
-        String content = service.getContent("network-fundamentals");
+        String content = service.getContent("networking", "network-fundamentals");
         assertNotNull(content);
         assertFalse(content.startsWith("Content not found"));
         assertTrue(content.contains("🟢") || content.contains("Beginner Level"));
@@ -62,7 +61,7 @@ class ContentServiceTest {
         };
 
         for (String topicId : dbmsTopics) {
-            String content = service.getContent(topicId);
+            String content = service.getContent("dbms", topicId);
             assertNotNull(content, "Content missing for DBMS topic: " + topicId);
             assertFalse(content.startsWith("Content not found"), "Topic not found: " + topicId);
             assertTrue(content.contains("🟢") || content.contains("Beginner"), "Missing Beginner tier for: " + topicId);
@@ -81,7 +80,7 @@ class ContentServiceTest {
         };
 
         for (String topicId : javaTopics) {
-            String content = service.getContent(topicId);
+            String content = service.getContent("java-spring", topicId);
             assertNotNull(content, "Content missing for Java topic: " + topicId);
             assertFalse(content.startsWith("Content not found"), "Topic not found: " + topicId);
             assertTrue(content.contains("🟢") || content.contains("Beginner"), "Missing Beginner tier for: " + topicId);
@@ -90,10 +89,10 @@ class ContentServiceTest {
 
     @Test
     void getContent_shouldHandleNullAndEmptyGracefully() {
-        String contentNull = service.getContent(null);
+        String contentNull = service.getContent("os", null);
         assertTrue(contentNull.startsWith("Content not found"));
 
-        String contentEmpty = service.getContent("");
+        String contentEmpty = service.getContent("os", "");
         assertTrue(contentEmpty.startsWith("Content not found"));
     }
 }

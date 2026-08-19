@@ -18,10 +18,8 @@ export default function DbmsVisualizer({ defaultTopicId }) {
       case 'dbms-architecture': return 'architecture'
       case 'er-model': return 'er-model'
       case 'functional-dependencies-keys': return 'closure'
-      case 'relational-algebra-calculus':
-      case 'relational-model': return 'relational-algebra'
-      case 'database-normalization':
-      case 'normalization': return 'normalization'
+      case 'relational-algebra-calculus': return 'relational-algebra'
+      case 'database-normalization': return 'normalization'
       case 'dbms-indexing': return 'btree'
       case 'storage-raid-indexing': return 'storage'
       case 'transactions-acid':
