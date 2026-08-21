@@ -62,6 +62,7 @@ Project skills in `.claude/skills/` cover the recurring workflows — invoke by 
 
 | Skill | Use for |
 |---|---|
+| `/list-topics` | Inventory of topics per category with summaries, plus a 7-point registration audit |
 | `/add-topic` | New curriculum topic, end to end (content, engine, visualizer, all 7 registration points, tests, docs) |
 | `/remove-topic` | Retire a topic without orphaning references |
 | `/improve-topic-content` | The 3-tier Markdown in `content/` |

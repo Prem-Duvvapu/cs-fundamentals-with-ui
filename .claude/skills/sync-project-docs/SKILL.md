@@ -31,6 +31,12 @@ ls frontend/src/components/visualizers/*/*.jsx frontend/src/components/visualize
 ls frontend/src/utils/__tests__/*.test.js frontend/src/components/__tests__/* frontend/src/pages/__tests__/* | wc -l
 ```
 
+The fastest way to get all of this at once:
+
+```bash
+python3 .claude/skills/list-topics/list_topics.py --audit
+```
+
 `TopicService.java` is the source of truth for what exists; the content directory is the source
 of truth for what's written. If they disagree, that's a bug to report, not a doc to fudge.
 
