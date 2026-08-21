@@ -56,6 +56,25 @@ A topic id is a string duplicated across many files. Adding or renaming one mean
 ### Backend surface
 Deliberately thin: `TopicController` (`/api/v1/topics`, `/topics/category/{category}`), `ContentController` (`/api/v1/content/{category}/{topicId}`), and `SimulationController` (`/api/v1/simulation/{cpu-scheduling,page-replacement,subnet-calculator,bankers-algorithm}` — the only server-side simulations; everything newer is client-side). No database, no persistence; `CorsConfig` opens CORS for the Vite dev server.
 
+## Skills
+
+Project skills in `.claude/skills/` cover the recurring workflows — invoke by name:
+
+| Skill | Use for |
+|---|---|
+| `/add-topic` | New curriculum topic, end to end (content, engine, visualizer, all 7 registration points, tests, docs) |
+| `/remove-topic` | Retire a topic without orphaning references |
+| `/improve-topic-content` | The 3-tier Markdown in `content/` |
+| `/improve-topic-simulation` | Engine + visualizer behaviour and accuracy |
+| `/improve-topic-ui` | Visual design and layout of a visualizer, hub, or the theme |
+| `/sync-project-docs` | Reconcile README / CONTEXT / AGENTS with the code |
+| `/verify-project` | Full test + build + live smoke gate before committing |
+
+They share two references, worth reading directly when working outside a skill:
+`.claude/references/topic-registry.md` (the 7 registration points, verbatim file paths) and
+`.claude/references/component-contracts.md` (engine contract, shared-component props, concept
+JSON schema, and the known prop/styling drift).
+
 ## Conventions
 
 - **Doc & test sync rule** (from `AGENTS.md`): after any code, architecture, or feature change, update `README.md`, `CONTEXT.md`, and `AGENTS.md`, add/update the Vitest and JUnit suites, and verify both suites pass before calling the task done.
