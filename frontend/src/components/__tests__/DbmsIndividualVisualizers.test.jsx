@@ -10,6 +10,9 @@ import ConcurrencyControlVisualizer from '../visualizers/dbms/ConcurrencyControl
 import StorageIndexingVisualizer from '../visualizers/dbms/StorageIndexingVisualizer'
 import QueryOptimizerVisualizer from '../visualizers/dbms/QueryOptimizerVisualizer'
 import DistributedDbVisualizer from '../visualizers/dbms/DistributedDbVisualizer'
+import TransactionsAcidVisualizer from '../visualizers/dbms/TransactionsAcidVisualizer'
+import DbmsArchitectureVisualizer from '../visualizers/dbms/DbmsArchitectureVisualizer'
+import BPlusTreeVisualizer from '../visualizers/dbms/BPlusTreeVisualizer'
 
 describe('Individual DBMS Visualizers', () => {
   it('should render DbmsIntroVisualizer with redundancy anomaly scenario', () => {
@@ -68,5 +71,26 @@ describe('Individual DBMS Visualizers', () => {
     const { container } = render(<DistributedDbVisualizer />)
     expect(container).toBeDefined()
     expect(screen.getByText(/Distributed DBMS, 2-Phase Commit \(2PC\) & CAP Theorem/i)).toBeDefined()
+  })
+
+  it('should render TransactionsAcidVisualizer with state machine scenario', () => {
+    const { container } = render(<TransactionsAcidVisualizer />)
+    expect(container).toBeDefined()
+    expect(screen.getByText(/Transactions, ACID States & Crash Recovery/i)).toBeDefined()
+    expect(screen.getAllByText(/ACID State Machine/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/PARTIALLY COMMITTED|Partially Committed/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('should render DbmsArchitectureVisualizer with 3-schema diagram', () => {
+    const { container } = render(<DbmsArchitectureVisualizer />)
+    expect(container).toBeDefined()
+    expect(screen.getByText(/DBMS Architecture & 3-Schema ANSI-SPARC/i)).toBeDefined()
+    expect(screen.getAllByText(/External Level \(User Views\)/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('should render BPlusTreeVisualizer with split mechanics', () => {
+    const { container } = render(<BPlusTreeVisualizer />)
+    expect(container).toBeDefined()
+    expect(screen.getByText(/B\+ Tree Index — Lookup, Insert & Node Split Mechanics/i)).toBeDefined()
   })
 })

@@ -3,7 +3,7 @@ import { BPlusTree, calculateTreeLayout } from '../../../utils/simulationEngines
 import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
-import dbmsData from '../../../data/dbms-concepts.json'
+import dbmsData from '../../../data/dbms-concepts-bplus-tree.json'
 
 export default function BPlusTreeVisualizer() {
   const [order, setOrder] = useState(3) // Default Order M = 3

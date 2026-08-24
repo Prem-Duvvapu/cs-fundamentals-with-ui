@@ -27,4 +27,11 @@ describe('DbmsVisualizer Component Hub', () => {
     expect(container).toBeDefined()
     expect(screen.getByText(/Interactive DBMS Concept Visualizer Suite/i)).toBeDefined()
   })
+
+  it('should route transactions-acid to its own dedicated tab', () => {
+    const { container } = render(<DbmsVisualizer defaultTopicId="transactions-acid" />)
+    expect(container).toBeDefined()
+    expect(screen.getByText(/Transactions, ACID States & Crash Recovery/i)).toBeDefined()
+    expect(screen.queryByText(/Concurrency Control, 2PL & Timestamp Ordering/i)).toBeNull()
+  })
 })
