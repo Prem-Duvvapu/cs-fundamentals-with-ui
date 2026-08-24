@@ -1,6 +1,12 @@
 import React, { useState } from 'react'
 import QuizCard from './QuizCard'
 
+function toDisplayText(value) {
+  if (value == null) return ''
+  if (typeof value === 'string' || typeof value === 'number') return String(value)
+  return value.mode ?? value.description ?? value.text ?? JSON.stringify(value)
+}
+
 export default function ConceptModuleShell({
   title,
   subtitle,
@@ -81,7 +87,7 @@ export default function ConceptModuleShell({
                   </h3>
                   <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', lineHeight: 1.6, margin: 0, fontSize: '0.9rem' }}>
                     {theoryData.failureModes.map((item, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.4rem' }}>{item}</li>
+                      <li key={idx} style={{ marginBottom: '0.4rem' }}>{toDisplayText(item)}</li>
                     ))}
                   </ul>
                 </div>
@@ -92,11 +98,20 @@ export default function ConceptModuleShell({
                   <h3 style={{ color: '#fbbf24', margin: '0 0 0.75rem 0', fontSize: '1.1rem' }}>
                     ⚖️ Key Trade-offs & Engineering Decisions
                   </h3>
-                  <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', lineHeight: 1.6, margin: 0, fontSize: '0.9rem' }}>
-                    {theoryData.tradeOffs.map((item, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.4rem' }}>{item}</li>
-                    ))}
-                  </ul>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {theoryData.tradeOffs.map((item, idx) => {
+                      const isStructured = item && typeof item === 'object'
+                      return isStructured ? (
+                        <div key={idx} style={{ background: '#0f172a', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <strong style={{ color: '#fbbf24', display: 'block', marginBottom: '0.35rem', fontSize: '0.9rem' }}>{item.aspect}</strong>
+                          <p style={{ color: '#93c5fd', margin: '0 0 0.25rem 0', fontSize: '0.85rem', lineHeight: 1.5 }}>🔵 {item.optionA}</p>
+                          <p style={{ color: '#6ee7b7', margin: 0, fontSize: '0.85rem', lineHeight: 1.5 }}>🟢 {item.optionB}</p>
+                        </div>
+                      ) : (
+                        <p key={idx} style={{ paddingLeft: '1.2rem', color: '#cbd5e1', lineHeight: 1.6, margin: 0, fontSize: '0.9rem' }}>{toDisplayText(item)}</p>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -132,16 +147,20 @@ export default function ConceptModuleShell({
                   💬 High-Frequency Technical & Architecture Questions
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {theoryData.interviewQA.map((qa, idx) => (
-                    <div key={idx} style={{ background: '#0f172a', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <strong style={{ color: '#60a5fa', display: 'block', marginBottom: '0.3rem', fontSize: '0.92rem' }}>
-                        Q{idx + 1}: {qa.q}
-                      </strong>
-                      <p style={{ color: '#cbd5e1', margin: 0, fontSize: '0.88rem', lineHeight: 1.5 }}>
-                        {qa.a}
-                      </p>
-                    </div>
-                  ))}
+                  {theoryData.interviewQA.map((qa, idx) => {
+                    const q = qa.q ?? qa.question
+                    const a = qa.a ?? qa.answer
+                    return (
+                      <div key={idx} style={{ background: '#0f172a', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <strong style={{ color: '#60a5fa', display: 'block', marginBottom: '0.3rem', fontSize: '0.92rem' }}>
+                          Q{idx + 1}: {q}
+                        </strong>
+                        <p style={{ color: '#cbd5e1', margin: 0, fontSize: '0.88rem', lineHeight: 1.5 }}>
+                          {a}
+                        </p>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}

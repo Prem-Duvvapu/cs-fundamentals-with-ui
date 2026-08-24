@@ -1,0 +1,76 @@
+{
+  "id": "dbms-architecture",
+  "title": "DBMS Architecture & 3-Schema ANSI-SPARC",
+  "subtitle": "1-Tier/2-Tier/3-Tier Topologies, External-Conceptual-Internal Schema Layers & Physical/Logical Data Independence",
+  "mentalModel": "The ANSI-SPARC model stacks three insulated schemas — external user views, one conceptual schema, one internal storage schema — so that storage engines can be swapped and attributes can evolve without breaking a single client query.",
+  "theoryData": {
+    "failureModes": [
+      "Tight coupling of clients to physical layout: applications issuing hints or depending on row order break silently the moment the storage engine or index structure changes.",
+      "Schema drift without mapping layers: adding a column directly into consumer-facing views forces coordinated redeploys of every downstream service.",
+      "2-tier connection explosion: each client holds a dedicated DB connection, exhausting backend memory at a few thousand sessions; 3-tier pooling fixes this."
+    ],
+    "tradeOffs": [
+      {
+        "aspect": "Physical vs Logical Data Independence",
+        "optionA": "Physical independence (internal↔conceptual): cheap to deliver — engines, indexes, and file layouts change under stable table definitions.",
+        "optionB": "Logical independence (conceptual↔external): harder — view mappings must survive column adds, splits, and renames, which is why ORMs lean heavily on it."
+      },
+      {
+        "aspect": "2-Tier vs 3-Tier Deployment",
+        "optionA": "2-Tier: lowest latency for intranet BI tools, but security logic leaks into clients and connections cannot be shared.",
+        "optionB": "3-Tier: application tier pools connections, centralizes authorization, and scales horizontally at the cost of one extra network hop."
+      }
+    ],
+    "productionScenario": "A reporting platform migrated from HDD heap files to a columnar compressed engine overnight. Because all dashboards queried stable external views, zero SQL changed — pure physical data independence paying off. The same team later split a 120-column users table behind compatibility views to retire legacy columns gradually — logical independence in action.",
+    "codeSnippet": "-- External level: stable user view over an evolving conceptual schema\nCREATE VIEW student_gpa_view AS\n  SELECT student_id, name, gpa FROM students;\n\n-- Internal level swap: same conceptual schema, new storage engine\nALTER TABLE students ENGINE = InnoDB ROW_FORMAT=COMPRESSED;\n-- View A keeps working untouched: 0 broken queries",
+    "interviewQA": [
+      {
+        "question": "Distinguish physical and logical data independence with examples.",
+        "answer": "Physical data independence: changing storage structures (heap → B+ tree, row → columnar) without touching the conceptual schema or queries. Logical data independence: evolving the conceptual schema (adding columns, splitting tables behind views) without modifying external user views or application code."
+      },
+      {
+        "question": "Why does a 3-tier architecture scale better than 2-tier?",
+        "answer": "The middle application tier owns a connection pool shared by thousands of concurrent users instead of one persistent DB session per client, centralizes business/security rules, and can scale out statelessly — the DB sees tens of pooled connections rather than thousands of direct sockets."
+      },
+      {
+        "question": "Which schema level describes 'which data is stored' versus 'how it is stored'?",
+        "answer": "The conceptual schema describes what data is stored and its relationships (entities, constraints); the internal schema describes how it is physically organized (files, indexes, compression, access paths)."
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "In the ANSI-SPARC architecture, swapping an HDD heap-file layout for an NVMe B+ tree cluster without changing any SQL demonstrates which property?",
+      "options": [
+        "Logical data independence",
+        "Physical data independence",
+        "View materialization",
+        "Connection multiplexing"
+      ],
+      "correct": 1,
+      "explanation": "Only the internal schema changed while the conceptual schema stayed fixed — that insulation is exactly physical data independence."
+    },
+    {
+      "question": "Adding a new attribute to the conceptual schema while external views continue running unchanged requires which mapping to absorb the change?",
+      "options": [
+        "Internal-to-conceptual mapping",
+        "Conceptual-to-external mapping",
+        "Storage manager buffer map",
+        "Query optimizer plan cache"
+      ],
+      "correct": 1,
+      "explanation": "Logical data independence lives in the conceptual↔external mapping: views are redefined over the evolved schema so consumers never notice."
+    },
+    {
+      "question": "What is the primary scaling motivation for inserting an application tier between clients and the database?",
+      "options": [
+        "Faster disk I/O",
+        "Connection multiplexing through a shared pool plus centralized authorization",
+        "Automatic index creation",
+        "Replication of the conceptual schema"
+      ],
+      "correct": 1,
+      "explanation": "3-tier pools a few dozen DB connections across thousands of users and centralizes security logic, avoiding the per-client session cost of 2-tier designs."
+    }
+  ]
+}
