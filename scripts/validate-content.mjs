@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename)
 const REPO_ROOT = path.resolve(__dirname, '..')
 const CONTENT_DIR = path.resolve(REPO_ROOT, 'content')
 const TOPIC_SERVICE_PATH = path.resolve(REPO_ROOT, 'backend/src/main/java/com/csfundamentals/service/TopicService.java')
+const COVERAGE_MANIFEST_PATH = path.resolve(CONTENT_DIR, 'COVERAGE_MANIFEST.json')
 
 const TOPIC_FILE_REGEX = /^(\d+[a-z]?)-([a-z0-9-]+)\.md$/
 const VALID_MERMAID_TYPES = [
@@ -40,6 +41,132 @@ function findContentFiles(dir) {
 function extractTopicSlug(filename) {
   const match = filename.match(TOPIC_FILE_REGEX)
   return match ? match[2] : null
+}
+
+function getContentByTopic(files) {
+  const contentByTopic = new Map()
+  for (const file of files) {
+    const topicId = extractTopicSlug(path.basename(file))
+    if (topicId) {
+      contentByTopic.set(topicId, {
+        file,
+        content: fs.readFileSync(file, 'utf-8')
+      })
+    }
+  }
+  return contentByTopic
+}
+
+function getProseOnly(source) {
+  return source
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`\n]+`/g, '')
+}
+
+function normalizeCoverageText(text) {
+  return text
+    .normalize('NFKC')
+    .toLocaleLowerCase()
+}
+
+function describeTermGroup(termGroup) {
+  return Array.isArray(termGroup)
+    ? `one of [${termGroup.map(term => `"${term}"`).join(', ')}]`
+    : `"${termGroup}"`
+}
+
+function isValidTermGroup(termGroup) {
+  if (typeof termGroup === 'string') return termGroup.trim().length > 0
+  return Array.isArray(termGroup)
+    && termGroup.length > 0
+    && termGroup.every(term => typeof term === 'string' && term.trim().length > 0)
+}
+
+function containsTermGroup(prose, termGroup) {
+  const alternatives = Array.isArray(termGroup) ? termGroup : [termGroup]
+  return alternatives.some(term => prose.includes(normalizeCoverageText(term)))
+}
+
+export function readCoverageManifest(manifestPath = COVERAGE_MANIFEST_PATH) {
+  if (!fs.existsSync(manifestPath)) {
+    return { entries: [], errors: [`Coverage manifest is missing: ${path.relative(REPO_ROOT, manifestPath)}`] }
+  }
+
+  try {
+    const parsed = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+    if (!Array.isArray(parsed.entries)) {
+      return { entries: [], errors: ['Coverage manifest must contain an "entries" array'] }
+    }
+    return { entries: parsed.entries, errors: [] }
+  } catch (error) {
+    return { entries: [], errors: [`Coverage manifest is not valid JSON: ${error.message}`] }
+  }
+}
+
+export function validateCoverageEntries(entries, registeredTopicIds, contentByTopic) {
+  const errors = []
+  const seenIds = new Set()
+
+  for (const entry of entries) {
+    const label = typeof entry?.id === 'string' && entry.id.length > 0
+      ? `Coverage entry "${entry.id}"`
+      : 'Coverage entry with no valid id'
+
+    if (typeof entry?.id !== 'string' || entry.id.length === 0) {
+      errors.push(`${label} must define a non-empty string id`)
+    } else if (seenIds.has(entry.id)) {
+      errors.push(`${label} duplicates a manifest id`)
+    } else {
+      seenIds.add(entry.id)
+    }
+
+    if (typeof entry?.topicId !== 'string' || entry.topicId.length === 0) {
+      errors.push(`${label} must define a non-empty topicId`)
+      continue
+    }
+    if (typeof entry?.requiredHeading !== 'string' || !entry.requiredHeading.startsWith('### ')) {
+      errors.push(`${label} must define requiredHeading as a level-three Markdown heading phrase`)
+      continue
+    }
+    if (!Array.isArray(entry?.requiredTerms) || entry.requiredTerms.length === 0) {
+      errors.push(`${label} must define a non-empty requiredTerms array`)
+      continue
+    }
+    entry.requiredTerms.forEach((termGroup, index) => {
+      if (!isValidTermGroup(termGroup)) {
+        errors.push(`${label} requiredTerms[${index}] must be a non-empty string or non-empty array of string aliases`)
+      }
+    })
+
+    if (!registeredTopicIds.includes(entry.topicId)) {
+      errors.push(`${label} references unknown TopicService ID "${entry.topicId}"`)
+    }
+
+    const target = contentByTopic.get(entry.topicId)
+    if (!target) {
+      errors.push(`${label} targets "${entry.topicId}", but its content file is missing`)
+      continue
+    }
+    if (!target.content.includes(entry.requiredHeading)) {
+      const relPath = path.relative(REPO_ROOT, target.file).replace(/\\/g, '/')
+      errors.push(`${label} requires heading phrase "${entry.requiredHeading}" in ${relPath}`)
+    }
+
+    const prose = normalizeCoverageText(getProseOnly(target.content))
+    entry.requiredTerms
+      .filter(isValidTermGroup)
+      .filter(termGroup => !containsTermGroup(prose, termGroup))
+      .forEach(termGroup => {
+        const relPath = path.relative(REPO_ROOT, target.file).replace(/\\/g, '/')
+        errors.push(`${label} is missing required coverage term ${describeTermGroup(termGroup)} in ${relPath}`)
+      })
+  }
+
+  return errors
+}
+
+export function getApplicableCoverageEntries(entries, topicIds = null) {
+  return topicIds ? entries.filter(entry => topicIds.has(entry.topicId)) : entries
 }
 
 function validateMermaidBlock(blockContent) {
@@ -220,6 +347,8 @@ function main() {
     filesToValidate = findContentFiles(CONTENT_DIR)
   }
 
+  let totalErrors = 0
+
   // Cross check registration
   if (specificFiles.length === 0) {
     const contentSlugs = filesToValidate.map(f => extractTopicSlug(path.basename(f)))
@@ -228,14 +357,34 @@ function main() {
 
     if (missingInContent.length > 0) {
       console.error(`\n❌ Topic IDs registered in TopicService but missing content file:`, missingInContent)
+      totalErrors += missingInContent.length
     }
     if (missingInService.length > 0) {
       console.error(`\n❌ Content files missing registration in TopicService:`, missingInService)
+      totalErrors += missingInService.length
     }
   }
 
+  const manifest = readCoverageManifest()
+  const manifestTopicIds = specificFiles.length > 0
+    ? new Set(filesToValidate.map(file => extractTopicSlug(path.basename(file))).filter(Boolean))
+    : null
+  const applicableCoverageEntries = getApplicableCoverageEntries(manifest.entries, manifestTopicIds)
+  const coverageFiles = specificFiles.length > 0 ? filesToValidate : findContentFiles(CONTENT_DIR)
+  const coverageErrors = [
+    ...manifest.errors,
+    ...validateCoverageEntries(applicableCoverageEntries, registeredTopicIds, getContentByTopic(coverageFiles))
+  ]
+
+  if (coverageErrors.length > 0) {
+    console.error(`\n❌ Coverage manifest (${applicableCoverageEntries.length} applicable entries):`)
+    coverageErrors.forEach(error => console.error(`   - ${error}`))
+    totalErrors += coverageErrors.length
+  } else {
+    console.log(`\n✅ Coverage manifest (${applicableCoverageEntries.length} applicable entries)`)
+  }
+
   console.log(`\nValidating ${filesToValidate.length} file(s)...`)
-  let totalErrors = 0
   const results = []
 
   for (const file of filesToValidate) {
