@@ -209,6 +209,14 @@ The renderer supports **full GitHub-Flavoured Markdown**, plus math and Mermaid:
 
 **Not allowed:** raw HTML tags. The validator rejects them.
 
+### Further reading and sources
+
+When a topic benefits from deeper study, add a final `### Further Reading` subsection after the
+interview Q&A. Include two to four descriptive Markdown links to primary sources such as standards,
+official documentation, original papers, or maintainers' design documents. Links must support a
+specific mechanism discussed in the lesson; do not add generic search links or a bibliography that
+the reader cannot use.
+
 > **Note on `$`:** `$` now means math. Writing a literal dollar amount in prose
 > (`$50`) can be parsed as math. Escape it as `\$50`, or keep it inside a code block.
 

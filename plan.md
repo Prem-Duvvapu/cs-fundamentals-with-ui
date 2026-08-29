@@ -1,8 +1,39 @@
-# CS Fundamentals Visual Learning — Complete Plan
+# CS Fundamentals — Active Implementation Plan
 
-The full master plan is stored in the workspace and artifact system at:
-- **Workspace File**: [`c:\Users\Hp\OneDrive\Desktop\cs-fundamentals-with-ui-\plan.md`](file:///c:/Users/Hp/OneDrive/Desktop/cs-fundamentals-with-ui-/plan.md)
-- **Artifact Path**: [`implementation_plan.md`](file:///C:/Users/Hp/.gemini/antigravity-ide/brain/6e0bba2d-d62a-4f2d-b366-aab9345d8886/implementation_plan.md)
+## Objective
+
+Evolve the platform from a simulator-first catalogue into a dependable reading-first study
+product, while preserving simulations that add genuine explanatory value.
+
+## Execution Order
+
+1. **Foundation:** fix content-ID/file-name mismatches; keep the content validator current; add
+   CI; make backend tests runnable in the supported JDK environment.
+2. **Reading UX:** default to Study, add a generated TOC rail, tier navigation, reading progress,
+   responsive controls and an interview practice deck. Meet WCAG 2.2 contrast, focus and keyboard
+   expectations; honour reduced motion and test narrow mobile layouts.
+3. **Curriculum:** author Wave A, then B, then C under `content/CONTENT_SPEC.md`; validate every
+   file before merge. Preserve existing JSON questions when migrating material.
+4. **Simulation triage:** retain high-value engines; convert lower-value theory to Mermaid only
+   after migrating its learning material.
+5. **Discovery and release:** cross-topic search, category interview mode, accessibility review,
+   full verification and documentation sync.
+
+## Definition of Done
+
+- All 56 topic routes resolve to the registered content.
+- All content files pass `node scripts/validate-content.mjs`.
+- Study is the default experience and works well on desktop and mobile.
+- Frontend tests, backend tests, production build and CI pass.
+- README, CONTEXT and AGENTS reflect the delivered architecture.
+- Every rebuilt topic offers relevant primary-source links for further study where they materially
+  help the reader.
+
+## Experience References
+
+- [WCAG 2.2 Quick Reference](https://www.w3.org/WAI/WCAG22/quickref/)
+- [MDN: Using media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using)
+- [Mermaid: Theme configuration](https://mermaid.js.org/config/theming.html)
 
 ---
 

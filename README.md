@@ -2,7 +2,7 @@
 
 **Interactive learning platform for Computer Science fundamentals — from beginner to expert.**
 
-This project helps you prepare for **CS interviews** and software engineering excellence by breaking down complex topics into digestible flows with **interactive animated visual simulations** and **deep-dive theory**. Every topic is structured in three tiers: 🟢 Beginner → 🟡 Intermediate → 🔴 Expert with real-world failure modes, trade-offs, and interview Q&As.
+This project helps you prepare for **CS interviews** and software engineering excellence through a reading-first learning experience with optional interactive simulations. Every topic is structured in three tiers: 🟢 Beginner → 🟡 Intermediate → 🔴 Expert with real-world failure modes, trade-offs, and interview Q&As.
 
 ---
 
@@ -105,12 +105,42 @@ docker-compose up --build
 
 ---
 
+## 🗺️ Active Product Plan
+
+The current priority is to turn the existing topic library into a dependable, content-first
+study product. The implementation sequence is:
+
+1. Keep content routes, validation and CI reliable.
+2. Make Study the default topic view and add a table of contents, tier navigation, reading
+   progress and an interview-practice deck.
+3. Rebuild every curriculum file to the authoring contract: 400–600 lines, three Mermaid
+   diagrams and 12–15 interview Q&As.
+4. Retain only high-value simulations; migrate any retained theory and questions before a
+   simulator is removed.
+5. Add cross-topic search and category interview mode.
+
+The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).
+
+### Experience Standards
+
+Every learning surface must be responsive, keyboard-operable and readable in the dark theme.
+Study navigation collapses for smaller screens, interactive targets retain visible focus, and the
+interface honours reduced-motion preferences. UI choices are guided by the [WCAG 2.2 quick
+reference](https://www.w3.org/WAI/WCAG22/quickref/), [MDN responsive-design
+guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using), and
+[Mermaid theming documentation](https://mermaid.js.org/config/theming.html).
+
+---
+
 ## 🧪 Automated Testing
 
 ```bash
-# Run Frontend Tests (38 test files, 263 unit & integration tests)
+# Run Frontend Tests
 cd frontend && npm test
 
-# Run Backend Tests (5 suites, 31 tests, covering all 56 topics)
+# Run Backend Tests
 cd backend && mvn test
+
+# Validate every curriculum file against the authoring contract
+node scripts/validate-content.mjs
 ```
