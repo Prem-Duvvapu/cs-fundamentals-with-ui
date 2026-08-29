@@ -130,6 +130,10 @@ reference](https://www.w3.org/WAI/WCAG22/quickref/), [MDN responsive-design
 guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using), and
 [Mermaid theming documentation](https://mermaid.js.org/config/theming.html).
 
+The home page is a guided curriculum roadmap: category filters expose topic counts, ordered
+topic rows, level badges and a direct Study action. Each topic reader supplies an orientation,
+reading progress, a collapsible accessible table of contents, tier jumps and a recall deck.
+
 ---
 
 ## 🧪 Automated Testing

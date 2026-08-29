@@ -138,6 +138,10 @@ table-of-contents rail, tier jump navigation, reading progress and an interview 
 from the Expert-tier Q&A. These must remain keyboard accessible and collapse cleanly on mobile.
 Simulation-only pages remain lazy loaded so study readers do not pay their bundle cost upfront.
 
+The home route complements the reader with a category-first roadmap. It presents category
+summaries and counts, then ordered topic rows with level badges and direct Study links; filters
+remain semantic buttons so keyboard users receive the same orientation as pointer users.
+
 The shared dark palette keeps primary text, subdued supporting text, interactive purple, and
 semantic green/amber/red states distinct. All additions must retain keyboard focus indicators,
 respect `prefers-reduced-motion`, and use responsive breakpoints rather than relying on a single

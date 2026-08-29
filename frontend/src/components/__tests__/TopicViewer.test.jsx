@@ -1,12 +1,17 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import TopicViewer from '../TopicViewer'
 
 beforeEach(() => {
   global.fetch = vi.fn()
+  Object.defineProperty(Element.prototype, 'scrollIntoView', {
+    configurable: true,
+    value: vi.fn()
+  })
 })
 
 afterEach(() => {
   vi.restoreAllMocks()
+  delete Element.prototype.scrollIntoView
 })
 
 describe('TopicViewer', () => {
@@ -84,9 +89,42 @@ Check the observable symptoms, identify the responsible subsystem, and validate 
     render(<TopicViewer topicId="process-management" />)
 
     await waitFor(() => {
-      expect(screen.getByRole('navigation', { name: /learning level navigation/i })).toBeInTheDocument()
+      expect(screen.getByRole('navigation', { name: /jump to learning level/i })).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: /test your recall/i })).toBeInTheDocument()
     }, { timeout: 15000 })
     expect(screen.getByRole('button', { name: /reveal answer/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('provides labelled reader controls, a table of contents toggle, and a continue action', async () => {
+    const md = `## 🟢 Beginner Level
+
+Begin here.
+
+## 🟡 Intermediate Level
+
+Build on it.
+
+## 🔴 Expert Level
+
+Apply it.`
+    global.fetch.mockResolvedValueOnce(new Response(md))
+
+    render(<TopicViewer topicId="process-management" />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /read in three passes/i })).toBeInTheDocument()
+      expect(screen.getByRole('navigation', { name: /table of contents/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /beginner level/i })).toBeInTheDocument()
+    }, { timeout: 15000 })
+
+    const continueButton = screen.getByRole('button', { name: /continue reading at beginner level/i })
+    fireEvent.click(continueButton)
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+
+    const toggle = screen.getByRole('button', { name: /hide table of contents/i })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.click(toggle)
+    expect(screen.queryByRole('navigation', { name: /table of contents/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /show table of contents/i })).toHaveAttribute('aria-expanded', 'false')
   }, 15000)
 })
