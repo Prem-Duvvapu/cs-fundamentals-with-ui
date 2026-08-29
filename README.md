@@ -120,6 +120,10 @@ study product. The implementation sequence is:
 5. Add cross-topic search and category interview mode.
 
 The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).
+The expanded [SDE-2 coverage plan](plan.md) is the acceptance checklist for OS, Networking,
+DBMS/SQL, Core and Advanced Java, Spring Boot, and AI/ML. It maps every required concept to a
+lesson and plans seven focused additions where the existing 56-topic structure cannot provide
+adequate depth.
 
 ### Experience Standards
 
