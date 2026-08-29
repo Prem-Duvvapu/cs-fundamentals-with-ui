@@ -72,4 +72,24 @@ describe('HomePage', () => {
     expect(screen.getByText('01')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Study OOP Pillars' })).toHaveAttribute('href', '/topic/java-oop-pillars')
   })
+
+  it('keeps fallback catalogue counts and study links in sync for planned topics', async () => {
+    vi.mocked(fetchTopics).mockRejectedValueOnce(new Error('API unavailable'))
+    renderPage()
+
+    await screen.findByText('Spring Boot Internals & Auto-Configuration')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Java & Spring' }))
+    expect(screen.getByText(/23 topics in this path/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Study Spring Security, Authentication & Authorization' })).toHaveAttribute('href', '/topic/spring-security')
+    expect(screen.getByRole('link', { name: 'Study Spring Testing & Production Readiness' })).toHaveAttribute('href', '/topic/spring-testing-production')
+
+    fireEvent.click(screen.getByRole('button', { name: 'DBMS' }))
+    expect(screen.getByText(/13 topics in this path/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Study SQL Querying, Joins & Window Functions' })).toHaveAttribute('href', '/topic/sql-querying')
+
+    fireEvent.click(screen.getByRole('button', { name: 'AI/ML' }))
+    expect(screen.getByText(/7 topics in this path/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Study Machine Learning Fundamentals & Evaluation' })).toHaveAttribute('href', '/topic/ml-fundamentals')
+  })
 })

@@ -44,4 +44,24 @@ describe('TopicPage Component', () => {
     fireEvent.click(simBtn)
     expect(simBtn.className).toContain('active-tab')
   })
+
+  it.each([
+    ['sql-querying', 'SQL Querying, Joins & Window Functions'],
+    ['spring-boot-internals', 'Spring Boot Internals & Auto-Configuration'],
+    ['spring-rest-api-design', 'Spring REST API Design & Error Handling'],
+    ['spring-security', 'Spring Security, Authentication & Authorization'],
+    ['spring-caching-async', 'Spring Caching, Async Work & Resilience'],
+    ['spring-testing-production', 'Spring Testing & Production Readiness'],
+    ['ml-fundamentals', 'Machine Learning Fundamentals & Evaluation']
+  ])('renders the registered topic title for %s', (topicId, title) => {
+    render(
+      <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
+        <Routes>
+          <Route path="/topic/:topicId" element={<TopicPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
+  })
 })

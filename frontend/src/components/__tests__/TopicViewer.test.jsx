@@ -55,6 +55,23 @@ describe('TopicViewer', () => {
     })
   })
 
+  it.each([
+    ['sql-querying', 'dbms'],
+    ['spring-boot-internals', 'java-spring'],
+    ['spring-rest-api-design', 'java-spring'],
+    ['spring-security', 'java-spring'],
+    ['spring-caching-async', 'java-spring'],
+    ['spring-testing-production', 'java-spring'],
+    ['ml-fundamentals', 'aiml']
+  ])('uses the %s fallback category for %s', async (topicId, category) => {
+    global.fetch.mockResolvedValueOnce(new Response(''))
+    render(<TopicViewer topicId={topicId} />)
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(`/api/v1/content/${category}/${topicId}`)
+    })
+  })
+
   it('renders code blocks correctly', async () => {
     const md = '```java\nint x = 1;\n```'
     global.fetch.mockResolvedValueOnce(new Response(md))

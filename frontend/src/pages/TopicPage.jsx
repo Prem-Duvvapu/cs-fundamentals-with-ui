@@ -51,8 +51,10 @@ export default function TopicPage() {
     'transactions-acid': 'Transactions, ACID States & Crash Recovery',
     'concurrency-control': 'Concurrency Control, 2PL & Timestamp Ordering',
     'query-optimization': 'Query Processing & Cost-Based Optimizer',
+    'sql-querying': 'SQL Querying, Joins & Window Functions',
     'distributed-databases-cap': 'Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem',
     'embeddings-vector-db': 'Vector Embeddings, Similarity Search & Vector DBs',
+    'ml-fundamentals': 'Machine Learning Fundamentals & Evaluation',
     'rag-architecture': 'Retrieval-Augmented Generation (RAG) Architecture',
     'model-serving': 'LLM Model Serving & Low-Latency Inference',
     'llm-parameters': 'LLM Sampling Parameters, Tokenization & ReAct Agents',
@@ -72,6 +74,11 @@ export default function TopicPage() {
     'jvm-gc': 'JVM Memory Architecture, GC & Virtual Threads',
     'spring-bean-lifecycle': 'Spring IoC Container & Bean Lifecycle',
     'spring-mvc-lifecycle': 'Spring MVC Request Execution & Security Pipeline',
+    'spring-boot-internals': 'Spring Boot Internals & Auto-Configuration',
+    'spring-rest-api-design': 'Spring REST API Design & Error Handling',
+    'spring-security': 'Spring Security, Authentication & Authorization',
+    'spring-caching-async': 'Spring Caching, Async Work & Resilience',
+    'spring-testing-production': 'Spring Testing & Production Readiness',
     'jpa-hibernate-lifecycle': 'JPA / Hibernate Entity Lifecycle & N+1 Solver',
     'spring-batch-lifecycle': 'Spring Batch Execution Architecture & Chunk Engine',
     'quartz-scheduler': 'Quartz Scheduler Lifecycle & Clustered JobStoreTX',
@@ -113,6 +120,7 @@ export default function TopicPage() {
       case 'networking':
         return <NetworkingVisualizer defaultTopicId={topicId} />
       case 'embeddings-vector-db':
+      case 'ml-fundamentals':
       case 'rag-architecture':
       case 'model-serving':
       case 'llm-parameters':
@@ -134,6 +142,11 @@ export default function TopicPage() {
       case 'java-multithreading-concurrency':
       case 'spring-bean-lifecycle':
       case 'spring-mvc-lifecycle':
+      case 'spring-boot-internals':
+      case 'spring-rest-api-design':
+      case 'spring-security':
+      case 'spring-caching-async':
+      case 'spring-testing-production':
       case 'jpa-hibernate-lifecycle':
       case 'spring-batch-lifecycle':
       case 'quartz-scheduler':
@@ -151,6 +164,7 @@ export default function TopicPage() {
       case 'transactions-acid':
       case 'concurrency-control':
       case 'query-optimization':
+      case 'sql-querying':
       case 'distributed-databases-cap':
       case 'dbms':
         return <DbmsVisualizer defaultTopicId={topicId} />
