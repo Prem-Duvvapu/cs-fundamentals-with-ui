@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import HomePage from '../HomePage'
@@ -38,6 +37,7 @@ describe('HomePage', () => {
     await screen.findByText('OOP Pillars')
     expect(screen.getByRole('navigation', { name: 'Curriculum categories' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Full roadmap' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('list', { name: 'Java & Spring topics' })).toBeInTheDocument()
 
     const headings = screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent)
     expect(headings).toEqual(expect.arrayContaining([
@@ -50,12 +50,11 @@ describe('HomePage', () => {
   })
 
   it('filters a category, reports its count, and preserves the study link', async () => {
-    const user = userEvent.setup()
     renderPage()
 
     await screen.findByText('OOP Pillars')
     const osButton = screen.getByRole('button', { name: 'Operating Systems' })
-    await user.click(osButton)
+    fireEvent.click(osButton)
 
     expect(osButton).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('heading', { name: 'Operating Systems' })).toBeInTheDocument()

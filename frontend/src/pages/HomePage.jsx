@@ -137,19 +137,19 @@ export default function HomePage() {
   const visibleTopicCount = visibleCategories.reduce((count, category) => count + category.topics.length, 0)
 
   return (
-    <div>
-      <header className="home-header">
+    <div className="roadmap-index">
+      <header className="roadmap-header">
         <p className="eyebrow">A deliberate learning path</p>
         <h1>CS Fundamentals Roadmap</h1>
         <p>
           Build interview-ready understanding in the order that compounds: Java and Spring first, then the systems and data foundations that support them.
         </p>
 
-        <nav className="main-tab-switcher" aria-label="Curriculum categories" style={{ margin: '1.5rem auto 0 auto' }}>
+        <nav className="roadmap-selectors" aria-label="Curriculum categories">
           <button
             type="button"
             onClick={() => setSelectedCategory('all')}
-            className={`main-tab-btn ${selectedCategory === 'all' ? 'active-tab' : ''}`}
+            className={`roadmap-selector ${selectedCategory === 'all' ? 'active' : ''}`}
             aria-pressed={selectedCategory === 'all'}
           >
             Full roadmap
@@ -159,7 +159,7 @@ export default function HomePage() {
               key={categoryId}
               type="button"
               onClick={() => setSelectedCategory(categoryId)}
-              className={`main-tab-btn ${selectedCategory === categoryId ? 'active-tab' : ''}`}
+              className={`roadmap-selector ${selectedCategory === categoryId ? 'active' : ''}`}
               aria-pressed={selectedCategory === categoryId}
             >
               {CATEGORY_DETAILS[categoryId].shortLabel}
@@ -169,7 +169,7 @@ export default function HomePage() {
       </header>
 
       <main aria-live="polite">
-        <section className="level-section" aria-labelledby="roadmap-summary">
+        <section className="category-overview" aria-labelledby="roadmap-summary">
           <h2 id="roadmap-summary">
             {selectedCategory === 'all' ? 'Recommended sequence' : CATEGORY_DETAILS[selectedCategory].label}
           </h2>
@@ -181,23 +181,28 @@ export default function HomePage() {
         </section>
 
         {topics.length === 0 ? (
-          <p className="level-section">Loading the curriculum roadmap…</p>
+          <p className="category-overview">Loading the curriculum roadmap…</p>
         ) : visibleCategories.map((category, categoryIndex) => (
-          <section key={category.id} className="level-section" aria-labelledby={`${category.id}-heading`}>
+          <section key={category.id} className="category-overview" aria-labelledby={`${category.id}-heading`}>
             <h2 id={`${category.id}-heading`}>
               {selectedCategory === 'all' ? `${categoryIndex + 1}. ${category.label}` : category.label}
             </h2>
-            <p>{category.summary} {category.topics.length} topics.</p>
-            <ol className="card-grid" aria-label={`${category.label} topics`}>
+            <div className="category-meta">
+              <p>{category.summary}</p>
+              <span>{category.topics.length} topics</span>
+            </div>
+            <ol className="topic-rows" aria-label={`${category.label} topics`}>
               {category.topics.map((topic, topicIndex) => (
-                <li key={topic.id} className="card">
-                  <span aria-hidden="true">{String(topicIndex + 1).padStart(2, '0')}</span>
+                <li key={topic.id} className="topic-row">
+                  <span className="topic-number" aria-label={`Topic ${topicIndex + 1}`}>{String(topicIndex + 1).padStart(2, '0')}</span>
+                  <div>
                   <span className={`badge ${topic.level || 'beginner'}`}>
                     {LEVEL_LABELS[topic.level] || 'Beginner'}
                   </span>
                   <h3>{topic.title}</h3>
                   <p>{topic.summary}</p>
-                  <Link to={`/topic/${topic.id}`} className="back-link" aria-label={`Study ${topic.title}`}>
+                  </div>
+                  <Link to={`/topic/${topic.id}`} className="roadmap-cta" aria-label={`Study ${topic.title}`}>
                     Study topic <span aria-hidden="true">→</span>
                   </Link>
                 </li>
