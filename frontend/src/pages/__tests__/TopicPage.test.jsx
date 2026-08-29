@@ -13,7 +13,7 @@ afterEach(() => {
 })
 
 describe('TopicPage Component', () => {
-  it('should render TopicPage with active visual simulator and tab switcher', () => {
+  it('should render TopicPage with Study active by default', async () => {
     render(
       <MemoryRouter initialEntries={['/topic/dbms-architecture']}>
         <Routes>
@@ -23,8 +23,9 @@ describe('TopicPage Component', () => {
     )
 
     expect(screen.getByText(/DBMS Architecture & 3-Schema ANSI-SPARC/i)).toBeDefined()
-    expect(screen.getByText(/⚡ Interactive Visual Simulation/i)).toBeDefined()
-    expect(screen.getByText(/📖 Educational Content & Deep Dive/i)).toBeDefined()
+    const studyBtn = screen.getByRole('button', { name: /study/i })
+    expect(studyBtn.className).toContain('active-tab')
+    expect(screen.getByRole('button', { name: /simulation/i })).toBeDefined()
   })
 
   it('should switch between simulation and theory tabs', () => {
@@ -36,11 +37,10 @@ describe('TopicPage Component', () => {
       </MemoryRouter>
     )
 
-    const theoryBtn = screen.getByText(/📖 Educational Content & Deep Dive/i)
-    fireEvent.click(theoryBtn)
-    expect(theoryBtn.className).toContain('active-tab')
+    const studyBtn = screen.getByRole('button', { name: /study/i })
+    expect(studyBtn.className).toContain('active-tab')
 
-    const simBtn = screen.getByText(/⚡ Interactive Visual Simulation/i)
+    const simBtn = screen.getByRole('button', { name: /simulation/i})
     fireEvent.click(simBtn)
     expect(simBtn.className).toContain('active-tab')
   })

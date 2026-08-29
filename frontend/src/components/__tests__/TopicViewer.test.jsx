@@ -62,4 +62,31 @@ describe('TopicViewer', () => {
       expect(code.textContent).toContain('int x = 1;')
     }, { timeout: 15000 })
   }, 15000)
+
+  it('renders tier navigation and an interview-practice deck for structured content', async () => {
+    const md = `## 🟢 Beginner Level
+
+Begin here.
+
+## 🟡 Intermediate Level
+
+Build on it.
+
+## 🔴 Expert Level
+
+Apply it.
+
+**Q1. What should you check first?** \`[easy]\`
+
+Check the observable symptoms, identify the responsible subsystem, and validate the fix against a realistic failure case.`
+    global.fetch.mockResolvedValueOnce(new Response(md))
+
+    render(<TopicViewer topicId="process-management" />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('navigation', { name: /learning level navigation/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /test your recall/i })).toBeInTheDocument()
+    }, { timeout: 15000 })
+    expect(screen.getByRole('button', { name: /reveal answer/i })).toBeInTheDocument()
+  }, 15000)
 })

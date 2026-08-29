@@ -150,8 +150,8 @@ pairs; ~28,000 total content lines; reading experience as the default tab.
 | Phase | Goal | Status |
 |---|---|---|
 | **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
-| **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ◐ Spec done; validator + CI pending |
-| **P2** | Reading experience — default Study tab, TOC rail, tier nav, interview deck | ☐ Not started |
+| **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ◐ Spec + validator + exemplar done; CI pending |
+| **P2** | Reading experience — default Study tab, TOC rail, tier nav, interview deck | ◐ In progress |
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ☐ Not started |
 | **P4** | Content authoring, 56 topics in 3 waves | ☐ Not started |
 | **P5** | Cross-topic search + per-category Interview Mode | ☐ Not started |
@@ -165,6 +165,19 @@ pairs; ~28,000 total content lines; reading experience as the default tab.
 - Vitest upgraded 1.x → 2.1.8 with ESM deps inlined in `vite.config.js` (required for react-markdown 9)
 - `App.css` — styles for blockquotes, links, KaTeX, Mermaid containers, task lists, scrollable tables
 
+### Current implementation priorities
+
+1. **Restore content route integrity.** The filename suffix after its ordering prefix must match
+   the TopicService topic ID. Current mismatches include `application-layer`, `quartz-scheduler`,
+   `model-serving`, `llm-parameters` and `feature-stores`; cover this with a backend test.
+2. **Complete P2.** Study opens by default. Add an accessible heading-derived TOC rail, tier
+   navigation, reading progress and an interview deck. Mobile uses collapsible controls. Preserve
+   clear text/background contrast, visible focus, semantic colour meaning and reduced-motion support.
+3. **Complete P1.** Add CI that runs frontend tests, the frontend build, backend tests and the
+   content validator. Do not claim the curriculum is complete while validation reports failures.
+4. **Begin P4 in Wave A.** `content/dbms/06-transactions-acid.md` is now the exemplar. Each
+   content unit remains one agent and one Markdown file.
+
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
 All 56 topics are already registered at all 7 registration points, so content work requires
@@ -175,13 +188,21 @@ Wave order (thinnest + highest interview value first):
 - **Wave B (22 files)** — remaining `java-spring` and `networking`; all 8 `os`
 - **Wave C (12 files)** — all `dbms` (already deepest; needs diagrams + Q&A, not a rewrite)
 
-Before Wave A begins, one agent must author `content/dbms/06-transactions-acid.md` to the full
-contract as the **exemplar** every later unit matches.
+`content/dbms/06-transactions-acid.md` is the full-contract **exemplar** every later unit matches.
 
 ### Before deleting any simulator (P3)
 `frontend/src/data/*.json` files contain `theoryData.interviewQA` and `quizData` — real
 interview questions. **Migrate them into the topic's Markdown before deleting anything.**
 This is the easiest way to silently lose work in this project.
+
+### Sources and further study
+
+Add a short `### Further Reading` section at the end of a rebuilt topic when authoritative primary
+sources materially help the reader go deeper. Prefer standards bodies, official project documents,
+vendor documentation and original papers; use descriptive link text and do not add link collections
+that are not referenced by the lesson. UI work follows [WCAG 2.2](https://www.w3.org/WAI/WCAG22/quickref/),
+[MDN responsive CSS guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using)
+and [Mermaid theming](https://mermaid.js.org/config/theming.html).
 
 ## Conventions
 - **Commits**: `feat/<date>-<topic>` pattern
@@ -192,4 +213,5 @@ This is the easiest way to silently lose work in this project.
 - **Documentation & Test Synchronization Rule**: After ANY code, architectural, or feature changes, ALWAYS update the required documentation markdown files (`README.md`, `CONTEXT.md`, `AGENTS.md`) and write/update unit & integration tests (`frontend` Vitest suites and `backend` JUnit 5 tests), verifying all tests pass cleanly before completing the task.
 
 ## Command Execution Environment
-- **Commands Rule**: ALWAYS prefix shell commands with `wsl` (e.g. `wsl npm test`, `wsl npm run build`, `wsl git status`, `wsl git commit ...`).
+- **Commands Rule**: Use the active shell environment. When invoked from Windows PowerShell,
+  prefix Linux commands with `wsl`; do not prefix commands when already running inside WSL/Linux.

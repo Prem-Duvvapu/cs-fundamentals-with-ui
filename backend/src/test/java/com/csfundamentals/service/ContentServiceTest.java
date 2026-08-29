@@ -88,6 +88,19 @@ class ContentServiceTest {
     }
 
     @Test
+    void everyRegisteredTopic_shouldResolveToContent() {
+        TopicService topicService = new TopicService();
+
+        topicService.getAllTopics().forEach(topic -> {
+            String content = service.getContent(topic.category(), topic.id());
+            assertFalse(
+                content.startsWith("Content not found"),
+                () -> "Registered topic has no content: " + topic.category() + "/" + topic.id()
+            );
+        });
+    }
+
+    @Test
     void getContent_shouldHandleNullAndEmptyGracefully() {
         String contentNull = service.getContent("os", null);
         assertTrue(contentNull.startsWith("Content not found"));

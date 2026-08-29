@@ -1,7 +1,7 @@
 # System Architecture & Development Context
 
 ## Overview
-**CS Fundamentals with UI** is an interactive, full-stack educational platform designed to teach Computer Science fundamentals visually. It consists of a **Spring Boot REST Backend** serving structured 3-tier educational markdown content, and a **React 18 / Vite Frontend** delivering interactive, step-by-step visual simulation engines.
+**CS Fundamentals with UI** is a content-first, full-stack educational platform for Computer Science fundamentals. It consists of a **Spring Boot REST backend** serving structured three-tier Markdown content and a **React 18 / Vite frontend** that makes reading, navigation and interview practice the primary experience, with interactive simulations available when they add learning value.
 
 ---
 
@@ -105,6 +105,9 @@ ContentService            resolves ./content or ../content at startup;
 GET /api/v1/content/{category}/{topicId}     returns raw Markdown
         │
         ▼
+TopicPage.jsx
+        │  Study is the default view; Simulator is an optional view
+        ▼
 TopicViewer.jsx
         │
         ▼
@@ -128,6 +131,20 @@ interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 every file in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
 
+### Reading Experience Roadmap
+
+The topic page is being rebuilt around long-form study. The next UI components are a sticky
+table-of-contents rail, tier jump navigation, reading progress and an interview deck generated
+from the Expert-tier Q&A. These must remain keyboard accessible and collapse cleanly on mobile.
+Simulation-only pages remain lazy loaded so study readers do not pay their bundle cost upfront.
+
+The shared dark palette keeps primary text, subdued supporting text, interactive purple, and
+semantic green/amber/red states distinct. All additions must retain keyboard focus indicators,
+respect `prefers-reduced-motion`, and use responsive breakpoints rather than relying on a single
+desktop layout. Design references: [WCAG 2.2](https://www.w3.org/WAI/WCAG22/quickref/),
+[MDN media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using),
+and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
+
 ---
 
 ## 🔌 REST API Endpoints
@@ -141,12 +158,15 @@ produce real KaTeX output, and that blockquote files produce real `<blockquote>`
 ## 🧪 Testing & Verification Commands
 
 ```bash
-# Run All Backend Tests (5 suites, 31 tests, covering all 56 topics)
-wsl mvn test -f backend/pom.xml
+# Run All Backend Tests
+mvn test -f backend/pom.xml
 
-# Run All Frontend Tests (38 test files, 263 unit/integration tests)
-wsl npm test --prefix frontend
+# Run All Frontend Tests
+npm test --prefix frontend
 
 # Build Frontend Production Bundle
-wsl npm run build --prefix frontend
+npm run build --prefix frontend
+
+# Check curriculum structure and quality gates
+node scripts/validate-content.mjs
 ```
