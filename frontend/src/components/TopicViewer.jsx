@@ -78,10 +78,13 @@ export default function TopicViewer({ topicId, category }) {
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('')
   const [readingProgress, setReadingProgress] = useState(0)
+  const [tocExpanded, setTocExpanded] = useState(true)
 
   useEffect(() => {
     setLoading(true)
     setNotFound(false)
+    setActiveSection('')
+    setReadingProgress(0)
     const cat = category || CATEGORY_MAP[topicId] || 'os'
 
     fetch(`/api/v1/content/${cat}/${topicId}`)
@@ -91,6 +94,7 @@ export default function TopicViewer({ topicId, category }) {
       })
       .then(text => {
         setContent(text)
+        setActiveSection(getSections(text)[0]?.id || '')
         setLoading(false)
       })
       .catch(() => {
@@ -132,6 +136,8 @@ export default function TopicViewer({ topicId, category }) {
 
   const sections = getSections(content)
   const questions = getQuestions(content)
+  const currentSection = sections.find(section => section.id === activeSection) || sections[0]
+  const currentLabel = currentSection?.title.replace(/^[🟢🟡🔴]\s*/, '') || 'the first section'
 
   return (
     <div className="study-layout">
@@ -144,25 +150,64 @@ export default function TopicViewer({ topicId, category }) {
           aria-valuemin="0"
           aria-valuemax="100"
           aria-valuenow={readingProgress}
+          aria-valuetext={`${readingProgress}% read`}
         ><span style={{ width: `${readingProgress}%` }} /></div>
-        <nav>
-          {sections.map(section => (
-            <button
-              type="button"
-              key={section.id}
-              onClick={() => scrollToSection(section.id)}
-              className={activeSection === section.id ? 'active' : ''}
-              aria-current={activeSection === section.id ? 'location' : undefined}
-            >
-              {section.title.replace(/^[🟢🟡🔴]\s*/, '')}
-            </button>
-          ))}
-        </nav>
+        <button
+          type="button"
+          className="toc-toggle"
+          aria-expanded={tocExpanded}
+          aria-controls="topic-table-of-contents"
+          onClick={() => setTocExpanded(expanded => !expanded)}
+        >
+          {tocExpanded ? 'Hide table of contents' : 'Show table of contents'}
+        </button>
+        {tocExpanded && (
+          <nav id="topic-table-of-contents" aria-label="Table of contents">
+            <ol>
+              {sections.map(section => (
+                <li key={section.id}>
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(section.id)}
+                    className={activeSection === section.id ? 'active' : ''}
+                    aria-current={activeSection === section.id ? 'location' : undefined}
+                    aria-label={`Read ${section.title.replace(/^[🟢🟡🔴]\s*/, '')}`}
+                  >
+                    {section.title.replace(/^[🟢🟡🔴]\s*/, '')}
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
       </aside>
       <div className="study-main">
-        <nav className="tier-navigation" aria-label="Learning level navigation">
+        <section className="reader-orientation" aria-labelledby="reader-orientation-title">
+          <p className="study-eyebrow">Study guide</p>
+          <h2 id="reader-orientation-title">Read in three passes</h2>
+          <p>Start with the mental model, build the mechanism, then use the expert section to test trade-offs and interview reasoning.</p>
+          {currentSection && (
+            <button
+              type="button"
+              className="continue-reading"
+              onClick={() => scrollToSection(currentSection.id)}
+              aria-label={`Continue reading at ${currentLabel}`}
+            >
+              Continue: {currentLabel}
+            </button>
+          )}
+        </section>
+        <nav className="tier-navigation" aria-label="Jump to learning level">
           {TIER_HEADINGS.map(tier => (
-            <button type="button" key={tier.id} onClick={() => scrollToSection(tier.id)}>{tier.label}</button>
+            <button
+              type="button"
+              key={tier.id}
+              onClick={() => scrollToSection(tier.id)}
+              aria-label={`Jump to ${tier.label} level`}
+              aria-current={activeSection === tier.id ? 'location' : undefined}
+            >
+              {tier.label}
+            </button>
           ))}
         </nav>
         <div className="topic-content">

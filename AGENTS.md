@@ -173,6 +173,8 @@ pairs; ~28,000 total content lines; reading experience as the default tab.
 2. **Complete P2.** Study opens by default. Add an accessible heading-derived TOC rail, tier
    navigation, reading progress and an interview deck. Mobile uses collapsible controls. Preserve
    clear text/background contrast, visible focus, semantic colour meaning and reduced-motion support.
+   The main curriculum index is a responsive roadmap with category summaries, counts, ordered
+   topic rows, level badges and direct Study actions.
 3. **Complete P1.** Add CI that runs frontend tests, the frontend build, backend tests and the
    content validator. Do not claim the curriculum is complete while validation reports failures.
 4. **Begin P4 in Wave A.** `content/dbms/06-transactions-acid.md` is now the exemplar. Each

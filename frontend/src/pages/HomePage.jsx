@@ -3,7 +3,48 @@ import { Link } from 'react-router-dom'
 import { fetchTopics } from '../utils/api'
 
 const LEVEL_ORDER = { beginner: 0, intermediate: 1, expert: 2 }
-const LEVEL_LABELS = { beginner: '🟢 Beginner Level', intermediate: '🟡 Intermediate Level', expert: '🔴 Expert Level' }
+const LEVEL_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', expert: 'Expert' }
+
+const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml']
+
+const CATEGORY_DETAILS = {
+  'java-spring': {
+    label: 'Java & Spring',
+    shortLabel: 'Java & Spring',
+    summary: 'Start with Java foundations, then build toward concurrency and Spring application architecture.'
+  },
+  os: {
+    label: 'Operating Systems',
+    shortLabel: 'Operating Systems',
+    summary: 'Understand processes, memory, scheduling, synchronization, and the kernel services beneath applications.'
+  },
+  networking: {
+    label: 'Computer Networks',
+    shortLabel: 'Networking',
+    summary: 'Follow data from local links through routing, transport, and secure application protocols.'
+  },
+  dbms: {
+    label: 'DBMS',
+    shortLabel: 'DBMS',
+    summary: 'Model data, reason about queries and transactions, then study storage and distributed trade-offs.'
+  },
+  aiml: {
+    label: 'AI/ML Systems',
+    shortLabel: 'AI/ML',
+    summary: 'Connect modern ML foundations to retrieval, serving, evaluation, and production operations.'
+  }
+}
+
+function topicCategory(topic) {
+  return topic.category || 'os'
+}
+
+function sortTopics(topics) {
+  return [...topics].sort((left, right) => {
+    const levelDifference = (LEVEL_ORDER[left.level || 'beginner'] ?? 0) - (LEVEL_ORDER[right.level || 'beginner'] ?? 0)
+    return levelDifference || left.title.localeCompare(right.title)
+  })
+}
 
 export default function HomePage() {
   const [topics, setTopics] = useState([])
@@ -83,84 +124,88 @@ export default function HomePage() {
       })
   }, [])
 
-  const filteredTopics = selectedCategory === 'all' 
-    ? topics 
-    : topics.filter(t => t.category === selectedCategory || (selectedCategory === 'os' && !t.category))
+  const categories = CATEGORY_ORDER.map(id => ({
+    id,
+    ...CATEGORY_DETAILS[id],
+    topics: sortTopics(topics.filter(topic => topicCategory(topic) === id))
+  }))
 
-  const grouped = filteredTopics.reduce((acc, t) => {
-    const level = t.level || 'beginner'
-    if (!acc[level]) acc[level] = []
-    acc[level].push(t)
-    return acc
-  }, {})
+  const visibleCategories = selectedCategory === 'all'
+    ? categories
+    : categories.filter(category => category.id === selectedCategory)
 
-  const sortedLevels = Object.keys(grouped).sort((a, b) => LEVEL_ORDER[a] - LEVEL_ORDER[b])
+  const visibleTopicCount = visibleCategories.reduce((count, category) => count + category.topics.length, 0)
 
   return (
     <div>
-      <div className="home-header">
-        <h1>CS Fundamentals & Visualizations</h1>
+      <header className="home-header">
+        <p className="eyebrow">A deliberate learning path</p>
+        <h1>CS Fundamentals Roadmap</h1>
         <p>
-          Master Operating Systems, Computer Networks, Database Management Systems, Java/Spring Ecosystem, and AI/ML Systems —
-          interactive animations and comprehensive software engineering fundamentals.
+          Build interview-ready understanding in the order that compounds: Java and Spring first, then the systems and data foundations that support them.
         </p>
 
-        <div className="main-tab-switcher" style={{ margin: '1.5rem auto 0 auto' }}>
+        <nav className="main-tab-switcher" aria-label="Curriculum categories" style={{ margin: '1.5rem auto 0 auto' }}>
           <button
+            type="button"
             onClick={() => setSelectedCategory('all')}
             className={`main-tab-btn ${selectedCategory === 'all' ? 'active-tab' : ''}`}
+            aria-pressed={selectedCategory === 'all'}
           >
-            🌟 All Topics
+            Full roadmap
           </button>
-          <button
-            onClick={() => setSelectedCategory('os')}
-            className={`main-tab-btn ${selectedCategory === 'os' ? 'active-tab' : ''}`}
-          >
-            💻 Operating Systems
-          </button>
-          <button
-            onClick={() => setSelectedCategory('networking')}
-            className={`main-tab-btn ${selectedCategory === 'networking' ? 'active-tab' : ''}`}
-          >
-            🌐 Computer Networks
-          </button>
-          <button
-            onClick={() => setSelectedCategory('dbms')}
-            className={`main-tab-btn ${selectedCategory === 'dbms' ? 'active-tab' : ''}`}
-          >
-            🗄 DBMS & SQL
-          </button>
-          <button
-            onClick={() => setSelectedCategory('java-spring')}
-            className={`main-tab-btn ${selectedCategory === 'java-spring' ? 'active-tab' : ''}`}
-          >
-            ☕ Java & Spring Ecosystem
-          </button>
-          <button
-            onClick={() => setSelectedCategory('aiml')}
-            className={`main-tab-btn ${selectedCategory === 'aiml' ? 'active-tab' : ''}`}
-          >
-            🤖 AI/ML Systems
-          </button>
-        </div>
-      </div>
+          {CATEGORY_ORDER.map(categoryId => (
+            <button
+              key={categoryId}
+              type="button"
+              onClick={() => setSelectedCategory(categoryId)}
+              className={`main-tab-btn ${selectedCategory === categoryId ? 'active-tab' : ''}`}
+              aria-pressed={selectedCategory === categoryId}
+            >
+              {CATEGORY_DETAILS[categoryId].shortLabel}
+            </button>
+          ))}
+        </nav>
+      </header>
 
-      {sortedLevels.map(level => (
-        <div key={level} className="level-section">
-          <h2>{LEVEL_LABELS[level] || level}</h2>
-          <div className="card-grid">
-            {grouped[level].map(topic => (
-              <Link key={topic.id} to={`/topic/${topic.id}`} className="card">
-                <span className={`badge ${topic.level || 'beginner'}`}>
-                  {LEVEL_LABELS[topic.level] || topic.level}
-                </span>
-                <h3>{topic.title}</h3>
-                <p>{topic.summary}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      ))}
+      <main aria-live="polite">
+        <section className="level-section" aria-labelledby="roadmap-summary">
+          <h2 id="roadmap-summary">
+            {selectedCategory === 'all' ? 'Recommended sequence' : CATEGORY_DETAILS[selectedCategory].label}
+          </h2>
+          <p>
+            {selectedCategory === 'all'
+              ? `Study ${visibleTopicCount} topics across five connected foundations. Each section below follows the recommended priority order.`
+              : `${CATEGORY_DETAILS[selectedCategory].summary} ${visibleTopicCount} topics in this path.`}
+          </p>
+        </section>
+
+        {topics.length === 0 ? (
+          <p className="level-section">Loading the curriculum roadmap…</p>
+        ) : visibleCategories.map((category, categoryIndex) => (
+          <section key={category.id} className="level-section" aria-labelledby={`${category.id}-heading`}>
+            <h2 id={`${category.id}-heading`}>
+              {selectedCategory === 'all' ? `${categoryIndex + 1}. ${category.label}` : category.label}
+            </h2>
+            <p>{category.summary} {category.topics.length} topics.</p>
+            <ol className="card-grid" aria-label={`${category.label} topics`}>
+              {category.topics.map((topic, topicIndex) => (
+                <li key={topic.id} className="card">
+                  <span aria-hidden="true">{String(topicIndex + 1).padStart(2, '0')}</span>
+                  <span className={`badge ${topic.level || 'beginner'}`}>
+                    {LEVEL_LABELS[topic.level] || 'Beginner'}
+                  </span>
+                  <h3>{topic.title}</h3>
+                  <p>{topic.summary}</p>
+                  <Link to={`/topic/${topic.id}`} className="back-link" aria-label={`Study ${topic.title}`}>
+                    Study topic <span aria-hidden="true">→</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+      </main>
     </div>
   )
 }
