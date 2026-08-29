@@ -1,12 +1,18 @@
-# Database Transactions & ACID Properties
+# Database Transactions, ACID States & Crash Recovery
+
+A database transaction is a logical boundary that bundles multiple read and write operations into an indivisible, atomic execution unit. Sitting directly at the intersection of the relational query execution engine, the buffer pool manager, and the storage subsystem, transaction management guarantees predictable data consistency even in the presence of abrupt hardware crashes, power loss, and aggressive concurrent traffic. Because transaction isolation and crash recovery underwrite all mission-critical financial ledgers and distributed systems, interviewers frequently probe candidate knowledge on ACID trade-offs, Write-Ahead Logging (WAL) invariants, and ARIES recovery mechanics.
+
+---
 
 ## 🟢 Beginner Level
 
-### The ATM Withdrawal Analogy
-Picture an ATM handing you cash: it must **debit your account** and **dispense the notes** as one inseparable act. If the power dies after the notes come out but before the debit, the bank loses money; if the debit lands but the dispenser jams, you lose money. A **transaction** is the wrapper that makes the two actions indivisible: either both effects exist forever, or neither ever happened. Every ACID property defends one slice of that promise against crashes, concurrent users, and failing hardware.
+### The Core Problem: Why Systems Need Transactions
+Consider an everyday banking funds transfer: transferring \$500 from Account A to Account B requires two distinct SQL updates: subtracting \$500 from Account A's balance and adding \$500 to Account B's balance. If the database server loses power, suffers an out-of-memory crash, or loses disk connectivity immediately after executing the first update but before executing the second, \$500 vanishes from Account A without ever appearing in Account B. 
+
+Without transaction management, the database is left in a corrupted, half-finished state. A transaction provides an all-or-nothing guarantee: either every single statement inside the transaction succeeds and permanently commits to storage, or the entire batch is rolled back as if none of the operations ever executed.
 
 ### What is a Database Transaction?
-A **Transaction** is a logical unit of database processing that includes one or more SQL operations (e.g., `SELECT`, `INSERT`, `UPDATE`, `DELETE`) executed as a single all-or-nothing unit of work.
+A **Transaction** is a sequence of one or more SQL operations treated as a single logical unit of work. Application developers delimit transactions using explicit control statements:
 
 ```sql
 BEGIN TRANSACTION;
@@ -14,282 +20,398 @@ BEGIN TRANSACTION;
   UPDATE accounts SET balance = balance + 500 WHERE account_id = 202;
 COMMIT;
 ```
-If any statement fails, issuing `ROLLBACK` reverses every change made so far in the transaction, restoring the pre-transaction state.
 
-### The Four ACID Properties
-1. **Atomicity**: "All or Nothing". Either all operations execute successfully, or the entire transaction is rolled back to its initial state. Enforced by the **undo log** plus Write-Ahead Logging. Without it, a mid-transfer crash leaves money debited but never credited.
-2. **Consistency**: The database moves from one valid state to another, preserving schema invariants: `CHECK` constraints, foreign keys, unique keys, triggers, and application-defined business rules (debits equal credits). Enforced jointly by the DBMS constraint engine and correctly written transactions. Note: this is **not** the same "C" as in CAP theorem (covered in Expert Level).
-3. **Isolation**: Concurrent transactions execute as if each had the database to itself, with no visible intermediate states leaking between them. Implemented by locking protocols or Multi-Version Concurrency Control (MVCC). Without it, two clerks updating the same ledger cell silently erase each other's edits.
-4. **Durability**: Once `COMMIT` returns success, changes survive system crashes, power loss, or OS failures. Implemented by **Write-Ahead Logging**: the commit record is flushed to non-volatile storage before the commit is acknowledged to the client.
+If an error or constraint violation occurs before `COMMIT` is reached, issuing `ROLLBACK` instructs the database engine to consult its undo log and reverse every temporary modification made during that session, returning the affected database rows to their exact initial state.
 
-### Autocommit and Implicit Transactions
-Every SQL statement runs inside some transaction, whether you open one or not:
-1. **Autocommit mode** (default in MySQL and PostgreSQL): each statement is its own tiny transaction, committed immediately; a multi-statement business operation left in autocommit is really N independent mini-transactions with zero atomicity across them.
-2. **Explicit transactions** (`BEGIN ... COMMIT`) are how you group work; connection pools often run with autocommit disabled during transactions and must return connections in a clean state, or the next borrower inherits an unexpectedly open transaction.
-3. **Implicit transactions** appear around DDL in some engines: MySQL commits your open transaction before executing DDL, PostgreSQL wraps every statement, including DDL, in a transaction (a genuinely useful property: you can roll back a schema migration).
+### The Four ACID Properties Demystified
+The foundational contract of any relational database management system is encapsulated by the **ACID** properties:
 
-### Transaction State Transition Diagram
+1. **Atomicity ("All or Nothing")**: A transaction cannot be partially executed. If a transaction consists of five modifications and the fourth fails, all preceding three modifications are undone. Atomicity is enforced internally by recording the pre-modification state in the **undo log** (or rollback segment).
+2. **Consistency ("Preserving Invariants")**: The transaction moves the database from one valid state to another valid state, preserving all schema invariants, such as `FOREIGN KEY` references, `CHECK` constraints, column `NOT NULL` rules, and application-defined uniqueness constraints. Note that this is distinct from consistency in the CAP theorem (which refers to distributed single-copy read linearizability).
+3. **Isolation ("Concurrency Without Interference")**: Intermediate states of an uncommitted transaction remain invisible to other concurrent transactions running on the database. Concurrent transactions execute with the illusion of running sequentially in isolation. Isolation is implemented via row locks, table locks, or Multi-Version Concurrency Control (MVCC) snapshots.
+4. **Durability ("Surviving Crashes")**: Once a transaction receives a successful commit confirmation, its modifications will never be lost, even if an operating system panic, hardware fault, or immediate power failure ensues. Durability is enforced by persisting commit records to stable storage through **Write-Ahead Logging (WAL)** before returning control to the client.
 
-```
-                     BEGIN
-                       │
-                       ▼
-                  +---------+
-     +────────────│ ACTIVE  │────────── read / write ─────────+
-     │            +─────────+                                 │
-     │  (restart        │                                     │
-     │   or kill)       │ last statement executed             │ error /
-     │                  ▼                                     │ deadlock
-     │        +─────────────────────+                         │
-     │        │ PARTIALLY COMMITTED │─────────────────────────┼───> +────────+
-     │        +─────────┬───────────+        failure          │     │ FAILED │
-     │                  │                                     │     +───┬────+
-     │    commit record │                                     │         │
-     │    flushed to    ▼                                     │         │ rollback
-     │    stable disk +───────────+                           │ completes│
-     │                │ COMMITTED │                          ▼         ▼
-     │                +───────────+                    +──────────+ +---------+
-     │                                                 │ ABORTED  │
-     +────────────────────────────────────────────────>+──────────+
+### Transaction States and the Lifecycle State Machine
+During its execution, a transaction transitions through discrete states managed by the database transaction manager:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active: BEGIN TRANSACTION
+    Active --> PartiallyCommitted: Final statement executed
+    Active --> Failed: Error / Constraint violation / Deadlock
+    PartiallyCommitted --> Committed: Log flushed to stable storage (fsync)
+    PartiallyCommitted --> Failed: I/O or system failure before fsync
+    Failed --> Aborted: Undo log applied (Rollback complete)
+    Aborted --> [*]
+    Committed --> [*]
 ```
 
-1. **Active**: Initial state; the transaction is executing operations and holds whatever locks or snapshots it needs.
-2. **Partially Committed**: Final statement executed, but updates may still live only in the volatile buffer pool. The `<commit>` log record has not yet been flushed, so a crash right now would still roll this work back.
-3. **Committed**: The commit record reached stable storage. The transaction permanently succeeded; durability now applies.
-4. **Failed**: Interrupted by a runtime error, deadlock victim selection, constraint violation, or crash while Active or Partially Committed.
-5. **Aborted**: Rollback finished; the database state is logically restored to before the transaction began.
+1. **Active**: The initial state where the transaction begins executing SQL statements, reading pages into the buffer pool and generating undo/redo log records in memory.
+2. **Partially Committed**: The final SQL statement has executed in memory, but the dirty data pages and commit log record still reside only in volatile RAM buffers. A system crash at this exact moment results in the transaction being classified as uncommitted.
+3. **Committed**: The `<COMMIT>` log record has been synchronously flushed and acknowledged by non-volatile storage. The transaction is now permanently durable.
+4. **Failed**: An internal execution error, dead-lock victim selection, query timeout, or hardware fault interrupted processing while in the Active or Partially Committed state.
+5. **Aborted**: The database engine has finished executing the rollback routine, reversing all intermediate changes and releasing held resource locks.
 
-### Anomaly Cheat Sheet
-These four anomalies are the vocabulary of isolation. Each is a specific way two overlapping transactions corrupt each other's view of data:
+### Autocommit, Explicit Transactions, and Savepoints
+Every SQL query executes within a transactional context:
+- **Autocommit Mode**: By default, relational databases like MySQL and PostgreSQL run with autocommit enabled, wrapping each individual query in an implicit transaction that commits immediately. Multi-statement business workflows left in autocommit mode sacrifice cross-query atomicity.
+- **Explicit Transactions**: Explicitly declaring `BEGIN` (or `START TRANSACTION`) and `COMMIT` groups arbitrary numbers of statements into an atomic envelope.
+- **Savepoints**: Savepoints establish intermediate checkpoints inside a long-running transaction, allowing partial rollback without abandoning the entire transaction's earlier progress:
 
-| Anomaly | Symptom | Concrete Example |
-| --- | --- | --- |
-| Dirty Read | Reading uncommitted values of another transaction | T2 reads balance 500 that T1 wrote but then rolled back |
-| Non-Repeatable Read | Same row returns different values on re-read | T1 reads balance twice; T2 commits an UPDATE in between |
-| Phantom Read | Re-running a range query returns a different row set | T1 counts open orders twice; T2 INSERTS one in between |
-| Lost Update | One overwrite silently erases another committed write | Two withdrawals read balance 100, both write their result, one vanishes |
+```sql
+BEGIN;
+  INSERT INTO orders (id, customer_id, total) VALUES (401, 88, 120.00);
+  SAVEPOINT payment_attempt;
+  UPDATE customer_wallet SET balance = balance - 120.00 WHERE customer_id = 88;
+  -- If wallet update fails due to insufficient funds:
+  ROLLBACK TO SAVEPOINT payment_attempt;
+  -- Order insert is preserved; proceed with alternate payment
+  INSERT INTO pending_invoices (order_id, amount) VALUES (401, 120.00);
+COMMIT;
+```
+
+### Concurrency Anomalies: The Vocabulary of Isolation
+When multiple transactions access shared records simultaneously without total serial ordering, several well-defined concurrency anomalies can emerge:
+
+| Anomaly | Short Definition | Concrete Scenario |
+|---|---|---|
+| **Dirty Read** | Reading uncommitted modifications written by another concurrent transaction. | Transaction $T_1$ updates balance to \$800; $T_2$ reads \$800; $T_1$ subsequently rolls back to \$500. $T_2$ operated on invalid phantom data. |
+| **Non-Repeatable Read (Fuzzy Read)** | Re-reading the exact same row within a transaction returns different values because a concurrent transaction modified and committed that row. | $T_1$ reads row $X = 100$; $T_2$ updates $X = 200$ and commits; $T_1$ reads row $X$ again and receives $200$. |
+| **Phantom Read** | Re-executing a range query within a transaction returns a different set of matching rows because a concurrent transaction inserted or deleted qualifying rows. | $T_1$ executes `SELECT COUNT(*) WHERE age > 30` and gets 12; $T_2$ inserts a new 35-year-old user and commits; $T_1$ re-runs the count and gets 13. |
+| **Lost Update** | Two transactions simultaneously read the same initial value and compute updates; the later commit overwrites the earlier commit without incorporating its changes. | Both $T_1$ and $T_2$ read balance \$100; $T_1$ writes $\$100 - \$30 = \$70$; $T_2$ writes $\$100 - \$40 = \$60$; final balance is \$60 instead of \$30. |
+| **Write Skew** | Two concurrent transactions evaluate disjoint rows based on overlapping integrity rules, each making changes that individually look valid but jointly violate the global invariant. | Two on-call doctors simultaneously request leave when the hospital requires $\ge 1$ doctor active; both see 2 active doctors and both take leave, leaving 0 doctors on duty. |
+
+---
 
 ## 🟡 Intermediate Level
 
-### Isolation Levels vs Anomaly Matrix
-SQL defines four isolation levels. Memorize this matrix; it is one of the most frequently drawn interview tables:
+### SQL Isolation Levels vs Anomaly Matrix
+The ANSI SQL-92 standard formalized four classic isolation levels to balance concurrency performance against data consistency. Modern storage engines expand this with Snapshot Isolation:
 
-| Isolation Level | Dirty Read | Non-Repeatable Read | Phantom Read | Lost Update (read-modify-write) | Write Skew |
-| --- | --- | --- | --- | --- | --- |
-| READ UNCOMMITTED | Possible | Possible | Possible | Possible | Possible |
-| READ COMMITTED | Prevented | Possible | Possible | Possible | Possible |
-| REPEATABLE READ | Prevented | Prevented | Engine-specific | Mostly prevented | Possible |
-| SNAPSHOT ISOLATION | Prevented | Prevented | Prevented | Same-row: prevented | Possible |
-| SERIALIZABLE | Prevented | Prevented | Prevented | Prevented | Prevented |
+| Isolation Level | Dirty Read | Non-Repeatable Read | Phantom Read | Lost Update | Write Skew |
+|---|---|---|---|---|---|
+| **READ UNCOMMITTED** | Allowed | Allowed | Allowed | Allowed | Allowed |
+| **READ COMMITTED** | Prevented | Allowed | Allowed | Allowed | Allowed |
+| **REPEATABLE READ** | Prevented | Prevented | Engine-Specific | Prevented* | Allowed |
+| **SNAPSHOT ISOLATION** | Prevented | Prevented | Prevented | Prevented | Allowed |
+| **SERIALIZABLE** | Prevented | Prevented | Prevented | Prevented | Prevented |
 
-Engine-specific reality checks:
-- **PostgreSQL** implements REPEATABLE READ as **Snapshot Isolation**: each transaction sees one consistent snapshot, so phantoms vanish, but **write skew** remains possible until SERIALIZABLE (which uses Serializable Snapshot Isolation, SSI).
-- **MySQL InnoDB** REPEATABLE READ (its default) layers MVCC snapshots with **gap locks / next-key locks** on indexed range scans, blocking phantoms for locked ranges; unindexed scans over-lock and can produce surprise deadlocks.
-- **SQL Server** offers READ COMMITTED SNAPSHOT only if enabled per database (`ALTER DATABASE ... SET READ_COMMITTED_SNAPSHOT ON`); otherwise READ COMMITTED takes read locks.
-- **Oracle** exposes only READ COMMITTED (statement-level snapshots) and SERIALIZABLE.
+*Note: In PostgreSQL REPEATABLE READ (implemented via Snapshot Isolation), in-place lost update attempts trigger a serialization abort (`ERROR: could not serialize access due to concurrent update`). In MySQL InnoDB REPEATABLE READ, plain `SELECT` is protected by MVCC snapshots, but raw `UPDATE` performs a locking "current read", which can still overwrite concurrent changes unless explicit `SELECT ... FOR UPDATE` row locks or atomic expressions are used.*
 
-### Lost Update: Worked Example at READ COMMITTED
-Both PostgreSQL and MySQL at READ COMMITTED happily allow the classic read-modify-write lost update:
+### Concrete Anomaly Traces with Worked Math
+
+#### 1. Lost Update Under READ COMMITTED
+Assume Account 1 starts with a verified balance of \$100. Two concurrent client requests $T_1$ (deducting \$40) and $T_2$ (deducting \$70) arrive concurrently at the application layer:
 
 ```sql
--- Initial state: account 1 has balance = 100
--- SESSION T1
-BEGIN;
-SELECT balance FROM accounts WHERE id = 1;      -- reads 100
--- SESSION T2 (concurrently)
-BEGIN;
-SELECT balance FROM accounts WHERE id = 1;      -- also reads 100
--- SESSION T1 continues
-UPDATE accounts SET balance = 100 - 40 WHERE id = 1;
-COMMIT;                                         -- balance now 60 on disk
--- SESSION T2 continues, unaware
-UPDATE accounts SET balance = 100 - 70 WHERE id = 1;
-COMMIT;                                         -- overwrites using its stale copy
--- FINAL BALANCE = 30. The 40-dollar withdrawal evaporated.
+-- SESSION T1                                   -- SESSION T2
+BEGIN;                                          BEGIN;
+SELECT balance FROM accounts WHERE id = 1;      SELECT balance FROM accounts WHERE id = 1;
+-- T1 reads balance = 100                        -- T2 reads balance = 100
+
+-- T1 computes 100 - 40 = 60 in memory
+UPDATE accounts SET balance = 60 WHERE id = 1;
+COMMIT; -- Disk balance is now 60
+
+                                                -- T2 computes 100 - 70 = 30 from stale balance
+                                                UPDATE accounts SET balance = 30 WHERE id = 1;
+                                                COMMIT; -- Overwrites balance with 30!
 ```
+*Result*: The final balance in the database is \$30. The \$40 deduction made by $T_1$ has been completely destroyed. The correct final balance should have been $\$100 - \$40 - \$70 = -\$10$.
 
-Three fixes, in increasing intrusiveness:
-1. **Make the write atomic** so the database computes it: `UPDATE accounts SET balance = balance - 40 WHERE id = 1`. The engine applies it to the latest committed row; no lost arithmetic.
-2. **Lock first**: `SELECT balance FROM accounts WHERE id = 1 FOR UPDATE` takes an X lock before reading; T2 blocks until T1 commits.
-3. **Escalate isolation**: PostgreSQL REPEATABLE READ turns this exact race into a `could not serialize access` failure (40001) for the second writer via snapshot-isolation **first-committer-wins** on the same row; SERIALIZABLE catches the general case. Caution: MySQL InnoDB REPEATABLE READ does **not** protect this pattern, because `UPDATE` uses a current (locking) read and will apply T2's stale computed value after T1 commits.
+*Remediation Strategies*:
+1. **Atomic In-Database Arithmetic**: `UPDATE accounts SET balance = balance - 40 WHERE id = 1;` forces the engine to apply the mutation to the latest committed value under a brief row-exclusive lock.
+2. **Pessimistic Locking**: Executing `SELECT balance FROM accounts WHERE id = 1 FOR UPDATE;` acquires an exclusive row lock immediately, forcing Session $T_2$ to block until $T_1$ commits.
+3. **Optimistic Locking with Versioning**: Adding a `version` column and checking `WHERE id = 1 AND version = :v` aborts $T_2$ when it detects that $T_1$ incremented the version counter.
 
-### Watching the Other Anomalies Happen
-Non-repeatable read under READ COMMITTED (permitted):
+#### 2. Write Skew: The Classic Doctor On-Call Problem
+Assume a hospital table `doctors` has two records: Dr. Alice (`is_on_call = TRUE`) and Dr. Bob (`is_on_call = TRUE`). The hospital rule states: "At least one doctor must remain on call at all times."
 
 ```sql
--- SESSION T1
-BEGIN;
-SELECT balance FROM accounts WHERE id = 1;      -- sees 100
--- SESSION T2
-UPDATE accounts SET balance = 200 WHERE id = 1;
-COMMIT;                                         -- new committed value visible immediately
--- SESSION T1 again
-SELECT balance FROM accounts WHERE id = 1;      -- sees 200: same txn, different answer!
-COMMIT;
+-- SESSION T1 (Dr. Alice requests off)           -- SESSION T2 (Dr. Bob requests off)
+BEGIN;                                          BEGIN;
+SELECT COUNT(*) FROM doctors                    SELECT COUNT(*) FROM doctors
+WHERE is_on_call = TRUE;                        WHERE is_on_call = TRUE;
+-- Alice sees 2 doctors on call                  -- Bob sees 2 doctors on call
+
+-- Invariant check passes (2 >= 2)               -- Invariant check passes (2 >= 2)
+UPDATE doctors SET is_on_call = FALSE           UPDATE doctors SET is_on_call = FALSE
+WHERE name = 'Alice';                           WHERE name = 'Bob';
+COMMIT;                                         COMMIT;
+```
+*Result*: Neither session modified the row the other session touched, so row-level locks and Snapshot Isolation first-committer-wins rules find no conflict. However, the final database state has 0 doctors on call, violating the global invariant. True `SERIALIZABLE` isolation (using predicate locks or SSI) detects this overlapping read-write dependency cycle and forces one transaction to abort.
+
+### Multi-Version Concurrency Control (MVCC) Mechanisms
+To eliminate contention between read queries and write queries, modern relational engines implement **Multi-Version Concurrency Control (MVCC)**. Under MVCC:
+> **Core MVCC Rule**: "Readers never block writers, and writers never block readers."
+
+Instead of locking data rows during read queries, the database creates a new physical version of a row whenever an `UPDATE` occurs, keeping older versions in an undo segment (InnoDB) or in-place table pages (Postgres). 
+
+```mermaid
+flowchart LR
+    subgraph RowEvolution["Row Version Chain (Tuple History)"]
+        V1["Tuple V1 (xmin=100, xmax=105)<br/>balance = $100"] 
+        V2["Tuple V2 (xmin=105, xmax=112)<br/>balance = $150"]
+        V3["Tuple V3 (xmin=112, xmax=0)<br/>balance = $200 (Latest)"]
+        V1 -->|"t_ctid pointer"| V2
+        V2 -->|"t_ctid pointer"| V3
+    end
+
+    subgraph Readers["Concurrent Transaction Snapshots"]
+        T_Read["Transaction T_Old (Snapshot=104)<br/>Sees V1 ($100)"]
+        T_Mid["Transaction T_Mid (Snapshot=110)<br/>Sees V2 ($150)"]
+        T_New["Transaction T_New (Snapshot=115)<br/>Sees V3 ($200)"]
+    end
 ```
 
-Phantom under READ COMMITTED (permitted):
+- In **PostgreSQL**, each tuple header contains `xmin` (creating transaction ID) and `xmax` (deleting/updating transaction ID). A query's snapshot determines which tuple version is visible based on whether `xmin` committed before the snapshot started.
+- In **MySQL InnoDB**, modified row versions are recorded in an **Undo Log Segment**. Secondary reads traverse the `roll_ptr` back-pointers until finding a version where `DB_TRX_ID` falls within the transaction's read view.
 
-```sql
--- SESSION T1
-BEGIN;
-SELECT COUNT(*) FROM orders WHERE status = 'open';   -- counts 10
--- SESSION T2
-INSERT INTO orders (id, status) VALUES (99, 'open');
-COMMIT;                                              -- new committed row exists
--- SESSION T1 re-runs the same predicate
-SELECT COUNT(*) FROM orders WHERE status = 'open';   -- counts 11: a phantom appeared
-COMMIT;
+### Write-Ahead Logging (WAL): The Mechanics of Durability
+Relational databases decouple in-memory modifications from physical data file writes to maximize throughput. When a transaction updates a row, writing the modified 8 KB or 16 KB data page directly to random disk sectors is prohibitively slow. 
+
+Instead, engines employ the **Write-Ahead Logging (WAL)** protocol:
+> **The WAL Invariant**: Log records describing a database change MUST be flushed to non-volatile storage BEFORE the corresponding dirty data page in the buffer pool is permitted to overwrite disk storage. Furthermore, the transaction's `<COMMIT>` log record must be flushed before the commit call returns success to the client application.
+
+```mermaid
+flowchart TD
+    subgraph RAM["Volatile Memory (RAM)"]
+        ClientReq["SQL DML Request"] --> BP["Buffer Pool (Dirty Data Page)"]
+        ClientReq --> WALB["WAL Log Buffer (Append Record)"]
+        CommitReq["Client COMMIT"] --> CommitRec["Append <COMMIT LSN=105>"]
+    end
+    
+    subgraph Storage["Non-Volatile Storage (SSD/NVMe)"]
+        CommitRec -->|"1. fsync WAL (Sequential Flush)"| DiskWAL["WAL Redo Log Files"]
+        DiskWAL -->|"2. Return OK"| ClientAck["Client Acknowledged"]
+        BP -.->|"3. Lazy Background Checkpoint Flush"| DiskData["Data Files (Random I/O)"]
+    end
 ```
 
-At PostgreSQL REPEATABLE READ both re-runs would return the original answers (100, then 10) because the whole transaction shares one snapshot; MySQL REPEATABLE READ behaves the same for plain SELECTs thanks to MVCC, while additionally gap-locking the scanned range against inserts.
+Because log files are append-only sequential streams, log appends achieve orders of magnitude lower write latency compared to random data file modifications.
 
-### Write-Ahead Logging (WAL): The Durability Engine
-**WAL Protocol Rule**: log records describing a change MUST reach stable storage BEFORE the corresponding dirty data page is written to disk, and the `<commit>` record MUST be flushed before the transaction is acknowledged.
+### Anatomy of a Log Record and Log Sequence Numbers (LSN)
+Every event written to the log is assigned a monotonically increasing 64-bit integer called a **Log Sequence Number (LSN)**. The LSN represents the byte offset in the continuous logical log stream.
 
-```
-   COMMIT PIPELINE (happy path)
-   1. change applied in buffer pool (dirty page, stays cached)
-   2. log record appended to WAL buffer
-   3. COMMIT record appended
-   4. fsync WAL to disk          <=== the only mandatory synchronous I/O
-   5. acknowledge to client
-   6. later: checkpoint lazily writes dirty pages (background)
-```
+A standard update log record contains:
+- `LSN`: Unique identifier of this log entry.
+- `PrevLSN`: Back-pointer to the previous LSN generated by the same transaction (forms an undo chain).
+- `TxnID`: Identifier of the transaction executing the change.
+- `Type`: Record type (`BEGIN`, `UPDATE`, `INSERT`, `DELETE`, `ABORT`, `COMMIT`, `CLR`).
+- `PageID`: Physical identifier of the affected data page on disk.
+- `Offset`: Byte offset within the page where modification occurred.
+- `Undo Data (Before Image)`: The original row data before change (used during rollback).
+- `Redo Data (After Image)`: The new row data after change (used during crash recovery replay).
 
-Anatomy of an update log record (fields separated below by spaces):
+Every database data page maintains a `pageLSN` header field recording the LSN of the most recent log record that updated it. During recovery, comparing the log record's `LSN` against the page's `pageLSN` allows the engine to instantly determine whether a change is already present on disk: if $\text{pageLSN} \ge \text{recordLSN}$, the change has already been applied and redo is skipped.
 
-```
-   +------------------------------------------------------------------------+
-   prev_LSN   TxnID   type=UPDATE   page_id   offset   old_image   new_image
-   +------------------------------------------------------------------------+
-```
+### Shadow Paging vs Write-Ahead Logging
+Early database systems (such as System R) experimented with **Shadow Paging** as an alternative to WAL:
+- In Shadow Paging, the database maintains two page tables: a *current page table* and a *shadow page table*. When a transaction modifies pages, new copies are allocated elsewhere on disk. At commit time, the pointer to the root page table is atomically swapped.
+- *Why WAL replaced Shadow Paging*: Shadow paging destroys physical page clustering on disk, causes severe data fragmentation, and cannot easily support concurrent multi-transaction writes or fine-grained row-level locking. WAL preserves physical page layouts and allows high-concurrency group commits.
 
-The principal log record types every recovery algorithm consumes:
+### Group Commit and Storage Flush Controls
+Issuing a physical storage flush (`fsync`) for every individual transaction commit severely limits single-thread throughput: with an SSD `fsync` taking $\sim 1\text{ ms}$, maximum sequential throughput is capped at $\approx 1{,}000\text{ commits/second}$.
 
-| Record Type | Purpose | Written When |
-| --- | --- | --- |
-| start | Marks a transaction active | First operation of Ti |
-| update | Old/new image for one page change | Every insert, update, delete |
-| commit | Durability point once flushed | Client issues COMMIT |
-| CLR (compensation) | Redo-only record of an undo step | During rollback / ARIES UNDO |
-| checkpoint begin/end | Anchors recovery scan start | Periodically, fuzzily |
+**Group Commit** solves this bottleneck by batching commit requests from multiple concurrent threads:
+1. The first committing thread becomes the *group leader*.
+2. While the group leader issues a single synchronous `fsync` on the WAL file descriptor, incoming commits register as *group followers* and append their records to the shared in-memory WAL buffer.
+3. When the single `fsync` completes, all $N$ transactions in the batch are committed simultaneously, lifting throughput beyond $50{,}000+$ commits/second under high concurrency.
 
-Why WAL wins on performance: data pages are scattered randomly across the disk (slow random writes), while the log is pure sequential append (fast). WAL defers all random page flushing to background checkpoints, converting thousands of random I/Os into one sequential stream.
+Database engines expose configuration parameters controlling the strictness of this flush boundary:
 
-### Group Commit and Flush Settings
-One `fsync` per commit serializes throughput at roughly `1 / fsync_latency`: a 1 ms SSD fsync caps a single stream near 1000 commits per second. **Group commit** fixes this: many concurrently committing transactions share one fsync, because the log flush at time T carries every commit record appended up to T. Under load, a 1 ms fsync batching 100 committers lifts the ceiling toward 100,000 commits per second. This is why throughput climbs with concurrency on WAL databases, up to lock-contention limits.
+| Engine Setting | Value | Durability Guarantee | Maximum Loss Window on Crash |
+|---|---|---|---|
+| MySQL `innodb_flush_log_at_trx_commit` | `1` (Default) | Full ACID. Log buffer flushed and `fsync`ed to disk on every commit. | 0 ms (Zero data loss). |
+| MySQL `innodb_flush_log_at_trx_commit` | `2` | Log buffer written to OS cache on commit; `fsync`ed to disk once per second. | Up to 1 second of data on OS/hardware crash; 0 loss on MySQL restart. |
+| MySQL `innodb_flush_log_at_trx_commit` | `0` | Log buffer written and `fsync`ed by background thread once per second. | Up to 1 second of data on any server/process crash. |
+| PostgreSQL `synchronous_commit` | `on` (Default) | Full ACID. Commit waits for WAL records to reach stable disk storage. | 0 ms (Zero data loss). |
+| PostgreSQL `synchronous_commit` | `off` | Acknowledges commit as soon as written to WAL buffer; background flush runs. | Up to $3 \times \text{wal\_writer\_delay}$ ($\sim 600\text{ ms}$). |
 
-| Engine Setting | Default | Meaning and Risk Window |
-| --- | --- | --- |
-| InnoDB `innodb_flush_log_at_trx_commit` | 1 | 1 = fsync per commit (fully durable). 2 = write to OS cache per commit, fsync about once per second: loses roughly the last 1 second of transactions on OS crash. 0 = background thread flushes about once per second: loses about 1 second even on a mere MySQL restart. |
-| PostgreSQL `synchronous_commit` | on | off = ack after writing to OS cache; loss window bounded by about 3 times `wal_writer_delay` (default 200 ms, so up to roughly 600 ms of acknowledged commits can vanish on OS crash). |
-| PostgreSQL `wal_writer_delay` | 200 ms | How often the WAL writer wakes to flush the log buffer. |
-| PostgreSQL `checkpoint_timeout` / `max_wal_size` | 5 min / 1 GB | Larger values spread checkpoints further apart: smoother runtime, longer crash recovery. |
-| InnoDB `innodb_redo_log_capacity` | 100 MB | Bigger redo means less aggressive flushing and fuzzier checkpoints. |
+### Checkpoint Mechanisms: Naive vs Fuzzy Checkpoints
+If a database runs for months, its WAL log files would grow infinitely, requiring hours to replay during recovery after a crash. **Checkpoints** bound recovery time by periodically synchronizing dirty in-memory pages with disk storage.
 
-### Checkpoints
-A checkpoint forces enough of the log and dirty pages to disk that recovery can start scanning from the checkpoint instead of from the dawn of time. Modern engines use **fuzzy checkpoints**: they record which dirty pages existed (a Dirty Page Table) without stalling writes, then let ordinary background flushing converge. Trade-off dial: frequent checkpoints shorten crash recovery but steal I/O from foreground traffic; infrequent checkpoints maximize steady-state throughput but make restart painfully slow after a crash.
+- **Naive (Strict) Checkpoints**: The engine halts all active incoming transactions, flushes every single dirty page from the buffer pool to disk, writes a `<CHECKPOINT>` record to the log, and resumes traffic. This causes unacceptable I/O latency spikes and query freezes.
+- **Fuzzy Checkpoints**: Modern engines record a snapshot of active transactions and dirty buffer pages without stalling live queries:
+  1. Write a `<BEGIN CHECKPOINT>` log record.
+  2. Snapshot the current **Dirty Page Table (DPT)** and **Active Transaction Table (ATT)** in memory.
+  3. Write an `<END CHECKPOINT>` record containing these tables and flush it to storage.
+  4. Dirty buffer pages continue flushing lazily in the background without stalling queries. Recovery only needs to scan log records backwards to the earliest unwritten page identified in the checkpoint's DPT (`RecLSN`).
 
-### Savepoints and Partial Rollback
-Savepoints create resumable markers inside one transaction; rolling back to one undoes only the suffix:
-
-```sql
-BEGIN;
-INSERT INTO orders VALUES (1, 'book');
-SAVEPOINT before_payment;
-UPDATE payments SET status = 'charged' WHERE order_id = 1;
-ROLLBACK TO SAVEPOINT before_payment;   -- payment undone, insert kept
-COMMIT;
-```
-Internally each partial rollback emits Compensation Log Records, exactly like a miniature ARIES undo pass (next level).
+---
 
 ## 🔴 Expert Level
 
-### ARIES Crash Recovery: Full Worked Trace
-ARIES (IBM, C. Mohan) restores the database after a crash in three phases: **Analysis**, **Redo**, **Undo**. Walk the following mini-log. A checkpoint completed just before LSN 1 with an empty Dirty Page Table. T1 commits; T2 never does; then the server crashes.
+### Buffer Pool Management Policies: Steal/No-Steal and Force/No-Force
+The architectural design of a database recovery engine is defined by how the buffer pool coordinates with physical storage at transaction commit time:
 
-| LSN | Log Record | Page | Old Value | New Value |
-| --- | --- | --- | --- | --- |
-| 1 | T1, start | | | |
-| 2 | T1, UPDATE A | P1 | A = 100 | A = 150 |
-| 3 | T2, start | | | |
-| 4 | T2, UPDATE B | P2 | B = 500 | B = 520 |
-| 5 | T1, UPDATE C | P3 | C = 70 | C = 75 |
-| 6 | T1, commit | | | |
-| 7 | T2, UPDATE D | P4 | D = 900 | D = 850 |
-| 8 | T2, UPDATE B | P2 | B = 520 | B = 545 |
-| crash | (T2 never wrote commit) | | | |
+```mermaid
+flowchart TD
+    subgraph StealPolicy["Steal vs No-Steal (Page Eviction Policy)"]
+        direction TB
+        Steal["STEAL Policy<br/>• Uncommitted dirty pages CAN be evicted to disk<br/>• Avoids buffer pool memory exhaustion<br/>• Requires UNDO logging to reverse changes on abort"]
+        NoSteal["NO-STEAL Policy<br/>• Uncommitted pages NEVER touch disk<br/>• Eliminates need for UNDO logging<br/>• Constrains long transactions to RAM capacity"]
+    end
 
-Phase 1, **Analysis**:
-- Scan forward from the checkpoint. Winner set (committed): `{T1}`. Loser set (started, not committed): `{T2}`.
-- Rebuild the Dirty Page Table. Here it starts empty, so the Redo pass must begin at LSN 1.
+    subgraph ForcePolicy["Force vs No-Force (Commit Flush Policy)"]
+        direction TB
+        Force["FORCE Policy<br/>• All dirty pages flushed to disk at COMMIT<br/>• Eliminates need for REDO logging<br/>• Terrible random I/O write performance"]
+        NoForce["NO-FORCE Policy<br/>• Dirty pages remain in RAM at COMMIT<br/>• Relies on sequential WAL log for durability<br/>• High throughput; Requires REDO logging on crash"]
+    end
+```
 
-Phase 2, **Redo** ("Repeating History"):
-- Replay every logged change forward in LSN order, winners and losers alike, restoring exact crash-time contents: P1.A = 150, P2.B = 520, P3.C = 75, P4.D = 850, then LSN 8 sets P2.B = 545. Even T2's uncommitted values are momentarily resurrected; that is intentional and required.
+| Dimension | Policy Choice | Operational Trade-Off | Industry Adoption |
+|---|---|---|---|
+| **Page Eviction** | **STEAL** | Buffer manager may evict dirty pages belonging to active, uncommitted transactions to free RAM. Requires UNDO logging to revert changes if the transaction aborts. | Adopted by 100% of commercial RDBMS (Postgres, MySQL, Oracle, SQL Server). |
+| **Page Eviction** | **NO-STEAL** | Uncommitted pages are forbidden from reaching disk. Eliminates UNDO logging, but huge transactions that exceed buffer pool memory will crash the engine. | Academic systems only. |
+| **Commit Flush** | **FORCE** | All pages modified by a transaction must be flushed to disk before `COMMIT` completes. Eliminates REDO logging, but inflicts devastating random disk I/O penalties. | Legacy / specialized embedded databases. |
+| **Commit Flush** | **NO-FORCE** | Committed modifications can remain buffered in volatile RAM; durability is guaranteed purely by the sequential WAL log flush. Requires REDO recovery on restart. | Adopted by 100% of commercial RDBMS. |
 
-Phase 3, **Undo** (losers only, scanned backward), emitting CLRs as it goes:
+**Universal Standard**: Modern databases utilize a **STEAL + NO-FORCE** architecture, maximizing runtime read/write caching efficiency while delegating crash recovery entirely to the WAL log.
 
-| CLR LSN | Undoes | Action | UndoNxt Pointer |
-| --- | --- | --- | --- |
-| 9 | LSN 8 | Restore P2.B = 520 | 4 |
-| 10 | LSN 7 | Restore P4.D = 900 | 3 |
+### ARIES Crash Recovery: 3-Phase Execution Model
+The **ARIES** (Algorithms for Recovery and Isolation Exploiting Semantics) algorithm, created by C. Mohan at IBM, is the industry standard for database crash recovery. When a database restarts after a crash, ARIES executes three sequential phases:
 
-- Reaching LSN 3 (T2 start) ends the rollback; ARIES writes `T2 abort`. Final state: A = 150, B = 520, C = 75, D = 900. T1's effects survived (durability); every trace of T2 is gone (atomicity).
-- **Idempotency**: CLRs carry an UndoNxt pointer and are themselves redo-only records. If the server crashes again mid-Undo, the restarted Analysis phase sees the CLRs, knows that portion of T2 is already undone, and resumes cleanly. Losers can therefore be rolled back across arbitrarily many repeated crashes.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant D as Disk Storage
+    participant A as Phase 1: Analysis
+    participant R as Phase 2: Redo (Repeating History)
+    participant U as Phase 3: Undo (Rolling Back Losers)
 
-Why Redo repeats history instead of skipping losers: pages on disk may hold arbitrary mixtures of applied and unapplied changes, and physical undo of a half-written page is not meaningful. Only after Redo reconstructs the exact crash state is backward undo well-defined.
+    Note over A: Scan Forward from Checkpoint
+    A->>A: Identify Winner Transactions (Committed)
+    A->>A: Identify Loser Transactions (Active at Crash)
+    A->>A: Reconstruct Dirty Page Table (DPT) & smallest RecLSN
 
-### Force / No-Force and Steal / No-Steal Buffer Policies
-1. **Force at commit**: flush all of a transaction's dirty pages at commit. Simple recovery, but destroys performance (random I/O in the commit path).
-2. **No-force**: dirty pages may stay cached after commit; recovery redoes winners from the log. WAL makes this cheap; nearly every engine chooses no-force.
-3. **Steal**: the buffer pool may evict a page containing uncommitted changes. Requires CLRs so losers remain undoable. Chosen by virtually all engines because long transactions would otherwise exhaust memory.
-4. **No-steal**: simplest rollback, but one big transaction can wedge the entire buffer pool.
+    Note over R: Scan Forward from smallest RecLSN to Crash Point
+    R->>D: Replay ALL logged changes (Winners & Losers)
+    Note over R: Database state matches exact moment of crash
 
-WAL is precisely the combination **no-force + steal + CLRs**: maximum buffering freedom at runtime, with the log as the single source of truth for recovery.
+    Note over U: Scan Backward from Crash Point
+    U->>D: Undo updates of Loser Transactions
+    U->>D: Emit Compensation Log Records (CLRs) with UndoNext pointers
+    Note over U: Crash during Undo? CLRs guarantee idempotent resume
+```
 
-### Why Sequential Log Appends Are the Whole Game
-1. The commit path touches exactly one file position: the end of the log. Sequential writes avoid seek costs entirely, which historically meant 100x advantages over random page writes on spinning disks and still means predictable latency on SSDs.
-2. Log buffer sizing matters: InnoDB `innodb_log_buffer_size` (default 64 MB) absorbs bursts before flushing; PostgreSQL `wal_buffers` defaults to about 1/32 of shared memory and rarely needs tuning beyond 16 MB.
-3. Every durability feature is a variation on the same trick: describe changes compactly in an append-only stream, flush that stream eagerly, and let expensive page reorganization happen lazily in the background.
+### Complete Worked ARIES Recovery Trace
+To understand ARIES deterministically, trace the following concrete log sequence. Assume a fuzzy checkpoint completed just before LSN 100 with an empty Dirty Page Table. Transaction $T_1$ commits; Transaction $T_2$ is still active when power abruptly fails:
 
-### Engine Internals: Two Durability Pipelines
-- **InnoDB (MySQL)**: changes are wrapped in mini-transactions whose records go to a circular redo log sized by `innodb_redo_log_capacity`. The **doublewrite buffer** first copies flushed pages to a sequential area, defeating torn pages (a 16 KB page half-applied over 4 KB sectors after a crash). Binlog and redo are coordinated by an internal two-phase commit, with binlog group commit batching fsyncs across transactions (`binlog_group_commit_sync_delay` tunes it).
-- **PostgreSQL**: WAL lives in 16 MB segments; `full_page_writes` logs the whole page image after a checkpoint boundary, the native defense against torn pages. Transaction status lives in the commit log (`pg_xact`, formerly clog) using 2 bits per transaction: IN_PROGRESS, COMMITTED, ABORTED, SUB_COMMITTED. Frequently-read pages cache inferred statuses as **hint bits** to avoid repeated lookups. `PREPARE TRANSACTION` supports true two-phase commit, but `max_prepared_transactions` defaults to 0, disabling it; orphaned prepared transactions hold locks and block VACUUM until resolved via `pg_prepared_xacts` and `COMMIT PREPARED`.
+| LSN | PrevLSN | TxnID | Type | PageID | Undo (Old Image) | Redo (New Image) | Description |
+|---|---|---|---|---|---|---|---|
+| **100** | 0 | - | `CHECKPOINT` | - | - | - | Fuzzy checkpoint with empty DPT |
+| **101** | 0 | $T_1$ | `BEGIN` | - | - | - | $T_1$ starts |
+| **102** | 101 | $T_1$ | `UPDATE` | $P_1$ | $A = 100$ | $A = 150$ | $T_1$ updates $P_1$ |
+| **103** | 0 | $T_2$ | `BEGIN` | - | - | - | $T_2$ starts |
+| **104** | 103 | $T_2$ | `UPDATE` | $P_2$ | $B = 500$ | $B = 520$ | $T_2$ updates $P_2$ |
+| **105** | 102 | $T_1$ | `UPDATE` | $P_3$ | $C = 70$ | $C = 75$ | $T_1$ updates $P_3$ |
+| **106** | 105 | $T_1$ | `COMMIT` | - | - | - | $T_1$ commits (fsync complete) |
+| **107** | 104 | $T_2$ | `UPDATE` | $P_4$ | $D = 900$ | $D = 850$ | $T_2$ updates $P_4$ |
+| **108** | 107 | $T_2$ | `UPDATE` | $P_2$ | $B = 520$ | $B = 545$ | $T_2$ updates $P_2$ |
+| **CRASH**| - | - | - | - | - | - | Power cut! Server restarts |
 
-### Numbers Worth Quoting in Interviews
-1. fsync latency dominates commit cost: NVMe roughly 0.05 to 0.5 ms, SATA SSD roughly 0.5 to 2 ms, spinning disk 5 to 10 ms. Single-stream ceilings: about 2000 commits/s on fast NVMe down to about 100/s on HDD.
-2. Group commit scales one fsync across N waiting committers: 100 committers sharing a 1 ms fsync moves the theoretical ceiling from 1000/s toward 100,000/s.
-3. PostgreSQL asynchronous commit (`synchronous_commit = off`) trades at most about 3 times `wal_writer_delay` (roughly 600 ms default) of acknowledged-work risk for a large latency win on write-heavy endpoints like logging tables.
-4. InnoDB `innodb_flush_log_at_trx_commit = 2` risks about 1 second of commits on OS crash; setting 0 risks it even on a clean MySQL restart.
-5. Doublewrite roughly doubles page-write traffic during checkpoint bursts; that is the price of torn-page immunity on 4 KB-sector devices.
+#### Step 1: Phase 1 — Analysis Pass
+- The recovery manager starts reading the log forward from LSN 100.
+- When LSN 106 (`T1 COMMIT`) is scanned, $T_1$ is added to the **Winner Set**: $\{T_1\}$.
+- When the log ends at LSN 108 without a commit record for $T_2$, $T_2$ is placed in the **Loser Set**: $\{T_2\}$.
+- The **Dirty Page Table (DPT)** is reconstructed:
+  - $P_1 \to \text{RecLSN } 102$
+  - $P_2 \to \text{RecLSN } 104$
+  - $P_3 \to \text{RecLSN } 105$
+  - $P_4 \to \text{RecLSN } 107$
+- Smallest $\text{RecLSN} = 102$.
 
-### Production Failure Modes
-1. **Torn pages**: storage that applies half a 16 KB page before losing power. Defenses: doublewrite (InnoDB) or full_page_writes (PostgreSQL). Disabling either for speed invites silent corruption, not just data loss.
-2. **Lying storage**: Jepsen's storage audits found drives, RAID controllers, and VM hypervisors acknowledging fsync and then dropping data on power cut. Benchmark with `pg_test_fsync` and distrust consumer SSD write caches.
-3. **Crash during Partially Committed**: all effects were in the buffer pool; without a flushed commit record ARIES classifies the transaction as a loser and erases it. Correct behavior, frequently mistaken by applications for "the database ate my writes".
-4. **Long transactions**: one hour-long transaction pins the WAL/checkpoint horizon in InnoDB and the VACUUM horizon in PostgreSQL, ballooning disk usage and stretching the next crash recovery.
-5. **Async-commit amnesia**: teams flip `synchronous_commit = off` for throughput, lose hundreds of milliseconds of "confirmed" orders in a power blip, and misdiagnose it as application bugs. Document the risk window next to the config change.
+#### Step 2: Phase 2 — Redo Pass ("Repeating History")
+- Scanning forward from the minimum RecLSN ($102$), the engine reapplies **all** changes for both winner and loser transactions in exact chronological order:
+  - LSN 102: Reapply $P_1.A = 150$.
+  - LSN 104: Reapply $P_2.B = 520$.
+  - LSN 105: Reapply $P_3.C = 75$.
+  - LSN 107: Reapply $P_4.D = 850$.
+  - LSN 108: Reapply $P_2.B = 545$.
+- *Why repeat history for uncommitted loser $T_2$?* Because on-disk data pages could have suffered partial page flushes prior to the crash. Replaying all changes forward deterministically brings the in-memory database to the exact physical state it held at the millisecond of failure.
+
+#### Step 3: Phase 3 — Undo Pass (Rolling Back Losers with CLRs)
+- The engine scans backward from LSN 108, undoing changes belonging exclusively to loser transaction $T_2$:
+  1. At LSN 108 ($P_2.B = 545 \to 520$), the engine writes a **Compensation Log Record (CLR)**:
+     - `LSN 109: CLR for LSN 108, UndoNext = 107, Page P2, Restores B = 520`.
+  2. At LSN 107 ($P_4.D = 850 \to 900$), the engine writes:
+     - `LSN 110: CLR for LSN 107, UndoNext = 104, Page P4, Restores D = 900`.
+  3. At LSN 104 ($P_2.B = 520 \to 500$), the engine writes:
+     - `LSN 111: CLR for LSN 104, UndoNext = 0, Page P2, Restores B = 500`.
+  4. Following `UndoNext = 0`, $T_2$ rollback is complete. The engine appends `LSN 112: T2 ABORT`.
+- **Idempotency Guarantee**: If the system crashes *again* while executing Undo (e.g., at LSN 110), the restarted recovery engine reads CLRs 109 and 110 during Redo and follows their `UndoNext` pointers, never repeating already undone operations.
+
+### Engine-Specific Internals: PostgreSQL vs MySQL InnoDB
+- **PostgreSQL**: 
+  - WAL segments are 16 MB files written to `pg_wal/`.
+  - Transaction state is tracked in 2-bit commit status flags inside `pg_xact/` (`IN_PROGRESS`, `COMMITTED`, `ABORTED`, `SUB_COMMITTED`).
+  - To prevent torn pages (where a 4 KB OS sector write fails mid-way through an 8 KB Postgres page write), PostgreSQL logs an entire 8 KB page image in WAL on the first modification after a checkpoint (`full_page_writes = on`).
+- **MySQL InnoDB**:
+  - Maintains circular redo log files configured via `innodb_redo_log_capacity`.
+  - Employs a dedicated **Doublewrite Buffer** on storage: before writing dirty pages to actual data files, InnoDB writes them sequentially to contiguous doublewrite blocks. If an OS crash tears a page, InnoDB restores the pristine page from the doublewrite buffer and resumes recovery.
+
+### Production Failure Modes & Operational Gotchas
+1. **Torn Pages on Power Cut**: Standard hard drives and SSDs guarantee atomic writes only at the 512-byte or 4 KB sector level. When an engine writes 8 KB or 16 KB pages during a power failure, half-written pages become permanently corrupted unless protected by doublewrite buffers or full-page WAL logging. Never disable these protections in production for raw benchmark speed.
+2. **Asynchronous Commit Data Loss**: Setting PostgreSQL `synchronous_commit = off` or MySQL `innodb_flush_log_at_trx_commit = 2` yields massive write latency gains for logging and ingestion workloads, but risks losing the last $\sim 600\text{ ms}$ to $1{,}000\text{ ms}$ of committed data if the host OS panics.
+3. **Long-Running Transactions Pinning WAL**: A single uncommitted developer transaction left open overnight prevents the database from reclaiming WAL log segments and blocks VACUUM / purge threads, eventually filling the disk volume and causing a database outage.
+4. **Cascading Aborts in Non-Strict Schedules**: If transaction $T_1$ updates a row without holding exclusive locks until commit, and transaction $T_2$ reads that dirty value, an eventual abort of $T_1$ forces the engine to forcibly abort $T_2$ and all subsequent dependents, creating a cascading rollback storm.
+
+---
+
+### Common Misconceptions
+
+1. **"Executing COMMIT writes data pages directly to the database tables on disk."**
+   *Correction*: `COMMIT` only guarantees that log records are flushed to the sequential WAL file. Dirty data pages remain buffered in RAM and are written to disk lazily minutes later during background checkpoints.
+2. **"REPEATABLE READ completely prevents Phantom Reads in all databases."**
+   *Correction*: Under the strict ANSI SQL-92 standard, Repeatable Read allows phantom reads. PostgreSQL avoids phantoms at this level by implementing Snapshot Isolation, while MySQL InnoDB uses Next-Key (index range) locking for locking reads.
+3. **"ACID Consistency is the same as CAP Theorem Consistency."**
+   *Correction*: ACID Consistency means transactions preserve internal schema rules and declarative integrity constraints ($A + B = C$). CAP Consistency refers to linearizability in a distributed network (all nodes observe identical read values simultaneously).
+4. **"If the database crashes during a transaction, incomplete changes are discarded immediately upon reboot."**
+   *Correction*: ARIES Redo phase first replays *all* uncommitted modifications into memory ("repeating history") to reconstruct the exact crash-time state before the Undo phase scans backward to roll them back.
+
+---
 
 ### Interview Questions
 
-### Q1: Recite the isolation level versus anomaly matrix and add engine caveats.
-**Answer**: Rows READ UNCOMMITTED through SERIALIZABLE; columns dirty read, non-repeatable read, phantom, lost update, write skew. Each level prevents everything the previous level does plus one more anomaly. Caveats: PostgreSQL REPEATABLE READ is really Snapshot Isolation (no phantoms, write skew still possible until SERIALIZABLE/SSI); MySQL InnoDB REPEATABLE READ adds gap and next-key locks suppressing phantoms on indexed ranges; SQL Server READ COMMITTED only behaves snapshot-style after enabling READ_COMMITTED_SNAPSHOT.
+**Q1. Why must the Write-Ahead Log (WAL) record be flushed to disk before the dirty data page is written?** `[easy]`
+The log represents the sole source of truth for crash recovery. If a dirty data page were flushed to disk before its corresponding log record and the server suffered a power loss, the disk would contain uncommitted changes with no undo log to reverse them and no redo log to replay them. This violates both Atomicity and Durability, rendering clean crash recovery impossible.
 
-### Q2: The server crashed after my last statement ran but before COMMIT. Did my work happen?
-**Answer**: No. You were in Partially Committed: effects lived in the buffer pool and possibly on disk, but the `<commit>` log record never reached stable storage. ARIES Analysis finds no commit record, classifies the transaction as a loser, Redo rebuilds the crash state, and Undo erases your changes with CLRs. Durability is defined by the flushed commit record, not by statement completion.
+**Q2. In which transaction state have all SQL statements finished executing but changes are not yet durable?** `[easy]`
+The transaction is in the **Partially Committed** state. All queries have executed in volatile memory buffers, but the `<COMMIT>` log record has not yet been physically flushed and acknowledged by non-volatile storage via `fsync`. If the database crashes while in this state, recovery handles the transaction as a loser and rolls it back.
 
-### Q3: Why must ARIES Redo replay loser transactions too ("repeating history")?
-**Answer**: Because disk pages can contain arbitrary interleavings of committed and uncommitted changes, and neither undo nor redo is safely applicable to a page in an unknown intermediate state. Redoing the entire log from the checkpoint deterministically reconstructs the exact crash-time state, after which backward undo of losers with CLRs is well-defined and idempotent across repeated crashes.
+**Q3. What is the fundamental difference between a Dirty Read and a Phantom Read?** `[easy]`
+A Dirty Read occurs when a transaction reads uncommitted row modifications from another transaction that might subsequently abort. A Phantom Read occurs when a transaction executes a range query (e.g., `WHERE status = 'ACTIVE'`) and re-executes the exact same query later, finding newly inserted rows that were committed by another transaction in the interim.
 
-### Q4: Compare force/no-force and steal/no-steal. Which pair do real engines pick and why?
-**Answer**: Engines pick no-force + steal. No-force avoids random page writes in the commit path (the log flush suffices; recovery redoes winners). Steal lets the buffer pool evict pages of uncommitted transactions so one giant transaction cannot exhaust memory; CLRs make stealing safe by guaranteeing losers are always undoable. Force and no-steal are the safe-but-slow textbook corners.
+**Q4. What is the difference between the STEAL and NO-STEAL buffer pool policies?** `[easy]`
+Under a STEAL policy, the buffer manager is permitted to evict dirty pages modified by uncommitted active transactions to disk to free up RAM for other queries, which requires UNDO logging during crash recovery. Under a NO-STEAL policy, uncommitted pages can never be written to disk, which eliminates the need for undo logs but limits transaction size to physical buffer memory capacity.
 
-### Q5: Is "Consistency" in ACID the same as "Consistency" in CAP?
-**Answer**: No. ACID-C means a transaction preserves declared integrity constraints (foreign keys, checks, business invariants) and moves the database between valid states; it is a property of correct transaction logic. CAP-C means linearizability in a distributed store: every operation appears atomic at some instant between invocation and response, even across replicas. A single-node database makes no CAP claim at all; a perfectly linearizable cluster can still host constraint-violating data if the application writes nonsense.
+**Q5. Why does the ARIES REDO phase repeat history by replaying uncommitted loser transactions?** `[medium]`
+At the moment of a crash, data pages on disk may contain an arbitrary mixture of older and newer changes due to background buffer page eviction. Attempting to selectively undo loser changes on a page that lacks prior redo steps produces corrupted, undefined state. Replaying all log records forward from the checkpoint deterministically reconstructs the exact in-memory state at the instant of failure, after which backward undo using CLRs is mathematically sound and idempotent.
 
-### Q6: What exactly does `innodb_flush_log_at_trx_commit = 2` risk, and how do you reason about such settings?
-**Answer**: Commits are written to the OS page cache and fsynced about once per second. A MySQL process crash loses nothing extra (the OS cache survives), but an OS or machine crash loses roughly the last second of acknowledged transactions. Reasoning template for any durability knob: identify the failure boundary (process, OS, machine, data center), the flush boundary (buffer, OS cache, device), and the resulting maximum loss window; then price it against business tolerance.
+**Q6. What are Compensation Log Records (CLRs) and why are they critical for recovery idempotency?** `[medium]`
+Compensation Log Records are redo-only log entries written during the ARIES Undo phase as the engine reverses the changes of aborted loser transactions. Each CLR records the inverse operation and contains an `UndoNext` pointer directing recovery to the next un-reversed log record. If the database crashes repeatedly during recovery, the restarted engine reads the CLRs, skips already undone actions, and resumes rollback without getting stuck in an infinite undo loop.
 
-### Q7: How do savepoints relate to the log?
-**Answer**: A `ROLLBACK TO SAVEPOINT` is a scoped undo pass: the engine scans its own log records backward to the savepoint LSN, reverses each change, and emits CLRs marking the region undone, leaving earlier records intact. The outer transaction continues appending after the CLRs, and a final COMMIT makes everything surviving durable in one fsync.
+**Q7. How does Group Commit overcome physical disk I/O limits during high-concurrency workloads?** `[medium]`
+An individual `fsync` system call forces a physical storage sync, which takes $\sim 0.5\text{ ms}$ to $1.0\text{ ms}$ on solid-state hardware, capping single-threaded throughput at roughly $1{,}000\text{ to }2{,}000\text{ commits/sec}$. Group Commit allows one thread (the group leader) to initiate an `fsync` while dozens of concurrent committing threads append their commit records to the same log buffer batch. A single disk flush simultaneously makes all batched transactions durable, multiplying throughput beyond $50{,}000+\text{ commits/sec}$.
+
+**Q8. Why is Write Skew possible under Snapshot Isolation but prevented under Serializable isolation?** `[medium]`
+Snapshot Isolation ensures that every transaction reads from a private, consistent snapshot and only checks for conflicts when two transactions attempt to update the *exact same row* (first-committer-wins). Write Skew occurs when two concurrent transactions read overlapping data sets but modify disjoint rows to violate a global constraint (like two on-call doctors simultaneously taking leave). Because different rows were mutated, Snapshot Isolation permits both commits, whereas Serializable isolation tracks read-write predicate dependencies and aborts one transaction.
+
+**Q9. What specific data loss does `innodb_flush_log_at_trx_commit = 2` risk in MySQL?** `[medium]`
+With setting `2`, MySQL writes transaction log records to the operating system file cache on every commit but only flushes them to physical disk storage roughly once per second. If the MySQL server process crashes, zero data is lost because the OS page cache survives and flushes normally. However, if the entire host operating system crashes or hardware power fails, up to one second of recently committed transactions can be permanently lost.
+
+**Q10. How does a database implement Savepoints and partial rollbacks under the hood?** `[medium]`
+When an application executes `SAVEPOINT <name>`, the transaction manager records the current Log Sequence Number (LSN). When `ROLLBACK TO SAVEPOINT <name>` is requested, the engine reads its log records backward from the current position to that saved LSN, undoes each intermediate operation, and emits CLRs for every reversed action. The outer transaction remains active, allowing subsequent SQL statements to execute and commit normally.
+
+**Q11. Why do modern database engines use Fuzzy Checkpoints instead of Naive Checkpoints?** `[medium]`
+Naive Checkpoints require freezing all incoming transaction execution while every dirty page in the buffer pool is written to disk, creating severe query latency spikes. Fuzzy Checkpoints write a `<BEGIN CHECKPOINT>` record, snapshot the in-memory Dirty Page Table and active transaction list, write an `<END CHECKPOINT>` record, and allow dirty buffer pages to flush lazily in the background. Normal query processing is never blocked, and recovery uses the snapshot's minimum `RecLSN` to determine the exact redo start position.
+
+**Q12. What causes a "Torn Page" and how do PostgreSQL and MySQL InnoDB defend against it?** `[hard]`
+A Torn Page occurs when a power loss or crash interrupts the writing of an 8 KB (Postgres) or 16 KB (InnoDB) database page across smaller 4 KB or 512-byte hardware disk sectors, leaving the page in a corrupted half-written state. PostgreSQL defends against this via `full_page_writes`, which writes the entire 8 KB page image to WAL on its first modification after a checkpoint so recovery can overwrite torn pages. MySQL InnoDB utilizes a physical **Doublewrite Buffer**, writing dirty pages sequentially to contiguous disk slots before writing to table files, allowing recovery to restore clean pages if a write fails.
+
+**Q13. Scenario: A payments microservice reports that after an abrupt OOM kill and reboot, several hundred completed orders vanished from the database despite returning HTTP 200 OK to users. What configuration issue caused this?** `[hard]`
+The database was configured with relaxed durability settings, such as PostgreSQL `synchronous_commit = off` or MySQL `innodb_flush_log_at_trx_commit = 2` (or `0`). In these modes, the database acknowledges transaction commits immediately after writing them to volatile RAM buffers rather than waiting for physical disk `fsync`. When the Linux kernel killed the process due to out-of-memory pressure, buffered commit records in RAM were destroyed before reaching persistent storage, causing ARIES recovery to treat those transactions as uncommitted losers on reboot.
+
+**Q14. Scenario: A high-throughput PostgreSQL cluster experiences sudden severe transaction stall spikes and disk space exhaustion. You notice WAL generation has skyrocketed to hundreds of gigabytes. What is the root cause and remediation?** `[hard]`
+A long-running uncommitted transaction (such as an orphaned analytics query or uncommitted migration) is holding open the transaction horizon. Because PostgreSQL cannot truncate WAL segments or purge dead row versions past the oldest active transaction's `xmin` LSN, WAL files accumulate on disk until storage is exhausted, and bloated tables degrade buffer pool hit rates. The immediate remediation is to identify and terminate the blocking PID using `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE state != 'idle' ORDER BY xact_start ASC LIMIT 1;` and configure `idle_in_transaction_session_timeout` to automatically kill abandoned connections in the future.
