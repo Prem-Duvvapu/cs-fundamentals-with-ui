@@ -145,6 +145,11 @@ rendering raw LaTeX because the old renderer was a 68-line regex chain.
 **Target:** every topic at 400–600 lines with ≥3 Mermaid diagrams and 12–15 interview Q&A
 pairs; ~28,000 total content lines; reading experience as the default tab.
 
+`plan.md` is now the authoritative SDE-2 coverage plan. It maps the full user-supplied checklist
+to lessons, identifies seven focused new lessons, defines the implementation priority, and adds a
+planned machine-readable coverage manifest. Do not start that expansion until the user approves
+the plan.
+
 ### Phase status
 
 | Phase | Goal | Status |

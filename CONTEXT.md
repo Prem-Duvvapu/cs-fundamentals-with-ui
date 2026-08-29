@@ -3,6 +3,10 @@
 ## Overview
 **CS Fundamentals with UI** is a content-first, full-stack educational platform for Computer Science fundamentals. It consists of a **Spring Boot REST backend** serving structured three-tier Markdown content and a **React 18 / Vite frontend** that makes reading, navigation and interview practice the primary experience, with interactive simulations available when they add learning value.
 
+The curriculum expansion is governed by [`plan.md`](plan.md), which maps the complete SDE-2
+acceptance checklist to existing or planned lessons. A planned coverage manifest will make those
+mappings machine-verifiable alongside route and content validation.
+
 ---
 
 ## 🏗 Containerization & Deployment Architecture
