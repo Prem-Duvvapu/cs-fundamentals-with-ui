@@ -1032,12 +1032,26 @@ body {
   color: var(--accent-pink);
   font-family: var(--font-mono);
   font-size: 0.9rem;
+  background: rgba(236, 72, 153, 0.1);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+}
+
+/* rehype-highlight assigns its own token colors inside fenced code — the
+   inline-code pink pill above must not bleed into block code. */
+.topic-content pre code {
+  color: var(--text-secondary);
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
 
 .topic-content table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.25rem 0;
+  overflow-x: auto;
+  display: block;
 }
 
 .topic-content th, .topic-content td {
@@ -1058,6 +1072,90 @@ body {
 
 .topic-content li {
   margin-bottom: 0.4rem;
+}
+
+.topic-content li > input[type="checkbox"] {
+  margin-right: 0.5rem;
+  accent-color: var(--accent-purple);
+}
+
+.topic-content a {
+  color: var(--accent-blue);
+  text-decoration: underline;
+  text-decoration-color: rgba(59, 130, 246, 0.35);
+  text-underline-offset: 2px;
+}
+
+.topic-content a:hover {
+  text-decoration-color: var(--accent-blue);
+}
+
+.topic-content blockquote {
+  margin: 1.25rem 0;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+  border-left: 3px solid var(--accent-blue);
+  border-radius: 0 10px 10px 0;
+  color: var(--text-secondary);
+}
+
+.topic-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.topic-content hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 2rem 0;
+}
+
+.topic-content strong {
+  color: var(--text-primary);
+}
+
+/* KaTeX */
+.topic-content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+  margin: 1.25rem 0;
+}
+
+.topic-content .katex {
+  color: var(--text-primary);
+  font-size: 1.05em;
+}
+
+/* Mermaid */
+.topic-content .mermaid-block {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: #0f172a;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.topic-content .mermaid-block svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.topic-content .mermaid-block-loading {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.topic-content .mermaid-block-error {
+  text-align: left;
+}
+
+.topic-content .mermaid-error-message {
+  color: var(--accent-amber);
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Network & DBMS Visualizer Styles */

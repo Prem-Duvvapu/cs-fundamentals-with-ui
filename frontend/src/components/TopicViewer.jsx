@@ -1,4 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
+
+// react-markdown + KaTeX + highlight.js are ~600KB and are only needed once
+// a topic's content is actually being read, so they get their own chunk
+// rather than loading with the app shell.
+const MarkdownRenderer = lazy(() => import('./markdown/MarkdownRenderer'))
 
 const CATEGORY_MAP = {
   'process-management': 'os', 'memory-management': 'os', 'cpu-scheduling': 'os', 'synchronization': 'os', 'deadlocks': 'os', 'file-systems': 'os', 'io-systems': 'os', 'disk-scheduling': 'os',
@@ -10,10 +15,12 @@ const CATEGORY_MAP = {
 
 export default function TopicViewer({ topicId, category }) {
   const [content, setContent] = useState('')
+  const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
+    setNotFound(false)
     const cat = category || CATEGORY_MAP[topicId] || 'os'
 
     fetch(`/api/v1/content/${cat}/${topicId}`)
@@ -22,47 +29,24 @@ export default function TopicViewer({ topicId, category }) {
         return res.text()
       })
       .then(text => {
-        setContent(renderMarkdown(text))
+        setContent(text)
         setLoading(false)
       })
       .catch(() => {
-        setContent('<p>Content not available yet.</p>')
+        setNotFound(true)
         setLoading(false)
       })
   }, [topicId, category])
 
   if (loading) return <div className="topic-content"><p>Loading...</p></div>
 
+  if (notFound) return <div className="topic-content"><p>Content not available yet.</p></div>
+
   return (
-    <div className="topic-content" dangerouslySetInnerHTML={{ __html: content }} />
+    <div className="topic-content">
+      <Suspense fallback={<p>Loading...</p>}>
+        <MarkdownRenderer content={content} />
+      </Suspense>
+    </div>
   )
-}
-
-function renderMarkdown(text) {
-  let html = text
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-    .replace(/^(\d+\..+)$/gm, '<li>$1</li>')
-    .replace(/(?:<li>\d+\..*<\/li>\n?)+/g, '<ol>$&</ol>')
-    .replace(/\|(.+)\|/g, (match) => {
-      const cells = match.split('|').filter(c => c.trim())
-      if (cells.every(c => /^[-:\s]+$/.test(c))) return '<tr class="sep"/>'
-      return `<td>${cells.join('</td><td>')}</td>`
-    })
-    .replace(/(<td>.*<\/td>\n?)+/g, '<tr>$&</tr>')
-    .replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>')
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br/>')
-
-  html = '<p>' + html + '</p>'
-    .replace(/<p><\/p>/g, '')
-    .replace(/<br\/><\/p>/g, '</p>')
-
-  return html
 }

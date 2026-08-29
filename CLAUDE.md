@@ -28,12 +28,21 @@ mvn spring-boot:run -f backend/pom.xml      # must run so that ./content or ../c
 
 `AGENTS.md` requires prefixing commands with `wsl` — that applies when driving this repo from a Windows shell. This session's shell is already Linux, so run them directly.
 
+**On WSL, the frontend suite is slow** (~9 min full run) because `node_modules` sits on `/mnt/c`. Run a single suite while iterating, and prefer backgrounding the full run:
+`npx vitest run src/components/__tests__/TopicViewer.markdown.test.jsx`
+
 ## Architecture
 
 ### Content pipeline
-`content/<category>/NN[a-z]-<slug>.md` → `ContentService` (resolves `content/` or `../content/` at startup, strips the `01b-` style numeric prefix to match a topic id) → `GET /api/v1/content/{category}/{topicId}` → `TopicViewer.jsx`, which renders Markdown with a **hand-rolled regex renderer** (no markdown library) and injects it via `dangerouslySetInnerHTML`. Content that uses syntax outside that renderer's subset (headings, lists, tables, fences, inline code, bold) will render wrong — `TopicViewer.renderMarkdown.test.js` guards it.
+`content/<category>/NN[a-z]-<slug>.md` → `ContentService` (resolves `content/` or `../content/` at startup, strips the `01b-` style numeric prefix to match a topic id) → `GET /api/v1/content/{category}/{topicId}` → `TopicViewer.jsx` → `components/markdown/MarkdownRenderer.jsx`.
 
-Every content file follows the strict 3-tier pattern: `## 🟢 Beginner Level`, `## 🟡 Intermediate Level`, `## 🔴 Expert Level` (expert tier ends with interview Q&As).
+The renderer is **react-markdown + remark-gfm + remark-math/rehype-katex + rehype-highlight**, so content may use the full GFM set (nested lists, blockquotes, links, emphasis, task lists, footnotes, aligned tables), `$…$` / `$$…$$` math, and fenced code with syntax highlighting. A ` ```mermaid ` fence is routed to `components/markdown/MermaidBlock.jsx`, which lazy-`import()`s Mermaid (keeping ~500KB out of the main chunk), themes it centrally from the App.css tokens, and falls back to showing the raw source if a diagram fails to parse.
+
+`TopicViewer.markdown.test.jsx` is the guard: it renders **every** file in `content/` and asserts no unparsed markdown leaks into prose, that every math file produces real KaTeX output, and that every blockquote file produces a real `<blockquote>`.
+
+Every content file follows the strict 3-tier pattern: `## 🟢 Beginner Level`, `## 🟡 Intermediate Level`, `## 🔴 Expert Level` (expert tier ends with Common Misconceptions and interview Q&As).
+
+**`content/CONTENT_SPEC.md` is the authoring contract** — depth targets, required Mermaid diagrams, interview-Q&A format and voice. Read it before writing or editing any curriculum content.
 
 ### Topic registration — the critical cross-cutting concern
 A topic id is a string duplicated across many files. Adding or renaming one means touching **all** of these, or the topic silently 404s / falls back to "Visualizer coming soon":

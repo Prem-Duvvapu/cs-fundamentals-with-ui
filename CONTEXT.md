@@ -93,9 +93,46 @@
 
 ---
 
+## 📝 Content Rendering Pipeline
+
+```
+content/<category>/NN[a-z]-<slug>.md
+        │
+        ▼
+ContentService            resolves ./content or ../content at startup;
+        │                 strips the "01b-" numeric prefix to match a topic id
+        ▼
+GET /api/v1/content/{category}/{topicId}     returns raw Markdown
+        │
+        ▼
+TopicViewer.jsx
+        │
+        ▼
+components/markdown/MarkdownRenderer.jsx
+        │  react-markdown 9
+        │  + remark-gfm         full GitHub-Flavoured Markdown
+        │  + remark-math        $inline$ and $$block$$
+        │  + rehype-katex       math typesetting
+        │  + rehype-highlight   fenced-code syntax highlighting
+        │
+        └──► ```mermaid fences ──► components/markdown/MermaidBlock.jsx
+                                   lazy import('mermaid'), themed centrally
+                                   from App.css tokens, falls back to raw
+                                   source if a diagram fails to parse
+```
+
+**Authoring contract:** `content/CONTENT_SPEC.md` defines depth targets, required diagrams,
+interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
+
+**Guard suite:** `frontend/src/components/__tests__/TopicViewer.markdown.test.jsx` renders
+every file in `content/` and asserts no unparsed Markdown leaks into prose, that math files
+produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
+
+---
+
 ## 🔌 REST API Endpoints
 
-- `GET /api/v1/topics` — Lists all 48 curriculum topics with level and summary metadata.
+- `GET /api/v1/topics` — Lists all 56 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 
@@ -104,10 +141,10 @@
 ## 🧪 Testing & Verification Commands
 
 ```bash
-# Run All Backend Tests (30 test suites across 48 topics)
+# Run All Backend Tests (5 suites, 31 tests, covering all 56 topics)
 wsl mvn test -f backend/pom.xml
 
-# Run All Frontend Tests (29 test files, 92 unit/integration tests)
+# Run All Frontend Tests (38 test files, 263 unit/integration tests)
 wsl npm test --prefix frontend
 
 # Build Frontend Production Bundle

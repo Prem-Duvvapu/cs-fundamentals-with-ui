@@ -15,11 +15,12 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 ├── AGENTS.md              # Context for AI agents
 ├── README.md              # Project overview & quickstart
 ├── CONTEXT.md             # System architecture & API documentation
-├── content/               # Markdown educational content (47 topics)
-│   ├── os/                # Operating Systems (7 topics)
+├── content/               # Markdown educational content (56 topics)
+│   ├── CONTENT_SPEC.md    # ★ Authoring contract — read before writing content
+│   ├── os/                # Operating Systems (8 topics)
 │   ├── networking/        # Computer Networks (12 topics)
-│   ├── dbms/              # Database Management Systems (11 topics)
-│   ├── java-spring/       # Java & Spring Boot Ecosystem (17 topics)
+│   ├── dbms/              # Database Management Systems (12 topics)
+│   ├── java-spring/       # Java & Spring Boot Ecosystem (18 topics)
 │   └── aiml/              # AI / ML Architecture (6 topics)
 ├── backend/               # Spring Boot application
 │   ├── pom.xml
@@ -50,7 +51,21 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 Each `.md` file follows this strict 3-tier educational pattern:
 - `## 🟢 Beginner Level` — Simple explanations, analogies, mental models, basic diagrams
 - `## 🟡 Intermediate Level` — Deeper concepts, mathematical formulas, algorithms, code examples
-- `## 🔴 Expert Level` — Implementation details, Linux kernel / JVM internals, trade-offs, and Interview Q&As
+- `## 🔴 Expert Level` — Implementation details, Linux kernel / JVM internals, trade-offs, Common Misconceptions, and Interview Q&As
+
+**Before writing or editing any content file, read [`content/CONTENT_SPEC.md`](content/CONTENT_SPEC.md).**
+It is the authoring contract: depth targets (400–600 lines), required Mermaid diagrams
+(≥3 per file), interview Q&A format (12–15 pairs), permitted Markdown, and voice.
+
+### Content rendering pipeline
+Content is rendered by `frontend/src/components/markdown/MarkdownRenderer.jsx`
+(react-markdown + remark-gfm + remark-math/rehype-katex + rehype-highlight). Content may use:
+- Full GitHub-Flavoured Markdown — nested lists, blockquotes, links, emphasis, task lists, aligned tables
+- KaTeX math — `$O(\log n)$` inline, `$$…$$` block
+- **Mermaid diagrams** in ` ```mermaid ` fences, rendered by `MermaidBlock.jsx`
+
+Raw HTML is not permitted. Diagrams should be Mermaid, not ASCII box art — the ASCII
+diagrams in older files are legacy being replaced, not a pattern to copy.
 
 ## Curriculum Roadmaps (56 Complete Topics)
 
@@ -119,6 +134,54 @@ Each `.md` file follows this strict 3-tier educational pattern:
 - [x] LLM Sampling Parameters & ReAct Agents (Temperature, Top-P, tokenization, ReAct tool execution)
 - [x] Feature Stores & MLOps Architecture (Online/offline stores, PSI data drift detection, retraining)
 - [x] 2-Stage Recommendation Engine (Two-tower candidate retrieval, deep ranking models, pCTR scoring)
+
+## Active Roadmap — Curriculum Depth Rebuild
+
+The platform is being rebalanced from **simulation-first** to **content-first**. Measured at
+the start of this effort: 15,592 LOC of simulation code vs 7,491 lines of curriculum content
+(~134 lines/topic — cheatsheet depth), 4 interview Q&A lines repo-wide, and 28 content files
+rendering raw LaTeX because the old renderer was a 68-line regex chain.
+
+**Target:** every topic at 400–600 lines with ≥3 Mermaid diagrams and 12–15 interview Q&A
+pairs; ~28,000 total content lines; reading experience as the default tab.
+
+### Phase status
+
+| Phase | Goal | Status |
+|---|---|---|
+| **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
+| **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ◐ Spec done; validator + CI pending |
+| **P2** | Reading experience — default Study tab, TOC rail, tier nav, interview deck | ☐ Not started |
+| **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ☐ Not started |
+| **P4** | Content authoring, 56 topics in 3 waves | ☐ Not started |
+| **P5** | Cross-topic search + per-category Interview Mode | ☐ Not started |
+| **P6** | Verify, doc sync, ship | ☐ Not started |
+
+### What P0 delivered (already on this branch)
+- `frontend/src/components/markdown/MarkdownRenderer.jsx` — full GFM + math + highlighting
+- `frontend/src/components/markdown/MermaidBlock.jsx` — lazy-loaded, centrally themed, error-tolerant
+- `TopicViewer.jsx` rewritten to delegate; `renderMarkdown()` and `dangerouslySetInnerHTML` removed
+- `TopicViewer.markdown.test.jsx` — golden-file suite over **all 56** content files (146 assertions)
+- Vitest upgraded 1.x → 2.1.8 with ESM deps inlined in `vite.config.js` (required for react-markdown 9)
+- `App.css` — styles for blockquotes, links, KaTeX, Mermaid containers, task lists, scrollable tables
+
+### Rules for content work (P4)
+Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
+All 56 topics are already registered at all 7 registration points, so content work requires
+**zero** registration changes. Never edit `.java`, `.jsx`, `.js` or `.json` in a content unit.
+
+Wave order (thinnest + highest interview value first):
+- **Wave A (22 files)** — all 6 `aiml`; `networking` 02, 03, 04, 06, 07, 08; `java-spring` 01c, 01d, 01f, 01h, 01j, 02, 03, 04, 05, 06
+- **Wave B (22 files)** — remaining `java-spring` and `networking`; all 8 `os`
+- **Wave C (12 files)** — all `dbms` (already deepest; needs diagrams + Q&A, not a rewrite)
+
+Before Wave A begins, one agent must author `content/dbms/06-transactions-acid.md` to the full
+contract as the **exemplar** every later unit matches.
+
+### Before deleting any simulator (P3)
+`frontend/src/data/*.json` files contain `theoryData.interviewQA` and `quizData` — real
+interview questions. **Migrate them into the topic's Markdown before deleting anything.**
+This is the easiest way to silently lose work in this project.
 
 ## Conventions
 - **Commits**: `feat/<date>-<topic>` pattern

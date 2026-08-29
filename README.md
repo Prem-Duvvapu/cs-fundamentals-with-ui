@@ -97,18 +97,20 @@ docker-compose up --build
 
 - **Backend**: Java 17, Spring Boot 3.2.0, Maven
 - **Frontend**: React 18, Vite, React Router v6, CSS Modules & Modern Animations
+- **Content rendering**: react-markdown + remark-gfm, KaTeX math, Mermaid diagrams, syntax highlighting
 - **Testing**: Vitest, React Testing Library, JUnit 5, Spring Boot Test
 - **Containerization**: Docker, Docker Compose, Nginx Reverse Proxy
 - **System Documentation**: See [CONTEXT.md](CONTEXT.md) and [AGENTS.md](AGENTS.md)
+- **Content authoring**: See [content/CONTENT_SPEC.md](content/CONTENT_SPEC.md)
 
 ---
 
 ## 🧪 Automated Testing
 
 ```bash
-# Run Frontend Tests (30 test files, 97+ unit & integration tests)
+# Run Frontend Tests (38 test files, 263 unit & integration tests)
 cd frontend && npm test
 
-# Run Backend Tests (30 test suites across all 49 topics)
+# Run Backend Tests (5 suites, 31 tests, covering all 56 topics)
 cd backend && mvn test
 ```
