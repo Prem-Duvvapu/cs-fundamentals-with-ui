@@ -17,7 +17,7 @@ const DiskSchedulingVisualizer = lazy(() => import('../components/visualizers/os
 
 export default function TopicPage() {
   const { topicId } = useParams()
-  const [activeTab, setActiveTab] = useState('simulator') // 'theory', 'simulator'
+  const [activeTab, setActiveTab] = useState('theory') // 'theory', 'simulator'
 
   const titleMap = {
     'process-management': 'Process Management & Lifecycle',
@@ -169,16 +169,16 @@ export default function TopicPage() {
 
         <div className="main-tab-switcher">
           <button
-            onClick={() => setActiveTab('simulator')}
-            className={`main-tab-btn ${activeTab === 'simulator' ? 'active-tab' : ''}`}
-          >
-            ⚡ Interactive Visual Simulation
-          </button>
-          <button
             onClick={() => setActiveTab('theory')}
             className={`main-tab-btn ${activeTab === 'theory' ? 'active-tab' : ''}`}
           >
-            📖 Educational Content & Deep Dive
+            📖 Study
+          </button>
+          <button
+            onClick={() => setActiveTab('simulator')}
+            className={`main-tab-btn ${activeTab === 'simulator' ? 'active-tab' : ''}`}
+          >
+            ⚡ Simulation
           </button>
         </div>
       </div>

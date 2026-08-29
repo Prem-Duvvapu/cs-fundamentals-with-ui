@@ -26,6 +26,13 @@ function extractText(children) {
   return String(children).replace(/\n$/, '')
 }
 
+export function headingId(children) {
+  return extractText(children)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 /**
  * Full GFM + math + Mermaid renderer for the 3-tier curriculum Markdown in
  * content/. Replaces the previous 68-line regex renderer in TopicViewer —
@@ -40,6 +47,12 @@ export default function MarkdownRenderer({ content }) {
         [rehypeHighlight, { languages: HIGHLIGHT_LANGUAGES, detect: false }]
       ]}
       components={{
+        h2({ children }) {
+          return <h2 id={headingId(children)}>{children}</h2>
+        },
+        h3({ children }) {
+          return <h3 id={headingId(children)}>{children}</h3>
+        },
         pre({ children }) {
           const child = Array.isArray(children) ? children[0] : children
           const childClassName = child?.props?.className || ''
