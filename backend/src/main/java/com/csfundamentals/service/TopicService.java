@@ -46,6 +46,7 @@ public class TopicService {
         new Topic("concurrency-control", "Concurrency Control, 2PL & Timestamp Ordering", "dbms", "expert", "Conflict serializability, Precedence Graphs, Shared/Exclusive locks, Strict 2PL, Thomas Write Rule, Wait-For Deadlock graphs"),
         new Topic("query-optimization", "Query Processing, Relational Trees & Cost-Based Optimizer", "dbms", "expert", "Relational algebra query trees, Predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE"),
         new Topic("distributed-databases-cap", "Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem", "dbms", "expert", "Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus"),
+        new Topic("sql-querying", "SQL Querying, Joins & Practical Data Access", "dbms", "intermediate", "SQL filtering, joins, grouping, window functions, transactions, query plans and safe data access"),
 
         // Java, Advanced Java, Spring Boot, JPA/Hibernate, Spring Batch & Quartz
         new Topic("java-execution-pipeline", "Java Execution Pipeline & JVM Architecture", "java-spring", "beginner", "javac bytecode compilation, ClassLoader Parent Delegation Model, Bytecode Verifier, Interpreter & JIT Compiler"),
@@ -66,6 +67,11 @@ public class TopicService {
         new Topic("spring-batch-lifecycle", "Spring Batch Execution Architecture & Chunk Engine", "java-spring", "expert", "JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry"),
         new Topic("quartz-scheduler", "Quartz Scheduler Lifecycle & Clustered JobStoreTX", "java-spring", "expert", "Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering"),
         new Topic("design-patterns-solid", "SOLID Principles & Design Patterns", "java-spring", "intermediate", "SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns"),
+        new Topic("spring-boot-internals", "Spring Boot Internals & Production Configuration", "java-spring", "intermediate", "Auto-configuration, externalized configuration, actuator, startup, profiles and production diagnostics"),
+        new Topic("spring-rest-api-design", "Spring REST API Design & Error Handling", "java-spring", "intermediate", "Resource design, validation, pagination, versioning, problem details and API contracts"),
+        new Topic("spring-security", "Spring Security, Authentication & Authorization", "java-spring", "expert", "Security filter chain, sessions, JWT, OAuth2, method security, CSRF and secure defaults"),
+        new Topic("spring-caching-async", "Spring Caching, Async Work & Resilience", "java-spring", "expert", "Cache abstraction, async execution, retries, timeouts, scheduling and resilient service boundaries"),
+        new Topic("spring-testing-production", "Spring Testing & Production Readiness", "java-spring", "expert", "Slice tests, integration tests, test containers, observability, deployment checks and incident-safe operations"),
 
         // AI / ML Systems
         new Topic("embeddings-vector-db", "Vector Embeddings, Similarity Search & Vector DBs", "aiml", "beginner", "Embedding vectors, cosine similarity, HNSW ANN search, pgvector/Qdrant"),
@@ -73,7 +79,8 @@ public class TopicService {
         new Topic("model-serving", "LLM Model Serving & Low-Latency Inference", "aiml", "expert", "vLLM PagedAttention, KV cache management, batching, GPU memory allocation"),
         new Topic("llm-parameters", "LLM Sampling Parameters, Tokenization & ReAct Agents", "aiml", "intermediate", "Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops"),
         new Topic("feature-stores", "Feature Stores, Data Drift & MLOps Architecture", "aiml", "expert", "Online vs offline feature stores, PSI drift detection, retraining pipelines"),
-        new Topic("recommendation-systems", "2-Stage Recommendation Engine Architecture", "aiml", "expert", "Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring")
+        new Topic("recommendation-systems", "2-Stage Recommendation Engine Architecture", "aiml", "expert", "Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring"),
+        new Topic("ml-fundamentals", "Machine Learning Fundamentals & Model Evaluation", "aiml", "beginner", "Supervised learning, features, train-validation-test splits, metrics, overfitting and responsible evaluation")
     );
 
     public List<Topic> getAllTopics() {
