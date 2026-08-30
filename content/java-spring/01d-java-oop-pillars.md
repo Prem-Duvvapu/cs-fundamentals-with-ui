@@ -4,7 +4,7 @@ Object-oriented programming organises state and behaviour around collaborating o
 
 ## 🟢 Beginner Level
 
-### The Four Core Pillars of Object-Oriented Programming
+### The four OOP pillars
 
 ```mermaid
 flowchart LR
@@ -25,6 +25,19 @@ Abstraction separates the caller's required behaviour from the implementation's 
 Inheritance is appropriate only when a subtype can honour every promise of its parent. `SavingsAccount is an Account` may be valid if it preserves account operations; `Square extends Rectangle` is a warning because independent width and height setters break substitutability.
 
 Polymorphism lets code select behaviour by runtime object type without a growing `if (type == ...)` chain. The abstraction is useful only when callers can work through the common contract, rather than downcasting back to every implementation.
+
+These relationships supply a more precise design vocabulary. **Association** means that objects
+collaborate without implying ownership; a `Doctor` treats a `Patient`. **Aggregation** is a weak
+whole-part association in which the part can outlive the whole; a `Team` groups independently
+existing `Player` objects. **Composition** is strong ownership; an `Order` owns its `OrderLine`
+values and controls their lifecycle. Inheritance models an **IS-A** relationship, while composition
+and aggregation usually model **HAS-A** relationships.
+
+Java supports compile-time polymorphism through method **overload** selection and runtime
+polymorphism through method **override** dispatch. The compiler selects an overloaded signature
+from declared types; the JVM then dispatches an overridable instance method from the receiver's
+runtime class. A sound class hierarchy therefore needs both a valid design relationship and a
+subtype that preserves the parent contract.
 
 ### A concrete object collaboration
 
@@ -51,9 +64,15 @@ final class CheckoutService {
 
 `CheckoutService` does not know whether the gateway uses HTTP, a queue, or an in-memory fake. That is abstraction and dependency inversion in a small form. The service still owns the business invariant: a cancelled order cannot be authorised.
 
-### Composition before inheritance
+### Inheritance, interfaces, and composition
 
 Composition means a class delegates a capability to another object instead of becoming a subtype. It avoids inheriting irrelevant API surface and lets behaviour vary per object rather than per class hierarchy.
+
+Inheritance couples a subclass to the state and extension rules of its parent. An interface exposes
+a narrower behavioural contract and permits unrelated implementations, while composition lets an
+object acquire that behaviour by holding an interface-typed collaborator. These tools are
+complementary: the following service composes a gateway interface whose implementations participate
+in interface inheritance.
 
 ```mermaid
 classDiagram
@@ -154,7 +173,7 @@ the need for a correct contract.
 Tests should exercise each implementation through the interface and assert shared rules. This
 reveals a subtype that violates the contract before a caller discovers it in production.
 
-### Object identity, state, and value semantics
+### Object identity, equality, and dispatch
 
 An object reference identifies one object on the heap.
 
@@ -185,6 +204,26 @@ If two objects are equal, they must produce the same hash code during their life
 Mutating a key after placing it in a `HashSet` can make it impossible to find or remove.
 
 Prefer immutable keys and avoid equality across a hierarchy unless the full contract is carefully designed.
+
+Every class ultimately inherits methods from `Object`. The default `equals()` compares identity,
+while a value class can override it to compare meaningful state; whenever it does, `hashCode()` must
+be overridden consistently so equal objects select compatible hash buckets. `toString()` should
+produce a concise diagnostic representation without exposing secrets, triggering lazy database
+loads, or becoming a machine-readable API contract.
+
+In plain API terminology, the equals and hashCode methods define logical equality and hash
+compatibility, while toString supplies diagnostics. The getClass method exposes exact runtime type
+identity. The clone method initiates the legacy copying protocol described below.
+
+`getClass()` returns the exact runtime `Class` object and therefore participates in reflection and
+runtime dispatch diagnostics. Equality implemented with `getClass()` rejects equality across a
+subclass boundary, whereas a careless `instanceof` policy can break symmetry when subclasses add
+state. Prefer final value types or a deliberately documented hierarchy equality policy.
+
+`clone()` performs field-by-field shallow copying only for classes that opt into `Cloneable`, and its
+checked exception plus constructor-bypassing protocol make it awkward for domain code. A copy
+constructor or named factory can validate state and deliberately copy mutable members. Treat
+`Object.clone()` as a compatibility mechanism to recognise, not the default design for copying.
 
 ### Visibility and API boundaries
 
