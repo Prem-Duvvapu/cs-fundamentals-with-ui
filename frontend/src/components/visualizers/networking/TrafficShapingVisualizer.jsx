@@ -44,7 +44,7 @@ export default function TrafficShapingVisualizer() {
   }
 
   return (
-    <div className="viz-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+    <div className="viz-card" style={{ border: '1px solid var(--border-subtle)' }}>
       <div style={{ marginBottom: '1.25rem' }}>
         <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
           🪣 Traffic Shaping Simulator: Token Bucket vs. Leaky Bucket
@@ -55,10 +55,10 @@ export default function TrafficShapingVisualizer() {
       </div>
 
       {/* PARAMETER CONTROLS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', background: '#0b1329', padding: '1rem', borderRadius: '10px', marginBottom: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', background: 'var(--bg-inset)', padding: '1rem', borderRadius: '10px', marginBottom: '1.25rem' }}>
         <div>
-          <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
-            Bucket Capacity: <strong style={{ color: '#38bdf8' }}>{capacity}</strong>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Bucket Capacity: <strong style={{ color: 'var(--state-info)' }}>{capacity}</strong>
           </label>
           <input
             type="range"
@@ -71,8 +71,8 @@ export default function TrafficShapingVisualizer() {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
-            Token Generation Rate: <strong style={{ color: '#4ade80' }}>{tokenRate} tokens/tick</strong>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Token Generation Rate: <strong style={{ color: 'var(--state-success)' }}>{tokenRate} tokens/tick</strong>
           </label>
           <input
             type="range"
@@ -85,8 +85,8 @@ export default function TrafficShapingVisualizer() {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
-            Leaky Outflow Rate: <strong style={{ color: '#f59e0b' }}>{leakRate} pkts/tick</strong>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Leaky Outflow Rate: <strong style={{ color: 'var(--state-warning)' }}>{leakRate} pkts/tick</strong>
           </label>
           <input
             type="range"
@@ -99,8 +99,8 @@ export default function TrafficShapingVisualizer() {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
-            Burst Packet Batch: <strong style={{ color: '#ec4899' }}>{burstSize} pkts</strong>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Burst Packet Batch: <strong style={{ color: 'var(--cat-hover)' }}>{burstSize} pkts</strong>
           </label>
           <input
             type="range"
@@ -118,7 +118,7 @@ export default function TrafficShapingVisualizer() {
         <button onClick={() => handleStepTick(0)} className="btn btn-secondary">
           Step Idle Tick (0 pkts) ⏱
         </button>
-        <button onClick={handleInjectBurst} className="btn btn-primary" style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}>
+        <button onClick={handleInjectBurst} className="btn btn-primary" style={{ background: 'linear-gradient(135deg, var(--cat-base), var(--cat-hover))' }}>
           Inject Traffic Burst ({burstSize} Packets) 🚀
         </button>
         <button onClick={handleReset} className="btn btn-secondary">
@@ -129,25 +129,25 @@ export default function TrafficShapingVisualizer() {
       {/* SIDE-BY-SIDE VISUAL COMPARISON */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
         {/* TOKEN BUCKET PANEL */}
-        <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(99,102,241,0.3)' }}>
+        <div style={{ background: 'color-mix(in srgb, var(--bg-page) 88%, transparent)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--cat-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <h4 style={{ margin: 0, color: '#818cf8' }}>🪙 Token Bucket</h4>
-            <span className="header-pill" style={{ background: '#312e81', color: '#c7d2fe' }}>
+            <h4 style={{ margin: 0, color: 'var(--cat-base)' }}>🪙 Token Bucket</h4>
+            <span className="header-pill" style={{ background: 'var(--cat-tint)', color: 'var(--text-secondary)' }}>
               Tokens: {tokenState.tokens} / {capacity}
             </span>
           </div>
 
-          <div style={{ height: '140px', background: '#020617', borderRadius: '8px', border: '2px dashed #4338ca', padding: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative' }}>
+          <div style={{ height: '140px', background: 'var(--bg-code)', borderRadius: '8px', border: '2px dashed var(--cat-border)', padding: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative' }}>
             <div
               style={{
                 height: `${Math.min(100, (tokenState.tokens / capacity) * 100)}%`,
-                background: 'linear-gradient(to top, #4f46e5, #818cf8)',
+                background: 'linear-gradient(to top, var(--cat-border), var(--cat-base))',
                 borderRadius: '4px',
                 transition: 'height 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 fontSize: '0.8rem',
                 fontWeight: 600
               }}
@@ -155,42 +155,42 @@ export default function TrafficShapingVisualizer() {
               {tokenState.tokens > 0 && `${tokenState.tokens} Tokens Available`}
             </div>
             {tokenState.tokens === 0 && (
-              <div style={{ textAlign: 'center', color: '#64748b', fontSize: '0.8rem', margin: 'auto 0' }}>
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', margin: 'auto 0' }}>
                 Bucket Empty (Awaiting Tokens)
               </div>
             )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.75rem', fontSize: '0.8rem' }}>
-            <div style={{ background: '#064e3b', color: '#a7f3d0', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
+            <div style={{ background: 'var(--state-success-tint)', color: 'var(--state-success)', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
               Transmitted: <strong>{tokenState.transmitted}</strong>
             </div>
-            <div style={{ background: tokenState.dropped > 0 ? '#7f1d1d' : '#1e293b', color: tokenState.dropped > 0 ? '#fecaca' : '#94a3b8', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
+            <div style={{ background: tokenState.dropped > 0 ? 'var(--state-danger-tint)' : 'var(--bg-raised)', color: tokenState.dropped > 0 ? 'var(--state-danger)' : 'var(--text-secondary)', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
               Dropped/Delayed: <strong>{tokenState.dropped}</strong>
             </div>
           </div>
         </div>
 
         {/* LEAKY BUCKET PANEL */}
-        <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1.25rem', borderRadius: '12px', border: '1px solid rgba(245,158,11,0.3)' }}>
+        <div style={{ background: 'color-mix(in srgb, var(--bg-page) 88%, transparent)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--state-warning-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <h4 style={{ margin: 0, color: '#fbbf24' }}>🚰 Leaky Bucket (FIFO)</h4>
-            <span className="header-pill" style={{ background: '#78350f', color: '#fde68a' }}>
+            <h4 style={{ margin: 0, color: 'var(--state-warning)' }}>🚰 Leaky Bucket (FIFO)</h4>
+            <span className="header-pill" style={{ background: 'var(--state-warning-tint)', color: 'var(--state-warning)' }}>
               Queue: {leakyState.buffer} / {capacity}
             </span>
           </div>
 
-          <div style={{ height: '140px', background: '#020617', borderRadius: '8px', border: '2px dashed #b45309', padding: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative' }}>
+          <div style={{ height: '140px', background: 'var(--bg-code)', borderRadius: '8px', border: '2px dashed var(--state-warning-border)', padding: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative' }}>
             <div
               style={{
                 height: `${Math.min(100, (leakyState.buffer / capacity) * 100)}%`,
-                background: 'linear-gradient(to top, #d97706, #fbbf24)',
+                background: 'linear-gradient(to top, var(--state-warning-border), var(--state-warning))',
                 borderRadius: '4px',
                 transition: 'height 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 fontSize: '0.8rem',
                 fontWeight: 600
               }}
@@ -198,17 +198,17 @@ export default function TrafficShapingVisualizer() {
               {leakyState.buffer > 0 && `${leakyState.buffer} Packets Queued`}
             </div>
             {leakyState.buffer === 0 && (
-              <div style={{ textAlign: 'center', color: '#64748b', fontSize: '0.8rem', margin: 'auto 0' }}>
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', margin: 'auto 0' }}>
                 Buffer Idle (0 In Queue)
               </div>
             )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.75rem', fontSize: '0.8rem' }}>
-            <div style={{ background: '#064e3b', color: '#a7f3d0', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
+            <div style={{ background: 'var(--state-success-tint)', color: 'var(--state-success)', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
               Drained: <strong>{leakyState.transmitted}</strong>
             </div>
-            <div style={{ background: leakyState.dropped > 0 ? '#7f1d1d' : '#1e293b', color: leakyState.dropped > 0 ? '#fecaca' : '#94a3b8', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
+            <div style={{ background: leakyState.dropped > 0 ? 'var(--state-danger-tint)' : 'var(--bg-raised)', color: leakyState.dropped > 0 ? 'var(--state-danger)' : 'var(--text-secondary)', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
               Buffer Overflow Drop: <strong>{leakyState.dropped}</strong>
             </div>
           </div>
@@ -216,13 +216,13 @@ export default function TrafficShapingVisualizer() {
       </div>
 
       {/* EVENT AUDIT LOG */}
-      <div style={{ background: '#020617', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-        <h5 style={{ margin: '0 0 0.5rem', color: '#94a3b8', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <div style={{ background: 'var(--bg-code)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+        <h5 style={{ margin: '0 0 0.5rem', color: 'var(--text-secondary)', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           📜 Traffic Event Audit Log (Current Tick: {tick})
         </h5>
-        <div style={{ maxHeight: '130px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '0.78rem', color: '#cbd5e1' }}>
+        <div style={{ maxHeight: '130px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
           {logs.map((log, i) => (
-            <div key={i} style={{ padding: '0.2rem 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+            <div key={i} style={{ padding: '0.2rem 0', borderBottom: '1px solid var(--bg-raised)' }}>
               {log}
             </div>
           ))}

@@ -96,7 +96,7 @@ export default function TcpCongestionVisualizer() {
             ⏭ Advance 1 RTT
           </button>
 
-          <button onClick={handlePacketLoss} className="btn btn-secondary" style={{ borderColor: '#ef4444', color: '#f87171' }}>
+          <button onClick={handlePacketLoss} className="btn btn-secondary" style={{ borderColor: 'var(--state-danger)', color: 'var(--state-danger)' }}>
             🔥 Inject Packet Loss Event
           </button>
         </div>
@@ -118,12 +118,12 @@ export default function TcpCongestionVisualizer() {
       {/* Action Banner */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -133,25 +133,25 @@ export default function TcpCongestionVisualizer() {
       {/* Grid: SVG Sawtooth Line Chart + Sliding Pipe Display */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Real-Time SVG Sawtooth Line Chart */}
-        <div className="viz-card" style={{ background: '#020617', padding: '1rem', borderRadius: '12px' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#93c5fd', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ background: 'var(--bg-code)', padding: '1rem', borderRadius: '12px' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-info)', display: 'flex', justifyContent: 'space-between' }}>
             <span>📈 Real-Time cwnd Sawtooth Chart</span>
-            <span style={{ fontSize: '0.8rem', color: '#34d399' }}>Phase: {state.phase}</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--state-success)' }}>Phase: {state.phase}</span>
           </h4>
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <svg width={chartWidth} height={chartHeight}>
               {/* Grid Lines */}
-              <line x1="40" y1="20" x2="40" y2={chartHeight - 30} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-              <line x1="40" y1={chartHeight - 30} x2={chartWidth - 20} y2={chartHeight - 30} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+              <line x1="40" y1="20" x2="40" y2={chartHeight - 30} stroke="var(--border-default)" strokeWidth="1" />
+              <line x1="40" y1={chartHeight - 30} x2={chartWidth - 20} y2={chartHeight - 30} stroke="var(--border-default)" strokeWidth="1" />
 
               {/* ssthresh Line */}
               {(() => {
                 const ssthreshY = chartHeight - 30 - (state.ssthresh / maxCwnd) * (chartHeight - 60)
                 return (
                   <g>
-                    <line x1="40" y1={ssthreshY} x2={chartWidth - 20} y2={ssthreshY} stroke="#f59e0b" strokeDasharray="4 4" strokeWidth="1.5" />
-                    <text x={chartWidth - 90} y={ssthreshY - 5} fill="#fbbf24" fontSize="10" fontWeight="bold">
+                    <line x1="40" y1={ssthreshY} x2={chartWidth - 20} y2={ssthreshY} stroke="var(--state-warning)" strokeDasharray="4 4" strokeWidth="1.5" />
+                    <text x={chartWidth - 90} y={ssthreshY - 5} fill="var(--state-warning)" fontSize="10" fontWeight="bold">
                       ssthresh ({state.ssthresh})
                     </text>
                   </g>
@@ -159,14 +159,14 @@ export default function TcpCongestionVisualizer() {
               })()}
 
               {/* Polyline Sawtooth */}
-              <polyline fill="none" stroke="#3b82f6" strokeWidth="3" points={points} />
+              <polyline fill="none" stroke="var(--state-info)" strokeWidth="3" points={points} />
 
               {/* Chart Points */}
               {state.history.map((h, i) => {
                 const cx = 40 + (h.rtt / maxRtt) * (chartWidth - 60)
                 const cy = chartHeight - 30 - (h.cwnd / maxCwnd) * (chartHeight - 60)
                 return (
-                  <circle key={i} cx={cx} cy={cy} r="4" fill={h.phase === 'SLOW_START' ? '#10b981' : '#3b82f6'} />
+                  <circle key={i} cx={cx} cy={cy} r="4" fill={h.phase === 'SLOW_START' ? 'var(--state-success)' : 'var(--state-info)'} />
                 )
               })}
             </svg>
@@ -174,14 +174,14 @@ export default function TcpCongestionVisualizer() {
         </div>
 
         {/* Sliding Pipe Window Display */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-success)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-success)' }}>
             📦 In-Flight Packets in Network Pipe
           </h4>
 
-          <div style={{ background: '#020617', padding: '1rem', borderRadius: '8px' }}>
-            <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-              Current `cwnd`: <strong style={{ color: '#f8fafc', fontSize: '1.1rem' }}>{state.cwnd} MSS Packets</strong>
+          <div style={{ background: 'var(--bg-code)', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+              Current `cwnd`: <strong style={{ color: 'var(--text-primary)', fontSize: '1.1rem' }}>{state.cwnd} MSS Packets</strong>
             </div>
 
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', maxHeight: '120px', overflowY: 'auto' }}>
@@ -192,15 +192,15 @@ export default function TcpCongestionVisualizer() {
                     width: '32px',
                     height: '32px',
                     borderRadius: '6px',
-                    background: state.phase === 'SLOW_START' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(59, 130, 246, 0.25)',
+                    background: state.phase === 'SLOW_START' ? 'var(--state-success-tint)' : 'var(--state-info-tint)',
                     border: '1px solid',
-                    borderColor: state.phase === 'SLOW_START' ? '#10b981' : '#3b82f6',
+                    borderColor: state.phase === 'SLOW_START' ? 'var(--state-success)' : 'var(--state-info)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '0.7rem',
                     fontWeight: 'bold',
-                    color: '#f8fafc'
+                    color: 'var(--text-primary)'
                   }}
                 >
                   P#{i + 1}
