@@ -56,12 +56,12 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
   // ==========================================
   const [encapStep, setEncapStep] = useState(0)
   const layers = [
-    { name: '7. Application', header: 'HTTP/1.1 GET /api/v1/topics', color: '#8b5cf6' },
-    { name: '6. Presentation', header: 'TLS 1.3 Encryption Metadata', color: '#ec4899' },
-    { name: '5. Session', header: 'Session Token (ID: 0x9F82)', color: '#06b6d4' },
-    { name: '4. Transport', header: 'TCP (SrcPort: 5173, DstPort: 80, Seq: 100)', color: '#10b981' },
-    { name: '3. Network', header: 'IP (SrcIP: 192.168.1.50, DstIP: 142.250.190.46, TTL: 64)', color: '#f59e0b' },
-    { name: '2. Data Link', header: 'Ethernet MAC (Src: 00:1A:2B, Dst: CC:DD:EE, CRC32)', color: '#ef4444' },
+    { name: '7. Application', header: 'HTTP/1.1 GET /api/v1/topics', color: 'var(--cat-os-base)' },
+    { name: '6. Presentation', header: 'TLS 1.3 Encryption Metadata', color: 'var(--cat-aiml-base)' },
+    { name: '5. Session', header: 'Session Token (ID: 0x9F82)', color: 'var(--state-info)' },
+    { name: '4. Transport', header: 'TCP (SrcPort: 5173, DstPort: 80, Seq: 100)', color: 'var(--state-success)' },
+    { name: '3. Network', header: 'IP (SrcIP: 192.168.1.50, DstIP: 142.250.190.46, TTL: 64)', color: 'var(--state-warning)' },
+    { name: '2. Data Link', header: 'Ethernet MAC (Src: 00:1A:2B, Dst: CC:DD:EE, CRC32)', color: 'var(--state-danger)' },
   ]
 
   // ==========================================
@@ -171,7 +171,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         </div>
 
         {/* SUB-TABS NAVIGATION */}
-        <div className="main-tab-switcher" style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+        <div className="main-tab-switcher hub-subnav">
           <button
             onClick={() => setActiveTab('topology')}
             className={`main-tab-btn ${activeTab === 'topology' ? 'active-tab' : ''}`}
@@ -267,17 +267,13 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
 
       {/* SUB-TAB 1: TOPOLOGY EXPLORER */}
       {activeTab === 'topology' && (
-        <div className="viz-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
-              🔗 Network Topologies & Architectural Fault Tolerance
-            </h3>
-            <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-              Select a topology to inspect connection geometries, cabling cost formulas, and failure isolation boundaries.
-            </p>
+        <div className="viz-card">
+          <div className="viz-section-intro">
+            <h3>🔗 Network Topologies & Architectural Fault Tolerance</h3>
+            <p>Select a topology to inspect connection geometries, cabling cost formulas, and failure isolation boundaries.</p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <div className="topo-choice-row">
             {Object.keys(networkTopologies).map(key => (
               <button
                 key={key}
@@ -290,79 +286,79 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
           </div>
 
           {/* TOPOLOGY VISUAL ARCHITECTURE */}
-          <div style={{ background: '#020617', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.25rem', border: '1px solid rgba(59,130,246,0.15)' }}>
-            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-              <span className="header-pill" style={{ background: '#312e81', color: '#c7d2fe', fontSize: '0.9rem' }}>
+          <div className="topo-diagram">
+            <div className="topo-diagram-label">
+              <span className="header-pill">
                 {currentTopo.name} Architecture
               </span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div className="topo-canvas">
               {selectedTopologyKey === 'star' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', alignItems: 'center', maxWidth: '400px', margin: '0 auto' }}>
+                <div className="topo-star-grid">
                   <div />
-                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node A</div>
+                  <div className="topo-node">💻 Node A</div>
                   <div />
-                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node D</div>
-                  <div style={{ background: '#4338ca', color: '#fff', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: 700 }}>🔀 Switch</div>
-                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node B</div>
+                  <div className="topo-node">💻 Node D</div>
+                  <div className="topo-switch">🔀 Switch</div>
+                  <div className="topo-node">💻 Node B</div>
                   <div />
-                  <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px', textAlign: 'center' }}>💻 Node C</div>
+                  <div className="topo-node">💻 Node C</div>
                   <div />
                 </div>
               )}
 
               {selectedTopologyKey === 'bus' && (
-                <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host A</div>
-                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host B</div>
-                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host C</div>
-                    <div style={{ background: '#1e293b', padding: '0.5rem', borderRadius: '6px' }}>💻 Host D</div>
+                <div className="topo-bus-wrap">
+                  <div className="topo-bus-hosts">
+                    <div className="topo-bus-host">💻 Host A</div>
+                    <div className="topo-bus-host">💻 Host B</div>
+                    <div className="topo-bus-host">💻 Host C</div>
+                    <div className="topo-bus-host">💻 Host D</div>
                   </div>
-                  <div style={{ height: '8px', background: 'linear-gradient(to right, #ef4444, #f59e0b, #10b981, #3b82f6)', borderRadius: '4px', position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-5px', top: '-6px', background: '#dc2626', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>Terminator</div>
-                    <div style={{ position: 'absolute', right: '-5px', top: '-6px', background: '#dc2626', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>Terminator</div>
+                  <div className="topo-bus-trunk">
+                    <div className="topo-bus-terminator is-left">Terminator</div>
+                    <div className="topo-bus-terminator is-right">Terminator</div>
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                  <div className="topo-bus-caption">
                     Shared Coaxial / Ethernet Backbone Trunk
                   </div>
                 </div>
               )}
 
               {selectedTopologyKey === 'ring' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '350px', margin: '0 auto', textAlign: 'center' }}>
-                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>💻 Node A ➔</div>
-                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>💻 Node B ➔</div>
-                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>▲ 💻 Node D</div>
-                  <div style={{ background: '#1e293b', padding: '0.75rem', borderRadius: '8px' }}>▼ 💻 Node C</div>
+                <div className="topo-ring-grid">
+                  <div className="topo-node">💻 Node A ➔</div>
+                  <div className="topo-node">💻 Node B ➔</div>
+                  <div className="topo-node">▲ 💻 Node D</div>
+                  <div className="topo-node">▼ 💻 Node C</div>
                 </div>
               )}
 
               {selectedTopologyKey === 'mesh' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', width: '100%', maxWidth: '500px' }}>
+                <div className="topo-mesh-grid">
                   {['A', 'B', 'C', 'D'].map(node => (
-                    <div key={node} style={{ background: '#1e293b', border: '1px solid #8b5cf6', padding: '0.75rem', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontWeight: 700 }}>💻 Node {node}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#4ade80', marginTop: '0.2rem' }}>3 Dedicated Links</div>
+                    <div key={node} className="topo-mesh-node">
+                      <div className="node-name">💻 Node {node}</div>
+                      <div className="node-links">3 Dedicated Links</div>
                     </div>
                   ))}
                 </div>
               )}
 
               {selectedTopologyKey === 'hybrid' && (
-                <div style={{ width: '100%', maxWidth: '450px', textAlign: 'center' }}>
-                  <div style={{ background: '#4338ca', color: '#fff', padding: '0.6rem', borderRadius: '8px', display: 'inline-block', fontWeight: 700, marginBottom: '1rem' }}>
+                <div className="topo-hybrid-wrap">
+                  <div className="topo-hybrid-core">
                     🌐 Core Backbone Switch
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px' }}>
-                      <div style={{ color: '#38bdf8', fontWeight: 600 }}>Branch 1 (Star)</div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Hosts A1, A2</div>
+                  <div className="topo-hybrid-branches">
+                    <div className="topo-hybrid-branch">
+                      <div className="branch-label is-info">Branch 1 (Star)</div>
+                      <div className="branch-hosts">Hosts A1, A2</div>
                     </div>
-                    <div style={{ background: '#1e293b', padding: '0.6rem', borderRadius: '6px' }}>
-                      <div style={{ color: '#34d399', fontWeight: 600 }}>Branch 2 (Star)</div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Hosts B1, B2</div>
+                    <div className="topo-hybrid-branch">
+                      <div className="branch-label is-success">Branch 2 (Star)</div>
+                      <div className="branch-hosts">Hosts B1, B2</div>
                     </div>
                   </div>
                 </div>
@@ -371,20 +367,20 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
           </div>
 
           {/* TOPOLOGY ATTRIBUTES BREAKDOWN */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-            <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #8b5cf6' }}>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Fault Tolerance</div>
-              <div style={{ fontSize: '0.9rem', color: '#f8fafc', marginTop: '0.3rem', lineHeight: '1.4' }}>{currentTopo.faultTolerance}</div>
+          <div className="topo-attrs-grid">
+            <div className="topo-attr-card attr-fault">
+              <div className="attr-label">Fault Tolerance</div>
+              <div className="attr-value">{currentTopo.faultTolerance}</div>
             </div>
 
-            <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #38bdf8' }}>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Cabling & Port Count</div>
-              <div style={{ fontSize: '0.9rem', color: '#f8fafc', marginTop: '0.3rem', fontFamily: 'monospace' }}>{currentTopo.cableCount}</div>
+            <div className="topo-attr-card attr-cable">
+              <div className="attr-label">Cabling & Port Count</div>
+              <div className="attr-value is-mono">{currentTopo.cableCount}</div>
             </div>
 
-            <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #10b981' }}>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Broadcast Behavior</div>
-              <div style={{ fontSize: '0.9rem', color: '#f8fafc', marginTop: '0.3rem' }}>{currentTopo.broadcastBehavior}</div>
+            <div className="topo-attr-card attr-broadcast">
+              <div className="attr-label">Broadcast Behavior</div>
+              <div className="attr-value">{currentTopo.broadcastBehavior}</div>
             </div>
           </div>
         </div>
@@ -392,20 +388,16 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
 
       {/* SUB-TAB 2: PHYSICAL LAYER & SIGNALS */}
       {activeTab === 'physical' && (
-        <div className="viz-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
-              📡 Physical Layer Line Encoding & Digital Waveform Generator
-            </h3>
-            <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-              Enter binary bitstream to visualize real-time clock recovery, voltage transitions, and DC baseline characteristics.
-            </p>
+        <div className="viz-card">
+          <div className="viz-section-intro">
+            <h3>📡 Physical Layer Line Encoding & Digital Waveform Generator</h3>
+            <p>Enter binary bitstream to visualize real-time clock recovery, voltage transitions, and DC baseline characteristics.</p>
           </div>
 
           {/* CONTROLS */}
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.25rem', background: '#0b1329', padding: '1rem', borderRadius: '10px' }}>
+          <div className="phys-controls">
             <div>
-              <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
+              <label>
                 Binary Bitstream Input (0s and 1s):
               </label>
               <input
@@ -413,15 +405,15 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
                 value={bitInput}
                 maxLength={16}
                 onChange={(e) => setBitInput(e.target.value.replace(/[^01]/g, ''))}
-                style={{ background: '#020617', border: '1px solid rgba(255,255,255,0.15)', color: '#4ade80', padding: '0.4rem 0.6rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.15em' }}
+                className="bitstream-input"
               />
             </div>
 
             <div>
-              <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>
+              <label>
                 Line Encoding Scheme:
               </label>
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <div className="phys-encoding-row">
                 {[
                   { id: 'manchester', name: 'Manchester (802.3)' },
                   { id: 'nrz-l', name: 'NRZ-L' },
@@ -431,8 +423,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
                   <button
                     key={enc.id}
                     onClick={() => setEncodingType(enc.id)}
-                    className={`btn ${encodingType === enc.id ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.6rem' }}
+                    className={`btn btn-compact ${encodingType === enc.id ? 'btn-primary' : 'btn-secondary'}`}
                   >
                     {enc.name}
                   </button>
@@ -442,34 +433,34 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
           </div>
 
           {/* DIGITAL OSCILLOSCOPE WAVEFORM */}
-          <div style={{ background: '#020617', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(59,130,246,0.2)', marginBottom: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
+          <div className="scope-panel">
+            <div className="scope-legend">
               <span>+V Level</span>
               <span>Oscilloscope Signal Waveform Time Domain</span>
               <span>0V Level</span>
             </div>
 
-            <div style={{ display: 'flex', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            <div className="scope-track">
               {waveformData.map((item, idx) => (
-                <div key={idx} style={{ minWidth: '60px', flex: '1', borderRight: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#38bdf8', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+                <div key={idx} className="scope-bit">
+                  <div className="bit-value">
                     Bit '{item.bit}'
                   </div>
 
                   {/* 2-HALF INTERVAL WAVEFORM BOX */}
-                  <div style={{ height: '70px', display: 'flex', background: '#090d16', borderRadius: '4px', padding: '0 2px', alignItems: 'center' }}>
-                    <div style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: item.firstHalf === 'H' ? 'flex-start' : 'flex-end' }}>
-                      <div style={{ height: '8px', background: '#10b981', borderRadius: '2px', width: '100%' }} />
+                  <div className="scope-wave-box">
+                    <div className="scope-wave-half" style={{ justifyContent: item.firstHalf === 'H' ? 'flex-start' : 'flex-end' }}>
+                      <div className="scope-wave-bar" />
                     </div>
                     {item.firstHalf !== item.secondHalf && (
-                      <div style={{ width: '4px', height: '100%', background: '#f59e0b' }} />
+                      <div className="scope-wave-edge" />
                     )}
-                    <div style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: item.secondHalf === 'H' ? 'flex-start' : 'flex-end' }}>
-                      <div style={{ height: '8px', background: '#10b981', borderRadius: '2px', width: '100%' }} />
+                    <div className="scope-wave-half" style={{ justifyContent: item.secondHalf === 'H' ? 'flex-start' : 'flex-end' }}>
+                      <div className="scope-wave-bar" />
                     </div>
                   </div>
 
-                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '0.4rem', lineHeight: '1.2' }}>
+                  <div className="bit-label">
                     {item.label}
                   </div>
                 </div>
@@ -484,7 +475,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         <div className="viz-card">
           <h3>📦 Layered Packet Encapsulation & Header PDU Inspection</h3>
 
-          <div className="action-buttons-group" style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem' }}>
+          <div className="action-buttons-group">
             <button onClick={() => setEncapStep(0)} className="btn btn-secondary">⏮ Reset</button>
             <button onClick={() => setEncapStep(prev => Math.max(0, prev - 1))} disabled={encapStep <= 0} className="btn btn-secondary">◀ Step Back</button>
             <button onClick={() => setEncapStep(prev => Math.min(5, prev + 1))} disabled={encapStep >= 5} className="btn btn-primary">Step Next Layer ▶</button>
@@ -526,7 +517,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         <div className="viz-card">
           <h3>🔄 Sliding Window ARQ Error Control</h3>
 
-          <div className="tab-control-panel" style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="tab-control-panel">
             <div className="btn-group">
               <button onClick={() => setArqMode('gbn')} className={`btn ${arqMode === 'gbn' ? 'btn-primary' : 'btn-secondary'}`}>
                 Go-Back-N (GBN)
@@ -563,7 +554,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         <div className="viz-card">
           <h3>🧮 CIDR IPv4 Subnet Calculator & Bitmask Explorer</h3>
 
-          <div className="input-group-inline" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div className="input-group-inline">
             <div>
               <label>IP Address:</label>
               <input type="text" value={ipAddress} onChange={e => setIpAddress(e.target.value)} className="text-input" />
@@ -616,7 +607,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
       {activeTab === 'routing' && (
         <div className="viz-card">
           <h3>🗺️ Dijkstra Link-State Shortest Path Routing</h3>
-          <div style={{ marginBottom: '1rem' }}>
+          <div className="routing-target-picker">
             <label>Compute Shortest Path from Router A to: </label>
             <select value={targetRouter} onChange={e => setTargetRouter(e.target.value)} className="select-input">
               {Object.keys(routes).map(r => (
@@ -644,7 +635,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         <div>
           <div className="viz-card">
             <h3>🤝 TCP 3-Way Handshake & Connection State Machine</h3>
-            <div className="action-buttons-group" style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem' }}>
+            <div className="action-buttons-group">
               <button onClick={() => setHandshakeStep(0)} className="btn btn-secondary">⏮ Reset</button>
               <button onClick={() => setHandshakeStep(prev => Math.min(2, prev + 1))} disabled={handshakeStep >= 2} className="btn btn-primary">
                 Next Handshake Step ▶
@@ -689,23 +680,23 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>🌐 Recursive DNS Lookup Resolution Steps</h3>
 
-            <div className="action-buttons-group" style={{ marginBottom: '1.25rem', display: 'flex', gap: '0.5rem' }}>
+            <div className="action-buttons-group">
               <button onClick={() => setDnsStep(0)} className="btn btn-secondary">⏮ Reset</button>
               <button onClick={() => setDnsStep(prev => Math.min(3, prev + 1))} disabled={dnsStep >= 3} className="btn btn-primary">
                 Next Resolution Step ▶
               </button>
             </div>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <h4 style={{ color: 'var(--accent-purple)' }}>{dnsSteps[dnsStep].title}</h4>
-              <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{dnsSteps[dnsStep].desc}</p>
+            <div className="dns-step-panel">
+              <h4>{dnsSteps[dnsStep].title}</h4>
+              <p>{dnsSteps[dnsStep].desc}</p>
             </div>
           </div>
 
           <div className="viz-card">
             <h3>⚡ HTTP/3 QUIC (UDP) vs HTTP/2 (TCP)</h3>
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <p style={{ fontSize: '0.85rem' }}>
+            <div className="dns-step-panel">
+              <p>
                 HTTP/3 runs over <strong>UDP (QUIC)</strong>, eliminating TCP Head-of-Line Blocking and achieving <strong>0-RTT / 1-RTT connection setup</strong>!
               </p>
             </div>
