@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useId, useRef, useState } from 'react'
+import CodePanel from './CodePanel'
+import Panel from './Panel'
 import QuizCard from './QuizCard'
 
 function toDisplayText(value) {
@@ -13,171 +15,148 @@ export default function ConceptModuleShell({
   mentalModel,
   simulationComponent,
   children,
-  theoryData, // { failureModes, tradeOffs, productionScenario, codeSnippet, interviewQA }
-  quizData = [], // array of { question, answer, codeSnippet, difficulty }
+  theoryData,
+  quizData = [],
   defaultTab = 'simulation'
 }) {
   const [activeTab, setActiveTab] = useState(defaultTab)
+  const tabRefs = useRef([])
+  const shellId = useId()
+  const tabs = [
+    { id: 'simulation', icon: '⚡', label: 'Simulation' },
+    { id: 'theory', icon: '📖', label: 'Theory' },
+    { id: 'quiz', icon: '✓', label: `Self-check (${quizData.length})` }
+  ]
+
+  const selectTab = (tabId, index) => {
+    setActiveTab(tabId)
+    tabRefs.current[index]?.focus()
+  }
+
+  const handleTabKeyDown = (event, index) => {
+    let nextIndex
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length
+    if (event.key === 'Home') nextIndex = 0
+    if (event.key === 'End') nextIndex = tabs.length - 1
+    if (nextIndex == null) return
+    event.preventDefault()
+    selectTab(tabs[nextIndex].id, nextIndex)
+  }
 
   return (
-    <div className="concept-module-shell" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Module Header */}
-      <div className="viz-header" style={{ marginBottom: '1rem' }}>
+    <div className="concept-module-shell">
+      <header className="viz-header">
         <div className="viz-title-group">
-          <h2 style={{ fontSize: '1.6rem', color: '#f8fafc', margin: '0 0 0.4rem 0' }}>{title}</h2>
-          {subtitle && <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>{subtitle}</p>}
+          <h2 className="concept-module-title">{title}</h2>
+          {subtitle && <p className="concept-module-subtitle">{subtitle}</p>}
         </div>
 
-        {/* Mental Model Banner */}
         {mentalModel && (
-          <div
-            style={{
-              marginTop: '0.75rem',
-              padding: '0.75rem 1rem',
-              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(147, 51, 234, 0.12))',
-              borderLeft: '4px solid #3b82f6',
-              borderRadius: '0 8px 8px 0',
-              color: '#e2e8f0',
-              fontSize: '0.9rem'
-            }}
-          >
-            🎯 <strong>Mental Model:</strong> {mentalModel}
-          </div>
+          <aside className="mental-model-banner" aria-label="Mental model">
+            <span aria-hidden="true">🎯</span>{' '}
+            <strong>Mental model:</strong> {mentalModel}
+          </aside>
         )}
 
-        {/* Tab Switcher */}
-        <div className="main-tab-switcher" style={{ marginTop: '1.25rem' }}>
-          <button
-            onClick={() => setActiveTab('simulation')}
-            className={`main-tab-btn ${activeTab === 'simulation' ? 'active-tab' : ''}`}
-          >
-            ⚡ Interactive Visual Simulation
-          </button>
-          <button
-            onClick={() => setActiveTab('theory')}
-            className={`main-tab-btn ${activeTab === 'theory' ? 'active-tab' : ''}`}
-          >
-            📖 Deep Dive & Interview Theory
-          </button>
-          <button
-            onClick={() => setActiveTab('quiz')}
-            className={`main-tab-btn ${activeTab === 'quiz' ? 'active-tab' : ''}`}
-          >
-            ✅ Interview Self-Check ({quizData.length})
-          </button>
+        <div className="main-tab-switcher concept-module-tabs" role="tablist" aria-label={`${title} learning modes`}>
+          {tabs.map((tab, index) => {
+            const selected = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                ref={(node) => { tabRefs.current[index] = node }}
+                id={`${shellId}-${tab.id}-tab`}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                aria-controls={`${shellId}-${tab.id}-panel`}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => setActiveTab(tab.id)}
+                onKeyDown={(event) => handleTabKeyDown(event, index)}
+                className={`main-tab-btn ${selected ? 'active-tab' : ''}`}
+              >
+                <span aria-hidden="true">{tab.icon}</span>{' '}{tab.label}
+              </button>
+            )
+          })}
         </div>
-      </div>
+      </header>
 
-      {/* Tab Content */}
-      <div className="module-content-area" style={{ marginTop: '1rem' }}>
+      <div className="module-content-area">
         {activeTab === 'simulation' && (
-          <div className="tab-simulation-panel">
+          <div id={`${shellId}-simulation-panel`} role="tabpanel" aria-labelledby={`${shellId}-simulation-tab`} className="tab-simulation-panel">
             {simulationComponent || children}
           </div>
         )}
 
-        {activeTab === 'theory' && theoryData && (
-          <div className="tab-theory-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {/* Failure Modes & Trade-offs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
-              {theoryData.failureModes && (
-                <div className="viz-card" style={{ borderTop: '3px solid #ef4444' }}>
-                  <h3 style={{ color: '#f87171', margin: '0 0 0.75rem 0', fontSize: '1.1rem' }}>
-                    🔥 Failure Modes & Production Pitfalls
-                  </h3>
-                  <ul style={{ paddingLeft: '1.2rem', color: '#cbd5e1', lineHeight: 1.6, margin: 0, fontSize: '0.9rem' }}>
-                    {theoryData.failureModes.map((item, idx) => (
-                      <li key={idx} style={{ marginBottom: '0.4rem' }}>{toDisplayText(item)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+        {activeTab === 'theory' && (
+          <div id={`${shellId}-theory-panel`} role="tabpanel" aria-labelledby={`${shellId}-theory-tab`} className="tab-theory-panel">
+            {theoryData ? (
+              <>
+                <div className="theory-summary-grid">
+                  {theoryData.failureModes && (
+                    <Panel className="theory-panel theory-panel-danger">
+                      <h3><span aria-hidden="true">🔥</span> Failure modes &amp; production pitfalls</h3>
+                      <ul className="theory-list">
+                        {theoryData.failureModes.map((item, index) => <li key={index}>{toDisplayText(item)}</li>)}
+                      </ul>
+                    </Panel>
+                  )}
 
-              {theoryData.tradeOffs && (
-                <div className="viz-card" style={{ borderTop: '3px solid #f59e0b' }}>
-                  <h3 style={{ color: '#fbbf24', margin: '0 0 0.75rem 0', fontSize: '1.1rem' }}>
-                    ⚖️ Key Trade-offs & Engineering Decisions
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {theoryData.tradeOffs.map((item, idx) => {
-                      const isStructured = item && typeof item === 'object'
-                      return isStructured ? (
-                        <div key={idx} style={{ background: '#0f172a', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                          <strong style={{ color: '#fbbf24', display: 'block', marginBottom: '0.35rem', fontSize: '0.9rem' }}>{item.aspect}</strong>
-                          <p style={{ color: '#93c5fd', margin: '0 0 0.25rem 0', fontSize: '0.85rem', lineHeight: 1.5 }}>🔵 {item.optionA}</p>
-                          <p style={{ color: '#6ee7b7', margin: 0, fontSize: '0.85rem', lineHeight: 1.5 }}>🟢 {item.optionB}</p>
-                        </div>
-                      ) : (
-                        <p key={idx} style={{ paddingLeft: '1.2rem', color: '#cbd5e1', lineHeight: 1.6, margin: 0, fontSize: '0.9rem' }}>{toDisplayText(item)}</p>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Production Scenario */}
-            {theoryData.productionScenario && (
-              <div className="viz-card" style={{ borderLeft: '4px solid #10b981', background: 'rgba(16, 185, 129, 0.05)' }}>
-                <h3 style={{ color: '#34d399', margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
-                  🏭 Production War Story & Real Scenario
-                </h3>
-                <p style={{ color: '#e2e8f0', lineHeight: 1.6, margin: 0, fontSize: '0.92rem' }}>
-                  {theoryData.productionScenario}
-                </p>
-              </div>
-            )}
-
-            {/* Code Snippet */}
-            {theoryData.codeSnippet && (
-              <div className="viz-card">
-                <h3 style={{ color: '#93c5fd', margin: '0 0 0.75rem 0', fontSize: '1.1rem' }}>
-                  💻 Core Implementation / Query Pattern
-                </h3>
-                <pre style={{ background: '#020617', padding: '1rem', borderRadius: '8px', overflowX: 'auto', fontSize: '0.85rem', color: '#f1f5f9', margin: 0 }}>
-                  <code>{theoryData.codeSnippet}</code>
-                </pre>
-              </div>
-            )}
-
-            {/* Interview Q&A List */}
-            {theoryData.interviewQA && theoryData.interviewQA.length > 0 && (
-              <div className="viz-card">
-                <h3 style={{ color: '#a78bfa', margin: '0 0 1rem 0', fontSize: '1.1rem' }}>
-                  💬 High-Frequency Technical & Architecture Questions
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {theoryData.interviewQA.map((qa, idx) => {
-                    const q = qa.q ?? qa.question
-                    const a = qa.a ?? qa.answer
-                    return (
-                      <div key={idx} style={{ background: '#0f172a', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <strong style={{ color: '#60a5fa', display: 'block', marginBottom: '0.3rem', fontSize: '0.92rem' }}>
-                          Q{idx + 1}: {q}
-                        </strong>
-                        <p style={{ color: '#cbd5e1', margin: 0, fontSize: '0.88rem', lineHeight: 1.5 }}>
-                          {a}
-                        </p>
+                  {theoryData.tradeOffs && (
+                    <Panel className="theory-panel theory-panel-warning">
+                      <h3><span aria-hidden="true">⚖️</span> Key trade-offs &amp; engineering decisions</h3>
+                      <div className="theory-stack">
+                        {theoryData.tradeOffs.map((item, index) => {
+                          const structured = item && typeof item === 'object'
+                          return structured ? (
+                            <div className="theory-detail" key={index}>
+                              <strong>{item.aspect}</strong>
+                              <p><span aria-hidden="true">◆</span> {item.optionA}</p>
+                              <p><span aria-hidden="true">◇</span> {item.optionB}</p>
+                            </div>
+                          ) : <p key={index}>{toDisplayText(item)}</p>
+                        })}
                       </div>
-                    )
-                  })}
+                    </Panel>
+                  )}
                 </div>
-              </div>
-            )}
+
+                {theoryData.productionScenario && (
+                  <Panel className="theory-panel theory-panel-success">
+                    <h3><span aria-hidden="true">🏭</span> Production war story &amp; real scenario</h3>
+                    <p>{theoryData.productionScenario}</p>
+                  </Panel>
+                )}
+
+                {theoryData.codeSnippet && <CodePanel code={theoryData.codeSnippet} title="Core implementation or query pattern" />}
+
+                {theoryData.interviewQA?.length > 0 && (
+                  <Panel className="theory-panel theory-interview-panel">
+                    <h3><span aria-hidden="true">💬</span> High-frequency technical &amp; architecture questions</h3>
+                    <ol className="interview-question-list">
+                      {theoryData.interviewQA.map((qa, index) => (
+                        <li className="interview-question" key={index}>
+                          <strong>{qa.q ?? qa.question}</strong>
+                          <p>{qa.a ?? qa.answer}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </Panel>
+                )}
+              </>
+            ) : <p className="empty-tab-message">Theory content is not available for this simulation yet.</p>}
           </div>
         )}
 
         {activeTab === 'quiz' && (
-          <div className="quiz-section">
+          <div id={`${shellId}-quiz-panel`} role="tabpanel" aria-labelledby={`${shellId}-quiz-tab`} className="quiz-section">
             <div className="quiz-intro">
-              <h3>✅ Interactive Self-Check & Knowledge Assessment</h3>
-              <p>
-                Test your understanding against core fundamental and architecture questions. Click "Reveal Answer" to check your response.
-              </p>
+              <h3><span aria-hidden="true">✓</span> Interactive self-check &amp; knowledge assessment</h3>
+              <p>Test your understanding against core fundamentals and architecture questions.</p>
             </div>
-            {quizData.map((quiz, idx) => (
-              <QuizCard key={idx} {...quiz} />
-            ))}
+            {quizData.map((quiz, index) => <QuizCard key={index} {...quiz} />)}
           </div>
         )}
       </div>
