@@ -6,7 +6,7 @@ Interviewers use these basics to test whether a design choice is justified by fa
 
 ## 🟢 Beginner Level
 
-### What is a Computer Network?
+### Network fundamentals and performance vocabulary
 A **Computer Network** is an interconnected collection of autonomous computational nodes (computers, servers, smartphones, IoT sensors, switches, routers) capable of exchanging data and sharing resources (such as storage, compute power, printers, and internet access) over communication channels.
 
 ```mermaid

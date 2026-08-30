@@ -8,7 +8,7 @@ Interviewers use them to test whether a candidate can follow one request across 
 
 ## 🟢 Beginner Level
 
-### Layers divide one message into responsibilities
+### OSI layers, TCP/IP mapping, and encapsulation
 
 An application wants to send meaningful data such as an HTTP request.
 The network must also identify a receiving process, route across networks, deliver across one local link, and encode bits on a medium.

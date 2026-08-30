@@ -6,7 +6,7 @@ IP addressing gives hosts and networks a logical location so routers can forward
 
 ## 🟢 Beginner Level
 
-### An IP address has network and host parts
+### IPv4, IPv6, CIDR, and subnetting
 
 IPv4 is a 32-bit address usually written as four decimal octets.
 
