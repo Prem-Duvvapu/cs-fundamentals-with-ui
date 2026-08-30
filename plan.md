@@ -23,8 +23,8 @@ by automated checks.
 
 ## Curriculum shape
 
-The current 56-topic curriculum remains the foundation. Most requirements fit existing lessons,
-but five dense areas require seven focused additions rather than overloading unrelated files:
+The original 56-topic curriculum remains the foundation. Seven focused additions are now
+registered, bringing the reachable curriculum to 63 lessons without overloading unrelated files:
 
 1. **Practical SQL and window functions**
 2. **Spring Boot configuration and production internals**
@@ -32,8 +32,9 @@ but five dense areas require seven focused additions rather than overloading unr
 4. **Spring Security, caching, async, and testing**
 5. **AI/ML fundamentals, algorithms, evaluation, and neural networks**
 
-The implementation phase will register these lessons once, with route-integrity tests updated for
-the new total. All other checklist gaps will be filled by revising the mapped existing lesson.
+The backend, frontend fallback catalogue, route-integrity tests, content inventory and coverage
+manifest now use the 63-topic total. Remaining checklist gaps are closed by revising the mapped
+existing lesson and rerunning the manifest validator.
 
 ## Coverage matrix
 
@@ -134,7 +135,7 @@ the new total. All other checklist gaps will be filled by revising the mapped ex
 
 ## Implementation phases
 
-### Phase A — Coverage infrastructure and registration
+### Phase A — Coverage infrastructure and registration — ✅ Complete
 
 1. Create `content/COVERAGE_MANIFEST.json` with one stable ID per checklist row/subtopic.
 2. Extend the validator to confirm every manifest ID maps to an existing heading in a registered lesson.
@@ -142,7 +143,7 @@ the new total. All other checklist gaps will be filled by revising the mapped ex
    CONTEXT, and AGENTS.
 4. Add route-integrity and manifest-integrity tests before authoring the new files.
 
-### Phase B — Core and Advanced Java
+### Phase B — Core and Advanced Java — ✅ Complete
 
 1. Rebuild the four remaining thin Core Java lessons: execution, memory model, static/final/records,
    and functional interfaces/lambdas.
@@ -150,25 +151,25 @@ the new total. All other checklist gaps will be filled by revising the mapped ex
    JVM lessons to close the explicit checklist gaps without exceeding the content contract.
 3. Validate Java coverage IDs and interview questions as a category gate.
 
-### Phase C — Spring Boot
+### Phase C — Spring Boot — ✅ Complete
 
 1. Add the five focused Spring lessons named in the matrix.
 2. Refine Bean, MVC, JPA, Batch, and Quartz lessons for cross-links and nonduplicated boundaries.
 3. Add practical code examples and Spring test coverage for API/error/security/transaction scenarios.
 
-### Phase D — OS and Networking
+### Phase D — OS and Networking — ◐ Depth complete; manifest anchors in progress
 
 1. Audit the already-rebuilt OS lessons against every named checklist item and close any gaps.
 2. Complete the remaining Networking lesson and backend-networking sections.
 3. Validate category manifests and cross-link browser→DNS→TCP→TLS→HTTP flows.
 
-### Phase E — DBMS and SQL
+### Phase E — DBMS and SQL — ◐ In progress
 
 1. Rebuild the eleven non-exemplar DBMS files.
 2. Add the practical SQL lesson with executable query examples and expected results.
 3. Ensure indexes, transactions, isolation, MVCC, scaling, and NoSQL have scenario questions.
 
-### Phase F — AI/ML
+### Phase F — AI/ML — ◐ ML lesson complete; two legacy rebuilds pending
 
 1. Add the ML fundamentals lesson.
 2. Complete model serving, LLM parameters, feature stores, and recommendations.
@@ -185,7 +186,7 @@ the new total. All other checklist gaps will be filled by revising the mapped ex
 ## Question targets
 
 - Existing full-contract lesson: 14 validated interview questions.
-- Seven planned new lessons: 14 each, adding 98 questions.
+- Seven added lessons: 14 each, adding 98 validated questions.
 - Final minimum after all 63 lessons: 756 questions at 12 each.
 - Final target at 14 each: 882 questions.
 - Every category must include easy, medium, hard, debugging, design, trade-off, and production scenarios.

@@ -8,14 +8,14 @@ This project helps you prepare for **CS interviews** and software engineering ex
 
 ## ⚡ One-Command Quick Start
 
-Start both Frontend and Backend together in a single command using Docker or local dev mode:
+Start both Frontend and Backend locally in a single command:
 
 ```bash
 # Clone the repository
 git clone https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui.git
 cd cs-fundamentals-with-ui
 
-# Launch both Frontend & Backend with one command (auto-detects Docker)
+# Launch Spring Boot and Vite with one command
 ./start.sh
 ```
 
@@ -84,15 +84,15 @@ docker compose up --build
 
 ---
 
-## 📚 56 Complete Curriculum Topics Covered
+## 📚 63 Curriculum Topics Covered
 
 | Category | Topics Count | Key Areas Covered |
 | :--- | :--- | :--- |
 | **Operating Systems** | 8 Topics | Process Management, Memory Management, CPU Scheduling, Synchronization, Deadlocks, File Systems, I/O Systems, Disk Scheduling & Allocation |
 | **Computer Networks** | 12 Topics | Network Fundamentals, Physical Media, OSI & TCP/IP, Data Link Layer & ARQ, IP Subnetting & CIDR, Routing Algorithms, TCP/UDP Handshakes, TCP Flow & Congestion Control, Transport Protocols (QUIC/SCTP), Application Layer (HTTP/3, DNS), Network Security (TLS 1.3), QoS & Traffic Shaping |
-| **DBMS** | 12 Topics | DBMS Introduction & Architecture, File System vs DBMS, 3-Schema ANSI-SPARC, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control (Strict 2PL/Timestamps), Query Optimizer (CBO), Distributed Databases & CAP Theorem |
-| **Java & Spring** | 18 Topics | JVM Execution Pipeline, Memory Model, OOP & vtable, Static/Final/Records, JVM GC & Virtual Threads, Functional & Lambdas, Generics & PECS, Collections & Heap, HashMap Internals, Streams & Optional, Reflection & Exceptions, Multithreading & Monitors, Spring Bean Lifecycle, Spring MVC Flow, JPA/Hibernate States, Spring Batch, Quartz Scheduler, SOLID & Design Patterns |
-| **AI / ML Systems** | 6 Topics | Vector Embeddings & Vector DBs, RAG Architecture, LLM Model Serving & PagedAttention, LLM Sampling & ReAct Agents, Feature Stores & MLOps, 2-Stage Recommendation Engine |
+| **DBMS** | 13 Topics | DBMS Introduction & Architecture, 3-Schema ANSI-SPARC, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control, Query Optimizer, practical SQL and window functions, Distributed Databases & CAP Theorem |
+| **Java & Spring** | 23 Topics | Core and Advanced Java, JVM/GC/concurrency, collections and streams, Spring container and MVC, Spring Boot internals, REST API design, Security, caching/async, testing/production, JPA/Hibernate, Batch, Quartz, SOLID and design patterns |
+| **AI / ML Systems** | 7 Topics | ML fundamentals and evaluation, Vector Embeddings & Vector DBs, RAG Architecture, LLM Model Serving & PagedAttention, LLM Sampling & ReAct Agents, Feature Stores & MLOps, 2-Stage Recommendation Engine |
 
 ---
 
@@ -124,9 +124,9 @@ study product. The implementation sequence is:
 
 The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).
 The expanded [SDE-2 coverage plan](plan.md) is the acceptance checklist for OS, Networking,
-DBMS/SQL, Core and Advanced Java, Spring Boot, and AI/ML. It maps every required concept to a
-lesson and plans seven focused additions where the existing 56-topic structure cannot provide
-adequate depth.
+DBMS/SQL, Core and Advanced Java, Spring Boot, and AI/ML. Its seven focused additions are now
+registered, and [the coverage manifest](content/COVERAGE_MANIFEST.json) makes every required
+heading and concept mapping machine-verifiable.
 
 ### Experience Standards
 
@@ -159,4 +159,7 @@ cd backend && mvn test
 
 # Validate every curriculum file against the authoring contract
 node scripts/validate-content.mjs
+
+# Test the validator and coverage-manifest rules
+node --test scripts/validate-content.test.mjs
 ```

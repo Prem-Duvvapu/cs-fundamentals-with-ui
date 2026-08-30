@@ -10,6 +10,8 @@ Interviewers use Quartz to test whether a candidate distinguishes an execution s
 
 ### The Four Core Objects
 
+In Quartz, a JobDetail is the durable definition that binds a Job class to a stable identity, configuration, and job data. A Trigger points to that JobDetail, while the Scheduler resolves the pair and dispatches a fresh Job execution when the trigger becomes due. A persistent JobStore records both objects, and clustered Quartz nodes coordinate through that shared store so only one node deliberately acquires a firing. This explicit persisted model is the key distinction from Spring's simpler @Scheduled method invocation, which does not provide Quartz job identity, durable triggers, or database-backed cluster coordination by itself.
+
 A `Job` contains the unit of work Quartz should execute.
 A `JobDetail` gives that job an identity, durable metadata, and a `JobDataMap`.
 A `Trigger` describes when a particular job detail should fire.

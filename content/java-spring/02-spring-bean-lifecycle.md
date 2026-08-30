@@ -241,6 +241,14 @@ Annotations such as `@Transactional`, `@Async`, and `@Cacheable` are commonly im
 The proxy intercepts an external method call and runs advice before, around, or after it.
 This wrapping normally occurs in a post-processor after initialization.
 
+An **aspect** groups one cross-cutting concern, such as transaction management or timing.
+**Advice** is the action executed by that aspect, a **pointcut** selects matching method executions, and a **join point** is a particular interceptable execution where advice can run.
+Spring AOP proxies method calls on Spring beans rather than weaving arbitrary field access or object construction.
+
+Spring can create a **JDK dynamic proxy** when the target exposes an interface; that proxy implements the interface and delegates to the target.
+It can instead create a **CGLIB** proxy by subclassing the concrete class, which supports interface-free services but cannot override final methods or subclass a final class.
+Code should depend on service interfaces or ordinary bean contracts instead of casting a proxy to an implementation detail.
+
 ```java
 @Service
 class PaymentService {
@@ -254,6 +262,50 @@ class PaymentService {
 When another bean calls `paymentService.settle(...)`, the proxy can start and complete a transaction.
 When `settle` calls another `@Transactional` method on `this`, the call usually bypasses the proxy.
 That self-invocation is a frequent production surprise.
+
+### Transaction proxies and self-invocation
+
+@Transactional is metadata consumed by Spring's transaction interceptor.
+When a call enters through the proxy, the interceptor selects a transaction manager, starts or joins a transaction, invokes the target, and then commits or rolls back according to the outcome.
+The annotation does not add transaction bytecode to every call site.
+
+```mermaid
+sequenceDiagram
+    participant C as "Calling bean"
+    participant P as "Transaction proxy"
+    participant M as "Transaction manager"
+    participant T as "Target service"
+    C->>P: invoke public use case
+    P->>M: begin or join by propagation
+    P->>T: invoke target method
+    alt method returns normally
+        T-->>P: result
+        P->>M: commit
+        P-->>C: result
+    else rollback-matching exception escapes
+        T-->>P: exception
+        P->>M: rollback
+        P-->>C: rethrow exception
+    end
+```
+
+**Propagation** defines how a method relates to an existing transaction.
+REQUIRED, the default, joins one or starts a new transaction; REQUIRES_NEW suspends the current transaction and starts an independent one; SUPPORTS runs with a transaction when one exists; MANDATORY fails when none exists.
+NESTED, NOT_SUPPORTED, and NEVER have specialized semantics whose support depends on the transaction manager and resource.
+
+**Isolation** controls which concurrent effects a transaction can observe.
+The DEFAULT value delegates to the database configuration, while READ_COMMITTED, REPEATABLE_READ, and SERIALIZABLE request progressively stronger guarantees with engine-specific costs.
+An inner REQUIRED method participates in the existing transaction, so declaring a different isolation level there does not replace the already chosen connection isolation.
+
+By default, Spring rolls back for unchecked `RuntimeException` and `Error` outcomes, but checked exceptions do not trigger rollback unless configured with `rollbackFor` or a matching rule.
+If a method catches the exception and returns normally, the proxy sees success and normally commits; either rethrow, mark the transaction rollback-only deliberately, or translate the exception without losing its rollback semantics.
+
+A read-only transaction is an optimization hint and statement of intent, not a universal write firewall.
+Some integrations reduce dirty checking or select a read-only connection, but database and driver behaviour varies, so correctness must not depend on the hint rejecting every write.
+Keep the transaction boundary around one coherent use case and avoid slow remote calls while holding database locks and pooled connections.
+
+Self-invocation remains the central trap: `this.innerMethod()` never crosses the surrounding proxy, so the inner method's propagation, isolation, and rollback rules are not independently applied.
+Move the inner operation to another bean when it is a real transaction boundary, or restructure the public use case so one externally intercepted method owns the transaction.
 
 ---
 

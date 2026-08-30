@@ -33,7 +33,7 @@ public class TopicService {
         new Topic("network-security", "Network Security, Cryptography & Threat Prevention", "networking", "expert", "Symmetric (AES) vs Asymmetric (RSA), Digital Certificates, Firewalls, SYN Flood, DDoS"),
         new Topic("network-performance-qos", "Network QoS, Traffic Shaping & Modern Networking", "networking", "expert", "Token Bucket vs Leaky Bucket traffic shaping, IntServ vs DiffServ QoS, CDN architecture, SDN/NFV, IoT networking, 5G slicing"),
 
-        // Database Management Systems (12 Comprehensive Topics)
+        // Database Management Systems (13 Comprehensive Topics)
         new Topic("dbms-introduction", "DBMS Introduction & Architecture", "dbms", "beginner", "What is DBMS, types, components, database languages, file system problems"),
         new Topic("dbms-architecture", "DBMS Architecture & 3-Schema ANSI-SPARC", "dbms", "beginner", "DBMS vs File Systems, 3-Schema ANSI-SPARC architecture, physical and logical data independence"),
         new Topic("er-model", "ER Diagram Modeling & Relational Mapping", "dbms", "beginner", "Entity sets, attributes, cardinalities, weak entities, Generalization, Specialization, ER-to-Table mapping rules"),
@@ -45,6 +45,7 @@ public class TopicService {
         new Topic("transactions-acid", "Transactions, ACID States & Crash Recovery", "dbms", "intermediate", "ACID guarantees, Transaction State Machine, Write-Ahead Logging (WAL), Checkpoints, ARIES crash recovery"),
         new Topic("concurrency-control", "Concurrency Control, 2PL & Timestamp Ordering", "dbms", "expert", "Conflict serializability, Precedence Graphs, Shared/Exclusive locks, Strict 2PL, Thomas Write Rule, Wait-For Deadlock graphs"),
         new Topic("query-optimization", "Query Processing, Relational Trees & Cost-Based Optimizer", "dbms", "expert", "Relational algebra query trees, Predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE"),
+        new Topic("sql-querying", "SQL Querying, Joins & Practical Data Access", "dbms", "intermediate", "SQL filtering, joins, grouping, window functions, transactions, query plans and safe data access"),
         new Topic("distributed-databases-cap", "Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem", "dbms", "expert", "Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus"),
 
         // Java, Advanced Java, Spring Boot, JPA/Hibernate, Spring Batch & Quartz
@@ -66,8 +67,14 @@ public class TopicService {
         new Topic("spring-batch-lifecycle", "Spring Batch Execution Architecture & Chunk Engine", "java-spring", "expert", "JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry"),
         new Topic("quartz-scheduler", "Quartz Scheduler Lifecycle & Clustered JobStoreTX", "java-spring", "expert", "Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering"),
         new Topic("design-patterns-solid", "SOLID Principles & Design Patterns", "java-spring", "intermediate", "SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns"),
+        new Topic("spring-boot-internals", "Spring Boot Internals & Production Configuration", "java-spring", "intermediate", "Auto-configuration, externalized configuration, actuator, startup, profiles and production diagnostics"),
+        new Topic("spring-rest-api-design", "Spring REST API Design & Error Handling", "java-spring", "intermediate", "Resource design, validation, pagination, versioning, problem details and API contracts"),
+        new Topic("spring-security", "Spring Security, Authentication & Authorization", "java-spring", "expert", "Security filter chain, sessions, JWT, OAuth2, method security, CSRF and secure defaults"),
+        new Topic("spring-caching-async", "Spring Caching, Async Work & Resilience", "java-spring", "expert", "Cache abstraction, async execution, retries, timeouts, scheduling and resilient service boundaries"),
+        new Topic("spring-testing-production", "Spring Testing & Production Readiness", "java-spring", "expert", "Slice tests, integration tests, test containers, observability, deployment checks and incident-safe operations"),
 
-        // AI / ML Systems
+        // AI / ML Systems (7 Comprehensive Topics)
+        new Topic("ml-fundamentals", "Machine Learning Fundamentals & Model Evaluation", "aiml", "beginner", "Supervised learning, features, train-validation-test splits, metrics, overfitting and responsible evaluation"),
         new Topic("embeddings-vector-db", "Vector Embeddings, Similarity Search & Vector DBs", "aiml", "beginner", "Embedding vectors, cosine similarity, HNSW ANN search, pgvector/Qdrant"),
         new Topic("rag-architecture", "Retrieval-Augmented Generation (RAG) Architecture", "aiml", "intermediate", "Chunking, retrieval, context assembly, grounded generation pipeline"),
         new Topic("model-serving", "LLM Model Serving & Low-Latency Inference", "aiml", "expert", "vLLM PagedAttention, KV cache management, batching, GPU memory allocation"),

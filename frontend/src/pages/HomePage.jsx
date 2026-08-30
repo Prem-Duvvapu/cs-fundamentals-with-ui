@@ -106,12 +106,17 @@ export default function HomePage() {
           { id: 'java-multithreading-concurrency', category: 'java-spring', title: 'Multithreading, Monitors, CAS & ThreadPool Executors', level: 'expert', summary: 'Thread 6-State lifecycle, synchronized Object Monitor entry/wait sets, volatile barrier, CAS, ThreadPoolExecutor' },
           { id: 'spring-bean-lifecycle', category: 'java-spring', title: 'Spring IoC Container & Bean Lifecycle', level: 'intermediate', summary: 'Bean instantiation, Aware interfaces, @PostConstruct, BeanPostProcessor, @PreDestroy, Auto-Configuration' },
           { id: 'spring-mvc-lifecycle', category: 'java-spring', title: 'Spring MVC Request Execution & Security Pipeline', level: 'intermediate', summary: 'DispatcherServlet, HandlerMapping, HandlerAdapter, HttpMessageConverter, Security Filter Chain' },
+          { id: 'spring-boot-internals', category: 'java-spring', title: 'Spring Boot Internals & Auto-Configuration', level: 'intermediate', summary: 'Starters, auto-configuration conditions, externalised configuration, application context startup and observability' },
+          { id: 'spring-rest-api-design', category: 'java-spring', title: 'Spring REST API Design & Error Handling', level: 'intermediate', summary: 'Resource modelling, validation, HTTP semantics, problem details, versioning and idempotency' },
+          { id: 'spring-security', category: 'java-spring', title: 'Spring Security, Authentication & Authorization', level: 'expert', summary: 'Security filter chain, sessions, JWT, OAuth 2.0, CSRF, method security and least privilege' },
+          { id: 'spring-caching-async', category: 'java-spring', title: 'Spring Caching, Async Work & Resilience', level: 'expert', summary: 'Cache abstraction, async execution, scheduling, retries, backpressure and resilience boundaries' },
+          { id: 'spring-testing-production', category: 'java-spring', title: 'Spring Testing & Production Readiness', level: 'expert', summary: 'Test slices, integration tests, Testcontainers, observability, deployment checks and incident-safe operations' },
           { id: 'jpa-hibernate-lifecycle', category: 'java-spring', title: 'JPA / Hibernate Entity Lifecycle & N+1 Solver', level: 'expert', summary: 'Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs' },
           { id: 'spring-batch-lifecycle', category: 'java-spring', title: 'Spring Batch Execution Architecture & Chunk Engine', level: 'expert', summary: 'JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry' },
           { id: 'quartz-scheduler', category: 'java-spring', title: 'Quartz Scheduler Lifecycle & Clustered JobStoreTX', level: 'expert', summary: 'Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering' },
           { id: 'design-patterns-solid', category: 'java-spring', title: 'SOLID Principles & Design Patterns', level: 'intermediate', summary: 'SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns' },
 
-          // DBMS & SQL (12 Comprehensive Topics)
+          // DBMS & SQL (13 Comprehensive Topics)
           { id: 'dbms-introduction', category: 'dbms', title: 'DBMS Introduction & Architecture', level: 'beginner', summary: 'What is DBMS, types, components, database languages, file system problems' },
           { id: 'dbms-architecture', category: 'dbms', title: 'DBMS Architecture & 3-Schema ANSI-SPARC', level: 'beginner', summary: 'ANSI-SPARC 3-schema architecture, Physical vs Logical data independence' },
           { id: 'er-model', category: 'dbms', title: 'ER Diagram Modeling & Relational Mapping', level: 'beginner', summary: 'Entity sets, attributes, cardinalities, weak entities, Generalization, Specialization, ER-to-Table mapping rules' },
@@ -123,9 +128,11 @@ export default function HomePage() {
           { id: 'transactions-acid', category: 'dbms', title: 'Transactions, ACID States & Crash Recovery', level: 'intermediate', summary: 'ACID guarantees, Transaction State Machine, Write-Ahead Logging (WAL), Checkpoints, ARIES crash recovery' },
           { id: 'concurrency-control', category: 'dbms', title: 'Concurrency Control, 2PL & Timestamp Ordering', level: 'expert', summary: 'Conflict serializability, Precedence Graphs, Shared/Exclusive locks, Strict 2PL, Thomas Write Rule, Wait-For Deadlock graphs' },
           { id: 'query-optimization', category: 'dbms', title: 'Query Processing, Relational Trees & Cost-Based Optimizer', level: 'expert', summary: 'Relational algebra query trees, Predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE' },
+          { id: 'sql-querying', category: 'dbms', title: 'SQL Querying, Joins & Window Functions', level: 'intermediate', summary: 'SELECT execution order, joins, aggregates, CTEs, window functions, indexes and query-plan reasoning' },
           { id: 'distributed-databases-cap', category: 'dbms', title: 'Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem', level: 'expert', summary: 'Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus' },
 
-          // AI / ML Systems
+          // AI / ML Systems (7 Topics)
+          { id: 'ml-fundamentals', category: 'aiml', title: 'Machine Learning Fundamentals & Evaluation', level: 'beginner', summary: 'Supervised and unsupervised learning, train-validation-test splits, metrics, overfitting and bias-variance trade-offs' },
           { id: 'embeddings-vector-db', category: 'aiml', title: 'Vector Embeddings, Similarity Search & Vector DBs', level: 'beginner', summary: 'Embedding vectors, cosine similarity, HNSW ANN search, pgvector/Qdrant' },
           { id: 'rag-architecture', category: 'aiml', title: 'Retrieval-Augmented Generation (RAG) Architecture', level: 'intermediate', summary: 'Chunking, retrieval, context assembly, grounded generation pipeline' },
           { id: 'model-serving', category: 'aiml', title: 'LLM Model Serving & Low-Latency Inference', level: 'expert', summary: 'vLLM PagedAttention, KV cache management, batching, GPU memory allocation' },

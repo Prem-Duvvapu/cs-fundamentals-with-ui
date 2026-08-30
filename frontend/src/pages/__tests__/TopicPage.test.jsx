@@ -71,4 +71,24 @@ describe('TopicPage Component', () => {
     expect(studyTab).toHaveAttribute('aria-selected', 'true')
     expect(studyTab).toHaveFocus()
   })
+
+  it.each([
+    ['sql-querying', 'Practical SQL, Joins, CTEs & Window Functions'],
+    ['spring-boot-internals', 'Spring Boot Internals, Auto-configuration & Profiles'],
+    ['spring-rest-api-design', 'Spring REST API Design, Validation & Error Contracts'],
+    ['spring-security', 'Spring Security, JWT & OAuth2 Fundamentals'],
+    ['spring-caching-async', 'Spring Caching, Async Work & Scheduling'],
+    ['spring-testing-production', 'Spring Testing & Production Operations'],
+    ['ml-fundamentals', 'Machine Learning Fundamentals & Evaluation']
+  ])('renders the registered topic title for %s', (topicId, title) => {
+    render(
+      <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
+        <Routes>
+          <Route path="/topic/:topicId" element={<TopicPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
+  })
 })

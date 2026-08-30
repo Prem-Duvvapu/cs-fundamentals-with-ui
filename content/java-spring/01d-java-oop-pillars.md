@@ -165,7 +165,7 @@ applies 15%, while a `FixedDiscount` subtracts \$10 but never returns a negative
 checkout loop calls `discount.apply(subtotal)` through the interface, so it does not contain a
 branch per discount class.
 
-For a subtotal of \$80, percentage discount yields $80 \times 0.15 = \$12$, then the payable
+For a subtotal of \$80, the percentage reduction is $80 \times 0.15 = 12$, so the payable
 amount is \$68. A fixed discount yields \$70. If the subtotal is \$6, a fixed \$10 discount must
 clamp to \$0 or reject the rule according to the domain invariant; polymorphism does not remove
 the need for a correct contract.

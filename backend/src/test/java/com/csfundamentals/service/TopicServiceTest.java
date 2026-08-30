@@ -41,10 +41,10 @@ class TopicServiceTest {
     }
 
     @Test
-    void getTopicsByCategory_dbms_shouldContainAll12Topics() {
+    void getTopicsByCategory_dbms_shouldContainAll13Topics() {
         List<Topic> dbmsTopics = topicService.getTopicsByCategory("dbms");
         assertNotNull(dbmsTopics);
-        assertEquals(12, dbmsTopics.size(), "DBMS category must have exactly 12 registered topics");
+        assertEquals(13, dbmsTopics.size(), "DBMS category must have exactly 13 registered topics");
 
         List<String> topicIds = dbmsTopics.stream().map(Topic::id).toList();
         assertTrue(topicIds.contains("dbms-introduction"));
@@ -58,6 +58,7 @@ class TopicServiceTest {
         assertTrue(topicIds.contains("transactions-acid"));
         assertTrue(topicIds.contains("concurrency-control"));
         assertTrue(topicIds.contains("query-optimization"));
+        assertTrue(topicIds.contains("sql-querying"));
         assertTrue(topicIds.contains("distributed-databases-cap"));
     }
 
@@ -79,10 +80,10 @@ class TopicServiceTest {
     }
 
     @Test
-    void getTopicsByCategory_javaSpring_shouldContainAll18Topics() {
+    void getTopicsByCategory_javaSpring_shouldContainAll23Topics() {
         List<Topic> javaTopics = topicService.getTopicsByCategory("java-spring");
         assertNotNull(javaTopics);
-        assertEquals(18, javaTopics.size(), "Java/Spring category must have exactly 18 registered topics");
+        assertEquals(23, javaTopics.size(), "Java/Spring category must have exactly 23 registered topics");
 
         List<String> topicIds = javaTopics.stream().map(Topic::id).toList();
         assertTrue(topicIds.contains("java-execution-pipeline"));
@@ -103,13 +104,18 @@ class TopicServiceTest {
         assertTrue(topicIds.contains("spring-batch-lifecycle"));
         assertTrue(topicIds.contains("quartz-scheduler"));
         assertTrue(topicIds.contains("design-patterns-solid"));
+        assertTrue(topicIds.contains("spring-boot-internals"));
+        assertTrue(topicIds.contains("spring-rest-api-design"));
+        assertTrue(topicIds.contains("spring-security"));
+        assertTrue(topicIds.contains("spring-caching-async"));
+        assertTrue(topicIds.contains("spring-testing-production"));
     }
 
     @Test
-    void getTopicsByCategory_aiml_shouldContainAll6Topics() {
+    void getTopicsByCategory_aiml_shouldContainAll7Topics() {
         List<Topic> aimlTopics = topicService.getTopicsByCategory("aiml");
         assertNotNull(aimlTopics);
-        assertEquals(6, aimlTopics.size(), "AI/ML category must have exactly 6 registered topics");
+        assertEquals(7, aimlTopics.size(), "AI/ML category must have exactly 7 registered topics");
 
         List<String> topicIds = aimlTopics.stream().map(Topic::id).toList();
         assertTrue(topicIds.contains("embeddings-vector-db"));
@@ -118,6 +124,7 @@ class TopicServiceTest {
         assertTrue(topicIds.contains("llm-parameters"));
         assertTrue(topicIds.contains("feature-stores"));
         assertTrue(topicIds.contains("recommendation-systems"));
+        assertTrue(topicIds.contains("ml-fundamentals"));
     }
 
     @Test
@@ -136,16 +143,21 @@ class TopicServiceTest {
     }
 
     @Test
-    void allRegisteredTopics_acrossAllCategories_shouldHaveResolvableMarkdownContent() {
+    void allRegisteredTopics_acrossAllCategories_shouldResolveToTieredMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
-        assertEquals(56, allTopics.size(), "Total registered topics should be 56 (8 OS + 12 Networking + 12 DBMS + 18 Java/Spring + 6 AI/ML)");
+        assertEquals(63, allTopics.size(), "Total registered topics should be 63 (8 OS + 12 Networking + 13 DBMS + 23 Java/Spring + 7 AI/ML)");
+        assertEquals(13, allTopics.stream().filter(topic -> topic.category().equals("dbms")).count());
+        assertEquals(23, allTopics.stream().filter(topic -> topic.category().equals("java-spring")).count());
+        assertEquals(7, allTopics.stream().filter(topic -> topic.category().equals("aiml")).count());
 
         for (Topic topic : allTopics) {
             String content = contentService.getContent(topic.category(), topic.id());
             assertNotNull(content, "Content must not be null for " + topic.id());
             assertFalse(content.startsWith("Content not found"), "Content file missing for topicId: " + topic.id());
             assertFalse(content.startsWith("Error loading content"), "Error reading content file for: " + topic.id());
-            assertTrue(content.contains("Beginner Level") || content.contains("🟢"), "Content must follow 3-level pattern for: " + topic.id());
+            assertTrue(content.contains("## 🟢 Beginner Level"), "Content must include the exact Beginner tier for: " + topic.id());
+            assertTrue(content.contains("## 🟡 Intermediate Level"), "Content must include the exact Intermediate tier for: " + topic.id());
+            assertTrue(content.contains("## 🔴 Expert Level"), "Content must include the exact Expert tier for: " + topic.id());
         }
     }
 }

@@ -318,13 +318,19 @@ It can hide lazy failures but moves SQL into the view layer and can hold resourc
 
 Do not cure lazy initialization failures by marking every association eager.
 
-Spring's `@Transactional` normally works through a proxy.
+Spring's @Transactional annotation normally works through an AOP proxy around the service bean.
 
-Calling a transactional method through `this.someMethod()` bypasses that proxy.
+When an external caller enters the proxied method, the interceptor opens or joins a database transaction and binds an EntityManager to the current execution context.
 
-The inner call then does not start the intended transaction or propagation boundary.
+That EntityManager owns the persistence context, so entities loaded during the method remain managed and lazy proxies can initialize while the boundary is active.
 
-Put transaction boundaries on public service entry points or move the operation to another bean.
+At normal return, the persistence context flushes pending changes before the transaction commits; a matching runtime failure normally marks the transaction for rollback.
+
+Calling a transactional method through `this.someMethod()` bypasses the Spring proxy.
+
+The inner call therefore does not create its declared propagation boundary, and a method reached without an outer transaction may have no transaction-scoped persistence context at all.
+
+Put transaction boundaries on public service entry points or move the operation to another bean when separate proxy interception is required.
 
 ### Optimistic locking and bulk operations
 
