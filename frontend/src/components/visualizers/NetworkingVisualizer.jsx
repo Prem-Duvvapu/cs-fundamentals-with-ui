@@ -55,13 +55,16 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
   // MODE 1: OSI 7-LAYER ENCAPSULATION
   // ==========================================
   const [encapStep, setEncapStep] = useState(0)
+  // `color` (light, --*-base/state tone) is used for text sitting on the app's dark background
+  // (title, border accent); `fill` (darker --*-border tone) is used where the same hue becomes a
+  // solid pill background behind white text — the light `color` tones fail contrast as a fill.
   const layers = [
-    { name: '7. Application', header: 'HTTP/1.1 GET /api/v1/topics', color: 'var(--cat-os-base)' },
-    { name: '6. Presentation', header: 'TLS 1.3 Encryption Metadata', color: 'var(--cat-aiml-base)' },
-    { name: '5. Session', header: 'Session Token (ID: 0x9F82)', color: 'var(--state-info)' },
-    { name: '4. Transport', header: 'TCP (SrcPort: 5173, DstPort: 80, Seq: 100)', color: 'var(--state-success)' },
-    { name: '3. Network', header: 'IP (SrcIP: 192.168.1.50, DstIP: 142.250.190.46, TTL: 64)', color: 'var(--state-warning)' },
-    { name: '2. Data Link', header: 'Ethernet MAC (Src: 00:1A:2B, Dst: CC:DD:EE, CRC32)', color: 'var(--state-danger)' },
+    { name: '7. Application', header: 'HTTP/1.1 GET /api/v1/topics', color: 'var(--cat-os-base)', fill: 'var(--cat-os-border)' },
+    { name: '6. Presentation', header: 'TLS 1.3 Encryption Metadata', color: 'var(--cat-aiml-base)', fill: 'var(--cat-aiml-border)' },
+    { name: '5. Session', header: 'Session Token (ID: 0x9F82)', color: 'var(--state-info)', fill: 'var(--state-info-border)' },
+    { name: '4. Transport', header: 'TCP (SrcPort: 5173, DstPort: 80, Seq: 100)', color: 'var(--state-success)', fill: 'var(--state-success-border)' },
+    { name: '3. Network', header: 'IP (SrcIP: 192.168.1.50, DstIP: 142.250.190.46, TTL: 64)', color: 'var(--state-warning)', fill: 'var(--state-warning-border)' },
+    { name: '2. Data Link', header: 'Ethernet MAC (Src: 00:1A:2B, Dst: CC:DD:EE, CRC32)', color: 'var(--state-danger)', fill: 'var(--state-danger-border)' },
   ]
 
   // ==========================================
@@ -493,7 +496,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
                   <div className="layer-title" style={{ color: l.color }}>{l.name}</div>
                   <div className="layer-header-box">
                     {isAdded ? (
-                      <span className="header-pill" style={{ backgroundColor: l.color }}>
+                      <span className="header-pill" style={{ backgroundColor: l.fill }}>
                         [{l.header}]
                       </span>
                     ) : (

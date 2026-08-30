@@ -120,7 +120,7 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
         </div>
 
         {/* SUB-TABS NAVIGATION */}
-        <div className="main-tab-switcher" style={{ margin: '0 auto 1.5rem auto' }}>
+        <div className="main-tab-switcher hub-subnav is-centered">
           <button
             onClick={() => setActiveTab('pipeline')}
             className={`main-tab-btn ${activeTab === 'pipeline' ? 'active-tab' : ''}`}
@@ -302,16 +302,16 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
         <div className="viz-card">
           <h3>🌱 Spring IoC Container & Bean Initialization Pipeline</h3>
 
-          <div className="action-buttons-group" style={{ margin: '1rem 0', display: 'flex', gap: '0.5rem' }}>
+          <div className="action-buttons-group">
             <button onClick={() => setBeanStep(0)} className="btn btn-secondary">⏮ Reset Context</button>
             <button onClick={() => setBeanStep(prev => Math.min(8, prev + 1))} disabled={beanStep >= 8} className="btn btn-primary">
               Next Lifecycle Step ▶
             </button>
           </div>
 
-          <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-            <h4 style={{ color: 'var(--accent-purple)' }}>{beanSteps[beanStep].title}</h4>
-            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{beanSteps[beanStep].desc}</p>
+          <div className="info-panel">
+            <h4>{beanSteps[beanStep].title}</h4>
+            <p>{beanSteps[beanStep].desc}</p>
           </div>
         </div>
       )}
@@ -321,16 +321,16 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
         <div className="viz-card">
           <h3>🌐 Spring MVC DispatcherServlet Request Execution Pipeline</h3>
 
-          <div className="action-buttons-group" style={{ margin: '1rem 0', display: 'flex', gap: '0.5rem' }}>
+          <div className="action-buttons-group">
             <button onClick={() => setMvcStep(0)} className="btn btn-secondary">⏮ Reset Request</button>
             <button onClick={() => setMvcStep(prev => Math.min(6, prev + 1))} disabled={mvcStep >= 6} className="btn btn-primary">
               Step Pipeline Forward ▶
             </button>
           </div>
 
-          <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-            <h4 style={{ color: 'var(--accent-blue)' }}>{mvcPipeline[mvcStep].title}</h4>
-            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{mvcPipeline[mvcStep].desc}</p>
+          <div className="info-panel accent-info">
+            <h4>{mvcPipeline[mvcStep].title}</h4>
+            <p>{mvcPipeline[mvcStep].desc}</p>
           </div>
         </div>
       )}
@@ -341,7 +341,7 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>🗄 JPA / Hibernate 4-State Entity Machine</h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '1rem' }}>
+            <div className="entity-state-grid">
               <button onClick={() => { setEntityState('TRANSIENT'); setIsDirty(false) }} className={`btn ${entityState === 'TRANSIENT' ? 'btn-primary' : 'btn-secondary'}`}>
                 1. Transient (new User())
               </button>
@@ -356,22 +356,21 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
               </button>
             </div>
 
-            <div style={{ marginTop: '1.25rem', background: '#0f172a', padding: '1rem', borderRadius: '10px' }}>
-              <h4>Current Entity State: <span style={{ color: 'var(--accent-purple)' }}>{entityState}</span></h4>
-              
-              <div style={{ marginTop: '0.75rem' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Test Dirty Checking (Modify Field):</label>
+            <div className="info-panel mt-panel">
+              <h4>Current Entity State: <span className="state-value">{entityState}</span></h4>
+
+              <div className="dirty-check-row">
+                <label className="field-label-strong">Test Dirty Checking (Modify Field):</label>
                 <input
                   type="text"
                   value={dirtyField}
                   onChange={e => handleUpdateField(e.target.value)}
-                  className="num-input"
-                  style={{ width: '100%', marginTop: '0.3rem' }}
+                  className="num-input is-full"
                 />
               </div>
 
               {isDirty && (
-                <div style={{ marginTop: '0.75rem', background: '#3f1212', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--accent-red)', fontSize: '0.85rem' }}>
+                <div className="dirty-alert">
                   🔥 <strong>Automatic Dirty Checking Triggered!</strong> Hibernate tracked field change and will automatically execute SQL UPDATE upon transaction commit!
                 </div>
               )}
@@ -381,7 +380,7 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>⚡ N+1 Query Problem vs JOIN FETCH Optimization</h3>
 
-            <div className="main-tab-switcher" style={{ margin: '1rem 0' }}>
+            <div className="main-tab-switcher subnav-compact">
               <button onClick={() => setFetchStrategy('lazy')} className={`main-tab-btn ${fetchStrategy === 'lazy' ? 'active-tab' : ''}`}>
                 Unoptimized LAZY Fetch (N+1 Problem)
               </button>
@@ -390,10 +389,10 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
               </button>
             </div>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div className="info-panel">
+              <div className="query-compare-row">
                 <span>SQL Queries Executed for 100 Orders:</span>
-                <strong style={{ color: fetchStrategy === 'lazy' ? 'var(--accent-red)' : 'var(--accent-green)', fontSize: '1.2rem' }}>
+                <strong className={`query-count ${fetchStrategy === 'lazy' ? 'is-danger' : 'is-success'}`}>
                   {fetchStrategy === 'lazy' ? '101 SQL Queries (1 + 100 N+1 Queries!)' : '1 SQL Query (JOIN FETCH)'}
                 </strong>
               </div>
@@ -413,26 +412,25 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>⏱ Quartz Scheduler Execution & Misfire Engine</h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="quartz-controls">
+              <div className="u-row">
                 <input
                   type="checkbox"
                   id="disallowConc"
                   checked={disallowConcurrent}
                   onChange={e => setDisallowConcurrent(e.target.checked)}
                 />
-                <label htmlFor="disallowConc" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                <label htmlFor="disallowConc" className="field-label-strong">
                   @DisallowConcurrentExecution (Block Parallel Job Runs)
                 </label>
               </div>
 
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>Misfire Handling Policy:</label>
+                <label className="field-label-strong is-block">Misfire Handling Policy:</label>
                 <select
                   value={misfirePolicy}
                   onChange={e => setMisfirePolicy(e.target.value)}
-                  className="num-input"
-                  style={{ width: '100%' }}
+                  className="num-input is-full"
                 >
                   <option value="fire_now">MISFIRE_INSTRUCTION_FIRE_NOW (Run Missed Job Immediately)</option>
                   <option value="do_nothing">MISFIRE_INSTRUCTION_DO_NOTHING (Ignore Missed Runs)</option>
@@ -444,8 +442,8 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>🔒 Clustered `JobStoreTX` Database Locking (`QRTZ_LOCKS`)</h3>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <p style={{ fontSize: '0.85rem' }}>
+            <div className="info-panel">
+              <p>
                 In a multi-pod Kubernetes deployment, Quartz acquires a row-level DB lock on <code>QRTZ_LOCKS (LOCK_NAME = 'TRIGGER_ACCESS')</code> to guarantee exactly-once execution across the microservice cluster!
               </p>
             </div>

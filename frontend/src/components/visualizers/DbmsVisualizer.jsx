@@ -44,7 +44,7 @@ export default function DbmsVisualizer({ defaultTopicId }) {
         </div>
 
         {/* SUB-TABS NAVIGATION */}
-        <div className="main-tab-switcher" style={{ marginTop: '1rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+        <div className="main-tab-switcher hub-subnav">
           <button
             onClick={() => setActiveTab('intro')}
             className={`main-tab-btn ${activeTab === 'intro' ? 'active-tab' : ''}`}
