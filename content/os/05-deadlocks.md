@@ -93,7 +93,12 @@ Lock order is an API contract and should be documented wherever more than one lo
 
 ## 🟡 Intermediate Level
 
-### Prevention trades availability for certainty
+### Deadlocks: prevention, avoidance, detection, and recovery
+
+A deadlock is a permanent wait among participants whose resource dependencies form a closed cycle while all four Coffman conditions hold: mutual exclusion, hold and wait, no preemption, and circular wait.
+The four response families act at different times: **prevention** breaks a Coffman condition by design, **avoidance** rejects an allocation that would enter an unsafe state, **detection** searches an allowed allocation for a cycle or unfinished set, and **recovery** aborts, rolls back, or preempts a victim so resources are released.
+Banker's Algorithm is the classic avoidance algorithm when every process declares its maximum claim in advance; the later worked example shows its safety check with concrete numbers.
+None of these terms should be confused with neighbouring liveness failures: deadlock traps a closed set, starvation denies one participant service while others progress, and livelock keeps participants active but repeatedly prevents useful completion.
 
 Deadlock prevention structurally breaks at least one Coffman condition.
 It provides a guarantee, but that guarantee can reduce resource utilization or complicate failure handling.
