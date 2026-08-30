@@ -241,6 +241,14 @@ Origin shielding reduces duplicate misses reaching the origin but adds a layer t
 When an origin is unhealthy, serve stale content only where the business semantics permit it.
 For authenticated APIs and mutations, edge caching is often inappropriate unless explicitly designed for the operation.
 
+The reverse proxy or API gateway should reuse upstream connections through a bounded **connection pool** and HTTP **keep-alive**.
+Reuse avoids paying TCP and TLS setup costs for every request, but an oversized pool can overload the origin or exhaust file descriptors.
+Pool limits, idle timeouts, queue bounds, and dependency timeouts therefore belong in the same latency and capacity budget.
+
+A load balancer may use a **sticky session**, also called **session affinity**, to keep a client on one application instance.
+Affinity can support legacy in-memory sessions, but it creates uneven load and makes failover harder; shared session storage or stateless tokens are usually more resilient.
+When affinity is unavoidable, use an expiring cookie, cap the imbalance it may create, and test what happens when the selected instance disappears.
+
 Anycast can steer users to a topologically nearby point of presence through routing, but “nearest” reflects BGP policy and network topology, not geographic distance.
 Failover changes can shift large traffic volumes quickly, so capacity plans need headroom at neighbouring points of presence.
 Measure edge hit ratio, origin requests, cache age, regional latency, and error rate to detect when a cache policy harms correctness or performance.

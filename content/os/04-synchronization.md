@@ -106,6 +106,24 @@ The predicate, not the notification, is the source of truth.
 
 ## 🟡 Intermediate Level
 
+### Synchronization primitives and classic problems
+
+Synchronization starts with a **race condition**: two executions overlap so that their uncontrolled order changes the result. The code that reads or changes the shared invariant is the **critical section**, and **mutual exclusion** ensures only one eligible execution occupies it at a time. A correct design also defines progress and bounded waiting; merely making one observed race disappear does not prove the algorithm correct.
+
+A **mutex** is an ownership-bearing lock for an exclusive critical section. A **spinlock** is also exclusive, but a contender repeatedly polls instead of sleeping, so it belongs only around very short, non-blocking work. A **semaphore** models permits: a **binary semaphore** holds zero or one permit, whereas a **counting semaphore** represents a capacity such as eight reusable connections. Unlike a normal mutex, the task that signals a semaphore need not be the task that waited on it.
+
+A **monitor** packages shared state, a lock, and operations that preserve the object's invariant. A **condition variable** lets a monitor owner release the lock atomically and sleep until the state may satisfy a predicate. The waiter must reacquire the lock and test that predicate in a loop because notifications are hints, competing waiters may consume the state, and spurious wakeups are permitted.
+
+The classic problems expose different failure modes rather than prescribing one universal primitive:
+
+| Problem | Shared invariant | Typical coordination | Main failure to prevent |
+|---|---|---|---|
+| **Producer-consumer** | Occupancy remains between zero and capacity | Empty/full counting semaphores plus a mutex | Overflow, underflow, or sleeping while holding the buffer lock |
+| **Readers-writers** | Readers may overlap, but a writer is exclusive | Read-write lock or monitor with condition queues | Reader or writer starvation caused by admission policy |
+| **Dining philosophers** | Adjacent philosophers never hold the same fork | Global fork order, waiter semaphore, or monitor | Circular wait, starvation, and livelock |
+
+In the **producer-consumer** problem, producers wait for empty capacity before inserting and consumers wait for a full slot before removing. The **readers-writers** problem separates shared read admission from exclusive write admission, forcing the design to choose fairness explicitly. In **dining philosophers**, letting every philosopher take the left fork before the right fork creates a circular wait; numbering forks and always taking the lower-numbered one first removes that cycle, while a fair queue may still be needed to prevent starvation.
+
 ### Worked example: bounded buffer permits
 
 Assume a buffer has capacity 3.

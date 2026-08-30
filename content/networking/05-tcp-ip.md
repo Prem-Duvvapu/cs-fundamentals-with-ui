@@ -45,7 +45,13 @@ CLIENT (Port 5173)                                  SERVER (Port 80)
 
 ## 🟡 Intermediate Level
 
-### TCP 3-Way Handshake & Connection Teardown
+### TCP connection management and reliability
+
+TCP's defining characteristics are a connection-oriented, full-duplex, ordered, reliable byte stream rather than independent application messages. Its **three-way handshake** exchanges initial sequence numbers and confirms that both endpoints can send and receive before application bytes flow. Graceful close normally uses a **four-way termination** because each endpoint shuts down its sending direction independently.
+
+TCP assigns **sequence numbers** to bytes, and cumulative **ACKs** report the next contiguous byte expected. A **sliding window** permits multiple bytes to remain in flight instead of waiting after every segment. Receiver-advertised **flow control** prevents a fast sender from overrunning one endpoint, while path-oriented **congestion control** reduces traffic when the network shows loss, delay, or explicit congestion signals.
+
+Reliability comes from checksums, ordered reassembly, acknowledgments, timers, and **retransmission** after inferred loss; it does not guarantee that an application processed a request exactly once. **TCP vs UDP** is therefore a semantics choice: UDP sends independent datagrams without built-in connection setup, ordering, retransmission, flow control, or congestion control, so applications that need those behaviours must supply them.
 
 ```mermaid
 sequenceDiagram

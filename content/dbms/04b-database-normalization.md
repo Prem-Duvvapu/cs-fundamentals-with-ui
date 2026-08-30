@@ -1,196 +1,423 @@
-# Database Normalization (1NF to BCNF) & Decompositions
+# Database Normalization: 1NF, 2NF, 3NF, and BCNF
+
+Normalization organizes relational schemas so each fact has one authoritative home and constraints can be enforced without contradictory duplicates.
+It connects functional-dependency theory to practical schema design, migration safety, and query performance.
+Interviewers use it to test whether an engineer can identify anomalies, prove a decomposition correct, and explain when deliberate denormalization is justified.
+
+---
 
 ## 🟢 Beginner Level
 
-### What is Normalization?
-**Database Normalization** is a systematic process of restructuring tables to minimize **data redundancy** and eliminate **modification anomalies**, guided by progressive quality tiers called normal forms (Codd introduced 1NF-3NF in 1971-72; Boyce and Codd added stricter BCNF in 1974). Each form repairs one structural disease without losing data.
+### Why duplicated facts become correctness bugs
 
-### The Three Anomalies on a Concrete Instance
-One wide table storing students, their department, department head, courses and instructors:
+Consider one `ENROLLMENT_REPORT` table containing students, departments, courses, and instructors.
+A department head repeats on every enrollment row even though that fact depends on the department, not on an enrollment.
+The duplication creates three modification anomalies.
 
+- An **update anomaly** occurs when changing one copy leaves other copies stale.
+- An **insertion anomaly** occurs when a department cannot be recorded until a student enrolls.
+- A **deletion anomaly** occurs when deleting the last enrollment also erases the department fact.
+
+```mermaid
+flowchart TD
+    W["Wide enrollment row"] --> U["Update the same department head many times"]
+    W --> I["Cannot insert department without enrollment"]
+    W --> D["Deleting last enrollment loses department"]
+    U --> N["Move each fact to one relation"]
+    I --> N
+    D --> N
 ```
-STUDENTS
-┌──────────┬───────────┬─────────────┬──────────┬─────────────┐
-│ Student  │ Dept      │ DeptHead    │ CourseID │ Instructor  │
-├──────────┼───────────┼─────────────┼──────────┼─────────────┤
-│ S1 Alice │ CompSci   │ Dr. Smith   │ CS101    │ Prof. Rao   │
-│ S1 Alice │ CompSci   │ Dr. Smith   │ CS102    │ Prof. Iyer  │
-│ S3 Cara  │ CompSci   │ Dr. Smith   │ CS103    │ Prof. Rao   │
-│ S2 Bob   │ Electrical│ Dr. Johnson │ EE201    │ Prof. Menon │
-└──────────┴───────────┴─────────────┴──────────┴─────────────┘
+
+Normalization does not merely reduce storage.
+It makes the schema express which attributes determine other attributes, then places those facts where keys and constraints can protect them.
+The result usually requires joins, but joins are often cheaper than repairing silent inconsistency.
+
+### Functional dependencies describe business rules
+
+A **functional dependency**, written $X \rightarrow Y$, means that any two valid rows agreeing on attributes $X$ must also agree on attributes $Y$.
+The left side $X$ is the **determinant**, and the right side $Y$ is functionally determined.
+Dependencies come from business rules rather than from coincidences in one sample dataset.
+
+For `STUDENT(StudentId, Email, DepartmentId, DepartmentName)`, plausible dependencies include:
+
+- `StudentId → Email, DepartmentId` because one student record has one email and department.
+- `Email → StudentId` if email is declared globally unique.
+- `DepartmentId → DepartmentName` because one department identifier names one department.
+
+A sample in which two departments happen to share a name does not establish `DepartmentName → DepartmentId`.
+The rule must hold for every legal future state.
+Schema designers therefore confirm dependencies with domain owners and constraints, not only with profiling queries.
+
+### Keys and prime attributes
+
+A **superkey** is any attribute set whose closure determines every attribute in the relation.
+A **candidate key** is a minimal superkey: removing any attribute makes it stop identifying a row.
+An attribute belonging to at least one candidate key is **prime**; every other attribute is non-prime.
+
+Suppose `ORDER_LINE(OrderId, ProductId, Quantity, ProductName)` has these dependencies:
+
+- `(OrderId, ProductId) → Quantity`
+- `ProductId → ProductName`
+
+The pair `(OrderId, ProductId)` is a candidate key.
+`OrderId` and `ProductId` are prime, while `Quantity` and `ProductName` are non-prime.
+Because `ProductId` alone determines `ProductName`, the table contains a partial dependency that violates 2NF.
+
+### Normal forms and denormalization trade-offs
+
+The normal forms progressively restrict where functional dependencies may live.
+**1NF** requires atomic, single-domain values; **2NF** removes partial dependencies on part of a candidate key; **3NF** removes non-key transitive dependencies while allowing a prime-attribute exception; and **BCNF** requires every determinant of a non-trivial dependency to be a superkey.
+Each higher form includes the guarantees of the lower forms, but a stricter decomposition can make some dependencies harder to enforce.
+
+```mermaid
+flowchart LR
+    R["Unstructured relation"] --> F1["1NF: atomic values"]
+    F1 --> F2["2NF: no partial dependency"]
+    F2 --> F3["3NF: no non-key transitive dependency"]
+    F3 --> B["BCNF: every determinant is a superkey"]
+    B --> M["Measure workload before denormalizing"]
 ```
 
-1. **Insertion anomaly**: a new Mechanical department headed by Dr. Rao cannot be recorded until its first student enrolls — every row demands a Student value.
-2. **Deletion anomaly**: if Bob drops EE201 and his row is deleted, ALL knowledge that Electrical exists under Dr. Johnson evaporates — one DELETE destroys two independent facts.
-3. **Update anomaly**: Dr. Smith becomes Dr. Smyth; three scattered cells must change. Miss one and the database asserts both heads simultaneously — no constraint flags the split-brain state.
+| Form | Main rule | Typical anomaly removed | Important limitation |
+|---|---|---|---|
+| 1NF | one atomic value per attribute position | repeating groups | redundancy may remain |
+| 2NF | non-prime attributes depend on the whole candidate key | partial dependency | transitive dependency may remain |
+| 3NF | determinant is a superkey or dependent attribute is prime | non-key transitive dependency | some determinant anomalies remain |
+| BCNF | every non-trivial determinant is a superkey | residual determinant anomaly | dependency preservation is not guaranteed |
 
-### Why Redundancy Is Measured in Bytes and Risk
-If 40,000 enrollments average 25 rows per department, each department name and head string repeats roughly 25 times: storage waste grows linearly with history, and every duplicate cell is an independent target for future corruption. Normalization trades cheap JOINs for integrity — usually a bargain for OLTP workloads.
+**Denormalization** deliberately stores a derived or repeated fact to improve a measured access path.
+It makes sense for read-heavy analytical models, materialized summaries, cached aggregates, or geographically replicated read models when the team owns refresh and reconciliation.
+It does not mean skipping design analysis: the normalized source of truth and the consistency mechanism should remain explicit.
+
+### First normal form makes rows relational
+
+First normal form requires each row-column position to contain one value from the column's domain.
+A comma-separated list of phone numbers or an array of course identifiers inside a text column hides multiple facts from relational constraints.
+The fix is normally a child relation with one row per value.
+
+```sql
+CREATE TABLE student_phone (
+    student_id BIGINT NOT NULL,
+    phone_number VARCHAR(32) NOT NULL,
+    phone_type VARCHAR(16) NOT NULL,
+    PRIMARY KEY (student_id, phone_number),
+    FOREIGN KEY (student_id) REFERENCES student(student_id)
+);
+```
+
+Atomicity is relative to the operations the system needs.
+A postal address may be one value when it is only displayed, but it needs separate attributes if the application filters reliably by city or postal code.
+1NF is about a relational domain and predictable operators, not about splitting every string into individual characters.
+
+---
 
 ## 🟡 Intermediate Level
 
-### Normal Form Hierarchy at a Glance
+### Worked decomposition from 1NF through BCNF
 
-```
-STRICTNESS LADDER (each level contains everything below it)
+Use this relation:
 
-BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF
-        ▲       ▲       ▲
-        │       │       └── atomic values only (no repeating groups)
-        │       └────────── non-prime attrs depend on the FULL candidate key
-        └────────────────── no transitive escapes through prime attributes
-```
+`ORDER_FACT(OrderId, CustomerId, CustomerCity, ProductId, ProductName, Quantity)`
 
-| Normal Form | Test That EVERY Non-Trivial FD X → Y Must Pass | Disease Cured |
-| --- | --- | --- |
-| **1NF** | domains atomic; no comma lists, no nested tables | repeating groups |
-| **2NF** | no partial dependency: non-prime Y never depends on part of a composite candidate key | partial dependencies |
-| **3NF** | X is a superkey OR (Y − X) contains a prime attribute | transitive dependencies |
-| **BCNF** | X MUST be a superkey — the prime-attribute escape hatch is removed | residual determinant anomalies |
+Its candidate key is `(OrderId, ProductId)`, and the business dependencies are:
 
-Vocabulary: **determinant** = left side X; **dependent** = right side Y; **prime attribute** = member of some candidate key.
+1. `OrderId → CustomerId`
+2. `CustomerId → CustomerCity`
+3. `ProductId → ProductName`
+4. `(OrderId, ProductId) → Quantity`
 
-### Worked Walkthrough: Six Columns Through Every Form
-Running schema: Orders(OrderID, CustID, CustCity, ProdID, ProdName, Qty) with primary key (OrderID, ProdID). Declared FDs:
+The relation is in 1NF because every cell is atomic.
+It is not in 2NF because `OrderId` and `ProductId`, proper subsets of the composite key, determine non-prime attributes.
+Split the partial dependencies into `ORDER`, `PRODUCT`, and `ORDER_LINE`.
 
-- f1: OrderID → CustID — each order belongs to one customer
-- f2: CustID → CustCity — each customer lives in one city
-- f3: ProdID → ProdName — catalog naming rule
-- f4: (OrderID, ProdID) → Qty — the order line itself
+`ORDER(OrderId, CustomerId, CustomerCity)` still has a transitive chain:
 
-Prime attributes = {OrderID, ProdID}; non-prime = {CustID, CustCity, ProdName, Qty}.
+$$
+OrderId \rightarrow CustomerId \rightarrow CustomerCity
+$$
 
-### Step 1: Reach 1NF by Atomizing Values
+`CustomerId` is not a superkey of `ORDER`, so move customer location to `CUSTOMER(CustomerId, CustomerCity)`.
+The final four relations are:
 
-```
-VIOLATION (repeating group inside cells)
-┌─────────┬────────┬──────────┬─────────┬────────────────┬───────┐
-│ OrderID │ CustID │ CustCity │ ProdID  │ ProdName       │ Qty   │
-├─────────┼────────┼──────────┼─────────┼────────────────┼───────┤
-│ 101     │ C7     │ Pune     │ P1,P2   │ Laptop,Monitor │ 2,1   │
-└─────────┴────────┴──────────┴─────────┴────────────────┴───────┘
+- `CUSTOMER(CustomerId, CustomerCity)`
+- `ORDER(OrderId, CustomerId)`
+- `PRODUCT(ProductId, ProductName)`
+- `ORDER_LINE(OrderId, ProductId, Quantity)`
 
-FIX: one fact per row
-│ 101     │ C7     │ Pune     │ P1      │ Laptop         │ 2     │
-│ 101     │ C7     │ Pune     │ P2      │ Monitor        │ 1     │
-```
-
-Every cell atomic, every column single-domain ⇒ **1NF**. All four FDs still share one wide table — which is precisely the remaining problem.
-
-### Step 2: 1NF → 2NF by Removing Partial Dependencies
-Test each FD whose dependent set is non-prime against the composite key (OrderID, ProdID):
-- f1 and f2 hang off OrderID alone ⇒ PARTIAL violations.
-- f3 hangs off ProdID alone ⇒ PARTIAL violation.
-- f4 requires the entire key ⇒ full dependency, legal.
-
-Decompose, relocating each violating dependency into its own relation:
-
-```
-Orders(OrderID, CustID, CustCity):     (101, C7, Pune)
-Products(ProdID, ProdName):            (P1, Laptop)   (P2, Monitor)
-OrderItems(OrderID, ProdID, Qty):      (101, P1, 2)   (101, P2, 1)
+```mermaid
+erDiagram
+    CUSTOMER ||--o{ CUSTOMER_ORDER : places
+    CUSTOMER_ORDER ||--|{ ORDER_LINE : contains
+    PRODUCT ||--o{ ORDER_LINE : appears_in
+    CUSTOMER {
+        bigint CustomerId PK
+        string CustomerCity
+    }
+    CUSTOMER_ORDER {
+        bigint OrderId PK
+        bigint CustomerId FK
+    }
+    PRODUCT {
+        bigint ProductId PK
+        string ProductName
+    }
+    ORDER_LINE {
+        bigint OrderId PK
+        bigint ProductId PK
+        int Quantity
+    }
 ```
 
-Dependencies REMOVED from the wide table: f1 and f2 now internal to Orders, f3 internal to Products; f4 remains as OrderItems' key constraint. Lossless preview: Orders ∩ OrderItems = {OrderID}, a key of Orders ⇒ rejoining cannot fabricate rows.
+Every remaining non-trivial determinant is a key of its own relation, so this decomposition reaches BCNF.
+The original dependencies are also dependency preserving because each can be checked inside one resulting relation.
+That convenient outcome is not guaranteed for every BCNF decomposition.
 
-### Step 3: 2NF → 3NF by Removing the Transitive Chain
-Inside Orders(OrderID, CustID, CustCity): f1 composed with f2 yields OrderID → CustCity through middleman CustID, where CustID is NOT a key of Orders and CustCity is non-prime ⇒ textbook transitive violation. Split on the middleman:
+### Concrete numeric cost and anomaly example
 
-```
-Customers(CustID, CustCity):           (C7, Pune)
-Orders(OrderID, CustID):               (101, C7)
-```
+Assume 100,000 orders contain an average of 6 products, producing 600,000 order-line rows.
+If a 24-byte customer city and a 40-byte product name are repeated in every line, those two attributes consume about:
 
-Dependency RELOCATED: f2 lives entirely inside Customers where CustID IS the key. No non-key-to-non-key determination path survives anywhere ⇒ **3NF**.
+$$
+600{,}000 \times (24 + 40) = 38{,}400{,}000\text{ bytes}
+$$
 
-### Step 4: BCNF Audit of All Four Relations
-Ask of every determinant: is it a superkey of ITS OWN relation?
+That is roughly 36.6 MiB before row headers, indexes, alignment, and duplicate page versions.
+More importantly, renaming one product appearing in 25,000 lines requires 25,000 updates rather than one update to `PRODUCT`.
 
-| Relation | Determinants | Verdict |
-| --- | --- | --- |
-| Customers(CustID, CustCity) | CustID | key ⇒ BCNF ✓ |
-| Products(ProdID, ProdName) | ProdID | key ⇒ BCNF ✓ |
-| Orders(OrderID, CustID) | OrderID | key ⇒ BCNF ✓ |
-| OrderItems(OrderID, ProdID, Qty) | (OrderID, ProdID) | whole key ⇒ BCNF ✓ |
+Suppose 24,990 rows are updated successfully and 10 are missed by a faulty batch.
+The database now exposes two product names for one `ProductId`, even though every individual row remains syntactically valid.
+The normalized schema stores one product row, so one constrained update changes the authoritative fact atomically.
 
-For THIS schema the walk ends at BCNF with zero extra splits and dependency preservation intact. The next step shows why that happy ending is not guaranteed in general.
+Normalization does introduce join work.
+If a query reads 10,000 order lines and joins indexed integer foreign keys, the database can use hash or index joins rather than scanning duplicated text.
+Measure the real execution plan before deciding that the repeated 36.6 MiB is a worthwhile optimization.
 
-### Step 5: When BCNF Demands Surgery That 3NF Forbids
-Teaching(Student, Instructor, Course) with:
-- h1: Instructor → Course — every instructor teaches exactly one course
-- h2: (Student, Course) → Instructor — a student meets each course under one instructor
+### Second normal form and partial dependencies
 
-Candidate keys: {Student, Course} directly; also {Student, Instructor} because h1 lifts Instructor → Course, so (Student,Instructor)⁺ covers R. Both Course and Instructor are therefore **prime** ⇒ h1 passes 3NF via the prime-RHS escape clause, yet FAILS BCNF since Instructor is not a superkey: Teaching is in **3NF but not BCNF**.
+2NF applies only after 1NF and matters most when a candidate key has multiple attributes.
+A partial dependency exists when a non-prime attribute depends on a proper subset of a candidate key.
+If every candidate key contains one attribute, the relation is automatically in 2NF.
 
-Split on h1:
+In `ORDER_LINE`, `Quantity` needs the entire pair `(OrderId, ProductId)`.
+By contrast, `ProductName` needs only `ProductId` and therefore belongs in `PRODUCT`.
+Moving it removes both update redundancy and the inability to record a product before its first order.
 
-```
-T1(Instructor, Course):    (Rao, DBMS)   (Mehta, OS)
-T2(Student, Instructor):   (Anil, Rao)   (Anil, Mehta)   (Bina, Rao)
-```
+Do not test only the declared primary key.
+A relation can have several candidate keys, and 2NF must hold with respect to all of them.
+Prime status likewise comes from membership in any candidate key, not merely the chosen primary key.
 
-Losslessness holds (shared attribute Instructor is T1's key). But h2, (Student, Course) → Instructor, is derivable ONLY by re-joining T1 ⋈ T2 — it belongs to neither projection ⇒ **dependency preservation is lost**: enforcement would need a join inside every INSERT trigger. This exact tension is the exam's favorite question.
+### Third normal form and transitive dependencies
+
+For every non-trivial dependency $X \rightarrow A$, 3NF requires either:
+
+1. $X$ is a superkey, or
+2. $A$ is a prime attribute.
+
+The formal rule is more accurate than the shorthand “no transitive dependencies.”
+In `ORDER(OrderId, CustomerId, CustomerCity)`, the dependency `CustomerId → CustomerCity` fails both tests.
+`CustomerId` is not a superkey of that relation, and `CustomerCity` is not prime.
+
+The 3NF synthesis algorithm starts from a canonical cover.
+It creates a relation for each determinant and its dependents, adds a relation containing a candidate key if none already does, and removes redundant contained relations.
+The result is lossless and dependency preserving while satisfying 3NF.
+
+### BCNF is stricter than 3NF
+
+BCNF removes the prime-dependent exception.
+For every non-trivial $X \rightarrow Y$, $X$ must be a superkey.
+This catches anomalies that 3NF intentionally tolerates to preserve dependencies.
+
+Consider `TEACHING(Student, Instructor, Course)` with:
+
+- `Instructor → Course`
+- `(Student, Course) → Instructor`
+
+Candidate keys are `(Student, Course)` and `(Student, Instructor)`.
+`Course` is prime, so `Instructor → Course` passes 3NF, but `Instructor` is not a superkey and therefore violates BCNF.
+Decomposing into `INSTRUCTOR_COURSE(Instructor, Course)` and `STUDENT_INSTRUCTOR(Student, Instructor)` is lossless.
+
+The dependency `(Student, Course) → Instructor` is no longer contained in either fragment.
+Checking it requires a join, trigger, assertion mechanism, or application transaction.
+This is why production designers sometimes prefer dependency-preserving 3NF over BCNF.
+
+### Lossless join and dependency preservation are separate
+
+A decomposition is **lossless** when joining its projections recreates exactly the legal original rows without inventing spurious tuples.
+For a binary decomposition of $R$ into $R_1$ and $R_2$, it is lossless when the shared attributes functionally determine all attributes of at least one fragment.
+
+Formally, one of these must hold in $F^+$:
+
+$$
+(R_1 \cap R_2) \rightarrow R_1
+$$
+
+or
+
+$$
+(R_1 \cap R_2) \rightarrow R_2
+$$
+
+A decomposition is **dependency preserving** when all original dependencies can be enforced by checking individual fragments without joining them.
+Losslessness protects stored information; dependency preservation protects efficient constraint enforcement.
+A good decomposition aims for both, but BCNF guarantees lossless decomposition rather than dependency preservation.
+
+---
 
 ## 🔴 Expert Level
 
-### The Binary Lossless-Join Theorem: Exact Usage
-Decomposition of R into R1 and R2 is lossless iff (R1 ∩ R2) → (R1 − R2) or (R1 ∩ R2) → (R2 − R1) holds in F⁺. Recipe:
-1. Compute the shared attribute set.
-2. Take its closure under the FULL original F.
-3. Check whether that closure swallows all of R1 or all of R2.
-4. Yes ⇒ lossless; no ⇒ rejoining can emit spurious tuples.
+### Proving a decomposition instead of trusting intuition
 
-Applied above: Orders ⋈ Customers share {CustID}; (CustID)⁺ ⊇ CustCity ⇒ Customers fully covered ⇒ lossless. Counterexample for intuition: splitting R(A,B) into R1(A) and R2(B) shares NOTHING, so rejoining computes the Cartesian product — 3 real facts become 9 stored pairs of phantom data.
+For a binary split, calculate the attribute intersection and then its closure under the full original dependency set.
+If the closure includes every attribute of either fragment, the split is lossless.
+Otherwise, construct a small counterexample to see whether a join can create spurious combinations.
 
-### Generalizing Beyond Two Pieces: the Chase Test
-For k-way decompositions the binary theorem does not directly apply. The tableau/chase algorithm assigns one tagged row per fragment, repeatedly equates symbols wherever an FD fires, and declares losslessness iff some row becomes fully distinguished. It is the decision procedure behind formal schema-evolution tools — name it in interviews even though hand-chasing stays rare outside academia.
+```mermaid
+flowchart TD
+    S["Proposed split into R1 and R2"] --> I["Compute shared attributes I"]
+    I --> C["Compute closure under original dependencies"]
+    C --> Q{"Closure contains all of R1 or R2"}
+    Q -->|"Yes"| L["Binary decomposition is lossless"]
+    Q -->|"No"| X["Join may create spurious tuples"]
+    L --> P["Check dependency preservation separately"]
+    X --> P
+```
 
-### 3NF Synthesis Algorithm (Bernstein 1976): Steps and Micro-Run
-1. Compute a canonical cover Fc of F.
-2. Group Fc by identical left side; create ONE relation per group holding the LHS plus its RHS attributes.
-3. If NO produced schema contains a candidate key of R, add one extra relation consisting of that candidate key.
-4. Drop any schema fully contained in another (redundancy elimination).
+For the split `ORDER(OrderId, CustomerId)` and `CUSTOMER(CustomerId, CustomerCity)`, the intersection is `{CustomerId}`.
+Its closure contains `{CustomerId, CustomerCity}`, which is the whole `CUSTOMER` relation.
+The split is therefore lossless.
 
-Micro-run: R(A,B,C), Fc = {A→B, B→C}. Groups yield R1(A,B) and R2(B,C); A alone is a candidate key ((A)⁺ = ABC) and already sits inside R1 ⇒ no extras; nothing nests ⇒ output {R1(A,B), R2(B,C)} — exactly the shape our walkthrough produced. The guarantee: synthesis always achieves 3NF with BOTH lossless join and dependency preservation; it never promises BCNF.
+For decompositions into more than two fragments, use the chase rather than repeatedly assuming pairwise checks are sufficient.
+The chase builds a tableau, applies functional dependencies until no symbols change, and succeeds when one row becomes fully distinguished.
+It is a proof procedure, not a query-performance estimate.
 
-### BCNF Decomposition Algorithm and Its Price
-Algorithm: while some non-trivial FD X → A violates BCNF (X not a superkey):
-1. Form R1 = X⁺ (the violator's full closure) and R2 = R − (X⁺ − X).
-2. Recurse on both pieces; X is a key of R1 so each split is provably lossless.
+### Canonical cover and 3NF synthesis
 
-The price: projected dependencies can vanish, exactly as h2 did in Step 5. Consequences in production: constraints move into triggers, application logic, or periodic validation queries; some teams deliberately stop at 3NF to keep CHECK-enforceable dependencies. Remember the hierarchy result: 3NF is the strongest normal form that guarantees both properties simultaneously.
+A canonical cover removes redundant dependencies, extraneous determinant attributes, and duplicated left sides while preserving the closure $F^+$.
+Normalization algorithms use it so they do not create unnecessary relations from logically redundant statements.
+Different canonical covers can look different while implying the same dependencies.
 
-### Beyond BCNF (Orientation Only)
-4NF targets multivalued dependencies — two independent 1:N facts stored together (Employee ⟶ Skills, Employee ⟶ Languages) multiply rows into an unwanted cross product; split them apart. 5NF handles join dependencies where only three-way projections rejoin losslessly. Both are rare in OLTP practice but standard interview trivia.
+For $R(A,B,C)$ and $F = \{A \rightarrow B, B \rightarrow C\}$, synthesis creates `R1(A,B)` and `R2(B,C)`.
+`A` is a candidate key and is already contained in `R1`, so no extra key relation is needed.
+The shared attribute `B` determines all of `R2`, proving the join is lossless.
 
-### Denormalization: When Breaking the Rules Pays
-- **OLAP star schemas**: a fact table of ~1B rows joined to five normalized dimensions becomes a denormalized wide dimension; scan-friendly columnar storage then beats JOIN pipelines.
-- **Read-heavy caches**: materialized views precompute hot aggregates (PostgreSQL: `REFRESH MATERIALIZED VIEW CONCURRENTLY` keeps readers online during refresh).
-- **Numbers**: five chained JOINs at ~10 ms planner overhead each versus a single flat read at ~40 ms pays off once reads dominate writes by three orders of magnitude; below that, update amplification wins.
-- Guardrails: derive-on-write updates, idempotent rebuild jobs, drift-detection queries comparing aggregate against source counts.
+Dependency checks also remain local:
 
-### Key Interview Questions
+- `A → B` is enforced in `R1`.
+- `B → C` is enforced in `R2`.
+- `A → C` follows transitively without being stored as an extra rule.
 
-### Q1: R(A,B,C) with F = {AB→C, C→B} — what is the highest normal form?
-**Answer**:
-1. Candidate keys: (AB)⁺ = ABC and (AC)⁺ = ACB ⇒ both AB and AC are keys.
-2. Prime attributes: {A, B, C} — ALL attributes are prime.
-3. 2NF: vacuously satisfied since every attribute is prime (no non-prime exists).
-4. 3NF: for C→B, C is not a superkey BUT B is prime ⇒ passes.
-5. BCNF: C is not a superkey ⇒ fails.
-Highest form: **3NF**. This relation is the canonical proof that 3NF ⊃ BCNF strictly.
+3NF synthesis is a dependable default when enforceable business constraints matter more than eliminating every theoretical redundancy.
+BCNF decomposition is appropriate when determinant anomalies dominate and any lost dependencies can be enforced safely elsewhere.
+The choice should be documented alongside constraint ownership.
 
-### Q2: Why can BCNF fail dependency preservation? Give the canonical example.
-**Answer**: When violating FDs interlock through prime attributes (Step 5's Teaching relation). Decomposing on Instructor → Course isolates that FD inside T1 while (Student, Course) → Instructor survives only as a cross-relation constraint requiring a join. Root cause: BCNF forces a split on EVERY non-key determinant, but preservation requires each FD to live wholly inside ONE fragment — the two demands collide when candidate keys share attributes. Synthesis (3NF) keeps FDs whole by tolerating the redundancy BCNF removes.
+### Denormalization as a controlled consistency protocol
 
-### Q3: Recite the 3NF synthesis algorithm and its two guarantees.
-**Answer**: Canonical cover first; group by LHS into one relation per group; add a relation containing a candidate key if none emerged; drop contained schemas. Guarantees: the result is in 3NF, and it preserves dependencies AND joins losslessly — provided the input was a genuine canonical cover and the key-backstop step ran. It is the algorithmic answer whenever an interviewer asks how to normalize automatically.
+Denormalization is justified by evidence, not by a general fear of joins.
+Common cases include a star schema optimized for columnar scans, a materialized view serving a dashboard, a cached counter on a high-read endpoint, and an event-sourced projection built for one query shape.
+Each copy creates a new synchronization obligation.
 
-### Q4: How do you PROVE a decomposition lossless in an exam setting?
-**Answer**: Invoke the binary theorem concretely: write the intersection set, compute its closure under the full F, show containment of one entire fragment. For our walkthrough: R1 = Orders(OrderID, CustID), R2 = Customers(CustID, CustCity); intersection = {CustID}; (CustID)⁺ = {CustID, CustCity} ⊇ R2 ⇒ lossless. Mention the chase algorithm for three-plus fragments to display breadth.
+| Technique | Read benefit | Write or correctness cost | Essential control |
+|---|---|---|---|
+| materialized view | precomputed joins and aggregates | refresh lag | refresh schedule and staleness SLO |
+| cached aggregate | constant-time hot read | invalidation race | versioning, TTL, and reconciliation |
+| duplicated display field | avoids lookup on historical read | update amplification | immutable snapshot semantics or repair job |
+| star-schema dimension | efficient analytical scans | ETL complexity | lineage and repeatable load process |
 
-### Q5: When is denormalization justified in production?
-**Answer**: Read-dominated workloads with stable update paths: OLAP marts (star schemas on Snowflake/Redshift), leaderboard counters in Redis, materialized views over PostgreSQL replicas, event-sourced read models rebuilt idempotently. Justify with measured numbers (JOIN latency × QPS vs refresh cost), keep a normalized source of truth, and automate consistency checks — denormalization without reconciliation tooling is technical debt with interest.
+When denormalization makes sense, name the source of truth, maximum acceptable staleness, update path, retry semantics, and repair mechanism.
+For a financial balance, asynchronous duplication may be unacceptable because stale reads change business decisions.
+For a product name copied into an immutable invoice snapshot, historical duplication may be the correct domain model rather than an anomaly.
 
-### Q6: True or false: every BCNF relation is in 3NF, every 3NF in 2NF, every 2NF in 1NF?
-**Answer**: All true. BCNF's test (every determinant a superkey) strictly implies 3NF's weaker disjunction (superkey OR prime RHS): whenever the superkey clause fails, 3NF may still pass via primality, never conversely. A 3NF violation would itself be either partial or transitive-on-non-prime, which 2NF already excludes, so 3NF ⊆ 2NF. And 2NF's definition presupposes 1NF atomicity by construction.
+Observe both sides of the trade-off.
+Measure query latency and CPU saved, but also update fan-out, queue lag, drift count, cache hit rate, rebuild duration, and reconciliation failures.
+If nobody owns those metrics, the optimization has transferred latency cost into hidden correctness risk.
+
+### Migration and production failure modes
+
+Normalizing a live table requires more than creating new relations.
+Deploy new schema, backfill in bounded batches, dual-write or capture changes, compare counts and checksums, move readers, then remove the old path only after an observation window.
+Foreign keys and unique constraints should be validated without causing an unplanned lock outage.
+
+A backfill can race with concurrent updates and copy an older value after a newer write.
+Use a consistent snapshot plus change-data capture, or version comparisons that reject stale writes.
+Make each batch idempotent so retries do not duplicate child rows.
+
+Query regressions are also possible.
+After decomposition, missing foreign-key indexes can turn joins into repeated scans, and an ORM can create an N+1 query pattern.
+Inspect actual execution plans, batch related reads, and keep transaction boundaries aligned with the invariant being updated.
+
+Denormalized read models fail differently.
+A message can be delivered twice, out of order, or not at all until retry.
+Use event identifiers, monotonic versions, dead-letter handling, and periodic reconciliation against the normalized source.
+
+### Common Misconceptions
+
+1. **“Normalization means every table should contain only two columns.”** Normal forms constrain dependencies, not arbitrary width. A wide table can be in BCNF when every non-trivial determinant is a superkey.
+2. **“1NF means every value must be indivisible in the physical world.”** Atomicity depends on the relational operations required by the application. A value can be treated as one domain member while still having internal representation.
+3. **“3NF and BCNF are equivalent.”** 3NF permits a non-superkey determinant when the dependent attribute is prime. BCNF removes that exception and can therefore sacrifice dependency preservation.
+4. **“A lossless decomposition automatically preserves dependencies.”** Losslessness concerns reconstructing rows without spurious tuples. Dependency preservation concerns enforcing rules locally, and the properties must be checked separately.
+5. **“Denormalization is always faster.”** It may remove joins but increases writes, invalidation work, storage, and drift risk. Only workload measurements and an explicit consistency protocol justify it.
+
+### Interview Questions
+
+**Q1. What problem does normalization solve?** `[easy]`
+
+Normalization gives each independent fact an authoritative relation based on functional dependencies. This reduces update, insertion, and deletion anomalies caused by duplicated facts. It can add joins, so the goal is integrity and maintainability rather than blindly minimizing table width.
+
+**Q2. What is a functional dependency?** `[easy]`
+
+$X \rightarrow Y$ means any valid rows agreeing on $X$ must also agree on $Y$. It describes a domain rule over all legal database states, not a pattern noticed in one sample. Incorrectly inferred dependencies produce decompositions that reject valid data or fail to protect real invariants.
+
+**Q3. What is the difference between a candidate key and a superkey?** `[easy]`
+
+A superkey functionally determines every attribute in the relation. A candidate key is a minimal superkey, so removing any attribute destroys that property. Candidate keys define prime attributes and must all be considered during normal-form analysis, not just the selected primary key.
+
+**Q4. What does first normal form require?** `[easy]`
+
+1NF requires each attribute position to contain one value from its declared domain and avoids repeating groups hidden inside a row. A child relation is usually preferable to comma-separated identifiers because constraints and joins can address each fact. Atomicity is judged by the operations the domain needs, not by splitting every value physically.
+
+**Q5. How does 2NF differ from 3NF?** `[medium]`
+
+2NF removes dependencies where a non-prime attribute depends on only part of a candidate key. 3NF additionally restricts non-trivial dependencies whose determinant is not a superkey, unless the dependent attribute is prime. A single-column-key relation is automatically in 2NF but can still violate 3NF through a non-key transitive dependency.
+
+**Q6. Why is BCNF stricter than 3NF?** `[medium]`
+
+BCNF requires every determinant of a non-trivial functional dependency to be a superkey. 3NF allows the dependency when its right-side attribute is prime even if the determinant is not a superkey. The stricter rule removes more anomalies but can make an original dependency impossible to enforce without a join.
+
+**Q7. What makes a binary decomposition lossless?** `[medium]`
+
+The shared attributes must functionally determine every attribute of at least one resulting fragment under the original dependency closure. This ensures the join uses a key-like intersection and cannot invent unrelated combinations. For more fragments, the chase provides a general proof procedure rather than relying on intuition.
+
+**Q8. What is dependency preservation?** `[medium]`
+
+A decomposition is dependency preserving when the projected dependencies on individual fragments imply every original dependency. The database can then enforce the rules locally without joining relations during every write. A decomposition may be lossless but not dependency preserving, especially after a BCNF split.
+
+**Q9. Why does the 3NF synthesis algorithm add a candidate-key relation sometimes?** `[medium]`
+
+Relations created from the canonical cover might not contain any complete candidate key of the original schema. Adding a key relation anchors the tuples so their projections join losslessly. Skipping this step can preserve individual dependencies while losing the ability to reconstruct all valid original facts.
+
+**Q10. When does denormalization make sense?** `[medium]`
+
+It makes sense when measurements show a stable, read-dominated access path benefits from precomputed or duplicated data. The design must identify a normalized source of truth, acceptable staleness, update protocol, and repair process. Without these controls, reduced query latency is purchased with unbounded consistency risk.
+
+**Q11. Scenario: product names disagree across thousands of order rows. How would you redesign and migrate?** `[hard]`
+
+Move the current product name into a `PRODUCT` relation keyed by `ProductId`, while deciding whether old invoices intentionally preserve a historical snapshot. Backfill in idempotent batches, capture concurrent changes, validate inconsistent identifiers, and switch reads only after count and checksum comparison. If historical names are required, label that field as immutable invoice data rather than pretending every duplicate is the current product fact.
+
+**Q12. Scenario: a BCNF decomposition causes expensive joins in a uniqueness trigger. What do you evaluate?** `[hard]`
+
+First verify that the lost dependency is real and that the trigger correctly enforces it under concurrency. Compare a dependency-preserving 3NF design against the BCNF design, measuring anomaly risk, write latency, and locking behaviour. Choosing 3NF can be the safer production decision when its limited redundancy is guarded and the original rule stays locally enforceable.
+
+**Q13. How would you prove that a proposed decomposition is safe during an interview?** `[hard]`
+
+State the original dependencies, candidate keys, and projected dependencies rather than relying on example rows. For a binary split, compute the intersection's closure and show that it contains one complete fragment to prove losslessness, then separately show whether projected dependencies imply the original set. For a multiway split, describe or execute the chase and identify any constraint that would require a join.
+
+**Q14. A dashboard materialized view is fast but occasionally stale after retries. What controls are needed?** `[hard]`
+
+Treat the view as a derived read model with a documented staleness objective and an authoritative normalized source. Make refresh or event consumption idempotent with event identifiers and versions, monitor lag, and reconcile aggregates periodically against source counts. If stale data can trigger irreversible business actions, route those decisions to transactional source data instead of the projection.
+
+### Further Reading
+
+- [PostgreSQL documentation on table constraints](https://www.postgresql.org/docs/current/ddl-constraints.html) explains primary, unique, foreign-key, and check constraints used to enforce normalized designs.
+- [PostgreSQL documentation on materialized views](https://www.postgresql.org/docs/current/rules-materializedviews.html) shows the mechanics and performance trade-offs of stored derived relations.
+- [SQLite query planner documentation](https://www.sqlite.org/queryplanner.html) provides a concrete primary-source explanation of indexes and join planning relevant after decomposition.
+- [Codd's relational model paper](https://doi.org/10.1145/362384.362685) is the foundational source for relational structure and normalization theory.

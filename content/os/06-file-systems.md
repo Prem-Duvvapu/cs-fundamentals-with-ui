@@ -8,17 +8,29 @@ Interview questions focus on the gaps between these layers: a name is not an ino
 
 ## 🟢 Beginner Level
 
-### Files, Names, and Directories
+### Files, names, and directories
 
 A file is a sequence of bytes plus metadata such as owner, permissions, timestamps, and size.
 A directory is a special file-system object that maps human-readable names to file identities.
 An absolute path begins at the root directory, while a relative path is interpreted from a current working directory.
 The file system resolves path components one at a time rather than treating a path as one flat key.
 
+The file identity is represented by an inode on common Unix-like file systems.
+An inode records metadata and the map from logical file offsets to allocated blocks or extents, but the directory stores the name-to-inode relationship.
+Allocation may be contiguous, linked, indexed, or extent-based; the later allocation section compares how those strategies affect growth, fragmentation, and random access.
+
+Permissions are evaluated while resolving and opening the path.
+File mode bits control operations such as reading and writing, while directory read permission controls listing and directory execute permission controls traversal.
+An inode's owner, group, mode bits, and optional access-control list contribute to authorization; a visible pathname alone grants no access.
+
 Opening a file produces a file descriptor in a Unix-like process.
 The descriptor refers to an open file description that holds state such as current offset and status flags.
 Two descriptors can refer to the same underlying file but have independent offsets if opened separately.
 Duplicated descriptors can share one open-file description and thus one offset.
+
+Most ordinary reads and writes are **buffered I/O**: the kernel transfers data through its page cache instead of waiting for the storage device on every call.
+Buffering batches or temporarily holds I/O to smooth producer-consumer speed differences; caching retains recently accessed file pages so a later access can avoid device I/O.
+The same page-cache memory often serves both purposes, but the goals differ, and neither a buffered-write return nor a cache hit proves that data is durable on stable media.
 
 ```mermaid
 flowchart LR
