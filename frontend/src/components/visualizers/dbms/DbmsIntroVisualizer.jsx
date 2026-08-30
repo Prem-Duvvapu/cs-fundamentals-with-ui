@@ -34,22 +34,18 @@ export default function DbmsIntroVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Scenario Selector Tabs */}
-        <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xl">
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <div className="scenario-picker-panel">
+          <label className="scenario-picker-label">
             Select Comparison Simulation Scenario:
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="scenario-picker-grid">
             {Object.values(DBMS_INTRO_SCENARIOS).map((scenario) => (
               <button
                 key={scenario.id}
                 onClick={() => handleScenarioChange(scenario.id)}
-                className={`px-3 py-2.5 rounded-lg text-xs font-medium text-left transition-all duration-200 ${
-                  activeScenario === scenario.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 border border-blue-400'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-                }`}
+                className={`scenario-chip ${activeScenario === scenario.id ? 'is-active' : ''}`}
               >
                 {scenario.name}
               </button>
@@ -58,45 +54,41 @@ export default function DbmsIntroVisualizer() {
         </div>
 
         {/* Step Card & Narrative */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
+          <p className="detail-card-desc">{stepData.description}</p>
 
           {/* Anomaly / Insight Alert Banner */}
           {stepData.anomalyAlert && (
-            <div className={`p-4 rounded-xl mb-4 text-xs font-medium border ${
-              stepData.anomalyAlert.includes('🚨')
-                ? 'bg-rose-950/40 text-rose-300 border-rose-500/30'
-                : 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30'
-            }`}>
+            <div className={`anomaly-banner ${stepData.anomalyAlert.includes('🚨') ? 'is-danger' : 'is-success'}`}>
               {stepData.anomalyAlert}
             </div>
           )}
 
           {/* Side-by-Side Comparison: Traditional File System vs Relational DBMS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+          <div className="compare-grid">
             {/* File System Panel */}
-            <div className="p-5 rounded-xl bg-slate-950/90 border border-rose-500/30">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-rose-500/20">
-                <span className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="compare-panel is-danger">
+              <div className="compare-panel-header">
+                <span className="compare-panel-title">
                   📁 Traditional File System (Uncoordinated)
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 font-mono">
+                <span className="compare-panel-tag">
                   No ACID / Raw OS Files
                 </span>
               </div>
 
               {stepData.fileSystemState && (
-                <div className="space-y-3 font-mono text-xs">
+                <div className="kv-list">
                   {Object.entries(stepData.fileSystemState).map(([key, val]) => (
-                    <div key={key} className="p-3 bg-slate-900/90 rounded-lg border border-slate-800">
-                      <div className="text-slate-400 font-semibold mb-1 text-[11px]">{key}:</div>
-                      <div className="text-rose-300 break-words whitespace-pre-wrap">
+                    <div key={key} className="kv-entry is-danger">
+                      <div className="kv-key">{key}:</div>
+                      <div className="kv-val">
                         {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val)}
                       </div>
                     </div>
@@ -105,11 +97,11 @@ export default function DbmsIntroVisualizer() {
               )}
 
               {stepData.fileSystemMetrics && (
-                <div className="space-y-2 font-mono text-xs">
+                <div className="kv-list is-compact field-block">
                   {Object.entries(stepData.fileSystemMetrics).map(([key, val]) => (
-                    <div key={key} className="flex justify-between p-2.5 bg-slate-900/90 rounded border border-slate-800">
-                      <span className="text-slate-400 capitalize">{key}:</span>
-                      <span className="text-rose-400 font-bold">{val}</span>
+                    <div key={key} className="kv-row is-danger">
+                      <span className="kv-key">{key}:</span>
+                      <span className="kv-val">{val}</span>
                     </div>
                   ))}
                 </div>
@@ -117,22 +109,22 @@ export default function DbmsIntroVisualizer() {
             </div>
 
             {/* DBMS Panel */}
-            <div className="p-5 rounded-xl bg-slate-950/90 border border-blue-500/30">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-blue-500/20">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="compare-panel is-info">
+              <div className="compare-panel-header">
+                <span className="compare-panel-title">
                   🗄️ Relational DBMS (Centralized Engine)
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20 font-mono">
+                <span className="compare-panel-tag">
                   ACID / WAL / Lock Manager
                 </span>
               </div>
 
               {stepData.dbmsState && (
-                <div className="space-y-3 font-mono text-xs">
+                <div className="kv-list">
                   {Object.entries(stepData.dbmsState).map(([key, val]) => (
-                    <div key={key} className="p-3 bg-slate-900/90 rounded-lg border border-slate-800">
-                      <div className="text-slate-400 font-semibold mb-1 text-[11px]">{key}:</div>
-                      <div className="text-emerald-300 break-words whitespace-pre-wrap">
+                    <div key={key} className="kv-entry is-success">
+                      <div className="kv-key">{key}:</div>
+                      <div className="kv-val">
                         {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val)}
                       </div>
                     </div>
@@ -141,11 +133,11 @@ export default function DbmsIntroVisualizer() {
               )}
 
               {stepData.dbmsMetrics && (
-                <div className="space-y-2 font-mono text-xs">
+                <div className="kv-list is-compact field-block">
                   {Object.entries(stepData.dbmsMetrics).map(([key, val]) => (
-                    <div key={key} className="flex justify-between p-2.5 bg-slate-900/90 rounded border border-slate-800">
-                      <span className="text-slate-400 capitalize">{key}:</span>
-                      <span className="text-emerald-400 font-bold">{val}</span>
+                    <div key={key} className="kv-row is-success">
+                      <span className="kv-key">{key}:</span>
+                      <span className="kv-val">{val}</span>
                     </div>
                   ))}
                 </div>
