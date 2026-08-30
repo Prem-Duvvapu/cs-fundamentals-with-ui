@@ -146,7 +146,7 @@ It cannot accept a `List<String>`, because that would reopen the mutation proble
 
 ## 🟡 Intermediate Level
 
-### PECS selects the wildcard from data direction
+### Generic types, wildcards, and PECS
 
 PECS means **Producer Extends, Consumer Super**.
 Use `? extends T` when an argument produces `T` values for this method to read.
