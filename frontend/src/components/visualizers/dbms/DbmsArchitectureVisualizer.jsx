@@ -48,35 +48,35 @@ export default function DbmsArchitectureVisualizer() {
           <h3>🏛 ANSI-SPARC 3-Schema Architecture Diagram</h3>
 
           <div className="encap-layers-container">
-            <div className="encap-layer-row layer-active" style={{ borderColor: 'var(--accent-purple)' }}>
-              <span className="layer-title" style={{ color: 'var(--accent-purple)' }}>1. External Level (User Views)</span>
-              <span className="header-pill" style={{ background: '#7c3aed' }}>View A: Student GPA | View B: Admin Billing</span>
+            <div className="encap-layer-row layer-active" style={{ borderColor: 'var(--cat-os-base)' }}>
+              <span className="layer-title" style={{ color: 'var(--cat-os-base)' }}>1. External Level (User Views)</span>
+              <span className="header-pill" style={{ background: 'var(--cat-os-border)' }}>View A: Student GPA | View B: Admin Billing</span>
             </div>
 
-            <div style={{ textAlign: 'center', color: 'var(--accent-amber)', fontSize: '0.85rem', fontWeight: 'bold' }}>
+            <div className="schema-mapping-caption">
               ↕ Logical Data Independence Mapping Layer
             </div>
 
-            <div className="encap-layer-row layer-active" style={{ borderColor: 'var(--accent-blue)' }}>
-              <span className="layer-title" style={{ color: 'var(--accent-blue)' }}>2. Conceptual Schema</span>
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <div className="encap-layer-row layer-active" style={{ borderColor: 'var(--state-info)' }}>
+              <span className="layer-title" style={{ color: 'var(--state-info)' }}>2. Conceptual Schema</span>
+              <div className="schema-column-row">
                 {conceptualColumns.map((col, idx) => (
-                  <span key={idx} className="header-pill" style={{ background: '#1d4ed8' }}>{col}</span>
+                  <span key={idx} className="header-pill" style={{ background: 'var(--state-info-border)' }}>{col}</span>
                 ))}
               </div>
             </div>
 
-            <div style={{ textAlign: 'center', color: 'var(--accent-amber)', fontSize: '0.85rem', fontWeight: 'bold' }}>
+            <div className="schema-mapping-caption">
               ↕ Physical Data Independence Mapping Layer
             </div>
 
-            <div className="encap-layer-row layer-active" style={{ borderColor: 'var(--accent-green)' }}>
-              <span className="layer-title" style={{ color: 'var(--accent-green)' }}>3. Internal Schema (Physical Storage)</span>
-              <span className="header-pill" style={{ background: '#047857' }}>{diskEngine}</span>
+            <div className="encap-layer-row layer-active" style={{ borderColor: 'var(--state-success)' }}>
+              <span className="layer-title" style={{ color: 'var(--state-success)' }}>3. Internal Schema (Physical Storage)</span>
+              <span className="header-pill" style={{ background: 'var(--state-success-border)' }}>{diskEngine}</span>
             </div>
           </div>
 
-          <div className="action-buttons-group" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
+          <div className="action-buttons-group mt-lg">
             <button onClick={triggerPhysicalChange} className="btn btn-primary">
               ⚡ Modify Physical Storage (Test Physical Independence)
             </button>
@@ -88,7 +88,7 @@ export default function DbmsArchitectureVisualizer() {
 
         <div className="viz-card">
           <h3>📜 Data Independence Audit Log</h3>
-          <div className="event-log-container" style={{ maxHeight: '250px' }}>
+          <div className="event-log-container">
             {dataIndepLog.map((log, idx) => (
               <div key={idx} className="log-entry">
                 <span className="log-text">{log}</span>

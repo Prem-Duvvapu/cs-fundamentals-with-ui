@@ -122,15 +122,14 @@ export default function BPlusTreeVisualizer() {
   const simulationView = (
     <div className="visualizer-container">
       {/* Control Panel Card */}
-      <div className="viz-controls-card" style={{ marginBottom: '1rem' }}>
-        <form onSubmit={handleInsert} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Tree Order (M):</label>
+      <div className="viz-controls-card bptree-toolbar">
+        <form onSubmit={handleInsert} className="bptree-form-row">
+          <div className="u-row">
+            <label className="field-label-strong">Tree Order (M):</label>
             <select
               value={order}
               onChange={e => handleOrderChange(Number(e.target.value))}
-              className="select-input"
-              style={{ padding: '0.35rem 0.6rem', fontSize: '0.85rem' }}
+              className="select-input is-compact"
             >
               <option value={3}>M = 3 (Max 2 keys)</option>
               <option value={4}>M = 4 (Max 3 keys)</option>
@@ -138,24 +137,23 @@ export default function BPlusTreeVisualizer() {
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: '220px' }}>
+          <div className="bptree-key-group">
             <input
               type="number"
               placeholder="Enter key (e.g. 42)"
               value={inputKey}
               onChange={e => setInputKey(e.target.value)}
-              className="num-input"
-              style={{ flex: 1, padding: '0.4rem 0.75rem' }}
+              className="num-input bptree-key-input"
             />
-            <button type="submit" className="btn btn-primary" style={{ padding: '0.4rem 0.9rem' }}>
+            <button type="submit" className="btn btn-primary is-snug">
               + Insert
             </button>
-            <button type="button" onClick={handleSearch} className="btn btn-secondary" style={{ padding: '0.4rem 0.9rem' }}>
+            <button type="button" onClick={handleSearch} className="btn btn-secondary is-snug">
               🔍 Search
             </button>
           </div>
 
-          <button type="button" onClick={handleAutoDemo} className="btn btn-secondary" style={{ padding: '0.4rem 0.9rem' }}>
+          <button type="button" onClick={handleAutoDemo} className="btn btn-secondary is-snug">
             ⚡ Run Auto-Insert Demo
           </button>
         </form>
@@ -175,41 +173,28 @@ export default function BPlusTreeVisualizer() {
       </div>
 
       {/* Action Description Banner */}
-      <div
-        style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
-          borderRadius: '8px',
-          padding: '0.85rem 1.1rem',
-          marginBottom: '1rem',
-          color: '#60a5fa',
-          fontSize: '0.92rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.6rem'
-        }}
-      >
-        <span style={{ fontSize: '1.2rem' }}>💡</span>
+      <div className="action-banner">
+        <span className="banner-icon">💡</span>
         <div>
           <strong>Step Action:</strong> {statusMessage}
         </div>
       </div>
 
       {/* Interactive B+ Tree Canvas */}
-      <div className="viz-card" style={{ padding: '1rem', background: '#020617', borderRadius: '12px', overflowX: 'auto', minHeight: '380px' }}>
-        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="viz-card bptree-canvas-card">
+        <h3>
           <span>📊 Animated B+ Tree Structure (Order M = {order})</span>
-          <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: '#64748b' }}>
+          <span className="hint">
             🍃 Leaves connected via linked-list pointers
           </span>
         </h3>
 
         <div style={{ width: '100%', minWidth: `${layout.totalWidth}px`, display: 'flex', justifyContent: 'center' }}>
-          <svg width={layout.totalWidth} height="320" style={{ overflow: 'visible' }}>
+          <svg width={layout.totalWidth} height="320" className="bptree-svg">
             <defs>
               {/* Arrow marker for leaf links */}
               <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                <path d="M 0 0 L 10 5 L 0 10 z" style={{ fill: 'var(--state-success)' }} />
               </marker>
             </defs>
 
@@ -221,7 +206,7 @@ export default function BPlusTreeVisualizer() {
                 y1={edge.y1}
                 x2={edge.x2}
                 y2={edge.y2}
-                stroke="rgba(255, 255, 255, 0.2)"
+                style={{ stroke: 'var(--border-strong)' }}
                 strokeWidth="2"
               />
             ))}
@@ -234,7 +219,7 @@ export default function BPlusTreeVisualizer() {
                 y1={lEdge.y1 + 10}
                 x2={lEdge.x2}
                 y2={lEdge.y2 + 10}
-                stroke="#10b981"
+                style={{ stroke: 'var(--state-success)' }}
                 strokeWidth="2"
                 strokeDasharray="4 4"
                 markerEnd="url(#arrow)"
@@ -249,19 +234,19 @@ export default function BPlusTreeVisualizer() {
               const rectX = node.x - nodeWidth / 2
               const rectY = node.y - 20
 
-              let borderColor = 'rgba(255, 255, 255, 0.15)'
-              let bgColor = '#0f172a'
+              let borderColor = 'var(--border-strong)'
+              let bgColor = 'var(--bg-surface)'
               if (isActive) {
-                borderColor = '#3b82f6'
-                bgColor = 'rgba(59, 130, 246, 0.25)'
+                borderColor = 'var(--state-info)'
+                bgColor = 'var(--state-info-tint)'
               }
               if (isOverflow) {
-                borderColor = '#f59e0b'
-                bgColor = 'rgba(245, 158, 11, 0.25)'
+                borderColor = 'var(--state-warning)'
+                bgColor = 'var(--state-warning-tint)'
               }
               if (currentStep?.type === 'SEARCH_HIT' && isActive) {
-                borderColor = '#10b981'
-                bgColor = 'rgba(16, 185, 129, 0.3)'
+                borderColor = 'var(--state-success)'
+                bgColor = 'var(--state-success-tint)'
               }
 
               return (
@@ -273,19 +258,17 @@ export default function BPlusTreeVisualizer() {
                     width={nodeWidth}
                     height="42"
                     rx="8"
-                    fill={bgColor}
-                    stroke={borderColor}
                     strokeWidth={isActive ? '2.5' : '1.5'}
-                    style={{ transition: 'all 0.3s ease' }}
+                    style={{ fill: bgColor, stroke: borderColor, transition: 'all 0.3s ease' }}
                   />
 
                   {/* Leaf Indicator Badge */}
                   <text
                     x={rectX + 6}
                     y={rectY - 6}
-                    fill={node.isLeaf ? '#10b981' : '#a78bfa'}
                     fontSize="10"
                     fontWeight="bold"
+                    style={{ fill: node.isLeaf ? 'var(--state-success)' : 'var(--cat-os-base)' }}
                   >
                     {node.isLeaf ? 'LEAF' : 'INTERNAL'}
                   </text>
@@ -304,16 +287,18 @@ export default function BPlusTreeVisualizer() {
                           width="28"
                           height="26"
                           rx="4"
-                          fill={isKeyHighlighted ? '#10b981' : 'rgba(255,255,255,0.06)'}
-                          stroke={isKeyHighlighted ? '#34d399' : 'rgba(255,255,255,0.1)'}
+                          style={{
+                            fill: isKeyHighlighted ? 'var(--state-success)' : 'var(--bg-raised)',
+                            stroke: isKeyHighlighted ? 'var(--state-success-border)' : 'var(--border-default)'
+                          }}
                         />
                         <text
                           x={keyX + 4}
                           y={rectY + 25}
-                          fill="#f8fafc"
                           fontSize="12"
                           fontWeight="bold"
                           textAnchor="middle"
+                          style={{ fill: 'var(--text-primary)' }}
                         >
                           {key}
                         </text>
@@ -328,7 +313,7 @@ export default function BPlusTreeVisualizer() {
       </div>
 
       {/* State Inspector Grid */}
-      <div style={{ marginTop: '1rem' }}>
+      <div className="field-block">
         <StateInspector
           title="B+ Tree Runtime Metrics"
           data={{

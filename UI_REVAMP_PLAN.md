@@ -5,9 +5,40 @@
 
 **Implementation snapshot (2026-08-30):** phases 1–5 are implemented, including dual themes,
 the responsive navigation and curriculum roadmap, the accessible topic reader, live Mermaid
-retheming, and shared simulator primitives. Phase 6 token migration is complete for Java and
-networking visualizers; remaining visualizer directories and the final cleanup audit are follow-up
-work. The canonical contributor-facing rules now live in `docs/DESIGN_SYSTEM.md`.
+retheming, and shared simulator primitives. Phase 6 token migration is complete for all five
+category hubs (Networking, Java/Spring, AI/ML, DBMS hub + `DbmsArchitectureVisualizer`),
+`BPlusTreeVisualizer`, and `TransactionsAcidVisualizer` — zero raw hex remain in any of those
+files. `visualizers/java/*` already carries zero raw hex from an earlier pass (its remaining
+inline `style={{}}` blocks are legitimate per-cell/per-item computed values, not static
+presentation).
+
+**A second, more severe defect was found mid-Phase-6 and is being fixed alongside it:** 13
+visualizer files (`dbms/{ConcurrencyControl,DbmsIntro,DistributedDb,ErModel,
+FunctionalDependency,Normalization,QueryOptimizer,RelationalAlgebra,StorageIndexing}`,
+`java/DesignPatterns`, `os/{DiskScheduling,FileSystem,IoSystems}Visualizer`) were authored
+entirely with Tailwind utility classNames (`flex`, `gap-2`, `bg-slate-900/60`, `rounded-xl`,
+`space-y-6`, …). This project has no Tailwind and no PostCSS config, so every one of those
+classes was — and where not yet fixed, still is — a silent no-op: the affected file renders
+with no layout, no color, no spacing at all, not just the wrong palette. This was invisible to
+the Phase 6 hex audit (Tailwind's `bg-blue-500/10` doesn't match a `#hex` grep) and is not
+covered by the §3 migration strategy below, which assumes real-but-wrong CSS to retint rather
+than absent CSS to rebuild. Fixed so far (rebuilt onto a new shared vocabulary — `filter-bar`/
+`filter-chip`, `detail-card`, `status-chip`, `compare-grid`/`compare-panel`, `kv-list`/
+`kv-entry`/`kv-row`, `scenario-picker-*`, `sub-panel`, `anomaly-banner`, and file-specific
+classes — added to `App.css`'s "Shared vocabulary" section): `ConcurrencyControlVisualizer`,
+`DbmsIntroVisualizer`, `DistributedDbVisualizer`, `ErModelVisualizer`. Still broken and
+pending the same treatment: `FunctionalDependencyVisualizer`, `NormalizationVisualizer`,
+`QueryOptimizerVisualizer`, `RelationalAlgebraVisualizer`, `StorageIndexingVisualizer`,
+`java/DesignPatternsVisualizer`, `os/DiskSchedulingVisualizer`, `os/FileSystemVisualizer`,
+`os/IoSystemsVisualizer`.
+
+Also still pending from the original Phase 6 file order: `visualizers/os/VirtualMemoryVisualizer`
+(23 raw hex), the long tail (`SchedulingVisualizer` 9 hex, `ProcessLifecycleVisualizer` 2 hex,
+one remaining `networking/` file with 2 hex), Phase 7 (responsive/accessibility pass — the
+existing media queries are a mix of the new standard breakpoints and un-migrated legacy ones),
+and the Phase 8 cleanup (delete the legacy token shim once nothing references it, delete the
+~36 dead CSS classes, sync `AGENTS.md:171`). The canonical contributor-facing rules live in
+`docs/DESIGN_SYSTEM.md`.
 
 This document is the single source of truth for the revamp. It supersedes any styling
 guidance in `AGENTS.md`, `CONTEXT.md`, or `CLAUDE.md` where they disagree — and Phase 8

@@ -87,7 +87,7 @@ export default function AiMlVisualizer({ defaultTopicId }) {
         </div>
 
         {/* SUB-TABS NAVIGATION */}
-        <div className="main-tab-switcher" style={{ marginTop: '1rem' }}>
+        <div className="main-tab-switcher hub-subnav">
           <button
             onClick={() => setActiveTab('embeddings')}
             className={`main-tab-btn ${activeTab === 'embeddings' ? 'active-tab' : ''}`}
@@ -133,10 +133,10 @@ export default function AiMlVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>📐 Vector Coordinate & Cosine Distance Calculator</h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+            <div className="vec-input-group">
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Vector A [x, y, z]:</label>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.3rem' }}>
+                <label className="field-label-strong">Vector A [x, y, z]:</label>
+                <div className="vec-row">
                   {vecA.map((val, idx) => (
                     <input
                       key={idx}
@@ -148,16 +148,15 @@ export default function AiMlVisualizer({ defaultTopicId }) {
                         newA[idx] = Number(e.target.value)
                         setVecA(newA)
                       }}
-                      className="num-input"
-                      style={{ flex: 1 }}
+                      className="num-input is-flex"
                     />
                   ))}
                 </div>
               </div>
 
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Vector B [x, y, z]:</label>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.3rem' }}>
+                <label className="field-label-strong">Vector B [x, y, z]:</label>
+                <div className="vec-row">
                   {vecB.map((val, idx) => (
                     <input
                       key={idx}
@@ -169,8 +168,7 @@ export default function AiMlVisualizer({ defaultTopicId }) {
                         newB[idx] = Number(e.target.value)
                         setVecB(newB)
                       }}
-                      className="num-input"
-                      style={{ flex: 1 }}
+                      className="num-input is-flex"
                     />
                   ))}
                 </div>
@@ -181,24 +179,24 @@ export default function AiMlVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>📊 Vector Similarity Search Results</h3>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div className="info-panel">
+              <div className="query-compare-row">
                 <span>Cosine Similarity (A · B / ||A|| ||B||):</span>
-                <strong style={{ color: 'var(--accent-purple)', fontSize: '1.3rem' }}>{cosineSim.toFixed(4)}</strong>
+                <strong className="metric-value-lg">{cosineSim.toFixed(4)}</strong>
               </div>
 
               {/* Similarity Progress Bar */}
-              <div style={{ background: '#1e293b', height: '12px', borderRadius: '6px', overflow: 'hidden', marginBottom: '1rem' }}>
-                <div style={{ width: `${Math.max(0, cosineSim * 100)}%`, background: 'var(--accent-purple)', height: '100%' }} />
+              <div className="sim-bar-track">
+                <div className="sim-bar-fill" style={{ width: `${Math.max(0, cosineSim * 100)}%` }} />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <div className="query-compare-row">
                 <span>Dot Product ($A \cdot B$):</span>
                 <strong>{dotVal.toFixed(4)}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div className="query-compare-row">
                 <span>Euclidean Distance ($L_2$):</span>
-                <strong style={{ color: 'var(--accent-blue)' }}>{euclideanDist.toFixed(4)}</strong>
+                <strong className="metric-value is-info">{euclideanDist.toFixed(4)}</strong>
               </div>
             </div>
           </div>
@@ -210,16 +208,16 @@ export default function AiMlVisualizer({ defaultTopicId }) {
         <div className="viz-card">
           <h3>🧩 Retrieval-Augmented Generation (RAG) End-to-End Pipeline</h3>
 
-          <div className="action-buttons-group" style={{ margin: '1rem 0', display: 'flex', gap: '0.5rem' }}>
+          <div className="action-buttons-group">
             <button onClick={() => setRagStep(0)} className="btn btn-secondary">⏮ Reset Pipeline</button>
             <button onClick={() => setRagStep(prev => Math.min(4, prev + 1))} disabled={ragStep >= 4} className="btn btn-primary">
               Execute Next RAG Step ▶
             </button>
           </div>
 
-          <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-            <h4 style={{ color: 'var(--accent-purple)' }}>{ragPipelineSteps[ragStep].title}</h4>
-            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{ragPipelineSteps[ragStep].detail}</p>
+          <div className="info-panel">
+            <h4>{ragPipelineSteps[ragStep].title}</h4>
+            <p>{ragPipelineSteps[ragStep].detail}</p>
           </div>
         </div>
       )}
@@ -227,10 +225,10 @@ export default function AiMlVisualizer({ defaultTopicId }) {
       {/* MODE 3: vLLM PAGEDATTENTION */}
       {activeTab === 'vllm' && (
         <div className="metrics-grid">
-          <div className="viz-card" style={{ gridColumn: 'span 2' }}>
+          <div className="viz-card span-2">
             <h3>⚡ vLLM PagedAttention GPU VRAM Memory Allocator</h3>
 
-            <div className="main-tab-switcher" style={{ margin: '1rem 0' }}>
+            <div className="main-tab-switcher subnav-compact">
               <button onClick={() => setPagedMode('traditional')} className={`main-tab-btn ${pagedMode === 'traditional' ? 'active-tab' : ''}`}>
                 Traditional KV Cache Allocation (60% VRAM Waste)
               </button>
@@ -240,17 +238,17 @@ export default function AiMlVisualizer({ defaultTopicId }) {
             </div>
 
             {pagedMode === 'traditional' ? (
-              <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-                <h4 style={{ color: 'var(--accent-red)' }}>⚠️ Static Contiguous GPU Allocation — High Fragmentation</h4>
-                <p style={{ fontSize: '0.9rem', margin: '0.5rem 0' }}>Reserves 2048 contiguous tokens per request upfront regardless of actual generation length.</p>
-                <div style={{ background: '#3f1212', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--accent-red)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              <div className="info-panel accent-danger">
+                <h4>⚠️ Static Contiguous GPU Allocation — High Fragmentation</h4>
+                <p>Reserves 2048 contiguous tokens per request upfront regardless of actual generation length.</p>
+                <div className="dirty-alert">
                   🚨 Out Of Memory (OOM) errors occur even when GPU has unallocated fragmented VRAM!
                 </div>
               </div>
             ) : (
-              <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-                <h4 style={{ color: 'var(--accent-green)' }}>✨ PagedAttention Block Engine — Virtual Memory Pages</h4>
-                <p style={{ fontSize: '0.9rem', margin: '0.5rem 0' }}>Allocates fixed 16-token physical blocks dynamically on-demand from shared GPU page pool!</p>
+              <div className="info-panel accent-success">
+                <h4>✨ PagedAttention Block Engine — Virtual Memory Pages</h4>
+                <p>Allocates fixed 16-token physical blocks dynamically on-demand from shared GPU page pool!</p>
               </div>
             )}
           </div>
@@ -263,9 +261,9 @@ export default function AiMlVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>🎛 LLM Logit Scaling & Nucleus Sampling</h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1rem' }}>
+            <div className="sampling-controls">
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Temperature ($T$): {temp}</label>
+                <label className="field-label-strong">Temperature ($T$): {temp}</label>
                 <input
                   type="range"
                   min="0.1"
@@ -273,12 +271,12 @@ export default function AiMlVisualizer({ defaultTopicId }) {
                   step="0.1"
                   value={temp}
                   onChange={e => setTemp(Number(e.target.value))}
-                  style={{ width: '100%' }}
+                  className="range-full"
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Top-P (Nucleus Cutoff): {topP}</label>
+                <label className="field-label-strong">Top-P (Nucleus Cutoff): {topP}</label>
                 <input
                   type="range"
                   min="0.1"
@@ -286,7 +284,7 @@ export default function AiMlVisualizer({ defaultTopicId }) {
                   step="0.05"
                   value={topP}
                   onChange={e => setTopP(Number(e.target.value))}
-                  style={{ width: '100%' }}
+                  className="range-full"
                 />
               </div>
             </div>
@@ -295,15 +293,15 @@ export default function AiMlVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>📊 Rescaled Token Probability Distribution</h3>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+            <div className="info-panel">
               {scaledTokens.map(t => (
-                <div key={t.token} style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                <div key={t.token} className="token-row">
+                  <div className="token-row-header">
                     <span>Token: <strong>"{t.token}"</strong></span>
                     <span>Scaled Logit: {t.scaledLogit.toFixed(2)}</span>
                   </div>
-                  <div style={{ background: '#1e293b', height: '8px', borderRadius: '4px', marginTop: '0.2rem' }}>
-                    <div style={{ width: `${Math.min(100, t.prob * 100)}%`, background: 'var(--accent-blue)', height: '100%' }} />
+                  <div className="token-bar-track">
+                    <div className="token-bar-fill" style={{ width: `${Math.min(100, t.prob * 100)}%` }} />
                   </div>
                 </div>
               ))}
@@ -318,8 +316,8 @@ export default function AiMlVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>🏬 Feature Store & Population Stability Index (PSI) Drift</h3>
 
-            <div style={{ marginTop: '1rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Simulated Feature PSI Data Drift Index: {driftPsi}</label>
+            <div className="field-block">
+              <label className="field-label-strong">Simulated Feature PSI Data Drift Index: {driftPsi}</label>
               <input
                 type="range"
                 min="0.01"
@@ -327,13 +325,13 @@ export default function AiMlVisualizer({ defaultTopicId }) {
                 step="0.01"
                 value={driftPsi}
                 onChange={e => setDriftPsi(Number(e.target.value))}
-                style={{ width: '100%' }}
+                className="range-full"
               />
             </div>
 
-            <div style={{ marginTop: '1rem', padding: '1rem', borderRadius: '10px', background: driftPsi < 0.1 ? '#064e3b' : driftPsi < 0.25 ? '#78350f' : '#7f1d1d' }}>
+            <div className="drift-banner" style={{ background: driftPsi < 0.1 ? 'var(--state-success-tint)' : driftPsi < 0.25 ? 'var(--state-warning-tint)' : 'var(--state-danger-tint)' }}>
               <strong>Status: {driftPsi < 0.1 ? '✅ Normal (PSI < 0.1)' : driftPsi < 0.25 ? '⚠️ Moderate Drift Detected' : '🚨 CRITICAL DRIFT (PSI >= 0.25)'}</strong>
-              <p style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>
+              <p>
                 {driftPsi >= 0.25 ? 'Action Required: Trigger automated Kubeflow / MLflow model retraining pipeline!' : 'Model inputs match baseline training distribution.'}
               </p>
             </div>
@@ -342,14 +340,14 @@ export default function AiMlVisualizer({ defaultTopicId }) {
           <div className="viz-card">
             <h3>⚡ Online vs Offline Feature Lookup</h3>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div className="info-panel">
+              <div className="query-compare-row">
                 <span>Online Store (Redis Key-Value):</span>
-                <strong style={{ color: 'var(--accent-green)' }}>&lt; 5ms Latency (Live Inference)</strong>
+                <strong className="metric-value is-success">&lt; 5ms Latency (Live Inference)</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div className="query-compare-row">
                 <span>Offline Store (S3 Parquet / Snowflake):</span>
-                <strong style={{ color: 'var(--accent-blue)' }}>Batch High-Throughput (Point-in-Time Join)</strong>
+                <strong className="metric-value is-info">Batch High-Throughput (Point-in-Time Join)</strong>
               </div>
             </div>
           </div>
@@ -359,16 +357,16 @@ export default function AiMlVisualizer({ defaultTopicId }) {
       {/* MODE 6: 2-STAGE RECOMMENDATION ARCHITECTURE */}
       {activeTab === 'recsys' && (
         <div className="metrics-grid">
-          <div className="viz-card" style={{ gridColumn: 'span 2' }}>
+          <div className="viz-card span-2">
             <h3>🎯 2-Stage Recommendation Engine Pipeline</h3>
 
-            <div className="action-buttons-group" style={{ margin: '1rem 0', display: 'flex', gap: '0.5rem' }}>
+            <div className="action-buttons-group">
               <button onClick={() => setRecsysStep(0)} className="btn btn-secondary">⏮ Step 1: Catalog (10,000,000 Items)</button>
               <button onClick={() => setRecsysStep(1)} className="btn btn-primary">Step 2: Two-Tower Candidate Retrieval (500 Candidates)</button>
               <button onClick={() => setRecsysStep(2)} className="btn btn-action">Step 3: Deep Ranking Model (Top 5 Items)</button>
             </div>
 
-            <div style={{ background: '#0f172a', padding: '1.25rem', borderRadius: '10px' }}>
+            <div className="info-panel">
               {recsysStep === 0 && <h4>1. Total Catalog Space: 10,000,000 Items</h4>}
               {recsysStep === 1 && <h4>2. Two-Tower Vector ANN Retrieval: Filtered to 500 Candidates in 12ms</h4>}
               {recsysStep === 2 && <h4>3. Deep & Cross Network Ranking: Final Top 5 Items scored by pCTR × pCVR in 35ms</h4>}

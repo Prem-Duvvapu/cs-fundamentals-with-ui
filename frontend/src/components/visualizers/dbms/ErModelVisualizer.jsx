@@ -34,22 +34,18 @@ export default function ErModelVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Scenario Selector Tabs */}
-        <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xl">
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <div className="scenario-picker-panel">
+          <label className="scenario-picker-label">
             Select ER Diagram & Mapping Scenario:
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="scenario-picker-grid">
             {Object.values(ER_MODEL_SCENARIOS).map((scenario) => (
               <button
                 key={scenario.id}
                 onClick={() => handleScenarioChange(scenario.id)}
-                className={`px-3 py-2.5 rounded-lg text-xs font-medium text-left transition-all duration-200 ${
-                  activeScenario === scenario.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 border border-blue-400'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-                }`}
+                className={`scenario-chip ${activeScenario === scenario.id ? 'is-active' : ''}`}
               >
                 {scenario.name}
               </button>
@@ -58,45 +54,41 @@ export default function ErModelVisualizer() {
         </div>
 
         {/* Step Card & Narrative */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
+          <p className="detail-card-desc">{stepData.description}</p>
 
           {/* Key Rule Callout */}
           {stepData.keyRule && (
-            <div className="p-3.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-xs text-blue-300 font-medium mb-4">
+            <div className="er-key-rule">
               💡 {stepData.keyRule}
             </div>
           )}
 
           {/* Interactive Visual ER Canvas */}
           {stepData.entities && (
-            <div className="p-5 rounded-xl bg-slate-950/90 border border-slate-800 mb-6">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+            <div className="er-canvas">
+              <div className="er-canvas-label">
                 📐 Conceptual ER Diagram Canvas
               </div>
 
-              <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
+              <div className="er-diagram">
                 {/* Entity 1 */}
-                <div className={`p-4 rounded-xl border ${
-                  stepData.entities[0].type === 'Weak'
-                    ? 'border-dashed border-2 border-amber-500 bg-amber-950/20'
-                    : 'border-blue-500 bg-blue-950/20'
-                } min-w-[200px] text-center shadow-lg`}>
-                  <div className="text-xs font-bold text-blue-300 mb-1">
+                <div className={`er-entity ${stepData.entities[0].type === 'Weak' ? 'is-weak' : ''}`}>
+                  <div className="er-entity-name">
                     {stepData.entities[0].name}
                   </div>
-                  <div className="text-[11px] font-mono text-amber-300 font-semibold underline mb-2">
+                  <div className="er-entity-key">
                     PK: {stepData.entities[0].key}
                   </div>
-                  <div className="flex flex-wrap gap-1 justify-center">
+                  <div className="er-attr-row">
                     {stepData.entities[0].attrs.map((attr, idx) => (
-                      <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                      <span key={idx} className="er-attr-chip">
                         {attr}
                       </span>
                     ))}
@@ -105,14 +97,14 @@ export default function ErModelVisualizer() {
 
                 {/* Relationship Diamond */}
                 {stepData.relationship && (
-                  <div className="flex flex-col items-center">
-                    <div className="px-3 py-1.5 rounded bg-purple-600/30 border border-purple-400 text-purple-200 text-xs font-bold shadow-md">
+                  <div className="er-relationship">
+                    <div className="er-relationship-diamond">
                       ◆ {stepData.relationship.name} ◆
                     </div>
-                    <span className="text-[10px] font-mono text-purple-300 mt-1">
+                    <span className="er-relationship-cardinality">
                       {stepData.relationship.cardinality}
                     </span>
-                    <span className="text-[9px] text-slate-400">
+                    <span className="er-relationship-participation">
                       {stepData.relationship.participation}
                     </span>
                   </div>
@@ -120,20 +112,16 @@ export default function ErModelVisualizer() {
 
                 {/* Entity 2 (if exists) */}
                 {stepData.entities[1] && (
-                  <div className={`p-4 rounded-xl border ${
-                    stepData.entities[1].type === 'Weak'
-                      ? 'border-dashed border-2 border-amber-500 bg-amber-950/20'
-                      : 'border-blue-500 bg-blue-950/20'
-                  } min-w-[200px] text-center shadow-lg`}>
-                    <div className="text-xs font-bold text-blue-300 mb-1">
+                  <div className={`er-entity ${stepData.entities[1].type === 'Weak' ? 'is-weak' : ''}`}>
+                    <div className="er-entity-name">
                       {stepData.entities[1].name}
                     </div>
-                    <div className="text-[11px] font-mono text-amber-300 font-semibold underline mb-2">
+                    <div className="er-entity-key">
                       PK: {stepData.entities[1].key}
                     </div>
-                    <div className="flex flex-wrap gap-1 justify-center">
+                    <div className="er-attr-row">
                       {stepData.entities[1].attrs.map((attr, idx) => (
-                        <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                        <span key={idx} className="er-attr-chip">
                           {attr}
                         </span>
                       ))}
@@ -146,32 +134,32 @@ export default function ErModelVisualizer() {
 
           {/* Relational Tables Synthesis & SQL DDL */}
           {stepData.tablesGenerated && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+            <div className="compare-grid">
               {/* Synthesized Tables */}
-              <div className="p-5 rounded-xl bg-slate-950/90 border border-emerald-500/30">
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-emerald-500/20">
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+              <div className="compare-panel is-success">
+                <div className="compare-panel-header">
+                  <span className="compare-panel-title">
                     🗄️ Relational Schema ({stepData.relationalTablesCount} Tables Required)
                   </span>
                 </div>
-                <div className="space-y-3 font-mono text-xs">
+                <div className="kv-list">
                   {stepData.tablesGenerated.map((t, idx) => (
-                    <div key={idx} className="p-3 bg-slate-900/90 rounded-lg border border-slate-800">
-                      <div className="text-emerald-400 font-bold mb-1 text-[11px]">Table: {t.tableName}</div>
-                      <div className="text-slate-300 text-[11px] break-words">{t.columns}</div>
+                    <div key={idx} className="er-table-row">
+                      <div className="table-name">Table: {t.tableName}</div>
+                      <div className="table-cols">{t.columns}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Synthesized SQL DDL */}
-              <div className="p-5 rounded-xl bg-slate-950/90 border border-blue-500/30">
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-blue-500/20">
-                  <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+              <div className="compare-panel is-info">
+                <div className="compare-panel-header">
+                  <span className="compare-panel-title">
                     ⚡ Auto-Generated SQL DDL
                   </span>
                 </div>
-                <pre className="p-3 bg-slate-900/90 rounded-lg border border-slate-800 text-cyan-300 font-mono text-xs overflow-x-auto whitespace-pre-wrap">
+                <pre className="acid-sql-block is-accent">
                   {stepData.sqlDDL}
                 </pre>
               </div>

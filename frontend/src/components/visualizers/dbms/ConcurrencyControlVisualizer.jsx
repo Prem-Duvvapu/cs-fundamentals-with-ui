@@ -35,19 +35,15 @@ export default function ConcurrencyControlVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Protocol Selector */}
-        <div className="flex flex-wrap items-center gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Protocol:</span>
+        <div className="filter-bar">
+          <span className="filter-bar-label">Protocol:</span>
           {Object.keys(CONCURRENCY_PROTOCOLS).map(key => (
             <button
               key={key}
               onClick={() => handleProtocolChange(key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                protocol === key
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 border border-blue-400'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 border border-slate-700'
-              }`}
+              className={`filter-chip ${protocol === key ? 'is-active' : ''}`}
             >
               {CONCURRENCY_PROTOCOLS[key].name}
             </button>
@@ -55,32 +51,28 @@ export default function ConcurrencyControlVisualizer() {
         </div>
 
         {/* Live Active Locks / Timestamp Header */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className={`text-xs font-mono px-2.5 py-1 rounded border ${
-              stepData.hasCycle
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
-                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-            }`}>
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className={`status-chip ${stepData.hasCycle ? 'is-alert' : 'is-normal'}`}>
               {stepData.hasCycle ? '🚨 DEADLOCK DETECTED' : `Step ${engineState.stepIndex + 1} of ${engineState.totalSteps}`}
             </span>
           </div>
 
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
+          <p className="detail-card-desc">{stepData.description}</p>
 
           {/* Active Locks Table in Strict 2PL */}
           {stepData.activeLocks && (
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="lock-grid">
               {Object.keys(stepData.activeLocks).map(item => (
-                <div key={item} className="p-3 bg-slate-950/80 rounded-lg border border-slate-800">
-                  <div className="text-xs text-slate-400 font-semibold mb-1">Item {item} Lock Holders:</div>
-                  <div className="flex items-center gap-2">
+                <div key={item} className="sub-panel">
+                  <div className="sub-panel-label">Item {item} Lock Holders:</div>
+                  <div className="u-row">
                     {stepData.activeLocks[item].length === 0 ? (
-                      <span className="text-xs font-mono text-slate-500 italic">No Active Locks</span>
+                      <span className="no-locks-text">No Active Locks</span>
                     ) : (
                       stepData.activeLocks[item].map((holder, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-mono font-bold">
+                        <span key={idx} className="lock-holder-chip">
                           {holder}
                         </span>
                       ))
@@ -93,25 +85,25 @@ export default function ConcurrencyControlVisualizer() {
 
           {/* Deadlock Wait-For Graph SVG */}
           {stepData.edges && (
-            <div className="p-4 bg-slate-950/70 rounded-xl border border-slate-800 mt-4">
-              <div className="text-xs text-slate-400 font-semibold mb-2">Wait-For Dependency Graph:</div>
-              <div className="flex items-center justify-center gap-6 py-3">
-                <div className="px-4 py-2 rounded-lg bg-blue-600/30 border border-blue-400 text-blue-300 font-mono font-bold text-sm">
+            <div className="sub-panel field-block">
+              <div className="sub-panel-label">Wait-For Dependency Graph:</div>
+              <div className="wait-for-graph">
+                <div className="wait-for-node tx1">
                   Transaction T1
                 </div>
                 {stepData.edges.length > 0 && (
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs font-mono text-amber-400 mb-1">{stepData.edges[0]?.item}</span>
-                    <span className="text-xl text-amber-400">➔</span>
+                  <div className="wait-for-edge">
+                    <span className="item-label">{stepData.edges[0]?.item}</span>
+                    <span className="arrow">➔</span>
                   </div>
                 )}
-                <div className="px-4 py-2 rounded-lg bg-emerald-600/30 border border-emerald-400 text-emerald-300 font-mono font-bold text-sm">
+                <div className="wait-for-node tx2">
                   Transaction T2
                 </div>
                 {stepData.edges.length > 1 && (
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs font-mono text-rose-400 mb-1">{stepData.edges[1]?.item}</span>
-                    <span className="text-xl text-rose-400">⬅</span>
+                  <div className="wait-for-edge is-danger">
+                    <span className="item-label">{stepData.edges[1]?.item}</span>
+                    <span className="arrow">⬅</span>
                   </div>
                 )}
               </div>
@@ -120,7 +112,7 @@ export default function ConcurrencyControlVisualizer() {
         </div>
 
         {/* State Inspector & Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="metrics-2col">
           <StateInspector
             title="Concurrency Controller Metrics"
             state={{
