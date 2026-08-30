@@ -53,7 +53,7 @@ That result choice is important when a later caller expects to append to it.
 
 Use `collect(Collectors.toCollection(ArrayList::new))` if a mutable `ArrayList` is explicitly required.
 
-### Intermediate and terminal operations
+### Stream operations, laziness, and parallelism
 
 Intermediate operations return a stream and are lazy; terminal operations return something else and trigger traversal.
 
@@ -319,15 +319,17 @@ An empty `IntStream.sum()` returns `0` because zero is the additive identity.
 
 Know which semantic is appropriate before treating an empty result as ordinary data.
 
-### Optional operations and eager defaults
+### Optional, date-time, and modern collection APIs
 
 `Optional.of(value)` asserts that `value` is non-null.
 
 It throws `NullPointerException` immediately if that assertion is false.
 
-`Optional.ofNullable(value)` accepts either a reference or null and produces an empty optional for null.
+`Optional.ofNullable(value)` accepts a reference or null, while `Optional.empty()` states absence explicitly.
 
-`Optional.empty()` is an explicit empty result.
+The Date/Time API uses immutable `Instant`, `LocalDate`, `ZonedDateTime`, and `Duration` values; choose a type that preserves the timezone semantics the domain actually needs.
+
+A Java 21 sequenced collection exposes encounter-order operations such as `getFirst`, `getLast`, and `reversed`; `SequencedSet` and `SequencedMap` extend the same first-to-last model without turning unordered implementations into ordered ones.
 
 `map` transforms a present value and leaves an absent value absent.
 
@@ -592,5 +594,5 @@ The first suspicion is unsafe shared mutation because `ArrayList.add` is not saf
 
 - [Java Stream API documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html) explains pipeline operation contracts and single-use behaviour.
 - [Java Optional API documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html) documents absence, mapping, and fallback operations.
-- [Java Spliterator API documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Spliterator.html) describes source characteristics and parallel splitting.
-- [Java Files.lines documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)) specifies its resource lifecycle.
+- [Java Date/Time API documentation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/package-summary.html) explains immutable date, time, duration, and timezone types.
+- [Java SequencedCollection API documentation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/SequencedCollection.html) defines first-to-last collection operations introduced in Java 21.
