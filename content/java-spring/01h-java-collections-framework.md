@@ -8,7 +8,7 @@ The useful question is which representation preserves the required ordering, uni
 
 ## 🟢 Beginner Level
 
-### Start with the Contract
+### Collection interfaces and implementation trade-offs
 
 `Iterable<E>` promises traversal with an iterator or enhanced `for` loop.
 `Collection<E>` adds shared operations such as `add`, `remove`, `contains`, `size`, and `clear`.
@@ -44,6 +44,21 @@ The diagram is a type relationship rather than a performance ranking.
 `LinkedList` implements both `List` and `Deque`, but it is not automatically the best default for either role.
 Program to the narrowest interface that represents the caller's need.
 Select a particular implementation at construction time.
+
+The main implementation families solve different workload shapes. List implementations include
+ArrayList for dense indexed access, LinkedList for node-based bidirectional traversal, and legacy
+Vector for synchronized individual operations. Set implementations include HashSet for expected
+constant-time membership, LinkedHashSet for predictable insertion order, and TreeSet for sorted
+membership. Map implementations include HashMap for general keyed lookup, LinkedHashMap for stable
+insertion or access order, TreeMap for sorted keys, and legacy Hashtable for synchronized operations
+with neither null keys nor null values. Queue, Deque, and PriorityQueue express FIFO, double-ended,
+and priority-based removal respectively.
+
+That inventory is not a recommendation to use every type. Big-O complexity gives a first filter,
+then ordering, null policy, memory locality, mutation frequency, thread ownership, and required
+failure behaviour determine the implementation. Vector and Hashtable remain important for reading
+legacy APIs, but synchronized wrappers or purpose-built concurrent structures usually communicate
+modern intent more clearly.
 
 ```java
 List<String> names = new ArrayList<>();
@@ -346,7 +361,7 @@ stateDiagram-v2
 The diagram is an in-memory heap lifecycle, not a durable job-processing architecture.
 Persistent delayed jobs require acknowledgment, retry, and storage decisions outside `PriorityQueue`.
 
-### Concurrent Collection Boundaries
+### Concurrent collections and blocking queues
 
 Ordinary collections are not automatically safe for concurrent mutation.
 `Collections.synchronizedList` serializes individual operations through a monitor.
@@ -360,6 +375,25 @@ That copy-on-write trade-off suits rare writes and many reads.
 
 There is no universal thread-safe replacement for every list.
 Define ownership and ordering first, then select a synchronization or message-passing design.
+
+ConcurrentHashMap supports concurrent keyed reads and updates without one global map monitor, but a
+sequence such as “check then put” still needs an atomic operation such as `computeIfAbsent`.
+CopyOnWriteArrayList publishes a new backing-array snapshot after every write, making iteration
+stable and lock-free for readers at the cost of $O(n)$ copying per mutation. It fits listener lists
+with many traversals and very few changes, not append-heavy event storage.
+
+BlockingQueue defines producer-consumer coordination: `put` may wait for capacity and `take` may
+wait for data. A bounded ArrayBlockingQueue makes overload visible and supplies backpressure, while
+an effectively unbounded queue can convert sustained overload into heap growth. ConcurrentLinkedQueue
+is a non-blocking FIFO queue whose `offer` and `poll` do not wait; consumers that require waiting need
+separate coordination or a blocking queue instead.
+
+| Concurrent need | Typical choice | Complexity and use case | Main trade-off |
+|---|---|---|---|
+| Shared keyed state | `ConcurrentHashMap` | Expected $O(1)$ lookup; counters, registries, caches | Compound invariants need atomic map methods |
+| Read-mostly snapshots | `CopyOnWriteArrayList` | $O(1)$ indexed read; listener/config snapshots | Every write copies the array |
+| Bounded hand-off | `ArrayBlockingQueue` | $O(1)$ queue operations; worker backpressure | Producers or consumers may block |
+| Non-blocking FIFO | `ConcurrentLinkedQueue` | Expected $O(1)$ endpoint operations; opportunistic work | No capacity bound or waiting protocol |
 
 ### Common Misconceptions
 
