@@ -87,7 +87,7 @@ export default function TransactionsAcidVisualizer() {
           <p className="event-log-text acid-description">{stepData.description}</p>
 
           {stepData.sql && (
-            <pre className="code-block acid-sql-block">
+            <pre className="acid-sql-block">
               <code>{stepData.sql}</code>
             </pre>
           )}

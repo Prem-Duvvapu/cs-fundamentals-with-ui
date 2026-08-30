@@ -1170,7 +1170,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .state-pill.is-dim { background: var(--border-default); font-weight: 400; opacity: .55; }
 .state-pill.is-current { font-weight: 700; opacity: 1; }
 .acid-description { margin: var(--space-3) 0; }
-.acid-sql-block { background: var(--bg-code); border-radius: var(--radius-sm); overflow-x: auto; padding: var(--space-3); white-space: pre-wrap; }
+.acid-sql-block { background: var(--bg-code); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: var(--ui-xs); overflow-x: auto; padding: var(--space-3); white-space: pre-wrap; }
 .acid-accounts-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; margin-top: var(--space-4); }
 .acid-log-panel { margin-top: var(--space-4); }
 .acid-log-header { color: var(--state-warning); display: flex; font-size: var(--ui-xs); justify-content: space-between; margin-bottom: var(--space-1); }
@@ -1281,6 +1281,31 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .sub-panel-value { font-family: var(--font-mono); font-size: var(--ui-lg); font-weight: 700; }
 .sub-panel-value.is-info { color: var(--state-info); }
 .sub-panel-value.is-purple { color: var(--cat-os-base); }
+
+.compare-panel.is-success { border: var(--stroke-hair) solid var(--state-success-border); }
+.compare-panel.is-success .compare-panel-title { color: var(--state-success); }
+.acid-sql-block.is-accent { color: var(--state-info); }
+
+/* ErModelVisualizer: ER diagram canvas */
+.er-canvas { background: var(--bg-inset); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-lg); margin-bottom: var(--space-6); padding: var(--space-5); }
+.er-canvas-label { color: var(--text-muted); font-size: var(--ui-xs); font-weight: 700; letter-spacing: var(--tracking-wide); margin-bottom: var(--space-4); text-transform: uppercase; }
+.er-diagram { align-items: center; display: flex; flex-direction: column; gap: var(--space-5); justify-content: center; }
+@media (min-width: 1024px) { .er-diagram { flex-direction: row; } }
+.er-entity { background: var(--state-info-tint); border: var(--stroke-hair) solid var(--state-info); border-radius: var(--radius-lg); box-shadow: var(--elev-2); min-width: 12.5rem; padding: var(--space-4); text-align: center; }
+.er-entity.is-weak { background: var(--state-warning-tint); border: var(--stroke-thick) dashed var(--state-warning); }
+.er-entity-name { color: var(--state-info); font-size: var(--ui-xs); font-weight: 700; margin-bottom: var(--space-1); }
+.er-entity.is-weak .er-entity-name { color: var(--state-warning); }
+.er-entity-key { color: var(--state-warning); font-family: var(--font-mono); font-size: var(--ui-2xs); font-weight: 600; margin-bottom: var(--space-2); text-decoration: underline; }
+.er-attr-row { display: flex; flex-wrap: wrap; gap: var(--space-1); justify-content: center; }
+.er-attr-chip { background: var(--bg-raised); border: var(--stroke-hair) solid var(--border-default); border-radius: var(--radius-xs); color: var(--text-secondary); font-size: var(--ui-2xs); padding: .1rem var(--space-2); }
+.er-relationship { align-items: center; display: flex; flex-direction: column; }
+.er-relationship-diamond { background: var(--cat-os-tint); border: var(--stroke-hair) solid var(--cat-os-base); border-radius: var(--radius-sm); box-shadow: var(--elev-1); color: var(--cat-os-hover); font-size: var(--ui-xs); font-weight: 700; padding: var(--space-2) var(--space-3); }
+.er-relationship-cardinality { color: var(--cat-os-base); font-family: var(--font-mono); font-size: var(--ui-2xs); margin-top: var(--space-1); }
+.er-relationship-participation { color: var(--text-muted); font-size: var(--ui-2xs); }
+.er-key-rule { background: var(--state-info-tint); border: var(--stroke-hair) solid var(--state-info-border); border-radius: var(--radius-sm); color: var(--state-info); font-size: var(--ui-xs); font-weight: 600; margin-bottom: var(--space-4); padding: var(--space-3); }
+.er-table-row { background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: var(--ui-2xs); padding: var(--space-3); }
+.er-table-row .table-name { color: var(--state-success); font-weight: 700; margin-bottom: var(--space-1); }
+.er-table-row .table-cols { color: var(--text-secondary); overflow-wrap: break-word; }
 
 /* Context Switch Visualizer */
 .switch-animation-container {
