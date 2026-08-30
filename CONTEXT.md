@@ -140,9 +140,13 @@ produce real KaTeX output, and that blockquote files produce real `<blockquote>`
 
 ### Reading Experience
 
-The topic page is built around long-form study. It provides a sticky table-of-contents rail,
-tier jump navigation, reading progress and an interview deck generated from the Expert-tier Q&A.
-Tabs expose full ARIA relationships and arrow-key navigation, while the rail collapses cleanly on mobile.
+The topic page is built around long-form study. `TopicPage` owns the single document-level heading,
+so the Markdown renderer omits each source file's duplicate H1 while preserving its tier headings.
+On desktop the topic header condenses to a one-line sticky toolbar after scrolling; below 768px it
+stays in document flow so it cannot consume the reading viewport. The table-of-contents rail is
+sticky only on desktop and defaults collapsed below 1024px. Tier navigation, reading progress and
+the Expert-tier interview deck remain available at every breakpoint. Tabs retain full ARIA
+relationships and arrow-key navigation.
 Simulation-only pages remain lazy loaded so study readers do not pay their bundle cost upfront.
 
 The home route complements the reader with a category-first roadmap. It presents category

@@ -47,10 +47,16 @@ Success, warning, danger, and informational feedback includes text or a glyph as
 
 ## Responsive behavior
 
-The standard breakpoints are 480px, 768px, 1024px, and 1280px. Below 1024px the reader TOC moves
-above the article. Below 768px navigation becomes a horizontal category strip, topic actions become
-full-width touch targets, and panel grids reflow to one column. Intrinsically wide teaching surfaces
-scroll horizontally with an affordance; functionality is never hidden without an equivalent view.
+The standard breakpoints are 480px, 768px, 1024px, and 1280px. At desktop widths the topic header
+condenses to a one-line sticky toolbar after scrolling, and the TOC rail accounts for both navbar
+and toolbar offsets. Below 1024px the TOC moves above the article and defaults collapsed. Below
+768px the topic header remains in document flow, navigation becomes a horizontal category strip,
+topic actions become full-width touch targets, and panel grids reflow to one column. Intrinsically
+wide teaching surfaces scroll horizontally with an affordance; functionality is never hidden
+without an equivalent view.
+
+`TopicPage` is the owner of the single visible and semantic H1. Curriculum Markdown H1 text is
+metadata for standalone source readability and is not rendered a second time inside the page.
 
 All interactive targets are at least 44px high on mobile. Pages must not introduce horizontal page
 scroll at 320px, 375px, 768px, 1024px, or 1440px.

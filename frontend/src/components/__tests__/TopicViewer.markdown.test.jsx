@@ -119,6 +119,14 @@ describe('blockquote rendering', () => {
 })
 
 describe('reader semantics', () => {
+  it('does not repeat the curriculum title as a second document h1', () => {
+    const { container } = render(<MarkdownRenderer content={'# Process Management\n\nLesson introduction.'} />)
+
+    expect(container.querySelector('h1')).toBeNull()
+    expect(container).toHaveTextContent('Lesson introduction.')
+    expect(container).not.toHaveTextContent('Process Management')
+  })
+
   it('keeps tier heading ids stable while rendering a non-color tier badge', () => {
     const { container } = render(<MarkdownRenderer content={'## 🟢 Beginner Level\n\nStart here.'} />)
 

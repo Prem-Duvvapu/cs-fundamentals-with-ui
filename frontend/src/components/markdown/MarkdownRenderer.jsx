@@ -60,6 +60,11 @@ export default function MarkdownRenderer({ content }) {
         [rehypeHighlight, { languages: HIGHLIGHT_LANGUAGES, detect: false }]
       ]}
       components={{
+        // TopicPage owns the document's single h1. Curriculum files retain
+        // their title as authoring metadata, but the reader does not repeat it.
+        h1() {
+          return null
+        },
         h2({ children }) {
           const { text, tier } = getTierHeading(children)
           return (

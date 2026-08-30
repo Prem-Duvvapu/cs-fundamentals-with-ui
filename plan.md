@@ -157,13 +157,13 @@ existing lesson and rerunning the manifest validator.
 2. Refine Bean, MVC, JPA, Batch, and Quartz lessons for cross-links and nonduplicated boundaries.
 3. Add practical code examples and Spring test coverage for API/error/security/transaction scenarios.
 
-### Phase D — OS and Networking — ◐ Depth complete; manifest anchors in progress
+### Phase D — OS and Networking — ✅ Complete
 
 1. Audit the already-rebuilt OS lessons against every named checklist item and close any gaps.
 2. Complete the remaining Networking lesson and backend-networking sections.
 3. Validate category manifests and cross-link browser→DNS→TCP→TLS→HTTP flows.
 
-### Phase E — DBMS and SQL — ◐ In progress
+### Phase E — DBMS and SQL — ◐ In progress; 10/13 lessons structurally complete
 
 1. Rebuild the eleven non-exemplar DBMS files.
 2. Add the practical SQL lesson with executable query examples and expected results.

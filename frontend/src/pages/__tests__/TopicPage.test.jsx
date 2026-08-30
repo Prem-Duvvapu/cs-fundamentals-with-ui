@@ -4,6 +4,14 @@ import React from 'react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import TopicPage from '../TopicPage'
 
+vi.mock('../../components/TopicViewer', () => ({
+  default: ({ topicId }) => <div data-testid="topic-viewer">Study content for {topicId}</div>
+}))
+
+vi.mock('../../components/visualizers/DbmsVisualizer', () => ({
+  default: () => <div>DBMS simulation</div>
+}))
+
 beforeEach(() => {
   global.fetch = vi.fn().mockResolvedValue(new Response('# Test Content\n\nContent details.'))
 })
@@ -30,7 +38,36 @@ describe('TopicPage Component', () => {
     expect(studyBtn).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'topic-tab-theory')
     expect(document.querySelector('.topic-page-container')).toHaveAttribute('data-category', 'dbms')
-    expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toHaveTextContent('DB')
+    const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i })
+    expect(breadcrumb).toHaveTextContent('All topics')
+    expect(breadcrumb).toHaveTextContent('Database Management Systems')
+    expect(breadcrumb).not.toHaveTextContent('DBMS Architecture & 3-Schema ANSI-SPARC')
+    expect(screen.getAllByText('DBMS Architecture & 3-Schema ANSI-SPARC', { exact: true })).toHaveLength(1)
+    expect(screen.queryByText(/back to all topics/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+  })
+
+  it('uses the compact topic header after the page is scrolled', () => {
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 })
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/topic/process-management']}>
+        <Routes>
+          <Route path="/topic/:topicId" element={<TopicPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const header = container.querySelector('.topic-page-header')
+    expect(header).not.toHaveClass('topic-page-header--compact')
+
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 121 })
+    fireEvent.scroll(window)
+    expect(header).toHaveClass('topic-page-header--compact')
+
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 })
+    fireEvent.scroll(window)
+    expect(header).not.toHaveClass('topic-page-header--compact')
   })
 
   it('should switch between simulation and theory tabs', () => {
