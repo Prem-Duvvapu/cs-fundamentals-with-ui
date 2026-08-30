@@ -4,8 +4,8 @@
 **CS Fundamentals with UI** is a content-first, full-stack educational platform for Computer Science fundamentals. It consists of a **Spring Boot REST backend** serving structured three-tier Markdown content and a **React 18 / Vite frontend** that makes reading, navigation and interview practice the primary experience, with interactive simulations available when they add learning value.
 
 The curriculum expansion is governed by [`plan.md`](plan.md), which maps the complete SDE-2
-acceptance checklist to existing or planned lessons. A planned coverage manifest will make those
-mappings machine-verifiable alongside route and content validation.
+acceptance checklist to 63 registered lessons. [`content/COVERAGE_MANIFEST.json`](content/COVERAGE_MANIFEST.json)
+makes those mappings machine-verifiable alongside strict route and content validation.
 
 ---
 
@@ -135,7 +135,7 @@ components/markdown/MarkdownRenderer.jsx
 interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 
 **Guard suite:** `frontend/src/components/__tests__/TopicViewer.markdown.test.jsx` renders
-every file in `content/` and asserts no unparsed Markdown leaks into prose, that math files
+all 63 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
 
 ### Reading Experience
@@ -162,7 +162,7 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 
 ## 🔌 REST API Endpoints
 
-- `GET /api/v1/topics` — Lists all 56 curriculum topics with level and summary metadata.
+- `GET /api/v1/topics` — Lists all 63 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 
@@ -182,4 +182,7 @@ npm run build --prefix frontend
 
 # Check curriculum structure and quality gates
 node scripts/validate-content.mjs
+
+# Test validator and coverage-manifest behavior
+node --test scripts/validate-content.test.mjs
 ```

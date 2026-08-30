@@ -17,13 +17,13 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 ├── AGENTS.md              # Context for AI agents
 ├── README.md              # Project overview & quickstart
 ├── CONTEXT.md             # System architecture & API documentation
-├── content/               # Markdown educational content (56 topics)
+├── content/               # Markdown educational content (63 topics)
 │   ├── CONTENT_SPEC.md    # ★ Authoring contract — read before writing content
 │   ├── os/                # Operating Systems (8 topics)
 │   ├── networking/        # Computer Networks (12 topics)
-│   ├── dbms/              # Database Management Systems (12 topics)
-│   ├── java-spring/       # Java & Spring Boot Ecosystem (18 topics)
-│   └── aiml/              # AI / ML Architecture (6 topics)
+│   ├── dbms/              # Database Management Systems (13 topics)
+│   ├── java-spring/       # Java & Spring Boot Ecosystem (23 topics)
+│   └── aiml/              # AI / ML Architecture (7 topics)
 ├── backend/               # Spring Boot application
 │   ├── pom.xml
 │   └── src/main/java/com/csfundamentals/
@@ -69,7 +69,7 @@ Content is rendered by `frontend/src/components/markdown/MarkdownRenderer.jsx`
 Raw HTML is not permitted. Diagrams should be Mermaid, not ASCII box art — the ASCII
 diagrams in older files are legacy being replaced, not a pattern to copy.
 
-## Curriculum Roadmaps (56 Complete Topics)
+## Curriculum Roadmaps (63 Registered Topics)
 
 ### 💻 Operating Systems (8/8 Topics)
 - [x] Process Management (states, PCB, threads, fork, COW)
@@ -95,7 +95,7 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Network Security & Cryptography (AES, RSA, X.509 certificates, firewalls, SYN flood, DDoS)
 - [x] Network QoS & Traffic Shaping (Token Bucket, Leaky Bucket, IntServ/DiffServ, CDN, SDN/NFV, 5G slicing)
 
-### 🗄️ Database Management Systems (12/12 Topics)
+### 🗄️ Database Management Systems (13/13 Topics)
 - [x] DBMS Introduction & Architecture (What is DBMS, 6 Components, File System vs DBMS, Languages, Types)
 - [x] DBMS Architecture & Data Independence (3-Schema ANSI-SPARC)
 - [x] ER Diagram Modeling & Relational Mapping (Entity sets, attributes, weak entities, ER-to-Table mapping)
@@ -107,9 +107,10 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Transactions, States & ACID Properties (WAL Logging, Checkpoints, ARIES Crash Recovery)
 - [x] Concurrency Control, 2PL & Serializability (Precedence Graphs, Strict 2PL, Timestamp Ordering, Deadlocks)
 - [x] Query Processing & Cost-Based Optimizer (Query Trees, Predicate Pushdown, Hash Joins, EXPLAIN ANALYZE)
+- [x] Practical SQL Querying (joins, CTEs, aggregates, window functions, query correctness)
 - [x] Distributed DBMS, 2PC & CAP Theorem (2-Phase Commit, 3PC, CAP Theorem, Quorum Consensus)
 
-### ☕ Java & Spring Ecosystem (18/18 Topics)
+### ☕ Java & Spring Ecosystem (23/23 Topics)
 - [x] Java Execution Pipeline (javac, ClassLoader Parent Delegation, Bytecode Verifier, Tiered JIT)
 - [x] Java Memory Model (Primitives, References, Stack Frames, Heap Objects, 100% Pass-by-Value)
 - [x] OOP Pillars & Dynamic Method Dispatch (Encapsulation, Polymorphism, JVM vtable)
@@ -128,8 +129,14 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Spring Batch Execution Architecture (JobLauncher, Step, Chunk ItemReader/Processor/Writer)
 - [x] Quartz Scheduler Lifecycle (JobDetail, Trigger, Clustered JobStoreTX)
 - [x] SOLID Principles & Design Patterns (SRP, OCP, LSP, ISP, DIP, Singleton, Observer, Factory, Strategy)
+- [x] Spring Boot Internals & Production Configuration (auto-configuration, profiles, Actuator)
+- [x] Spring REST API Design & Error Handling (HTTP semantics, validation, pagination, Problem Details)
+- [x] Spring Security (filter chain, sessions, JWT, OAuth2, CSRF, method security)
+- [x] Spring Caching, Async Work & Scheduling (Redis, invalidation, stampede control, executor sizing)
+- [x] Spring Testing & Production Readiness (test slices, Testcontainers, metrics, graceful shutdown)
 
-### 🤖 AI / ML Architecture (6/6 Topics)
+### 🤖 AI / ML Architecture (7/7 Topics)
+- [x] Machine Learning Fundamentals & Evaluation (learning types, algorithms, metrics, neural networks)
 - [x] Vector Embeddings & Vector DBs (Embedding vectors, cosine similarity, HNSW ANN search, pgvector)
 - [x] RAG Architecture (Chunking strategies, dense/sparse retrieval, context assembly, reranking)
 - [x] LLM Model Serving & Low-Latency Inference (vLLM PagedAttention, KV caching, continuous batching)
@@ -145,22 +152,21 @@ the start of this effort: 15,592 LOC of simulation code vs 7,491 lines of curric
 rendering raw LaTeX because the old renderer was a 68-line regex chain.
 
 **Target:** every topic at 400–600 lines with ≥3 Mermaid diagrams and 12–15 interview Q&A
-pairs; ~28,000 total content lines; reading experience as the default tab.
+pairs; 25,200–37,800 total content lines; reading experience as the default tab.
 
-`plan.md` is now the authoritative SDE-2 coverage plan. It maps the full user-supplied checklist
-to lessons, identifies seven focused new lessons, defines the implementation priority, and adds a
-planned machine-readable coverage manifest. Do not start that expansion until the user approves
-the plan.
+`plan.md` is the authoritative SDE-2 coverage plan. It maps the full user-supplied checklist
+to lessons, defines the implementation priority, and identifies the seven focused lessons added
+in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping in CI.
 
 ### Phase status
 
 | Phase | Goal | Status |
 |---|---|---|
 | **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
-| **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ◐ Spec + validator + exemplar done; CI pending |
+| **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ✅ **Done** |
 | **P2** | Reading experience — default Study tab, TOC rail, tier nav, interview deck | ✅ **Done** |
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ☐ Not started |
-| **P4** | Content authoring, 56 topics in 3 waves | ☐ Not started |
+| **P4** | Content authoring, 63 topics in priority waves | ◐ **In progress — 54/63 pass the structural contract; manifest audit continues** |
 | **P5** | Cross-topic search + per-category Interview Mode | ☐ Not started |
 | **P6** | Verify, doc sync, ship | ☐ Not started |
 
@@ -168,35 +174,30 @@ the plan.
 - `frontend/src/components/markdown/MarkdownRenderer.jsx` — full GFM + math + highlighting
 - `frontend/src/components/markdown/MermaidBlock.jsx` — lazy-loaded, centrally themed, error-tolerant
 - `TopicViewer.jsx` rewritten to delegate; `renderMarkdown()` and `dangerouslySetInnerHTML` removed
-- `TopicViewer.markdown.test.jsx` — golden-file suite over **all 56** content files (146 assertions)
+- `TopicViewer.markdown.test.jsx` — golden-file suite over **all 63** content files
 - Vitest upgraded 1.x → 2.1.8 with ESM deps inlined in `vite.config.js` (required for react-markdown 9)
 - `App.css` — dual-theme tokens, responsive shell, reader typography, Markdown surfaces, utilities,
   accessible simulator primitives, and reduced-motion behavior
 
 ### Current implementation priorities
 
-1. **Restore content route integrity.** The filename suffix after its ordering prefix must match
-   the TopicService topic ID. Current mismatches include `application-layer`, `quartz-scheduler`,
-   `model-serving`, `llm-parameters` and `feature-stores`; cover this with a backend test.
-2. **Complete P2.** Study opens by default. Add an accessible heading-derived TOC rail, tier
-   navigation, reading progress and an interview deck. Mobile uses collapsible controls. Preserve
-   clear text/background contrast, visible focus, semantic colour meaning and reduced-motion support.
-   The main curriculum index is a responsive roadmap with category summaries, counts, ordered
-   topic rows, level badges and direct Study actions.
-3. **Complete P1.** Add CI that runs frontend tests, the frontend build, backend tests and the
-   content validator. Do not claim the curriculum is complete while validation reports failures.
-4. **Begin P4 in Wave A.** `content/dbms/06-transactions-acid.md` is now the exemplar. Each
-   content unit remains one agent and one Markdown file.
+1. **Complete P4 by priority.** Core Java, Advanced Java and Spring are manifest-clean. Close the
+   remaining OS and Networking concept anchors, then finish DBMS before AI/ML.
+2. **Complete P3.** Triage simulations only after migrating useful interview questions and theory
+   from `frontend/src/data/*.json` into their lessons.
+3. **Complete P5.** Add cross-topic search and per-category Interview Mode.
+4. **Complete P6.** Run the full responsive/accessibility audit, verification suite and doc sync;
+   do not claim the curriculum is complete while validation reports failures.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
-All 56 topics are already registered at all 7 registration points, so content work requires
+All 63 topics are registered at all integration points, so content work requires
 **zero** registration changes. Never edit `.java`, `.jsx`, `.js` or `.json` in a content unit.
 
-Wave order (thinnest + highest interview value first):
-- **Wave A (22 files)** — all 6 `aiml`; `networking` 02, 03, 04, 06, 07, 08; `java-spring` 01c, 01d, 01f, 01h, 01j, 02, 03, 04, 05, 06
-- **Wave B (22 files)** — remaining `java-spring` and `networking`; all 8 `os`
-- **Wave C (12 files)** — all `dbms` (already deepest; needs diagrams + Q&A, not a rewrite)
+Current contract-completion order:
+- **Complete** — all Core Java, Advanced Java and Spring lessons, including manifest anchors
+- **Next** — remaining OS and Networking manifest anchors
+- **Then** — 7 legacy DBMS structural rebuilds, followed by 2 legacy AI/ML rebuilds
 
 `content/dbms/06-transactions-acid.md` is the full-contract **exemplar** every later unit matches.
 
