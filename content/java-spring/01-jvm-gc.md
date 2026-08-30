@@ -6,13 +6,17 @@ The Java Virtual Machine executes bytecode while managing object memory, class m
 
 ## 🟢 Beginner Level
 
-### The JVM memory map
+### JVM runtime memory areas and allocation
 
 The JVM is a process with several memory areas, not one anonymous heap.
 
 Every Java thread owns an execution stack.
 
 Stack frames hold method-local values, operand stacks, and return information.
+
+Each thread also has a program counter (PC) register that identifies its current JVM instruction, except while executing a native method.
+
+The native method stack supports code reached through JNI or JVM runtime internals and is distinct from Java frames conceptually, although implementations can integrate their storage.
 
 Objects created with `new` normally live on the heap.
 
@@ -42,6 +46,16 @@ Local primitive values are typically stored in that frame.
 A local reference also lives in the frame, but it points to an object elsewhere.
 
 The reference is not the object itself.
+
+Object allocation normally advances a pointer inside the current thread's thread-local allocation buffer (TLAB), making the common path cheap and free of global locking.
+
+Large objects, exhausted TLABs, and collector-specific policies can take slower allocation paths.
+
+The JIT compiler can use **escape analysis** to prove that a newly created object does not escape a method or thread.
+
+That proof may enable scalar replacement, where the object's fields are represented as separate values and no heap object is allocated at all.
+
+Escape analysis is an optimisation rather than a source-level guarantee, so correctness must never depend on whether an allocation is eliminated.
 
 ```java
 void applyBonus(User user, int points) {
@@ -127,7 +141,7 @@ Thread dumps need surrounding stack traces, not just state counts.
 
 ## 🟡 Intermediate Level
 
-### Generational collection and allocation
+### Garbage collection, reachability, and collectors
 
 Most Java applications allocate many short-lived objects.
 
@@ -159,6 +173,18 @@ The exact threshold and path are collector-specific.
 Do not build application correctness around an object reaching a particular generation.
 
 The important rule is that a reachable object remains live, regardless of how old it is.
+
+GC event names are not perfectly standard across collectors or monitoring tools.
+
+A **minor GC** usually means a collection focused on young-generation space.
+
+A **major GC** often means old-generation work, but some tools use it interchangeably with full collection.
+
+A **full GC** generally means a stop-the-world (STW) collection of the entire heap and may include class unloading or compaction, yet its exact phases remain collector-specific.
+
+Therefore dashboards should report collector name, cause, phase, pause duration, and before/after occupancy rather than compare event labels alone.
+
+Tracing collectors conceptually combine **mark**, **sweep**, and optionally **compact** operations: mark follows reachable objects from GC roots, sweep reclaims unmarked space, and compact relocates survivors to reduce fragmentation.
 
 ### Worked example: separate heap pressure from a leak
 
@@ -351,15 +377,21 @@ Treat them as units of work, not as a substitute for backpressure.
 
 ### Production diagnostics and failure boundaries
 
+`OutOfMemoryError` (**OOME**) is a family of VM resource-exhaustion failures, not a synonym for a Java-heap leak.
+
 `OutOfMemoryError: Java heap space` usually means allocation cannot be satisfied after collection.
 
 The cause can be a genuine leak, a too-small heap, a traffic spike, or a workload that needs a different data shape.
 
-`StackOverflowError` normally means unbounded recursion or deeply recursive input on a limited thread stack.
+`StackOverflowError` (**SOE**) normally means unbounded recursion or deeply recursive input on a limited thread stack.
 
 Increasing `-Xss` may hide an algorithmic problem and increases memory reserved per platform thread.
 
 `OutOfMemoryError: unable to create native thread` points to OS thread limits, native memory, or process resource limits rather than necessarily Java heap exhaustion.
+
+Other OOME variants identify different pools: `Metaspace` suggests retained class loaders or excessive class generation, `Direct buffer memory` points toward off-heap buffers, and `GC overhead limit exceeded` means the JVM spent excessive time collecting while recovering very little heap.
+
+An SOE is not an OOME: it occurs when one thread exhausts its stack frames, whereas native-thread creation can fail because the process cannot reserve another stack or OS thread resource.
 
 Always collect a heap dump, GC logs, process memory metrics, and thread dumps before assuming the collector is the root cause.
 
