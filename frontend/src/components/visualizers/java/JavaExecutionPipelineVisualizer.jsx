@@ -66,8 +66,8 @@ export default function JavaExecutionPipelineVisualizer() {
       </div>
 
       {/* Interactive Step Conveyor Belt */}
-      <div className="viz-card" style={{ marginBottom: '1rem', background: '#090d16', padding: '1rem' }}>
-        <h4 style={{ margin: '0 0 0.75rem 0', color: '#94a3b8', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <div className="viz-card" style={{ marginBottom: '1rem', background: 'var(--bg-code)', padding: '1rem' }}>
+        <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           🔄 Java Execution Conveyor Belt (Click any stage to jump)
         </h4>
 
@@ -80,11 +80,11 @@ export default function JavaExecutionPipelineVisualizer() {
                 <button
                   onClick={() => { setCurrentStepIdx(idx); setIsPlaying(false); }}
                   style={{
-                    background: isActive ? '#2563eb' : isPassed ? '#0f172a' : '#020617',
-                    border: isActive ? '2px solid #60a5fa' : isPassed ? '1px solid #3b82f6' : '1px solid #1e293b',
+                    background: isActive ? 'var(--state-info-border)' : isPassed ? 'var(--bg-surface)' : 'var(--bg-inset)',
+                    border: isActive ? '2px solid var(--state-info)' : isPassed ? '1px solid var(--state-info)' : '1px solid var(--bg-raised)',
                     borderRadius: '8px',
                     padding: '0.6rem 0.85rem',
-                    color: isActive ? '#ffffff' : isPassed ? '#93c5fd' : '#64748b',
+                    color: isActive ? 'var(--text-primary)' : isPassed ? 'var(--state-info)' : 'var(--text-muted)',
                     fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
@@ -92,15 +92,15 @@ export default function JavaExecutionPipelineVisualizer() {
                     alignItems: 'center',
                     gap: '0.4rem',
                     fontSize: '0.85rem',
-                    boxShadow: isActive ? '0 0 12px rgba(37,99,235,0.5)' : 'none',
-                    transition: 'all 0.2s ease'
+                    boxShadow: isActive ? '0 0 12px var(--state-info-border)' : 'none',
+                    transition: 'background-color var(--dur-base) var(--ease-standard), border-color var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard), box-shadow var(--dur-base) var(--ease-standard), transform var(--dur-base) var(--ease-standard)'
                   }}
                 >
                   <span>{stage.icon}</span>
                   <span>{stage.label}</span>
                 </button>
                 {idx < pipelineStages.length - 1 && (
-                  <span style={{ color: isPassed ? '#3b82f6' : '#334155', fontWeight: 'bold' }}>➔</span>
+                  <span style={{ color: isPassed ? 'var(--state-info)' : 'var(--border-default)', fontWeight: 'bold' }}>➔</span>
                 )}
               </React.Fragment>
             )
@@ -111,13 +111,13 @@ export default function JavaExecutionPipelineVisualizer() {
       {/* Command Prompt Simulator */}
       <div
         style={{
-          background: '#020617',
-          border: '1px solid #1e293b',
+          background: 'var(--bg-inset)',
+          border: '1px solid var(--bg-raised)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
           fontFamily: 'monospace',
-          color: '#38bdf8',
+          color: 'var(--state-info)',
           fontSize: '0.9rem',
           display: 'flex',
           justify: 'space-between',
@@ -125,10 +125,10 @@ export default function JavaExecutionPipelineVisualizer() {
         }}
       >
         <div>
-          <span style={{ color: '#4ade80' }}>user@jvm-host:~$</span>{' '}
-          <strong style={{ color: '#f8fafc' }}>{currentStep?.command}</strong>
+          <span style={{ color: 'var(--state-success)' }}>user@jvm-host:~$</span>{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{currentStep?.command}</strong>
         </div>
-        <span className="header-pill" style={{ background: '#1e293b', color: '#fbbf24', fontSize: '0.78rem' }}>
+        <span className="header-pill" style={{ background: 'var(--bg-raised)', color: 'var(--state-warning)', fontSize: '0.78rem' }}>
           Artifact: {currentStep?.artifact}
         </span>
       </div>
@@ -136,12 +136,12 @@ export default function JavaExecutionPipelineVisualizer() {
       {/* Action Description */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -160,7 +160,7 @@ export default function JavaExecutionPipelineVisualizer() {
           <span>Previous Step</span>
         </button>
 
-        <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
           Showing Active Window ({currentStepIdx === 0 ? 'Step 1' : `Steps ${currentStepIdx} & ${currentStepIdx + 1}`} of 5)
         </span>
 
@@ -179,17 +179,17 @@ export default function JavaExecutionPipelineVisualizer() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Stage 1: Source Editor */}
         {(currentStepIdx === 0 || currentStepIdx === 1) && (
-          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'SOURCE' ? '4px solid #3b82f6' : '4px solid #334155' }}>
-            <h4 style={{ margin: '0 0 0.75rem 0', color: '#60a5fa' }}>📄 1. Source File (`Main.java`)</h4>
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'SOURCE' ? '4px solid var(--state-info)' : '4px solid var(--border-default)' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-info)' }}>📄 1. Source File (`Main.java`)</h4>
             <CodePanel code={state.sourceCode} language="java" />
           </div>
         )}
 
         {/* Stage 2: Bytecode Output */}
         {(currentStepIdx === 1 || currentStepIdx === 2 || (currentStepIdx === 0 && false)) && (
-          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'COMPILATION' ? '4px solid #10b981' : '4px solid #334155' }}>
-            <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399' }}>⚙️ 2. javac Bytecode (`Main.class`)</h4>
-            <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#a7f3d0' }}>
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'COMPILATION' ? '4px solid var(--state-success)' : '4px solid var(--border-default)' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-success)' }}>⚙️ 2. javac Bytecode (`Main.class`)</h4>
+            <div style={{ background: 'var(--bg-code)', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: 'var(--state-success)' }}>
               {state.bytecode.map((line, idx) => (
                 <div key={idx} style={{ marginBottom: '0.2rem' }}>{line}</div>
               ))}
@@ -199,18 +199,18 @@ export default function JavaExecutionPipelineVisualizer() {
 
         {/* Stage 3: ClassLoader Delegation Flow */}
         {(currentStepIdx === 2 || currentStepIdx === 3) && (
-          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'CLASSLOADER' ? '4px solid #f59e0b' : '4px solid #334155' }}>
-            <h4 style={{ margin: '0 0 0.75rem 0', color: '#fbbf24' }}>🌳 3. ClassLoader Parent Delegation Flow</h4>
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'CLASSLOADER' ? '4px solid var(--state-warning)' : '4px solid var(--border-default)' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-warning)' }}>🌳 3. ClassLoader Parent Delegation Flow</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {state.classLoaders.map((cl, idx) => (
-                <div key={idx} style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
+                <div key={idx} style={{ background: 'var(--bg-raised)', border: '1px solid var(--text-muted)', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.82rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                    <strong style={{ color: '#f8fafc' }}>{cl.name}</strong>
-                    <span className="header-pill" style={{ background: cl.level === 1 ? '#059669' : cl.level === 2 ? '#d97706' : '#2563eb', fontSize: '0.72rem' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>{cl.name}</strong>
+                    <span className="header-pill" style={{ background: cl.level === 1 ? 'var(--state-success-border)' : cl.level === 2 ? 'var(--state-warning-border)' : 'var(--state-info-border)', fontSize: '0.72rem' }}>
                       {cl.status}
                     </span>
                   </div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{cl.path}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{cl.path}</div>
                 </div>
               ))}
             </div>
@@ -219,19 +219,19 @@ export default function JavaExecutionPipelineVisualizer() {
 
         {/* Stage 4: Verifier & Memory */}
         {(currentStepIdx === 3 || currentStepIdx === 4) && (
-          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'VERIFIER' ? '4px solid #f43f5e' : '4px solid #334155' }}>
-            <h4 style={{ margin: '0 0 0.75rem 0', color: '#f43f5e' }}>🛡️ 4. Bytecode Verifier & Memory</h4>
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'VERIFIER' ? '4px solid var(--state-danger)' : '4px solid var(--border-default)' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-danger)' }}>🛡️ 4. Bytecode Verifier & Memory</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
-              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
+              <div style={{ background: 'var(--bg-inset)', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid var(--bg-raised)', color: 'var(--state-info)' }}>
                 🔒 Type Safety Check: <strong>PASSED</strong>
               </div>
-              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#38bdf8' }}>
+              <div style={{ background: 'var(--bg-inset)', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid var(--bg-raised)', color: 'var(--state-info)' }}>
                 📏 Stack Bounds Check: <strong>PASSED</strong>
               </div>
-              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#c084fc' }}>
+              <div style={{ background: 'var(--bg-inset)', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid var(--bg-raised)', color: 'var(--cat-hover)' }}>
                 🧠 Metaspace: Allocated <code>Main.class</code>
               </div>
-              <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #1e293b', color: '#4ade80' }}>
+              <div style={{ background: 'var(--bg-inset)', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid var(--bg-raised)', color: 'var(--state-success)' }}>
                 📚 Thread Stack: Pushed <code>main(String[])</code>
               </div>
             </div>
@@ -240,9 +240,9 @@ export default function JavaExecutionPipelineVisualizer() {
 
         {/* Stage 5: Native CPU Assembly */}
         {currentStepIdx === 4 && (
-          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'EXECUTION' ? '4px solid #a855f7' : '4px solid #334155' }}>
-            <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc' }}>🔥 5. JIT Native Machine Code (x86_64)</h4>
-            <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: '#e9d5ff' }}>
+          <div className="viz-card" style={{ borderLeft: currentStep?.stage === 'EXECUTION' ? '4px solid var(--cat-base)' : '4px solid var(--border-default)' }}>
+            <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--cat-hover)' }}>🔥 5. JIT Native Machine Code (x86_64)</h4>
+            <div style={{ background: 'var(--bg-code)', padding: '0.75rem', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', color: 'var(--cat-hover)' }}>
               {state.nativeAssembly.map((line, idx) => (
                 <div key={idx} style={{ marginBottom: '0.2rem' }}>{line}</div>
               ))}
@@ -253,9 +253,9 @@ export default function JavaExecutionPipelineVisualizer() {
 
       {/* Console Output & Metrics Inspector */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-        <div className="viz-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399' }}>🖥️ Execution Console Output</h4>
-          <div style={{ background: '#020617', border: '1px solid #1e293b', borderRadius: '6px', padding: '1rem', color: '#4ade80', fontFamily: 'monospace', minHeight: '65px' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-success)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-success)' }}>🖥️ Execution Console Output</h4>
+          <div style={{ background: 'var(--bg-code)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '1rem', color: 'var(--state-success)', fontFamily: 'monospace', minHeight: '65px' }}>
             {state.output || '> JVM Standing by...'}
           </div>
         </div>

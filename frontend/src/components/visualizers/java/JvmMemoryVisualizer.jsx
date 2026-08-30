@@ -88,7 +88,7 @@ export default function JvmMemoryVisualizer() {
             📦 Allocate Large Object (Direct to Old)
           </button>
 
-          <button onClick={handleTriggerGC} className="btn btn-secondary" style={{ borderColor: '#ef4444', color: '#f87171' }}>
+          <button onClick={handleTriggerGC} className="btn btn-secondary" style={{ borderColor: 'var(--state-danger)', color: 'var(--state-danger)' }}>
             🧹 Force Minor GC
           </button>
         </div>
@@ -110,12 +110,12 @@ export default function JvmMemoryVisualizer() {
       {/* Live Action Status */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -125,8 +125,8 @@ export default function JvmMemoryVisualizer() {
       {/* Heap Memory Visual Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Young Gen: Eden */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#34d399', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-success)' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-success)', display: 'flex', justifyContent: 'space-between' }}>
             <span>🌱 Young Gen: Eden Space</span>
             <span>{state.eden.length} / {engine.edenCapacity}</span>
           </h4>
@@ -140,8 +140,8 @@ export default function JvmMemoryVisualizer() {
                     height: '54px',
                     borderRadius: '6px',
                     border: '1px solid',
-                    borderColor: obj ? '#10b981' : 'rgba(255,255,255,0.08)',
-                    background: obj ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.02)',
+                    borderColor: obj ? 'var(--state-success)' : 'var(--border-subtle)',
+                    background: obj ? 'var(--state-success-tint)' : 'var(--bg-inset)',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -151,11 +151,11 @@ export default function JvmMemoryVisualizer() {
                 >
                   {obj ? (
                     <>
-                      <strong style={{ color: '#f8fafc' }}>{obj.name}</strong>
-                      <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Age: {obj.age}</span>
+                      <strong style={{ color: 'var(--text-primary)' }}>{obj.name}</strong>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>Age: {obj.age}</span>
                     </>
                   ) : (
-                    <span style={{ color: '#475569' }}>Empty</span>
+                    <span style={{ color: 'var(--text-muted)' }}>Empty</span>
                   )}
                 </div>
               )
@@ -164,60 +164,60 @@ export default function JvmMemoryVisualizer() {
         </div>
 
         {/* Young Gen: Survivor S0 & S1 */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#fbbf24', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-warning)' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-warning)', display: 'flex', justifyContent: 'space-between' }}>
             <span>🔄 Survivor Spaces (S0 / S1)</span>
             <span>Active: {state.activeSurvivor === 0 ? 'S0' : 'S1'}</span>
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.75rem' }}>
-            <div style={{ background: '#020617', padding: '0.5rem', borderRadius: '6px', border: state.activeSurvivor === 0 ? '1px solid #f59e0b' : '1px solid transparent' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '0.3rem' }}>S0 Space</div>
+            <div style={{ background: 'var(--bg-inset)', padding: '0.5rem', borderRadius: '6px', border: state.activeSurvivor === 0 ? '1px solid var(--state-warning)' : '1px solid transparent' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--state-warning)', marginBottom: '0.3rem' }}>S0 Space</div>
               {state.s0.map((obj, i) => (
-                <div key={i} style={{ background: 'rgba(245, 158, 11, 0.2)', padding: '0.2rem 0.4rem', borderRadius: '4px', marginBottom: '0.2rem', fontSize: '0.75rem' }}>
+                <div key={i} style={{ background: 'var(--state-warning-tint)', padding: '0.2rem 0.4rem', borderRadius: '4px', marginBottom: '0.2rem', fontSize: '0.75rem' }}>
                   {obj.name} (Age {obj.age})
                 </div>
               ))}
-              {state.s0.length === 0 && <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Empty</span>}
+              {state.s0.length === 0 && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Empty</span>}
             </div>
 
-            <div style={{ background: '#020617', padding: '0.5rem', borderRadius: '6px', border: state.activeSurvivor === 1 ? '1px solid #f59e0b' : '1px solid transparent' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '0.3rem' }}>S1 Space</div>
+            <div style={{ background: 'var(--bg-inset)', padding: '0.5rem', borderRadius: '6px', border: state.activeSurvivor === 1 ? '1px solid var(--state-warning)' : '1px solid transparent' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--state-warning)', marginBottom: '0.3rem' }}>S1 Space</div>
               {state.s1.map((obj, i) => (
-                <div key={i} style={{ background: 'rgba(245, 158, 11, 0.2)', padding: '0.2rem 0.4rem', borderRadius: '4px', marginBottom: '0.2rem', fontSize: '0.75rem' }}>
+                <div key={i} style={{ background: 'var(--state-warning-tint)', padding: '0.2rem 0.4rem', borderRadius: '4px', marginBottom: '0.2rem', fontSize: '0.75rem' }}>
                   {obj.name} (Age {obj.age})
                 </div>
               ))}
-              {state.s1.length === 0 && <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Empty</span>}
+              {state.s1.length === 0 && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Empty</span>}
             </div>
           </div>
         </div>
 
         {/* Old Generation */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#60a5fa', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-info)' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-info)', display: 'flex', justifyContent: 'space-between' }}>
             <span>🏛 Old Generation (Tenured)</span>
             <span>{state.oldGen.length} / {engine.oldCapacity}</span>
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.4rem', marginTop: '0.75rem' }}>
             {state.oldGen.map((obj, idx) => (
-              <div key={idx} style={{ background: 'rgba(59, 130, 246, 0.25)', border: '1px solid #3b82f6', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', textAlign: 'center' }}>
-                <strong style={{ color: '#93c5fd', display: 'block' }}>{obj.name}</strong>
-                <span style={{ fontSize: '0.65rem', color: '#cbd5e1' }}>Tenured</span>
+              <div key={idx} style={{ background: 'var(--state-info-tint)', border: '1px solid var(--state-info)', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', textAlign: 'center' }}>
+                <strong style={{ color: 'var(--state-info)', display: 'block' }}>{obj.name}</strong>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Tenured</span>
               </div>
             ))}
-            {state.oldGen.length === 0 && <span style={{ color: '#475569', fontSize: '0.8rem', gridColumn: 'span 4' }}>No long-lived objects.</span>}
+            {state.oldGen.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', gridColumn: 'span 4' }}>No long-lived objects.</span>}
           </div>
         </div>
       </div>
 
       {/* Metaspace Off-Heap Panel */}
-      <div className="viz-card" style={{ borderLeft: '4px solid #a78bfa', marginBottom: '1rem' }}>
-        <h4 style={{ margin: '0 0 0.5rem 0', color: '#c084fc' }}>
+      <div className="viz-card" style={{ borderLeft: '4px solid var(--cat-base)', marginBottom: '1rem' }}>
+        <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--cat-hover)' }}>
           💾 Metaspace (Native Off-Heap Class Metadata)
         </h4>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {state.metaspace.map((cls, i) => (
-            <span key={i} className="header-pill" style={{ background: '#7c3aed', fontSize: '0.85rem' }}>
+            <span key={i} className="header-pill" style={{ background: 'var(--cat-border)', fontSize: '0.85rem' }}>
               {cls}
             </span>
           ))}

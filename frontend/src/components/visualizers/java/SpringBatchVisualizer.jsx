@@ -72,12 +72,12 @@ export default function SpringBatchVisualizer() {
       {/* Action Banner */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -87,53 +87,53 @@ export default function SpringBatchVisualizer() {
       {/* Grid: Reader -> Chunk Buffer -> Writer */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Unread Source Data */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #a78bfa' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--cat-base)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--cat-hover)', display: 'flex', justifyContent: 'space-between' }}>
             <span>📖 ItemReader Source Queue</span>
             <span>Unread: {state.unreadItems.length}</span>
           </h4>
 
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
             {state.unreadItems.map(item => (
-              <span key={item.id} className="header-pill" style={{ background: '#7c3aed', fontSize: '0.8rem' }}>
+              <span key={item.id} className="header-pill" style={{ background: 'var(--cat-border)', fontSize: '0.8rem' }}>
                 {item.name}
               </span>
             ))}
-            {state.unreadItems.length === 0 && <span style={{ color: '#64748b', fontSize: '0.8rem' }}>Source queue empty.</span>}
+            {state.unreadItems.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Source queue empty.</span>}
           </div>
         </div>
 
         {/* Current Active Chunk Buffer */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#fbbf24', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-warning)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-warning)', display: 'flex', justifyContent: 'space-between' }}>
             <span>⚙️ In-Memory Chunk Buffer</span>
             <span>Limit: {state.chunkSize}</span>
           </h4>
 
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
             {state.chunkBuffer.map(item => (
-              <span key={item.id} className="header-pill" style={{ background: '#d97706', fontSize: '0.85rem' }}>
+              <span key={item.id} className="header-pill" style={{ background: 'var(--state-warning-border)', fontSize: '0.85rem' }}>
                 {item.name} [{item.status}]
               </span>
             ))}
-            {state.chunkBuffer.length === 0 && <span style={{ color: '#64748b', fontSize: '0.8rem' }}>Buffer empty (waiting for next chunk).</span>}
+            {state.chunkBuffer.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Buffer empty (waiting for next chunk).</span>}
           </div>
         </div>
 
         {/* Committed Database Records */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-success)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-success)', display: 'flex', justifyContent: 'space-between' }}>
             <span>💾 Committed DB Records</span>
             <span>Total: {state.committedItems.length}</span>
           </h4>
 
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
             {state.committedItems.map(item => (
-              <span key={item.id} className="header-pill" style={{ background: '#059669', fontSize: '0.8rem' }}>
+              <span key={item.id} className="header-pill" style={{ background: 'var(--state-success-border)', fontSize: '0.8rem' }}>
                 {item.name}
               </span>
             ))}
-            {state.committedItems.length === 0 && <span style={{ color: '#64748b', fontSize: '0.8rem' }}>No commits yet.</span>}
+            {state.committedItems.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No commits yet.</span>}
           </div>
         </div>
       </div>

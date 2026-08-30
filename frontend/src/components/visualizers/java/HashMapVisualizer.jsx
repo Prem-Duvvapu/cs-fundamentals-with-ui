@@ -115,12 +115,12 @@ export default function HashMapVisualizer() {
       {/* Action Banner */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -128,10 +128,10 @@ export default function HashMapVisualizer() {
       </div>
 
       {/* Bucket Array Grid */}
-      <div className="viz-card" style={{ background: '#020617', padding: '1rem', borderRadius: '12px', marginBottom: '1rem' }}>
-        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
+      <div className="viz-card" style={{ background: 'var(--bg-inset)', padding: '1rem', borderRadius: '12px', marginBottom: '1rem' }}>
+        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
           <span>📊 Bucket Array Table (`Entry&lt;K,V&gt;[] table`)</span>
-          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Capacity: {state.capacity} | Load Factor: {state.loadFactor}</span>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Capacity: {state.capacity} | Load Factor: {state.loadFactor}</span>
         </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
@@ -143,19 +143,19 @@ export default function HashMapVisualizer() {
               <div
                 key={idx}
                 style={{
-                  background: isHighlighted ? 'rgba(59, 130, 246, 0.2)' : '#0f172a',
+                  background: isHighlighted ? 'var(--state-info-tint)' : 'var(--bg-surface)',
                   border: '1px solid',
-                  borderColor: isHighlighted ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                  borderColor: isHighlighted ? 'var(--state-info)' : 'var(--border-subtle)',
                   borderRadius: '8px',
                   padding: '0.75rem'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.8rem' }}>
-                  <strong style={{ color: isHighlighted ? '#60a5fa' : '#94a3b8' }}>
+                  <strong style={{ color: isHighlighted ? 'var(--state-info)' : 'var(--text-secondary)' }}>
                     Bucket [{idx}]
                   </strong>
                   {isTreeified && (
-                    <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem' }}>
+                    <span style={{ background: 'var(--state-success-tint)', color: 'var(--state-success)', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem' }}>
                       🌳 Treeified
                     </span>
                   )}
@@ -166,8 +166,8 @@ export default function HashMapVisualizer() {
                     <div
                       key={nIdx}
                       style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'var(--bg-raised)',
+                        border: '1px solid var(--border-subtle)',
                         borderRadius: '4px',
                         padding: '0.3rem 0.5rem',
                         fontSize: '0.78rem',
@@ -176,11 +176,11 @@ export default function HashMapVisualizer() {
                         alignItems: 'center'
                       }}
                     >
-                      <span style={{ color: '#f8fafc', fontWeight: 600 }}>{node.key} ➔ {node.value}</span>
-                      <span style={{ color: '#64748b', fontSize: '0.68rem' }}>hash: {node.hash % 1000}</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{node.key} ➔ {node.value}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>hash: {node.hash % 1000}</span>
                     </div>
                   ))}
-                  {bucket.length === 0 && <span style={{ fontSize: '0.75rem', color: '#475569' }}>[ empty ]</span>}
+                  {bucket.length === 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>[ empty ]</span>}
                 </div>
               </div>
             )
