@@ -1,6 +1,7 @@
-import { useState, lazy, Suspense } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import TopicViewer from '../components/TopicViewer'
+import { CATEGORY_METADATA, getTopicCategory } from '../utils/topicCategories'
 
 const SchedulingVisualizer = lazy(() => import('../components/visualizers/SchedulingVisualizer'))
 const ProcessLifecycleVisualizer = lazy(() => import('../components/visualizers/ProcessLifecycleVisualizer'))
@@ -18,6 +19,8 @@ const DiskSchedulingVisualizer = lazy(() => import('../components/visualizers/os
 export default function TopicPage() {
   const { topicId } = useParams()
   const [activeTab, setActiveTab] = useState('theory') // 'theory', 'simulator'
+  const [compactHeader, setCompactHeader] = useState(false)
+  const tabRefs = useRef([])
 
   const titleMap = {
     'process-management': 'Process Management & Lifecycle',
@@ -44,6 +47,7 @@ export default function TopicPage() {
     'dbms-architecture': 'DBMS Architecture & 3-Schema ANSI-SPARC',
     'er-model': 'ER Diagram Modeling & Relational Mapping',
     'relational-algebra-calculus': 'Relational Algebra, Tuple Calculus & Joins',
+    'sql-querying': 'Practical SQL, Joins, CTEs & Window Functions',
     'functional-dependencies-keys': 'Keys, Functional Dependencies & Canonical Cover',
     'database-normalization': 'Database Normalization (1NF to BCNF) & Decompositions',
     'dbms-indexing': 'B/B+ Tree Indexing & Storage Structures',
@@ -58,6 +62,7 @@ export default function TopicPage() {
     'llm-parameters': 'LLM Sampling Parameters, Tokenization & ReAct Agents',
     'feature-stores': 'Feature Stores, Data Drift & MLOps Architecture',
     'recommendation-systems': '2-Stage Recommendation Engine Architecture',
+    'ml-fundamentals': 'Machine Learning Fundamentals & Evaluation',
     'java-execution-pipeline': 'Java Execution Pipeline & JDK/JRE/JVM Architecture',
     'java-memory-model': 'Java Memory Model: Primitives, References, Stack & Heap',
     'java-oop-pillars': 'OOP Pillars & Dynamic Method Dispatch (vtable)',
@@ -76,9 +81,42 @@ export default function TopicPage() {
     'spring-batch-lifecycle': 'Spring Batch Execution Architecture & Chunk Engine',
     'quartz-scheduler': 'Quartz Scheduler Lifecycle & Clustered JobStoreTX',
     'design-patterns-solid': 'SOLID Principles & Design Patterns',
+    'spring-boot-internals': 'Spring Boot Internals, Auto-configuration & Profiles',
+    'spring-rest-api-design': 'Spring REST API Design, Validation & Error Contracts',
+    'spring-security': 'Spring Security, JWT & OAuth2 Fundamentals',
+    'spring-caching-async': 'Spring Caching, Async Work & Scheduling',
+    'spring-testing-production': 'Spring Testing & Production Operations',
   }
 
   const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  const category = getTopicCategory(topicId)
+  const categoryMetadata = CATEGORY_METADATA[category]
+  const tabs = ['theory', 'simulator']
+
+  useEffect(() => {
+    const updateHeader = () => setCompactHeader(window.scrollY > 120)
+    updateHeader()
+    window.addEventListener('scroll', updateHeader, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeader)
+  }, [])
+
+  const selectTab = (tab, focus = false) => {
+    const index = tabs.indexOf(tab)
+    setActiveTab(tab)
+    if (focus) tabRefs.current[index]?.focus()
+  }
+
+  const handleTabKeyDown = (event) => {
+    const currentIndex = tabs.indexOf(activeTab)
+    let nextIndex
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length
+    if (event.key === 'Home') nextIndex = 0
+    if (event.key === 'End') nextIndex = tabs.length - 1
+    if (nextIndex === undefined) return
+    event.preventDefault()
+    selectTab(tabs[nextIndex], true)
+  }
 
   const renderVisualizer = () => {
     switch (topicId) {
@@ -113,6 +151,7 @@ export default function TopicPage() {
       case 'networking':
         return <NetworkingVisualizer defaultTopicId={topicId} />
       case 'embeddings-vector-db':
+      case 'ml-fundamentals':
       case 'rag-architecture':
       case 'model-serving':
       case 'llm-parameters':
@@ -138,12 +177,18 @@ export default function TopicPage() {
       case 'spring-batch-lifecycle':
       case 'quartz-scheduler':
       case 'design-patterns-solid':
+      case 'spring-boot-internals':
+      case 'spring-rest-api-design':
+      case 'spring-security':
+      case 'spring-caching-async':
+      case 'spring-testing-production':
       case 'java-spring':
         return <JavaSpringVisualizer defaultTopicId={topicId} />
       case 'dbms-introduction':
       case 'dbms-architecture':
       case 'er-model':
       case 'relational-algebra-calculus':
+      case 'sql-querying':
       case 'functional-dependencies-keys':
       case 'database-normalization':
       case 'dbms-indexing':
@@ -160,36 +205,65 @@ export default function TopicPage() {
   }
 
   return (
-    <div className="topic-page-container">
-      <div className="topic-page-header">
+    <div className="topic-page-container" data-category={category}>
+      <div className={`topic-page-header ${compactHeader ? 'topic-page-header--compact' : ''}`}>
         <Link to="/" className="back-link">
           ← Back to All Topics
         </Link>
+        <nav className="topic-breadcrumb" aria-label="Breadcrumb">
+          <ol>
+            <li><Link to="/">Home</Link></li>
+            <li><span aria-hidden="true">{categoryMetadata.glyph}</span> {categoryMetadata.shortLabel}</li>
+            <li aria-current="page">{title}</li>
+          </ol>
+        </nav>
         <h1 className="topic-page-title">{title}</h1>
 
-        <div className="main-tab-switcher">
+        <div className="main-tab-switcher" role="tablist" aria-label="Topic view">
           <button
-            onClick={() => setActiveTab('theory')}
+            ref={element => { tabRefs.current[0] = element }}
+            id="topic-tab-theory"
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'theory'}
+            aria-controls="topic-panel-theory"
+            tabIndex={activeTab === 'theory' ? 0 : -1}
+            onClick={() => selectTab('theory')}
+            onKeyDown={handleTabKeyDown}
             className={`main-tab-btn ${activeTab === 'theory' ? 'active-tab' : ''}`}
           >
-            📖 Study
+            <span aria-hidden="true">📖</span> Study
           </button>
           <button
-            onClick={() => setActiveTab('simulator')}
+            ref={element => { tabRefs.current[1] = element }}
+            id="topic-tab-simulator"
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'simulator'}
+            aria-controls="topic-panel-simulator"
+            tabIndex={activeTab === 'simulator' ? 0 : -1}
+            onClick={() => selectTab('simulator')}
+            onKeyDown={handleTabKeyDown}
             className={`main-tab-btn ${activeTab === 'simulator' ? 'active-tab' : ''}`}
           >
-            ⚡ Simulation
+            <span aria-hidden="true">⚡</span> Simulation
           </button>
         </div>
       </div>
 
-      <div className="tab-content-area">
+      <div
+        className="tab-content-area"
+        id={`topic-panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`topic-tab-${activeTab}`}
+        tabIndex="0"
+      >
         {activeTab === 'simulator' ? (
           <Suspense fallback={<div className="viz-card"><h3>Loading visualizer…</h3></div>}>
             {renderVisualizer()}
           </Suspense>
         ) : (
-          <TopicViewer topicId={topicId} />
+          <TopicViewer topicId={topicId} category={category} />
         )}
       </div>
     </div>
