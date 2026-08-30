@@ -12,6 +12,13 @@ const TIER_HEADINGS = [
   { label: 'Expert', id: 'expert-level' }
 ]
 
+const DESKTOP_TOC_QUERY = '(min-width: 1024px)'
+
+function prefersExpandedToc() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true
+  return window.matchMedia(DESKTOP_TOC_QUERY).matches
+}
+
 function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
@@ -75,7 +82,28 @@ export default function TopicViewer({ topicId, category }) {
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('')
   const [readingProgress, setReadingProgress] = useState(0)
-  const [tocExpanded, setTocExpanded] = useState(true)
+  const [tocExpanded, setTocExpanded] = useState(prefersExpandedToc)
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return undefined
+
+    const desktopQuery = window.matchMedia(DESKTOP_TOC_QUERY)
+    const handleBreakpointChange = event => setTocExpanded(event.matches)
+
+    if (typeof desktopQuery.addEventListener === 'function') {
+      desktopQuery.addEventListener('change', handleBreakpointChange)
+    } else {
+      desktopQuery.addListener?.(handleBreakpointChange)
+    }
+
+    return () => {
+      if (typeof desktopQuery.removeEventListener === 'function') {
+        desktopQuery.removeEventListener('change', handleBreakpointChange)
+      } else {
+        desktopQuery.removeListener?.(handleBreakpointChange)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -165,25 +193,23 @@ export default function TopicViewer({ topicId, category }) {
         >
           {tocExpanded ? 'Hide table of contents' : 'Show table of contents'}
         </button>
-        {tocExpanded && (
-          <nav id="topic-table-of-contents" aria-label="Table of contents">
-            <ol>
-              {sections.map(section => (
-                <li key={section.id}>
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection(section.id)}
-                    className={activeSection === section.id ? 'active' : ''}
-                    aria-current={activeSection === section.id ? 'location' : undefined}
-                    aria-label={`Read ${cleanSectionTitle(section.title)}`}
-                  >
-                    {cleanSectionTitle(section.title)}
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </nav>
-        )}
+        <nav id="topic-table-of-contents" aria-label="Table of contents" hidden={!tocExpanded}>
+          <ol>
+            {sections.map(section => (
+              <li key={section.id}>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection(section.id)}
+                  className={activeSection === section.id ? 'active' : ''}
+                  aria-current={activeSection === section.id ? 'location' : undefined}
+                  aria-label={`Read ${cleanSectionTitle(section.title)}`}
+                >
+                  {cleanSectionTitle(section.title)}
+                </button>
+              </li>
+            ))}
+          </ol>
+        </nav>
       </aside>
       <div className="study-main">
         <section className="reader-orientation" aria-labelledby="reader-orientation-title">

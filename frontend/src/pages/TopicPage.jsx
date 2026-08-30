@@ -207,14 +207,12 @@ export default function TopicPage() {
   return (
     <div className="topic-page-container" data-category={category}>
       <div className={`topic-page-header ${compactHeader ? 'topic-page-header--compact' : ''}`}>
-        <Link to="/" className="back-link">
-          ← Back to All Topics
-        </Link>
         <nav className="topic-breadcrumb" aria-label="Breadcrumb">
           <ol>
-            <li><Link to="/">Home</Link></li>
-            <li><span aria-hidden="true">{categoryMetadata.glyph}</span> {categoryMetadata.shortLabel}</li>
-            <li aria-current="page">{title}</li>
+            <li><Link to="/">All topics</Link></li>
+            <li aria-current="page">
+              <span aria-hidden="true">{categoryMetadata.glyph}</span> {categoryMetadata.label}
+            </li>
           </ol>
         </nav>
         <h1 className="topic-page-title">{title}</h1>

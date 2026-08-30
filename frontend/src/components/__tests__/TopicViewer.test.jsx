@@ -1,8 +1,14 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import TopicViewer from '../TopicViewer'
 
 beforeEach(() => {
   global.fetch = vi.fn()
+  window.matchMedia = vi.fn().mockReturnValue({
+    matches: true,
+    media: '(min-width: 1024px)',
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn()
+  })
   Object.defineProperty(Element.prototype, 'scrollIntoView', {
     configurable: true,
     value: vi.fn()
@@ -32,9 +38,9 @@ describe('TopicViewer', () => {
     // KaTeX/highlight.js out of the main bundle); its first real dynamic
     // import needs more than waitFor's 1000ms default.
     await waitFor(() => {
-      expect(screen.getByText('Process Management')).toBeInTheDocument()
+      expect(screen.getByText('A process is a program in execution.')).toBeInTheDocument()
     }, { timeout: 30000 })
-    expect(screen.getByText('A process is a program in execution.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 1, name: 'Process Management' })).not.toBeInTheDocument()
   }, 30000)
 
   it('shows fallback when fetch fails', async () => {
@@ -130,6 +136,51 @@ Apply it.`
     fireEvent.click(toggle)
     expect(screen.queryByRole('navigation', { name: /table of contents/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /show table of contents/i })).toHaveAttribute('aria-expanded', 'false')
+  }, 15000)
+
+  it('starts with the table of contents collapsed below the desktop breakpoint', async () => {
+    window.matchMedia.mockReturnValue({
+      matches: false,
+      media: '(min-width: 1024px)',
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    })
+    global.fetch.mockResolvedValueOnce(new Response('## 🟢 Beginner Level\n\nBegin here.'))
+
+    render(<TopicViewer topicId="process-management" />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /show table of contents/i })).toHaveAttribute('aria-expanded', 'false')
+    }, { timeout: 15000 })
+    expect(screen.queryByRole('navigation', { name: /table of contents/i })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /show table of contents/i }))
+    expect(screen.getByRole('navigation', { name: /table of contents/i })).toBeInTheDocument()
+  }, 15000)
+
+  it('adapts the table of contents when crossing the desktop breakpoint', async () => {
+    let handleBreakpointChange
+    window.matchMedia.mockReturnValue({
+      matches: true,
+      media: '(min-width: 1024px)',
+      addEventListener: vi.fn((event, handler) => {
+        if (event === 'change') handleBreakpointChange = handler
+      }),
+      removeEventListener: vi.fn()
+    })
+    global.fetch.mockResolvedValueOnce(new Response('## 🟢 Beginner Level\n\nBegin here.'))
+
+    render(<TopicViewer topicId="process-management" />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /hide table of contents/i })).toBeInTheDocument()
+    }, { timeout: 15000 })
+
+    act(() => handleBreakpointChange({ matches: false }))
+    expect(screen.getByRole('button', { name: /show table of contents/i })).toHaveAttribute('aria-expanded', 'false')
+
+    act(() => handleBreakpointChange({ matches: true }))
+    expect(screen.getByRole('button', { name: /hide table of contents/i })).toHaveAttribute('aria-expanded', 'true')
   }, 15000)
 
   it.each([
