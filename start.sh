@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Keep this file LF-only; CRLF makes Linux interpret the shebang as `bash\r`.
 set -Eeuo pipefail
 
 PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
