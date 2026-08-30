@@ -164,9 +164,9 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 |---|---|---|
 | **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
 | **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ✅ **Done** |
-| **P2** | Reading experience — default Study tab, TOC rail, tier nav, interview deck | ✅ **Done** |
+| **P2** | Reading experience — compact topic chrome, responsive TOC, tier nav, interview deck | ✅ **Done** |
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ☐ Not started |
-| **P4** | Content authoring, 63 topics in priority waves | ◐ **In progress — 54/63 pass the structural contract; manifest audit continues** |
+| **P4** | Content authoring, 63 topics in priority waves | ◐ **In progress — 58/63 pass the structural contract; manifest audit continues** |
 | **P5** | Cross-topic search + per-category Interview Mode | ☐ Not started |
 | **P6** | Verify, doc sync, ship | ☐ Not started |
 
@@ -178,11 +178,13 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 - Vitest upgraded 1.x → 2.1.8 with ESM deps inlined in `vite.config.js` (required for react-markdown 9)
 - `App.css` — dual-theme tokens, responsive shell, reader typography, Markdown surfaces, utilities,
   accessible simulator primitives, and reduced-motion behavior
+- Topic pages own one semantic H1, collapse to a one-line desktop toolbar while scrolling, leave
+  the toolbar in document flow on mobile, and default the TOC closed below 1024px.
 
 ### Current implementation priorities
 
-1. **Complete P4 by priority.** Core Java, Advanced Java and Spring are manifest-clean. Close the
-   remaining OS and Networking concept anchors, then finish DBMS before AI/ML.
+1. **Complete P4 by priority.** Core Java, Advanced Java, Spring, OS and Networking are
+   manifest-clean. Finish the three remaining DBMS rebuilds before AI/ML.
 2. **Complete P3.** Triage simulations only after migrating useful interview questions and theory
    from `frontend/src/data/*.json` into their lessons.
 3. **Complete P5.** Add cross-topic search and per-category Interview Mode.

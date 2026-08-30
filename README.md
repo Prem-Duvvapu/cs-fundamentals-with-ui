@@ -131,15 +131,18 @@ heading and concept mapping machine-verifiable.
 ### Experience Standards
 
 Every learning surface must be responsive, keyboard-operable and readable in both dark and light themes.
-Study navigation collapses for smaller screens, interactive targets retain visible focus, and the
-interface honours reduced-motion preferences. UI choices are guided by the [WCAG 2.2 quick
+Topic pages keep a single document title, condense their desktop toolbar while reading, and let the
+toolbar scroll out of the way on mobile. Study navigation starts collapsed below the desktop
+breakpoint, interactive targets retain visible focus, and the interface honours reduced-motion
+preferences. UI choices are guided by the [WCAG 2.2 quick
 reference](https://www.w3.org/WAI/WCAG22/quickref/), [MDN responsive-design
 guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using), and
 [Mermaid theming documentation](https://mermaid.js.org/config/theming.html).
 
 The home page is a guided curriculum roadmap: category filters expose topic counts, ordered
-topic rows, level badges and a direct Study action. Each topic reader supplies an orientation,
-reading progress, a collapsible accessible table of contents, tier jumps and a recall deck.
+topic rows, level badges and a direct Study action. Each topic reader supplies reading progress,
+a responsive accessible table of contents, tier jumps and a recall deck without repeating the
+page title or navigation context.
 
 The interface follows the operating-system theme on first visit and persists an explicit choice.
 Category and learning-level states always combine colour with a glyph or text label. See the
