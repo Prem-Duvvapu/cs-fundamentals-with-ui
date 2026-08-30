@@ -43,7 +43,7 @@ A null dereference usually indicates a failed programmer precondition.
 
 The distinction is about recovery, not emotional severity.
 
-### Checked and unchecked exceptions
+### Exception hierarchy and checked exceptions
 
 Checked exceptions extend `Exception` but not `RuntimeException`.
 
