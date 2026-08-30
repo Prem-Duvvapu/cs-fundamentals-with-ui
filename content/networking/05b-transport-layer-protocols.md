@@ -76,11 +76,16 @@ The server allocates connection state only after it can validate the handshake a
 The handshake helps both sides agree on sequence-number spaces and makes blind spoofing harder than a one-packet setup.
 It does not encrypt application data; TLS or another security protocol is required for that.
 
-### UDP preserves one application message per datagram
+### UDP datagrams and transport selection
 
 UDP adds source port, destination port, length, and checksum to a datagram.
 It does not establish a connection or retransmit a missing datagram.
 The receiver gets one whole datagram or none of it.
+
+Choose UDP when preserving message boundaries, avoiding connection setup, or preferring fresh data over late retransmissions matters more than built-in ordered reliability.
+DNS commonly uses a small request-response datagram and retries or falls back when needed; real-time streaming can discard a late media packet instead of delaying newer playback; and multiplayer games often send frequent position updates whose newer values supersede lost older ones.
+Choose TCP when the application needs a mature reliable ordered byte stream and cannot tolerate gaps, while remembering that TCP does not preserve application message boundaries.
+UDP applications inherit loss, duplication, reordering, congestion, authentication, and retry policy, so minimal transport semantics do not imply minimal application design.
 
 ```text
 UDP header: source port | destination port | length | checksum
