@@ -1266,6 +1266,21 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .anomaly-banner { border: var(--stroke-hair) solid; border-radius: var(--radius-lg); font-size: var(--ui-xs); font-weight: 600; margin-bottom: var(--space-4); padding: var(--space-4); }
 .anomaly-banner.is-danger { background: var(--state-danger-tint); border-color: var(--state-danger-border); color: var(--state-danger); }
 .anomaly-banner.is-success { background: var(--state-success-tint); border-color: var(--state-success-border); color: var(--state-success); }
+.anomaly-banner.is-formula { font-family: var(--font-mono); font-size: var(--ui-base); font-weight: 700; margin-top: var(--space-4); margin-bottom: 0; text-align: center; }
+
+.coordinator-banner { align-items: center; background: var(--state-info-tint); border: var(--stroke-hair) solid var(--state-info-border); border-radius: var(--radius-lg); display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; margin-top: var(--space-4); padding: var(--space-4); }
+.coordinator-banner .label { color: var(--state-info); font-size: var(--ui-xs); font-weight: 600; text-transform: uppercase; }
+.coordinator-banner .value { color: var(--text-primary); font-family: var(--font-mono); font-size: var(--ui-base); font-weight: 700; }
+.coordinator-banner .state-tag { background: var(--state-info-border); border-radius: var(--radius-xs); color: var(--text-inverse); font-family: var(--font-mono); font-size: var(--ui-xs); font-weight: 700; padding: var(--space-2) var(--space-3); }
+
+.node-grid-3 { display: grid; gap: var(--space-3); grid-template-columns: 1fr; margin-top: var(--space-4); }
+@media (min-width: 768px) { .node-grid-3 { grid-template-columns: repeat(3, 1fr); } }
+.node-card { background: var(--bg-inset); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-4); text-align: center; }
+.node-card .node-value { color: var(--state-success); font-family: var(--font-mono); font-size: var(--ui-xs); font-weight: 700; margin-top: var(--space-2); }
+
+.sub-panel-value { font-family: var(--font-mono); font-size: var(--ui-lg); font-weight: 700; }
+.sub-panel-value.is-info { color: var(--state-info); }
+.sub-panel-value.is-purple { color: var(--cat-os-base); }
 
 /* Context Switch Visualizer */
 .switch-animation-container {
