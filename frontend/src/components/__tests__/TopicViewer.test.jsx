@@ -18,7 +18,8 @@ describe('TopicViewer', () => {
   it('shows loading state initially', () => {
     global.fetch.mockResolvedValueOnce(new Response(''))
     render(<TopicViewer topicId="process-management" />)
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
+    expect(screen.getByText('Loading topic…')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /loading topic/i })).toBeInTheDocument()
   })
 
   it('renders markdown content after fetch', async () => {
@@ -93,6 +94,9 @@ Check the observable symptoms, identify the responsible subsystem, and validate 
       expect(screen.getByRole('heading', { name: /test your recall/i })).toBeInTheDocument()
     }, { timeout: 15000 })
     expect(screen.getByRole('button', { name: /reveal answer/i })).toBeInTheDocument()
+    const beginnerHeading = screen.getByRole('heading', { name: /^beginner level$/i })
+    expect(beginnerHeading).toHaveAttribute('id', 'beginner-level')
+    expect(beginnerHeading.querySelector('.tier-badge--beginner')).toBeInTheDocument()
   }, 15000)
 
   it('provides labelled reader controls, a table of contents toggle, and a continue action', async () => {
@@ -127,4 +131,13 @@ Apply it.`
     expect(screen.queryByRole('navigation', { name: /table of contents/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /show table of contents/i })).toHaveAttribute('aria-expanded', 'false')
   }, 15000)
+
+  it('uses the shared category map for newly registered topics', async () => {
+    global.fetch.mockResolvedValueOnce(new Response('# SQL'))
+    render(<TopicViewer topicId="sql-querying" />)
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/v1/content/dbms/sql-querying')
+    })
+  })
 })

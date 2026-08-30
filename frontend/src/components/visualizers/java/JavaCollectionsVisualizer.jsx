@@ -61,25 +61,25 @@ export default function JavaCollectionsVisualizer() {
         className="viz-card"
         style={{
           marginBottom: '1rem',
-          background: 'linear-gradient(135deg, #090d16 0%, #111827 100%)',
-          border: '1px solid rgba(59, 130, 246, 0.2)'
+          background: 'linear-gradient(135deg, var(--bg-code) 0%, var(--bg-code) 100%)',
+          border: '1px solid var(--state-info-border)'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-            <span style={{ color: '#94a3b8', fontSize: '0.8rem', marginLeft: '0.4rem', fontFamily: 'monospace' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--state-danger)', display: 'inline-block' }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--state-warning)', display: 'inline-block' }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--state-success)', display: 'inline-block' }} />
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginLeft: '0.4rem', fontFamily: 'monospace' }}>
               Java Collections & Min-Heap PriorityQueue Engine
             </span>
           </div>
-          <span className="header-pill" style={{ background: '#312e81', color: '#c7d2fe', fontSize: '0.75rem' }}>
+          <span className="header-pill" style={{ background: 'var(--cat-tint)', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
             Step {currentStep ? currentStep.stepNumber : 0} of {steps.length}
           </span>
         </div>
 
-        <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: '#38bdf8', marginTop: '0.4rem' }}>
+        <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: 'var(--state-info)', marginTop: '0.4rem' }}>
           &gt; {currentStep?.command || 'Initializing...'}
         </div>
       </div>
@@ -125,17 +125,17 @@ export default function JavaCollectionsVisualizer() {
           className="viz-card"
           style={{
             marginBottom: '1rem',
-            background: 'rgba(15, 23, 42, 0.9)',
-            borderLeft: '4px solid #8b5cf6'
+            background: 'color-mix(in srgb, var(--bg-page) 90%, transparent)',
+            borderLeft: '4px solid var(--cat-base)'
           }}
         >
-          <h4 style={{ margin: '0 0 0.35rem', color: '#a78bfa', fontSize: '1rem' }}>
+          <h4 style={{ margin: '0 0 0.35rem', color: 'var(--cat-base)', fontSize: '1rem' }}>
             {currentStep.title}
           </h4>
-          <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: '1.5', margin: '0 0 0.5rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5', margin: '0 0 0.5rem' }}>
             {currentStep.description}
           </p>
-          <div style={{ fontSize: '0.8rem', color: '#38bdf8', fontFamily: 'monospace', background: '#020617', padding: '0.35rem 0.6rem', borderRadius: '4px' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--state-info)', fontFamily: 'monospace', background: 'var(--bg-code)', padding: '0.35rem 0.6rem', borderRadius: '4px' }}>
             {currentStep.artifact}
           </div>
         </div>
@@ -144,10 +144,10 @@ export default function JavaCollectionsVisualizer() {
       {/* DUAL PANELS: ARRAYLIST VS MIN-HEAP */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* ARRAYLIST SLOTS PANEL */}
-        <div style={{ background: '#0b1329', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(56,189,248,0.3)' }}>
-          <h4 style={{ margin: '0 0 0.5rem', color: '#38bdf8', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ background: 'var(--bg-inset)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--state-info-border)' }}>
+          <h4 style={{ margin: '0 0 0.5rem', color: 'var(--state-info)', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
             <span>📊 ArrayList Memory Layout</span>
-            <span style={{ fontSize: '0.72rem', color: '#4ade80' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--state-success)' }}>
               Size: {state.arrayListState.size} / Cap: {state.arrayListState.capacity}
             </span>
           </h4>
@@ -162,8 +162,8 @@ export default function JavaCollectionsVisualizer() {
                     flex: '1 1 40px',
                     minWidth: '40px',
                     height: '48px',
-                    background: val ? 'rgba(56,189,248,0.15)' : '#020617',
-                    border: val ? '1px solid #38bdf8' : '1px dashed #334155',
+                    background: val ? 'var(--state-info-tint)' : 'var(--bg-inset)',
+                    border: val ? '1px solid var(--state-info)' : '1px dashed var(--border-default)',
                     borderRadius: '6px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -172,24 +172,24 @@ export default function JavaCollectionsVisualizer() {
                     fontFamily: 'monospace'
                   }}
                 >
-                  <span style={{ fontSize: '0.65rem', color: '#64748b' }}>[{idx}]</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: val ? '#f8fafc' : '#475569' }}>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>[{idx}]</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: val ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                     {val || 'null'}
                   </span>
                 </div>
               )
             })}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
             Contiguous memory array with O(1) random index access: elementData[index]
           </div>
         </div>
 
         {/* PRIORITYQUEUE MIN-HEAP PANEL */}
-        <div style={{ background: '#0b1329', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(16,185,129,0.3)' }}>
-          <h4 style={{ margin: '0 0 0.5rem', color: '#34d399', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ background: 'var(--bg-inset)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--state-success-border)' }}>
+          <h4 style={{ margin: '0 0 0.5rem', color: 'var(--state-success)', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
             <span>🌲 PriorityQueue Min-Heap Array</span>
-            <span style={{ fontSize: '0.72rem', color: '#fbbf24' }}>Root: index 0 (Min)</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--state-warning)' }}>Root: index 0 (Min)</span>
           </h4>
 
           <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
@@ -198,20 +198,20 @@ export default function JavaCollectionsVisualizer() {
                 key={idx}
                 style={{
                   padding: '0.3rem 0.6rem',
-                  background: idx === 0 ? '#065f46' : '#020617',
-                  border: idx === 0 ? '1px solid #34d399' : '1px solid rgba(255,255,255,0.08)',
+                  background: idx === 0 ? 'var(--state-success-border)' : 'var(--bg-inset)',
+                  border: idx === 0 ? '1px solid var(--state-success)' : '1px solid var(--border-subtle)',
                   borderRadius: '6px',
                   fontFamily: 'monospace',
                   fontSize: '0.8rem',
                   textAlign: 'center'
                 }}
               >
-                <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>[{idx}]</div>
-                <div style={{ fontWeight: 700, color: idx === 0 ? '#a7f3d0' : '#f8fafc' }}>{val}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>[{idx}]</div>
+                <div style={{ fontWeight: 700, color: idx === 0 ? 'var(--state-success)' : 'var(--text-primary)' }}>{val}</div>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
             Complete Binary Tree: parentIndex = (k - 1) &gt;&gt;&gt; 1 • O(log N) siftUp / siftDown
           </div>
         </div>

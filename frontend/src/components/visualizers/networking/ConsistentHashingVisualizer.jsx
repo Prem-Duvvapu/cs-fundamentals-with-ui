@@ -116,12 +116,12 @@ export default function ConsistentHashingVisualizer() {
       {/* Action Banner */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -131,26 +131,26 @@ export default function ConsistentHashingVisualizer() {
       {/* Grid: 360 Degree SVG Hash Ring + Key Mapping Inspector */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* SVG 360-Degree Hash Ring */}
-        <div className="viz-card" style={{ background: '#020617', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#93c5fd' }}>⭕ 360° Circular Hash Ring</h4>
+        <div className="viz-card" style={{ background: 'var(--bg-code)', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-info)' }}>⭕ 360° Circular Hash Ring</h4>
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <svg width="400" height="400" style={{ overflow: 'visible' }}>
               {/* Outer Ring Circle */}
-              <circle cx={centerX} cy={centerY} r={radius} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="4" />
+              <circle cx={centerX} cy={centerY} r={radius} fill="none" stroke="var(--border-strong)" strokeWidth="4" />
 
               {/* Render Server Nodes on Ring */}
               {state.ringNodes.map((node, i) => {
                 const p = getPoint(node.angle)
-                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6']
+                const colors = ['var(--state-info)', 'var(--state-success)', 'var(--state-warning)', 'var(--state-danger)', 'var(--cat-base)']
                 const sIdx = state.servers.indexOf(node.server)
                 const color = colors[sIdx % colors.length]
 
                 return (
                   <g key={i}>
-                    <line x1={centerX} y1={centerY} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.05)" strokeDasharray="2 2" />
-                    <circle cx={p.x} cy={p.y} r="12" fill={color} stroke="#f8fafc" strokeWidth="2" />
-                    <text x={p.x} y={p.y + 4} fill="#f8fafc" fontSize="9" fontWeight="bold" textAnchor="middle">
+                    <line x1={centerX} y1={centerY} x2={p.x} y2={p.y} stroke="var(--border-subtle)" strokeDasharray="2 2" />
+                    <circle cx={p.x} cy={p.y} r="12" fill={color} stroke="var(--text-primary)" strokeWidth="2" />
+                    <text x={p.x} y={p.y + 4} fill="var(--text-primary)" fontSize="9" fontWeight="bold" textAnchor="middle">
                       {node.server.replace('Server-', '')}
                     </text>
                   </g>
@@ -162,8 +162,8 @@ export default function ConsistentHashingVisualizer() {
                 const p = getPoint(k.angle)
                 return (
                   <g key={i}>
-                    <circle cx={p.x} cy={p.y} r="6" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
-                    <text x={p.x + 10} y={p.y + 4} fill="#cbd5e1" fontSize="10" fontWeight="bold">
+                    <circle cx={p.x} cy={p.y} r="6" fill="var(--state-danger)" stroke="var(--text-primary)" strokeWidth="1.5" />
+                    <text x={p.x + 10} y={p.y + 4} fill="var(--text-secondary)" fontSize="10" fontWeight="bold">
                       {k.id}
                     </text>
                   </g>
@@ -175,7 +175,7 @@ export default function ConsistentHashingVisualizer() {
 
         {/* Server & Key Mappings List */}
         <div className="viz-card">
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399' }}>🔑 Active Server Nodes & Key Mapping</h4>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-success)' }}>🔑 Active Server Nodes & Key Mapping</h4>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
             {state.servers.map((sName, idx) => {
@@ -184,8 +184,8 @@ export default function ConsistentHashingVisualizer() {
                 <div
                   key={sName}
                   style={{
-                    background: '#0f172a',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '8px',
                     padding: '0.65rem 0.85rem',
                     display: 'flex',
@@ -194,8 +194,8 @@ export default function ConsistentHashingVisualizer() {
                   }}
                 >
                   <div>
-                    <strong style={{ color: '#f8fafc', fontSize: '0.9rem' }}>{sName}</strong>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>{sName}</strong>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                       Assigned Keys ({assignedKeys.length}): {assignedKeys.map(k => k.id).join(', ') || 'None'}
                     </div>
                   </div>

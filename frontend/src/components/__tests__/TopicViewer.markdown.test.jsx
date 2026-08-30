@@ -117,3 +117,25 @@ describe('blockquote rendering', () => {
     }
   )
 })
+
+describe('reader semantics', () => {
+  it('keeps tier heading ids stable while rendering a non-color tier badge', () => {
+    const { container } = render(<MarkdownRenderer content={'## 🟢 Beginner Level\n\nStart here.'} />)
+
+    const heading = container.querySelector('h2')
+    expect(heading).not.toBeNull()
+    expect(heading).toHaveAttribute('id', 'beginner-level')
+    expect(heading.textContent).toContain('Beginner Level')
+    expect(heading.querySelector('.tier-badge--beginner')).not.toBeNull()
+    expect(heading.querySelector('.tier-badge')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('preserves table semantics inside a keyboard-scrollable region', () => {
+    const { container } = render(<MarkdownRenderer content={'| A | B |\n|---|---|\n| 1 | 2 |'} />)
+
+    const wrapper = container.querySelector('.table-scroll')
+    expect(wrapper).toHaveAttribute('role', 'region')
+    expect(wrapper).toHaveAttribute('tabindex', '0')
+    expect(wrapper.querySelector('table')).not.toBeNull()
+  })
+})

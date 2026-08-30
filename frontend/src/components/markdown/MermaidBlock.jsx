@@ -7,48 +7,51 @@ let diagramCounter = 0
 
 function loadMermaid() {
   if (!mermaidPromise) {
-    mermaidPromise = import('mermaid').then((mod) => {
-      const mermaid = mod.default
-      mermaid.initialize({
-        startOnLoad: false,
-        securityLevel: 'strict',
-        theme: 'base',
-        fontFamily: 'var(--font-main)',
-        themeVariables: {
-          fontSize: '14px',
-          background: 'transparent',
-          primaryColor: '#1e293b',
-          primaryTextColor: '#f8fafc',
-          primaryBorderColor: '#8b5cf6',
-          secondaryColor: '#151c2c',
-          secondaryBorderColor: '#3b82f6',
-          tertiaryColor: '#0b0f19',
-          tertiaryBorderColor: '#2e3a52',
-          lineColor: '#64748b',
-          textColor: '#f8fafc',
-          mainBkg: '#151c2c',
-          nodeBorder: '#8b5cf6',
-          clusterBkg: '#1b2436',
-          clusterBorder: '#2e3a52',
-          edgeLabelBackground: '#151c2c',
-          actorBkg: '#151c2c',
-          actorBorder: '#8b5cf6',
-          actorTextColor: '#f8fafc',
-          actorLineColor: '#3e4c68',
-          signalColor: '#94a3b8',
-          signalTextColor: '#e2e8f0',
-          labelBoxBkgColor: '#151c2c',
-          labelBoxBorderColor: '#8b5cf6',
-          labelTextColor: '#f8fafc',
-          noteBkgColor: '#1e293b',
-          noteBorderColor: '#f59e0b',
-          noteTextColor: '#f8fafc'
-        }
-      })
-      return mermaid
-    })
+    mermaidPromise = import('mermaid').then((mod) => mod.default)
   }
   return mermaidPromise
+}
+
+function mermaidConfiguration(element) {
+  const styles = getComputedStyle(element || document.documentElement)
+  const css = (name) => styles.getPropertyValue(name).trim()
+
+  return {
+    startOnLoad: false,
+    securityLevel: 'strict',
+    theme: 'base',
+    fontFamily: 'var(--font-body)',
+    themeVariables: {
+      fontSize: '14px',
+      background: 'transparent',
+      primaryColor: css('--bg-raised'),
+      primaryTextColor: css('--text-primary'),
+      primaryBorderColor: css('--cat-base'),
+      secondaryColor: css('--bg-surface'),
+      secondaryBorderColor: css('--border-strong'),
+      tertiaryColor: css('--bg-page'),
+      tertiaryBorderColor: css('--border-default'),
+      lineColor: css('--text-muted'),
+      textColor: css('--text-prose'),
+      mainBkg: css('--bg-surface'),
+      nodeBorder: css('--cat-base'),
+      clusterBkg: css('--bg-inset'),
+      clusterBorder: css('--border-default'),
+      edgeLabelBackground: css('--bg-surface'),
+      actorBkg: css('--bg-surface'),
+      actorBorder: css('--cat-base'),
+      actorTextColor: css('--text-primary'),
+      actorLineColor: css('--border-strong'),
+      signalColor: css('--text-secondary'),
+      signalTextColor: css('--text-prose'),
+      labelBoxBkgColor: css('--bg-raised'),
+      labelBoxBorderColor: css('--cat-base'),
+      labelTextColor: css('--text-primary'),
+      noteBkgColor: css('--state-warning-tint'),
+      noteBorderColor: css('--state-warning'),
+      noteTextColor: css('--text-prose')
+    }
+  }
 }
 
 /**
@@ -61,6 +64,13 @@ export default function MermaidBlock({ code }) {
   const containerRef = useRef(null)
   const [svg, setSvg] = useState(null)
   const [error, setError] = useState(null)
+  const [themeVersion, setThemeVersion] = useState(0)
+
+  useEffect(() => {
+    const handleThemeChange = () => setThemeVersion(version => version + 1)
+    window.addEventListener('cs-fundamentals:theme-change', handleThemeChange)
+    return () => window.removeEventListener('cs-fundamentals:theme-change', handleThemeChange)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -70,6 +80,7 @@ export default function MermaidBlock({ code }) {
     loadMermaid()
       .then((mermaid) => {
         if (cancelled) return null
+        mermaid.initialize(mermaidConfiguration(containerRef.current))
         const id = `mermaid-diagram-${diagramCounter++}`
         return mermaid.render(id, code)
       })
@@ -85,11 +96,11 @@ export default function MermaidBlock({ code }) {
     return () => {
       cancelled = true
     }
-  }, [code])
+  }, [code, themeVersion])
 
   if (error) {
     return (
-      <div className="mermaid-block mermaid-block-error" role="img" aria-label="Diagram failed to render, showing source">
+      <div ref={containerRef} className="mermaid-block mermaid-block-error" role="img" aria-label="Diagram failed to render, showing source">
         <p className="mermaid-error-message">⚠ Diagram could not be rendered: {error}</p>
         <pre><code>{code}</code></pre>
       </div>
@@ -97,7 +108,7 @@ export default function MermaidBlock({ code }) {
   }
 
   if (!svg) {
-    return <div className="mermaid-block mermaid-block-loading" aria-live="polite">Rendering diagram…</div>
+    return <div ref={containerRef} className="mermaid-block mermaid-block-loading" aria-live="polite">Rendering diagram…</div>
   }
 
   return (

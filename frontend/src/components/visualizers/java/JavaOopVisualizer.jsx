@@ -59,13 +59,13 @@ export default function JavaOopVisualizer() {
       {/* Command Prompt Simulator */}
       <div
         style={{
-          background: '#020617',
-          border: '1px solid #1e293b',
+          background: 'var(--bg-inset)',
+          border: '1px solid var(--bg-raised)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
           fontFamily: 'monospace',
-          color: '#38bdf8',
+          color: 'var(--state-info)',
           fontSize: '0.9rem',
           display: 'flex',
           justify: 'space-between',
@@ -73,10 +73,10 @@ export default function JavaOopVisualizer() {
         }}
       >
         <div>
-          <span style={{ color: '#4ade80' }}>javac@oop-vtable:~$</span>{' '}
-          <strong style={{ color: '#f8fafc' }}>{currentStep?.command}</strong>
+          <span style={{ color: 'var(--state-success)' }}>javac@oop-vtable:~$</span>{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{currentStep?.command}</strong>
         </div>
-        <span className="header-pill" style={{ background: '#1e293b', color: '#fbbf24', fontSize: '0.78rem' }}>
+        <span className="header-pill" style={{ background: 'var(--bg-raised)', color: 'var(--state-warning)', fontSize: '0.78rem' }}>
           Artifact: {currentStep?.artifact}
         </span>
       </div>
@@ -84,12 +84,12 @@ export default function JavaOopVisualizer() {
       {/* Description */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -108,7 +108,7 @@ export default function JavaOopVisualizer() {
           <span>Previous Step</span>
         </button>
 
-        <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
           Step {currentStepIdx + 1} of {steps.length} — {currentStep?.stage}
         </span>
 
@@ -126,14 +126,14 @@ export default function JavaOopVisualizer() {
       {/* Main Grid Layout: OOP Hierarchy vs JVM vtable */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Left Column: Inheritance & Access Matrix */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#60a5fa' }}>🌳 Inheritance Hierarchy & Access Scope</h4>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-info)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-info)' }}>🌳 Inheritance Hierarchy & Access Scope</h4>
 
-          <div style={{ background: '#020617', border: '1px solid #1e293b', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem' }}>
-            <div style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '0.3rem' }}>
+          <div style={{ background: 'var(--bg-inset)', border: '1px solid var(--bg-raised)', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem' }}>
+            <div style={{ color: 'var(--cat-base)', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '0.3rem' }}>
               abstract class Animal
             </div>
-            <div style={{ fontSize: '0.78rem', color: '#cbd5e1', fontFamily: 'monospace' }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
               • private String id;<br />
               • protected int age;<br />
               • public abstract void makeSound();
@@ -143,28 +143,28 @@ export default function JavaOopVisualizer() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
             <div
               style={{
-                background: state.activePet?.actualType === 'Dog' ? 'rgba(59,130,246,0.15)' : '#020617',
-                border: state.activePet?.actualType === 'Dog' ? '2px solid #3b82f6' : '1px solid #1e293b',
+                background: state.activePet?.actualType === 'Dog' ? 'var(--state-info-tint)' : 'var(--bg-inset)',
+                border: state.activePet?.actualType === 'Dog' ? '2px solid var(--state-info)' : '1px solid var(--bg-raised)',
                 borderRadius: '6px',
                 padding: '0.6rem'
               }}
             >
-              <strong style={{ color: '#60a5fa', fontSize: '0.82rem' }}>class Dog extends Animal</strong>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+              <strong style={{ color: 'var(--state-info)', fontSize: '0.82rem' }}>class Dog extends Animal</strong>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                 @Override makeSound() ➔ "Woof!"
               </div>
             </div>
 
             <div
               style={{
-                background: state.activePet?.actualType === 'Cat' ? 'rgba(168,85,247,0.15)' : '#020617',
-                border: state.activePet?.actualType === 'Cat' ? '2px solid #a855f7' : '1px solid #1e293b',
+                background: state.activePet?.actualType === 'Cat' ? 'var(--cat-tint)' : 'var(--bg-inset)',
+                border: state.activePet?.actualType === 'Cat' ? '2px solid var(--cat-base)' : '1px solid var(--bg-raised)',
                 borderRadius: '6px',
                 padding: '0.6rem'
               }}
             >
-              <strong style={{ color: '#c084fc', fontSize: '0.82rem' }}>class Cat extends Animal</strong>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+              <strong style={{ color: 'var(--cat-hover)', fontSize: '0.82rem' }}>class Cat extends Animal</strong>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                 @Override makeSound() ➔ "Meow!"
               </div>
             </div>
@@ -172,21 +172,21 @@ export default function JavaOopVisualizer() {
         </div>
 
         {/* Right Column: JVM vtable Slot Inspector */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-success)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-success)', display: 'flex', justifyContent: 'space-between' }}>
             <span>🔍 JVM Metaspace vtable Inspector</span>
             <span>Type: {state.activePet?.actualType || 'N/A'}</span>
           </h4>
 
           {state.activePet ? (
             <div>
-              <div style={{ background: '#020617', padding: '0.5rem 0.75rem', borderRadius: '6px', marginBottom: '0.75rem', fontSize: '0.82rem' }}>
-                <span style={{ color: '#94a3b8' }}>Active Pointer:</span>{' '}
-                <strong style={{ color: '#38bdf8' }}>{state.activePet.declaredType} {state.activePet.referenceName}</strong> ={' '}
-                <strong style={{ color: '#a78bfa' }}>new {state.activePet.actualType}({state.activePet.name}) [{state.activePet.address}]</strong>
+              <div style={{ background: 'var(--bg-inset)', padding: '0.5rem 0.75rem', borderRadius: '6px', marginBottom: '0.75rem', fontSize: '0.82rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Active Pointer:</span>{' '}
+                <strong style={{ color: 'var(--state-info)' }}>{state.activePet.declaredType} {state.activePet.referenceName}</strong> ={' '}
+                <strong style={{ color: 'var(--cat-base)' }}>new {state.activePet.actualType}({state.activePet.name}) [{state.activePet.address}]</strong>
               </div>
 
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f8fafc', marginBottom: '0.35rem' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
                 {state.activePet.actualType} Class vtable (Virtual Method Array):
               </div>
 
@@ -195,8 +195,8 @@ export default function JavaOopVisualizer() {
                   <div
                     key={idx}
                     style={{
-                      background: idx === 0 ? '#1e293b' : '#020617',
-                      border: idx === 0 ? '1px solid #10b981' : '1px solid #1e293b',
+                      background: idx === 0 ? 'var(--bg-raised)' : 'var(--bg-inset)',
+                      border: idx === 0 ? '1px solid var(--state-success)' : '1px solid var(--bg-raised)',
                       borderRadius: '4px',
                       padding: '0.4rem 0.6rem',
                       display: 'flex',
@@ -205,8 +205,8 @@ export default function JavaOopVisualizer() {
                       fontFamily: 'monospace'
                     }}
                   >
-                    <span style={{ color: '#fbbf24' }}>vtable[{v.slot}] : {v.methodName}</span>
-                    <span style={{ color: idx === 0 ? '#4ade80' : '#cbd5e1', fontWeight: idx === 0 ? 'bold' : 'normal' }}>
+                    <span style={{ color: 'var(--state-warning)' }}>vtable[{v.slot}] : {v.methodName}</span>
+                    <span style={{ color: idx === 0 ? 'var(--state-success)' : 'var(--text-secondary)', fontWeight: idx === 0 ? 'bold' : 'normal' }}>
                       ➔ {v.resolvedTarget}
                     </span>
                   </div>
@@ -214,7 +214,7 @@ export default function JavaOopVisualizer() {
               </div>
             </div>
           ) : (
-            <div style={{ background: '#020617', padding: '1.5rem', borderRadius: '8px', textAlign: 'center', color: '#64748b', fontSize: '0.88rem' }}>
+            <div style={{ background: 'var(--bg-inset)', padding: '1.5rem', borderRadius: '8px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
               No active polymorphic object instantiated yet.
             </div>
           )}
@@ -223,9 +223,9 @@ export default function JavaOopVisualizer() {
 
       {/* Output Console & Telemetry */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-        <div className="viz-card" style={{ borderLeft: '4px solid #a78bfa' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc' }}>🖥️ invokevirtual Dispatch Result</h4>
-          <div style={{ background: '#020617', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.85rem', color: '#4ade80', fontFamily: 'monospace', fontSize: '0.85rem', minHeight: '60px' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--cat-base)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--cat-hover)' }}>🖥️ invokevirtual Dispatch Result</h4>
+          <div style={{ background: 'var(--bg-code)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '0.85rem', color: 'var(--state-success)', fontFamily: 'monospace', fontSize: '0.85rem', minHeight: '60px' }}>
             {state.dispatchResult || '> Waiting for virtual method call...'}
           </div>
         </div>

@@ -86,12 +86,12 @@ export default function VirtualThreadsVisualizer() {
       {/* Action Banner */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -101,8 +101,8 @@ export default function VirtualThreadsVisualizer() {
       {/* Grid Display: Carrier OS Threads vs Virtual Threads Queue */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* ForkJoinPool Carrier OS Threads */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #a78bfa' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--cat-base)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--cat-hover)', display: 'flex', justifyContent: 'space-between' }}>
             <span>🖥 Carrier OS Threads (1:1 Kernel Threads)</span>
             <span>Count: {state.carriers.length}</span>
           </h4>
@@ -114,9 +114,9 @@ export default function VirtualThreadsVisualizer() {
                 <div
                   key={idx}
                   style={{
-                    background: mounted ? 'rgba(167, 139, 250, 0.15)' : '#020617',
+                    background: mounted ? 'var(--cat-tint)' : 'var(--bg-inset)',
                     border: '1px solid',
-                    borderColor: mounted ? '#a78bfa' : 'rgba(255,255,255,0.08)',
+                    borderColor: mounted ? 'var(--cat-base)' : 'var(--border-subtle)',
                     borderRadius: '8px',
                     padding: '0.75rem',
                     display: 'flex',
@@ -125,19 +125,19 @@ export default function VirtualThreadsVisualizer() {
                   }}
                 >
                   <div>
-                    <strong style={{ color: '#f8fafc', display: 'block' }}>{carrier.id}</strong>
-                    <span style={{ fontSize: '0.75rem', color: mounted ? '#a78bfa' : '#64748b' }}>
+                    <strong style={{ color: 'var(--text-primary)', display: 'block' }}>{carrier.id}</strong>
+                    <span style={{ fontSize: '0.75rem', color: mounted ? 'var(--cat-base)' : 'var(--text-muted)' }}>
                       Status: {carrier.status}
                     </span>
                   </div>
 
                   <div>
                     {mounted ? (
-                      <span className="header-pill" style={{ background: '#7c3aed', fontSize: '0.85rem' }}>
+                      <span className="header-pill" style={{ background: 'var(--cat-border)', fontSize: '0.85rem' }}>
                         🔗 Mounted: {mounted.id}
                       </span>
                     ) : (
-                      <span style={{ fontSize: '0.75rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--state-success)', background: 'var(--state-success-tint)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
                         FREE (Idle)
                       </span>
                     )}
@@ -149,26 +149,26 @@ export default function VirtualThreadsVisualizer() {
         </div>
 
         {/* Virtual Threads List */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-success)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-success)', display: 'flex', justifyContent: 'space-between' }}>
             <span>🌀 User-Mode Virtual Threads</span>
             <span>Total: {state.virtualThreads.length}</span>
           </h4>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '280px', overflowY: 'auto' }}>
             {state.virtualThreads.map(vt => {
-              let statusColor = '#94a3b8'
-              let bg = 'rgba(255,255,255,0.03)'
-              if (vt.status === 'MOUNTED') { statusColor = '#a78bfa'; bg = 'rgba(167, 139, 250, 0.2)' }
-              if (vt.status === 'PARKED_IO') { statusColor = '#f59e0b'; bg = 'rgba(245, 158, 11, 0.2)' }
-              if (vt.status === 'RUNNABLE') { statusColor = '#10b981'; bg = 'rgba(16, 185, 129, 0.15)' }
+              let statusColor = 'var(--text-secondary)'
+              let bg = 'var(--bg-raised)'
+              if (vt.status === 'MOUNTED') { statusColor = 'var(--cat-base)'; bg = 'var(--cat-tint)' }
+              if (vt.status === 'PARKED_IO') { statusColor = 'var(--state-warning)'; bg = 'var(--state-warning-tint)' }
+              if (vt.status === 'RUNNABLE') { statusColor = 'var(--state-success)'; bg = 'var(--state-success-tint)' }
 
               return (
                 <div
                   key={vt.id}
                   style={{
                     background: bg,
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '6px',
                     padding: '0.5rem 0.75rem',
                     display: 'flex',
@@ -177,7 +177,7 @@ export default function VirtualThreadsVisualizer() {
                   }}
                 >
                   <div>
-                    <strong style={{ color: '#f8fafc', fontSize: '0.85rem' }}>{vt.id}</strong>
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{vt.id}</strong>
                     <span style={{ color: statusColor, fontSize: '0.75rem', marginLeft: '0.5rem', fontWeight: 600 }}>
                       [{vt.status}]
                     </span>
@@ -188,7 +188,7 @@ export default function VirtualThreadsVisualizer() {
                       <button
                         onClick={() => handleTriggerIO(vt.id)}
                         className="btn btn-secondary"
-                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderColor: '#f59e0b', color: '#fbbf24' }}
+                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderColor: 'var(--state-warning)', color: 'var(--state-warning)' }}
                       >
                         🌐 Trigger Blocking I/O
                       </button>

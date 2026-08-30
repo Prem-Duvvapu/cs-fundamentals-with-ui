@@ -61,25 +61,25 @@ export default function JavaStreamsOptionalVisualizer() {
         className="viz-card"
         style={{
           marginBottom: '1rem',
-          background: 'linear-gradient(135deg, #090d16 0%, #111827 100%)',
-          border: '1px solid rgba(59, 130, 246, 0.2)'
+          background: 'linear-gradient(135deg, var(--bg-code) 0%, var(--bg-code) 100%)',
+          border: '1px solid var(--state-info-border)'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-            <span style={{ color: '#94a3b8', fontSize: '0.8rem', marginLeft: '0.4rem', fontFamily: 'monospace' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--state-danger)', display: 'inline-block' }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--state-warning)', display: 'inline-block' }} />
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--state-success)', display: 'inline-block' }} />
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginLeft: '0.4rem', fontFamily: 'monospace' }}>
               Java Streams & Optional Monadic Pipeline Engine
             </span>
           </div>
-          <span className="header-pill" style={{ background: '#312e81', color: '#c7d2fe', fontSize: '0.75rem' }}>
+          <span className="header-pill" style={{ background: 'var(--cat-tint)', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
             Step {currentStep ? currentStep.stepNumber : 0} of {steps.length}
           </span>
         </div>
 
-        <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: '#38bdf8', marginTop: '0.4rem' }}>
+        <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: 'var(--state-info)', marginTop: '0.4rem' }}>
           &gt; {currentStep?.command || 'Initializing...'}
         </div>
       </div>
@@ -125,27 +125,27 @@ export default function JavaStreamsOptionalVisualizer() {
           className="viz-card"
           style={{
             marginBottom: '1rem',
-            background: 'rgba(15, 23, 42, 0.9)',
-            borderLeft: '4px solid #8b5cf6'
+            background: 'color-mix(in srgb, var(--bg-page) 90%, transparent)',
+            borderLeft: '4px solid var(--cat-base)'
           }}
         >
-          <h4 style={{ margin: '0 0 0.35rem', color: '#a78bfa', fontSize: '1rem' }}>
+          <h4 style={{ margin: '0 0 0.35rem', color: 'var(--cat-base)', fontSize: '1rem' }}>
             {currentStep.title}
           </h4>
-          <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: '1.5', margin: '0 0 0.5rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5', margin: '0 0 0.5rem' }}>
             {currentStep.description}
           </p>
-          <div style={{ fontSize: '0.8rem', color: '#38bdf8', fontFamily: 'monospace', background: '#020617', padding: '0.35rem 0.6rem', borderRadius: '4px' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--state-info)', fontFamily: 'monospace', background: 'var(--bg-code)', padding: '0.35rem 0.6rem', borderRadius: '4px' }}>
             {currentStep.artifact}
           </div>
         </div>
       )}
 
       {/* STREAM PIPELINE VERTICAL FUSION PANEL */}
-      <div style={{ background: '#0b1329', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(56,189,248,0.3)', marginBottom: '1rem' }}>
-        <h4 style={{ margin: '0 0 0.5rem', color: '#38bdf8', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ background: 'var(--bg-inset)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--state-info-border)', marginBottom: '1rem' }}>
+        <h4 style={{ margin: '0 0 0.5rem', color: 'var(--state-info)', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
           <span>🌊 Stream Pipeline Vertical Loop Fusion</span>
-          <span style={{ fontSize: '0.72rem', color: '#4ade80' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--state-success)' }}>
             Output: {state.terminalResult ? JSON.stringify(state.terminalResult) : 'Lazy (Pending Trigger)'}
           </span>
         </h4>
@@ -156,8 +156,8 @@ export default function JavaStreamsOptionalVisualizer() {
               <div
                 key={idx}
                 style={{
-                  background: item.includedInOutput ? '#064e3b' : '#1e293b',
-                  border: item.includedInOutput ? '1px solid #10b981' : '1px solid #475569',
+                  background: item.includedInOutput ? 'var(--state-success-tint)' : 'var(--bg-raised)',
+                  border: item.includedInOutput ? '1px solid var(--state-success)' : '1px solid var(--text-muted)',
                   borderRadius: '6px',
                   padding: '0.5rem',
                   fontFamily: 'monospace',
@@ -165,12 +165,12 @@ export default function JavaStreamsOptionalVisualizer() {
                   textAlign: 'center'
                 }}
               >
-                <div style={{ color: '#94a3b8' }}>Input: <strong>{item.item}</strong></div>
-                <div style={{ color: item.passedFilter ? '#34d399' : '#f87171', margin: '0.2rem 0' }}>
+                <div style={{ color: 'var(--text-secondary)' }}>Input: <strong>{item.item}</strong></div>
+                <div style={{ color: item.passedFilter ? 'var(--state-success)' : 'var(--state-danger)', margin: '0.2rem 0' }}>
                   filter: {item.passedFilter ? 'PASS' : 'DROP'}
                 </div>
                 {item.mappedValue !== null && (
-                  <div style={{ color: '#fbbf24', fontWeight: 700 }}>
+                  <div style={{ color: 'var(--state-warning)', fontWeight: 700 }}>
                     map ➔ {item.mappedValue}
                   </div>
                 )}
@@ -178,7 +178,7 @@ export default function JavaStreamsOptionalVisualizer() {
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '1.5rem', color: '#64748b', fontSize: '0.82rem', background: '#020617', borderRadius: '6px' }}>
+          <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.82rem', background: 'var(--bg-inset)', borderRadius: '6px' }}>
             Lazy pipeline constructed: list.stream().filter(n &gt; 10).map(n * 2). Advance to trigger terminal pull.
           </div>
         )}

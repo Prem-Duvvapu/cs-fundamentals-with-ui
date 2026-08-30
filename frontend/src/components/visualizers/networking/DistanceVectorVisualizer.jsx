@@ -107,7 +107,7 @@ export default function DistanceVectorVisualizer() {
   const current = roundsData[round]
 
   return (
-    <div className="viz-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+    <div className="viz-card" style={{ border: '1px solid var(--border-subtle)' }}>
       <div style={{ marginBottom: '1.25rem' }}>
         <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
           📊 Distance Vector Routing (Bellman-Ford) Convergence Simulator
@@ -133,24 +133,24 @@ export default function DistanceVectorVisualizer() {
           onClick={() => setRound(prev => Math.min(roundsData.length - 1, prev + 1))}
           disabled={round === roundsData.length - 1}
           className="btn btn-primary"
-          style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}
+          style={{ background: 'linear-gradient(135deg, var(--cat-base), var(--cat-hover))' }}
         >
           Next Convergence Round ▶
         </button>
 
         {current.converged && (
-          <span className="header-pill" style={{ background: '#065f46', color: '#a7f3d0', border: '1px solid #10b981' }}>
+          <span className="header-pill" style={{ background: 'var(--state-success-border)', color: 'var(--state-success)', border: '1px solid var(--state-success)' }}>
             ✅ Routing Tables Fully Converged!
           </span>
         )}
       </div>
 
       {/* ROUND INFO BANNER */}
-      <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #8b5cf6', marginBottom: '1.25rem' }}>
-        <h4 style={{ margin: '0 0 0.35rem', color: '#a78bfa', fontSize: '0.98rem' }}>
+      <div style={{ background: 'color-mix(in srgb, var(--bg-page) 88%, transparent)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid var(--cat-base)', marginBottom: '1.25rem' }}>
+        <h4 style={{ margin: '0 0 0.35rem', color: 'var(--cat-base)', fontSize: '0.98rem' }}>
           {current.title}
         </h4>
-        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
           {current.desc}
         </p>
       </div>
@@ -158,15 +158,15 @@ export default function DistanceVectorVisualizer() {
       {/* 4 ROUTING TABLES GRID */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         {['A', 'B', 'C', 'D'].map(routerId => (
-          <div key={routerId} style={{ background: '#0b1329', padding: '0.85rem', borderRadius: '10px', border: '1px solid rgba(59,130,246,0.2)' }}>
-            <h5 style={{ margin: '0 0 0.5rem', color: '#38bdf8', fontSize: '0.88rem', display: 'flex', justifyContent: 'space-between' }}>
+          <div key={routerId} style={{ background: 'var(--bg-inset)', padding: '0.85rem', borderRadius: '10px', border: '1px solid var(--state-info-border)' }}>
+            <h5 style={{ margin: '0 0 0.5rem', color: 'var(--cat-networking-base)', fontSize: '0.88rem', display: 'flex', justifyContent: 'space-between' }}>
               <span>Router {routerId} Distance Vector</span>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>D_{routerId}(*)</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>D_{routerId}(*)</span>
             </h5>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', fontFamily: 'monospace', textAlign: 'left' }}>
               <thead>
-                <tr style={{ background: 'rgba(30,41,59,0.8)', color: '#94a3b8' }}>
+                <tr style={{ background: 'var(--bg-raised)', color: 'var(--text-secondary)' }}>
                   <th style={{ padding: '0.3rem 0.5rem' }}>Dest</th>
                   <th style={{ padding: '0.3rem 0.5rem' }}>Cost</th>
                   <th style={{ padding: '0.3rem 0.5rem' }}>Next Hop</th>
@@ -177,16 +177,16 @@ export default function DistanceVectorVisualizer() {
                   <tr
                     key={idx}
                     style={{
-                      borderTop: '1px solid rgba(255,255,255,0.05)',
-                      background: row.updated ? 'rgba(99,102,241,0.2)' : 'transparent',
-                      color: row.updated ? '#a78bfa' : '#f8fafc'
+                      borderTop: '1px solid var(--border-subtle)',
+                      background: row.updated ? 'var(--cat-tint)' : 'transparent',
+                      color: row.updated ? 'var(--cat-base)' : 'var(--text-primary)'
                     }}
                   >
                     <td style={{ padding: '0.35rem 0.5rem', fontWeight: 600 }}>{row.dest}</td>
-                    <td style={{ padding: '0.35rem 0.5rem', color: row.cost === '∞' ? '#ef4444' : '#4ade80', fontWeight: 600 }}>
+                    <td style={{ padding: '0.35rem 0.5rem', color: row.cost === '∞' ? 'var(--state-danger)' : 'var(--state-success)', fontWeight: 600 }}>
                       {row.cost}
                     </td>
-                    <td style={{ padding: '0.35rem 0.5rem', color: '#38bdf8' }}>{row.nextHop}</td>
+                    <td style={{ padding: '0.35rem 0.5rem', color: 'var(--state-info)' }}>{row.nextHop}</td>
                   </tr>
                 ))}
               </tbody>

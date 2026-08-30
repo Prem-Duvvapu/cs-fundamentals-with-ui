@@ -5,7 +5,6 @@ import rehypeKatex from 'rehype-katex'
 import rehypeHighlight from 'rehype-highlight'
 import MermaidBlock from './MermaidBlock'
 import 'katex/dist/katex.min.css'
-import 'highlight.js/styles/github-dark.css'
 
 import java from 'highlight.js/lib/languages/java'
 import sql from 'highlight.js/lib/languages/sql'
@@ -24,6 +23,20 @@ const HIGHLIGHT_LANGUAGES = { java, sql, c, python, bash, json, xml, javascript 
 
 function extractText(children) {
   return String(children).replace(/\n$/, '')
+}
+
+const TIER_DETAILS = {
+  '🟢': { name: 'beginner', glyph: '●', label: 'Beginner' },
+  '🟡': { name: 'intermediate', glyph: '◐', label: 'Intermediate' },
+  '🔴': { name: 'expert', glyph: '◆', label: 'Expert' }
+}
+
+function getTierHeading(children) {
+  const text = extractText(children).trim()
+  const tierEntry = Object.entries(TIER_DETAILS).find(([emoji]) => text.startsWith(emoji))
+  if (!tierEntry) return { text, tier: null }
+  const [emoji, tier] = tierEntry
+  return { text: text.slice(emoji.length).trim(), tier }
 }
 
 export function headingId(children) {
@@ -48,7 +61,17 @@ export default function MarkdownRenderer({ content }) {
       ]}
       components={{
         h2({ children }) {
-          return <h2 id={headingId(children)}>{children}</h2>
+          const { text, tier } = getTierHeading(children)
+          return (
+            <h2 id={headingId(text)}>
+              {tier && (
+                <span className={`tier-badge tier-badge--${tier.name}`} aria-hidden="true">
+                  <span>{tier.glyph}</span> {tier.label}
+                </span>
+              )}
+              {text}
+            </h2>
+          )
         },
         h3({ children }) {
           return <h3 id={headingId(children)}>{children}</h3>
@@ -62,6 +85,13 @@ export default function MarkdownRenderer({ content }) {
             return children
           }
           return <pre>{children}</pre>
+        },
+        table({ children, ...props }) {
+          return (
+            <div className="table-scroll" tabIndex="0" role="region" aria-label="Scrollable table">
+              <table {...props}>{children}</table>
+            </div>
+          )
         },
         code({ className, children, ...rest }) {
           const match = /language-(\w+)/.exec(className || '')

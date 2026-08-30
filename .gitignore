@@ -13,3 +13,6 @@ node_modules/
 # OS specific
 .DS_Store
 Thumbs.db
+
+# Generated reports
+content-gap-report.md

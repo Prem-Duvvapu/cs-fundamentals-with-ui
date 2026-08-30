@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
+import { getTopicCategory } from '../utils/topicCategories'
 
 // react-markdown + KaTeX + highlight.js are ~600KB and are only needed once
 // a topic's content is actually being read, so they get their own chunk
@@ -27,6 +28,10 @@ function getQuestions(content) {
     difficulty,
     answer: answer.trim()
   }))
+}
+
+function cleanSectionTitle(title) {
+  return title.replace(/^(?:🟢|🟡|🔴)\s*/u, '')
 }
 
 function scrollToSection(id) {
@@ -64,14 +69,6 @@ function InterviewDeck({ questions }) {
   )
 }
 
-const CATEGORY_MAP = {
-  'process-management': 'os', 'memory-management': 'os', 'cpu-scheduling': 'os', 'synchronization': 'os', 'deadlocks': 'os', 'file-systems': 'os', 'io-systems': 'os', 'disk-scheduling': 'os',
-  'network-fundamentals': 'networking', 'physical-layer-media': 'networking', 'osi-model': 'networking', 'data-link-layer': 'networking', 'ip-subnetting': 'networking', 'routing-algorithms': 'networking', 'tcp-ip': 'networking', 'tcp-congestion': 'networking', 'transport-layer-protocols': 'networking', 'application-layer': 'networking', 'network-security': 'networking', 'network-performance-qos': 'networking',
-  'dbms-introduction': 'dbms', 'dbms-architecture': 'dbms', 'er-model': 'dbms', 'relational-algebra-calculus': 'dbms', 'functional-dependencies-keys': 'dbms', 'database-normalization': 'dbms', 'dbms-indexing': 'dbms', 'storage-raid-indexing': 'dbms', 'transactions-acid': 'dbms', 'concurrency-control': 'dbms', 'query-optimization': 'dbms', 'distributed-databases-cap': 'dbms',
-  'embeddings-vector-db': 'aiml', 'rag-architecture': 'aiml', 'model-serving': 'aiml', 'llm-parameters': 'aiml', 'feature-stores': 'aiml', 'recommendation-systems': 'aiml',
-  'java-execution-pipeline': 'java-spring', 'java-memory-model': 'java-spring', 'java-oop-pillars': 'java-spring', 'java-static-final-records': 'java-spring', 'java-functional-lambdas': 'java-spring', 'java-generics': 'java-spring', 'java-collections-framework': 'java-spring', 'java-hashmap-internals': 'java-spring', 'java-streams-optional': 'java-spring', 'java-reflection-exceptions': 'java-spring', 'java-multithreading-concurrency': 'java-spring', 'jvm-gc': 'java-spring', 'spring-bean-lifecycle': 'java-spring', 'spring-mvc-lifecycle': 'java-spring', 'jpa-hibernate-lifecycle': 'java-spring', 'spring-batch-lifecycle': 'java-spring', 'quartz-scheduler': 'java-spring', 'design-patterns-solid': 'java-spring'
-}
-
 export default function TopicViewer({ topicId, category }) {
   const [content, setContent] = useState('')
   const [notFound, setNotFound] = useState(false)
@@ -85,7 +82,7 @@ export default function TopicViewer({ topicId, category }) {
     setNotFound(false)
     setActiveSection('')
     setReadingProgress(0)
-    const cat = category || CATEGORY_MAP[topicId] || 'os'
+    const cat = category || getTopicCategory(topicId)
 
     fetch(`/api/v1/content/${cat}/${topicId}`)
       .then(res => {
@@ -130,14 +127,21 @@ export default function TopicViewer({ topicId, category }) {
     return () => window.removeEventListener('scroll', updateProgress)
   }, [content])
 
-  if (loading) return <div className="topic-content"><p>Loading...</p></div>
+  if (loading) {
+    return (
+      <div className="reader-loading" role="status" aria-label="Loading topic">
+        <p>Loading topic…</p>
+        <span /><span /><span />
+      </div>
+    )
+  }
 
   if (notFound) return <div className="topic-content"><p>Content not available yet.</p></div>
 
   const sections = getSections(content)
   const questions = getQuestions(content)
   const currentSection = sections.find(section => section.id === activeSection) || sections[0]
-  const currentLabel = currentSection?.title.replace(/^[🟢🟡🔴]\s*/, '') || 'the first section'
+  const currentLabel = currentSection ? cleanSectionTitle(currentSection.title) : 'the first section'
 
   return (
     <div className="study-layout">
@@ -171,9 +175,9 @@ export default function TopicViewer({ topicId, category }) {
                     onClick={() => scrollToSection(section.id)}
                     className={activeSection === section.id ? 'active' : ''}
                     aria-current={activeSection === section.id ? 'location' : undefined}
-                    aria-label={`Read ${section.title.replace(/^[🟢🟡🔴]\s*/, '')}`}
+                    aria-label={`Read ${cleanSectionTitle(section.title)}`}
                   >
-                    {section.title.replace(/^[🟢🟡🔴]\s*/, '')}
+                    {cleanSectionTitle(section.title)}
                   </button>
                 </li>
               ))}
@@ -211,7 +215,12 @@ export default function TopicViewer({ topicId, category }) {
           ))}
         </nav>
         <div className="topic-content">
-          <Suspense fallback={<p>Loading...</p>}>
+          <Suspense fallback={(
+            <div className="reader-loading reader-loading--renderer" role="status">
+              <p>Preparing reader…</p>
+              <span /><span /><span />
+            </div>
+          )}>
             <MarkdownRenderer content={content} />
           </Suspense>
         </div>

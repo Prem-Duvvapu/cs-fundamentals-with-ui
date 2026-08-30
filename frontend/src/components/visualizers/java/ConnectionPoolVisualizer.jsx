@@ -81,12 +81,12 @@ export default function ConnectionPoolVisualizer() {
       {/* Action Banner */}
       <div
         style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--state-info)',
           borderRadius: '8px',
           padding: '0.85rem 1.1rem',
           marginBottom: '1rem',
-          color: '#60a5fa',
+          color: 'var(--state-info)',
           fontSize: '0.92rem'
         }}
       >
@@ -96,8 +96,8 @@ export default function ConnectionPoolVisualizer() {
       {/* Grid: Pooled Connections vs Wait Queue */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* HikariCP Connection Slots */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#60a5fa', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-info)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-info)', display: 'flex', justifyContent: 'space-between' }}>
             <span>🔌 HikariCP Pooled DB Connections</span>
             <span>Max: {state.maxPoolSize}</span>
           </h4>
@@ -109,9 +109,9 @@ export default function ConnectionPoolVisualizer() {
                 <div
                   key={conn.id}
                   style={{
-                    background: inUse ? 'rgba(59, 130, 246, 0.2)' : '#020617',
+                    background: inUse ? 'var(--state-info-tint)' : 'var(--bg-inset)',
                     border: '1px solid',
-                    borderColor: inUse ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                    borderColor: inUse ? 'var(--state-info)' : 'var(--border-subtle)',
                     borderRadius: '8px',
                     padding: '0.75rem',
                     display: 'flex',
@@ -120,22 +120,22 @@ export default function ConnectionPoolVisualizer() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <strong style={{ color: '#f8fafc' }}>{conn.id}</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>{conn.id}</strong>
                     <span
                       style={{
                         fontSize: '0.7rem',
                         fontWeight: 'bold',
                         padding: '0.15rem 0.4rem',
                         borderRadius: '4px',
-                        background: inUse ? 'rgba(59, 130, 246, 0.3)' : 'rgba(16, 185, 129, 0.2)',
-                        color: inUse ? '#60a5fa' : '#34d399'
+                        background: inUse ? 'var(--state-info-tint)' : 'var(--state-success-tint)',
+                        color: inUse ? 'var(--state-info)' : 'var(--state-success)'
                       }}
                     >
                       {conn.status}
                     </span>
                   </div>
 
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     {inUse ? `Leased to: ${conn.borrowedBy}` : 'Ready for queries'}
                   </div>
 
@@ -155,8 +155,8 @@ export default function ConnectionPoolVisualizer() {
         </div>
 
         {/* Wait Queue */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#fbbf24', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card" style={{ borderLeft: '4px solid var(--state-warning)' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-warning)', display: 'flex', justifyContent: 'space-between' }}>
             <span>⏳ Request Thread FIFO Wait Queue</span>
             <span>Waiting: {state.waitQueue.length}</span>
           </h4>
@@ -166,8 +166,8 @@ export default function ConnectionPoolVisualizer() {
               <div
                 key={idx}
                 style={{
-                  background: 'rgba(245, 158, 11, 0.15)',
-                  border: '1px solid #f59e0b',
+                  background: 'var(--state-warning-tint)',
+                  border: '1px solid var(--state-warning)',
                   borderRadius: '6px',
                   padding: '0.5rem 0.75rem',
                   fontSize: '0.85rem',
@@ -176,12 +176,12 @@ export default function ConnectionPoolVisualizer() {
                   alignItems: 'center'
                 }}
               >
-                <strong style={{ color: '#f8fafc' }}>#{idx + 1} {thread}</strong>
-                <span style={{ fontSize: '0.7rem', color: '#fbbf24' }}>Blocked (Awaiting Connection)</span>
+                <strong style={{ color: 'var(--text-primary)' }}>#{idx + 1} {thread}</strong>
+                <span style={{ fontSize: '0.7rem', color: 'var(--state-warning)' }}>Blocked (Awaiting Connection)</span>
               </div>
             ))}
             {state.waitQueue.length === 0 && (
-              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>No queued threads. All requests served instantly.</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No queued threads. All requests served instantly.</span>
             )}
           </div>
         </div>

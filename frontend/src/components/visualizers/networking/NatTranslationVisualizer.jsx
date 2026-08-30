@@ -80,7 +80,7 @@ export default function NatTranslationVisualizer() {
   }
 
   return (
-    <div className="viz-card" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+    <div className="viz-card" style={{ border: '1px solid var(--border-subtle)' }}>
       <div style={{ marginBottom: '1.25rem' }}>
         <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
           🔄 NAT (Network Address Translation / NAPT) Simulator
@@ -92,10 +92,10 @@ export default function NatTranslationVisualizer() {
 
       {/* CONTROLS */}
       <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-        <button onClick={handleSendFromHostA} className="btn btn-primary" style={{ background: 'linear-gradient(135deg, #6366f1, #3b82f6)' }}>
+        <button onClick={handleSendFromHostA} className="btn btn-primary" style={{ background: 'linear-gradient(135deg, var(--cat-base), var(--state-info))' }}>
           Host A ➔ Send Outbound GET (Port 5000) 🚀
         </button>
-        <button onClick={handleSendFromHostB} className="btn btn-primary" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+        <button onClick={handleSendFromHostB} className="btn btn-primary" style={{ background: 'linear-gradient(135deg, var(--state-success), var(--state-success-border))' }}>
           Host B ➔ Send Outbound GET (Port 6000) 🚀
         </button>
         <button onClick={handleServerReply} className="btn btn-secondary">
@@ -107,43 +107,43 @@ export default function NatTranslationVisualizer() {
       </div>
 
       {/* THREE-STAGE TOPOLOGY ARCHITECTURE */}
-      <div style={{ background: '#020617', padding: '1.25rem', borderRadius: '12px', marginBottom: '1.25rem', border: '1px solid rgba(59,130,246,0.15)' }}>
+      <div style={{ background: 'var(--bg-code)', padding: '1.25rem', borderRadius: '12px', marginBottom: '1.25rem', border: '1px solid var(--state-info-border)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', alignItems: 'center' }}>
           {/* PRIVATE LAN */}
-          <div style={{ background: 'rgba(30,41,59,0.7)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+          <div style={{ background: 'var(--bg-raised)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--state-info)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
               🏠 Private LAN (192.168.1.0/24)
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ background: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
-                💻 Host A: <strong style={{ color: '#818cf8' }}>192.168.1.10:5000</strong>
+              <div style={{ background: 'var(--bg-surface)', padding: '0.5rem', borderRadius: '6px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+                💻 Host A: <strong style={{ color: 'var(--cat-base)' }}>192.168.1.10:5000</strong>
               </div>
-              <div style={{ background: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
-                💻 Host B: <strong style={{ color: '#34d399' }}>192.168.1.20:6000</strong>
+              <div style={{ background: 'var(--bg-surface)', padding: '0.5rem', borderRadius: '6px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+                💻 Host B: <strong style={{ color: 'var(--state-success)' }}>192.168.1.20:6000</strong>
               </div>
             </div>
           </div>
 
           {/* NAT ROUTER GATEWAY */}
-          <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', border: '2px solid #8b5cf6', textAlign: 'center' }}>
+          <div style={{ background: 'color-mix(in srgb, var(--bg-page) 88%, transparent)', padding: '1rem', borderRadius: '10px', border: '2px solid var(--cat-base)', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', marginBottom: '0.2rem' }}>🌐</div>
-            <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.9rem' }}>NAT Gateway Router</div>
-            <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace', marginTop: '0.2rem' }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>NAT Gateway Router</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontFamily: 'monospace', marginTop: '0.2rem' }}>
               LAN IP: 192.168.1.1
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#4ade80', fontFamily: 'monospace', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--state-success)', fontFamily: 'monospace', fontWeight: 600 }}>
               WAN IP: 203.0.113.1
             </div>
           </div>
 
           {/* PUBLIC INTERNET / SERVER */}
-          <div style={{ background: 'rgba(30,41,59,0.7)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div style={{ fontSize: '0.75rem', color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+          <div style={{ background: 'var(--bg-raised)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--state-warning)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
               ☁️ Public Internet / WAN
             </div>
-            <div style={{ background: '#0f172a', padding: '0.6rem', borderRadius: '6px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+            <div style={{ background: 'var(--bg-surface)', padding: '0.6rem', borderRadius: '6px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
               🖥️ Cloud Web Server:<br />
-              <strong style={{ color: '#fbbf24' }}>142.250.190.46:443</strong> (HTTPS)
+              <strong style={{ color: 'var(--state-warning)' }}>142.250.190.46:443</strong> (HTTPS)
             </div>
           </div>
         </div>
@@ -151,43 +151,43 @@ export default function NatTranslationVisualizer() {
 
       {/* PACKET REWRITE INSPECTOR */}
       {packetVisual && (
-        <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid #38bdf8', marginBottom: '1.25rem' }}>
-          <div style={{ fontSize: '0.88rem', color: '#f8fafc', fontWeight: 600, marginBottom: '0.3rem' }}>
+        <div style={{ background: 'color-mix(in srgb, var(--bg-page) 88%, transparent)', padding: '1rem', borderRadius: '10px', borderLeft: '4px solid var(--state-info)', marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.3rem' }}>
             📦 Packet Translation In Flight ({packetVisual.direction.toUpperCase()})
           </div>
-          <p style={{ color: '#cbd5e1', fontSize: '0.85rem', margin: '0 0 0.5rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0 0 0.5rem' }}>
             {packetVisual.info}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.5rem', fontFamily: 'monospace', fontSize: '0.78rem' }}>
-            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
-              <span style={{ color: '#94a3b8' }}>Pre-NAT: </span>
-              <span style={{ color: '#38bdf8' }}>{packetVisual.before.src} ➔ {packetVisual.before.dst}</span>
+            <div style={{ background: 'var(--bg-code)', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Pre-NAT: </span>
+              <span style={{ color: 'var(--state-info)' }}>{packetVisual.before.src} ➔ {packetVisual.before.dst}</span>
             </div>
-            <div style={{ color: '#8b5cf6', fontWeight: 700 }}>➔ NAT ➔</div>
-            <div style={{ background: '#020617', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
-              <span style={{ color: '#94a3b8' }}>Post-NAT: </span>
-              <span style={{ color: '#4ade80' }}>{packetVisual.after.src} ➔ {packetVisual.after.dst}</span>
+            <div style={{ color: 'var(--cat-base)', fontWeight: 700 }}>➔ NAT ➔</div>
+            <div style={{ background: 'var(--bg-code)', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Post-NAT: </span>
+              <span style={{ color: 'var(--state-success)' }}>{packetVisual.after.src} ➔ {packetVisual.after.dst}</span>
             </div>
           </div>
         </div>
       )}
 
       {/* LIVE NAT TRANSLATION TABLE */}
-      <div style={{ background: 'rgba(15,23,42,0.9)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <h4 style={{ margin: '0 0 0.5rem', color: '#f8fafc', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ background: 'color-mix(in srgb, var(--bg-page) 88%, transparent)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+        <h4 style={{ margin: '0 0 0.5rem', color: 'var(--text-primary)', fontSize: '0.92rem', display: 'flex', justifyContent: 'space-between' }}>
           <span>📋 NAT Translation State Table (NAPT)</span>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Entries: {natTable.length}</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Entries: {natTable.length}</span>
         </h4>
 
         {natTable.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '1rem', color: '#64748b', fontSize: '0.82rem', background: '#020617', borderRadius: '6px' }}>
+          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.82rem', background: 'var(--bg-code)', borderRadius: '6px' }}>
             NAT Translation Table is Empty (No active NAT sessions).
           </div>
         ) : (
-          <div style={{ background: '#020617', borderRadius: '6px', overflow: 'hidden', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+          <div style={{ background: 'var(--bg-code)', borderRadius: '6px', overflow: 'hidden', fontSize: '0.8rem', fontFamily: 'monospace' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
-                <tr style={{ background: 'rgba(30,41,59,0.8)', color: '#94a3b8' }}>
+                <tr style={{ background: 'var(--bg-raised)', color: 'var(--text-secondary)' }}>
                   <th style={{ padding: '0.4rem 0.6rem' }}>Proto</th>
                   <th style={{ padding: '0.4rem 0.6rem' }}>Internal (Private) Socket</th>
                   <th style={{ padding: '0.4rem 0.6rem' }}>NAT Public Socket (SNAT)</th>
@@ -197,12 +197,12 @@ export default function NatTranslationVisualizer() {
               </thead>
               <tbody>
                 {natTable.map((entry) => (
-                  <tr key={entry.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', color: '#cbd5e1' }}>
-                    <td style={{ padding: '0.4rem 0.6rem', color: '#38bdf8' }}>{entry.proto}</td>
-                    <td style={{ padding: '0.4rem 0.6rem', color: '#818cf8' }}>{entry.internal}</td>
-                    <td style={{ padding: '0.4rem 0.6rem', color: '#4ade80' }}>{entry.translated}</td>
-                    <td style={{ padding: '0.4rem 0.6rem', color: '#fbbf24' }}>{entry.external}</td>
-                    <td style={{ padding: '0.4rem 0.6rem', color: '#34d399' }}>{entry.state}</td>
+                  <tr key={entry.id} style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
+                    <td style={{ padding: '0.4rem 0.6rem', color: 'var(--state-info)' }}>{entry.proto}</td>
+                    <td style={{ padding: '0.4rem 0.6rem', color: 'var(--cat-base)' }}>{entry.internal}</td>
+                    <td style={{ padding: '0.4rem 0.6rem', color: 'var(--state-success)' }}>{entry.translated}</td>
+                    <td style={{ padding: '0.4rem 0.6rem', color: 'var(--state-warning)' }}>{entry.external}</td>
+                    <td style={{ padding: '0.4rem 0.6rem', color: 'var(--state-success)' }}>{entry.state}</td>
                   </tr>
                 ))}
               </tbody>
@@ -210,7 +210,7 @@ export default function NatTranslationVisualizer() {
           </div>
         )}
 
-        <div style={{ marginTop: '0.5rem', fontSize: '0.78rem', color: '#94a3b8' }}>
+        <div style={{ marginTop: '0.5rem', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
           Status: <em>{lastAction}</em>
         </div>
       </div>

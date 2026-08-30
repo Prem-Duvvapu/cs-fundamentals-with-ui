@@ -7,7 +7,9 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 - **Backend**: Java 17+, Spring Boot 3.x, Maven
 - **Frontend**: React 18+, Vite, React Router v6
 - **Data**: Static content-driven (`content/<category>/`); JSON for animations/configs
-- **Styling**: Vanilla CSS, Glassmorphism, CSS Modules, Dark Theme Tokens
+- **Styling**: Vanilla CSS in one global `frontend/src/App.css`, driven by `:root` and
+  `[data-theme]` design tokens. No CSS Modules, CSS-in-JS, or utility framework. See
+  `docs/DESIGN_SYSTEM.md`.
 
 ## Directory Structure
 ```
@@ -156,7 +158,7 @@ the plan.
 |---|---|---|
 | **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
 | **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ◐ Spec + validator + exemplar done; CI pending |
-| **P2** | Reading experience — default Study tab, TOC rail, tier nav, interview deck | ◐ In progress |
+| **P2** | Reading experience — default Study tab, TOC rail, tier nav, interview deck | ✅ **Done** |
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ☐ Not started |
 | **P4** | Content authoring, 56 topics in 3 waves | ☐ Not started |
 | **P5** | Cross-topic search + per-category Interview Mode | ☐ Not started |
@@ -168,7 +170,8 @@ the plan.
 - `TopicViewer.jsx` rewritten to delegate; `renderMarkdown()` and `dangerouslySetInnerHTML` removed
 - `TopicViewer.markdown.test.jsx` — golden-file suite over **all 56** content files (146 assertions)
 - Vitest upgraded 1.x → 2.1.8 with ESM deps inlined in `vite.config.js` (required for react-markdown 9)
-- `App.css` — styles for blockquotes, links, KaTeX, Mermaid containers, task lists, scrollable tables
+- `App.css` — dual-theme tokens, responsive shell, reader typography, Markdown surfaces, utilities,
+  accessible simulator primitives, and reduced-motion behavior
 
 ### Current implementation priorities
 
