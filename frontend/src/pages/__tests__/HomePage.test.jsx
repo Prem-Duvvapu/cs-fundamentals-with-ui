@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import HomePage from '../HomePage'
@@ -36,29 +36,27 @@ describe('HomePage', () => {
     expect(await screen.findByRole('heading', { name: 'CS Fundamentals Roadmap' })).toBeInTheDocument()
     await screen.findByText('OOP Pillars')
     expect(screen.getByRole('navigation', { name: 'Curriculum categories' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Full roadmap' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Full roadmap, 5 topics' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Java & Spring, 1 topic' })).toHaveTextContent('◐JAVA· 1')
     expect(screen.getByRole('list', { name: 'Java & Spring topics' })).toBeInTheDocument()
 
-    const headings = screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent)
-    expect(headings).toEqual(expect.arrayContaining([
-      '1. Java & Spring',
-      '2. Operating Systems',
-      '3. Computer Networks',
-      '4. DBMS',
-      '5. AI/ML Systems'
-    ]))
+    expect(screen.getByRole('heading', { name: '1. Java & Spring' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '2. Operating Systems' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '3. Computer Networks' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '4. DBMS' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '5. AI/ML Systems' })).toBeInTheDocument()
   })
 
   it('filters a category, reports its count, and preserves the study link', async () => {
     renderPage()
 
     await screen.findByText('OOP Pillars')
-    const osButton = screen.getByRole('button', { name: 'Operating Systems' })
+    const osButton = screen.getByRole('button', { name: 'Operating Systems, 1 topic' })
     fireEvent.click(osButton)
 
     expect(osButton).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('heading', { name: 'Operating Systems' })).toBeInTheDocument()
-    expect(screen.getByText(/1 topics in this path/i)).toBeInTheDocument()
+    expect(document.getElementById('os-heading')).toHaveTextContent('◆ Operating Systems')
+    expect(screen.getByText(/1 topic in this path/i)).toBeInTheDocument()
     expect(screen.getByText('Deadlocks')).toBeInTheDocument()
     expect(screen.queryByText('OOP Pillars')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Study Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
@@ -68,8 +66,27 @@ describe('HomePage', () => {
     renderPage()
 
     await screen.findByText('OOP Pillars')
-    expect(screen.getByText('Beginner')).toBeInTheDocument()
-    expect(screen.getByText('01')).toBeInTheDocument()
+    const oopRow = screen.getByRole('link', { name: 'Study OOP Pillars' }).closest('li')
+    expect(within(oopRow).getByLabelText('Beginner level')).toHaveTextContent('●Beginner')
+    expect(within(oopRow).getByText('01')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Study OOP Pillars' })).toHaveAttribute('href', '/topic/java-oop-pillars')
+  })
+
+  it('combines category and level filters and exposes an accessible empty state', async () => {
+    renderPage()
+
+    await screen.findByText('OOP Pillars')
+    fireEvent.click(screen.getByRole('button', { name: 'Operating Systems, 1 topic' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Expert' }))
+
+    expect(screen.getByRole('button', { name: 'Expert' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('status', { name: 'No topics match these filters' })).toBeInTheDocument()
+    expect(screen.queryByText('Deadlocks')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show all topics' }))
+
+    expect(screen.getByRole('button', { name: 'Full roadmap, 5 topics' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'All levels' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Deadlocks')).toBeInTheDocument()
   })
 })

@@ -4,33 +4,40 @@ import { fetchTopics } from '../utils/api'
 
 const LEVEL_ORDER = { beginner: 0, intermediate: 1, expert: 2 }
 const LEVEL_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', expert: 'Expert' }
+const LEVEL_GLYPHS = { beginner: '●', intermediate: '◐', expert: '◆' }
+const LEVEL_FILTERS = ['all', 'beginner', 'intermediate', 'expert']
 
 const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml']
 
 const CATEGORY_DETAILS = {
   'java-spring': {
     label: 'Java & Spring',
-    shortLabel: 'Java & Spring',
+    shortLabel: 'JAVA',
+    glyph: '◐',
     summary: 'Start with Java foundations, then build toward concurrency and Spring application architecture.'
   },
   os: {
     label: 'Operating Systems',
-    shortLabel: 'Operating Systems',
+    shortLabel: 'OS',
+    glyph: '◆',
     summary: 'Understand processes, memory, scheduling, synchronization, and the kernel services beneath applications.'
   },
   networking: {
     label: 'Computer Networks',
-    shortLabel: 'Networking',
+    shortLabel: 'NET',
+    glyph: '⬡',
     summary: 'Follow data from local links through routing, transport, and secure application protocols.'
   },
   dbms: {
     label: 'DBMS',
-    shortLabel: 'DBMS',
+    shortLabel: 'DB',
+    glyph: '▤',
     summary: 'Model data, reason about queries and transactions, then study storage and distributed trade-offs.'
   },
   aiml: {
     label: 'AI/ML Systems',
     shortLabel: 'AI/ML',
+    glyph: '✳',
     summary: 'Connect modern ML foundations to retrieval, serving, evaluation, and production operations.'
   }
 }
@@ -46,9 +53,14 @@ function sortTopics(topics) {
   })
 }
 
+function topicCountLabel(count) {
+  return `${count} ${count === 1 ? 'topic' : 'topics'}`
+}
+
 export default function HomePage() {
   const [topics, setTopics] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedLevel, setSelectedLevel] = useState('all')
 
   useEffect(() => {
     fetchTopics()
@@ -130,9 +142,16 @@ export default function HomePage() {
     topics: sortTopics(topics.filter(topic => topicCategory(topic) === id))
   }))
 
-  const visibleCategories = selectedCategory === 'all'
+  const selectedCategories = selectedCategory === 'all'
     ? categories
     : categories.filter(category => category.id === selectedCategory)
+
+  const visibleCategories = selectedCategories.map(category => ({
+    ...category,
+    topics: selectedLevel === 'all'
+      ? category.topics
+      : category.topics.filter(topic => (topic.level || 'beginner') === selectedLevel)
+  }))
 
   const visibleTopicCount = visibleCategories.reduce((count, category) => count + category.topics.length, 0)
 
@@ -145,27 +164,49 @@ export default function HomePage() {
           Build interview-ready understanding in the order that compounds: Java and Spring first, then the systems and data foundations that support them.
         </p>
 
-        <nav className="roadmap-selectors" aria-label="Curriculum categories">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory('all')}
-            className={`roadmap-selector ${selectedCategory === 'all' ? 'active' : ''}`}
-            aria-pressed={selectedCategory === 'all'}
-          >
-            Full roadmap
-          </button>
-          {CATEGORY_ORDER.map(categoryId => (
+        <div className="roadmap-filters">
+          <nav className="roadmap-selectors" aria-label="Curriculum categories">
             <button
-              key={categoryId}
               type="button"
-              onClick={() => setSelectedCategory(categoryId)}
-              className={`roadmap-selector ${selectedCategory === categoryId ? 'active' : ''}`}
-              aria-pressed={selectedCategory === categoryId}
+              onClick={() => setSelectedCategory('all')}
+              className={`roadmap-selector ${selectedCategory === 'all' ? 'active' : ''}`}
+              aria-pressed={selectedCategory === 'all'}
+              aria-label={`Full roadmap, ${topicCountLabel(topics.length)}`}
             >
-              {CATEGORY_DETAILS[categoryId].shortLabel}
+              <span>Full roadmap</span>
+              <span className="roadmap-selector-count" aria-hidden="true">· {topics.length}</span>
             </button>
-          ))}
-        </nav>
+            {categories.map(category => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setSelectedCategory(category.id)}
+                className={`roadmap-selector ${selectedCategory === category.id ? 'active' : ''}`}
+                aria-pressed={selectedCategory === category.id}
+                aria-label={`${category.label}, ${topicCountLabel(category.topics.length)}`}
+                data-category={category.id}
+              >
+                <span className="category-glyph" aria-hidden="true">{category.glyph}</span>
+                <span>{category.shortLabel}</span>
+                <span className="roadmap-selector-count" aria-hidden="true">· {category.topics.length}</span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="level-selectors" role="group" aria-label="Topic levels">
+            {LEVEL_FILTERS.map(level => (
+              <button
+                key={level}
+                type="button"
+                className={`level-selector ${selectedLevel === level ? 'active' : ''}`}
+                aria-pressed={selectedLevel === level}
+                onClick={() => setSelectedLevel(level)}
+              >
+                {level === 'all' ? 'All levels' : LEVEL_LABELS[level]}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
       <main aria-live="polite">
@@ -176,31 +217,58 @@ export default function HomePage() {
           <p>
             {selectedCategory === 'all'
               ? `Study ${visibleTopicCount} topics across five connected foundations. Each section below follows the recommended priority order.`
-              : `${CATEGORY_DETAILS[selectedCategory].summary} ${visibleTopicCount} topics in this path.`}
+              : `${CATEGORY_DETAILS[selectedCategory].summary} ${topicCountLabel(visibleTopicCount)} in this path.`}
           </p>
         </section>
 
         {topics.length === 0 ? (
           <p className="category-overview">Loading the curriculum roadmap…</p>
-        ) : visibleCategories.map((category, categoryIndex) => (
-          <section key={category.id} className="category-overview" aria-labelledby={`${category.id}-heading`}>
+        ) : visibleTopicCount === 0 ? (
+          <section className="roadmap-empty-state" role="status" aria-labelledby="empty-roadmap-heading">
+            <h2 id="empty-roadmap-heading">No topics match these filters</h2>
+            <p>Choose another category or level to continue exploring the curriculum.</p>
+            <button
+              type="button"
+              className="roadmap-empty-action"
+              onClick={() => {
+                setSelectedCategory('all')
+                setSelectedLevel('all')
+              }}
+            >
+              Show all topics
+            </button>
+          </section>
+        ) : visibleCategories.filter(category => category.topics.length > 0).map((category, categoryIndex) => (
+          <section
+            key={category.id}
+            className="category-overview"
+            aria-labelledby={`${category.id}-heading`}
+            data-category={category.id}
+          >
             <h2 id={`${category.id}-heading`}>
+              <span className="category-glyph" aria-hidden="true">{category.glyph}</span>{' '}
               {selectedCategory === 'all' ? `${categoryIndex + 1}. ${category.label}` : category.label}
             </h2>
             <div className="category-meta">
               <p>{category.summary}</p>
-              <span>{category.topics.length} topics</span>
+              <span>{topicCountLabel(category.topics.length)}</span>
             </div>
             <ol className="topic-rows" aria-label={`${category.label} topics`}>
               {category.topics.map((topic, topicIndex) => (
                 <li key={topic.id} className="topic-row">
                   <span className="topic-number" aria-label={`Topic ${topicIndex + 1}`}>{String(topicIndex + 1).padStart(2, '0')}</span>
-                  <div>
-                  <span className={`badge ${topic.level || 'beginner'}`}>
-                    {LEVEL_LABELS[topic.level] || 'Beginner'}
-                  </span>
-                  <h3>{topic.title}</h3>
-                  <p>{topic.summary}</p>
+                  <div className="topic-row-body">
+                    <span
+                      className={`tier-badge tier-badge--${topic.level || 'beginner'}`}
+                      aria-label={`${LEVEL_LABELS[topic.level] || 'Beginner'} level`}
+                    >
+                      <span className="tier-badge-glyph" aria-hidden="true">
+                        {LEVEL_GLYPHS[topic.level] || LEVEL_GLYPHS.beginner}
+                      </span>
+                      <span>{LEVEL_LABELS[topic.level] || 'Beginner'}</span>
+                    </span>
+                    <h3 className="topic-row-title">{topic.title}</h3>
+                    <p className="topic-row-summary">{topic.summary}</p>
                   </div>
                   <Link to={`/topic/${topic.id}`} className="roadmap-cta" aria-label={`Study ${topic.title}`}>
                     Study topic <span aria-hidden="true">→</span>
