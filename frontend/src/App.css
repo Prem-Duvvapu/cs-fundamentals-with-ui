@@ -1146,6 +1146,48 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .schema-column-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .action-buttons-group.mt-lg { margin-top: var(--space-5); }
 
+/* BPlusTreeVisualizer (and reusable info-banner pattern) */
+.bptree-toolbar { margin-bottom: var(--space-4); }
+.bptree-form-row { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-3); }
+.bptree-key-group { align-items: center; display: flex; flex: 1; gap: var(--space-2); min-width: 13.75rem; }
+.bptree-key-input { flex: 1; padding: var(--space-2) var(--space-3); }
+.select-input.is-compact { font-size: var(--ui-sm); padding: var(--space-2) var(--space-3); }
+.btn.is-snug { padding: var(--space-2) var(--space-4); }
+.action-banner { align-items: center; background: var(--bg-surface); border: var(--stroke-hair) solid var(--state-info-border); border-radius: var(--radius-sm); color: var(--state-info); display: flex; font-size: .92rem; gap: var(--space-2); margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); }
+.action-banner .banner-icon { font-size: 1.2rem; }
+.bptree-canvas-card { background: var(--bg-code); border-radius: var(--radius-lg); min-height: 23.75rem; overflow-x: auto; padding: var(--space-4); }
+.bptree-canvas-card h3 { align-items: center; color: var(--text-secondary); display: flex; font-size: var(--ui-lg); justify-content: space-between; margin: 0 0 var(--space-4); }
+.bptree-canvas-card h3 .hint { color: var(--text-muted); font-size: var(--ui-xs); font-weight: 400; }
+.bptree-svg { overflow: visible; }
+
+/* TransactionsAcidVisualizer */
+.acid-scenario-picker { padding: var(--space-4); }
+.acid-scenario-label { color: var(--text-secondary); margin-right: var(--space-3); }
+.acid-scenario-btn { font-size: var(--ui-sm); margin: .2rem; padding: var(--space-2) var(--space-4); }
+.header-pill.is-idle-fallback { background: var(--state-idle-border); }
+.state-path-row { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-4) 0; }
+.state-pill { font-size: var(--ui-sm); }
+.state-pill.is-dim { background: var(--border-default); font-weight: 400; opacity: .55; }
+.state-pill.is-current { font-weight: 700; opacity: 1; }
+.acid-description { margin: var(--space-3) 0; }
+.acid-sql-block { background: var(--bg-code); border-radius: var(--radius-sm); overflow-x: auto; padding: var(--space-3); white-space: pre-wrap; }
+.acid-accounts-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; margin-top: var(--space-4); }
+.acid-log-panel { margin-top: var(--space-4); }
+.acid-log-header { color: var(--state-warning); display: flex; font-size: var(--ui-xs); justify-content: space-between; margin-bottom: var(--space-1); }
+.acid-lsn { color: var(--state-info); margin-right: var(--space-2); }
+.acid-durability-pill { font-size: var(--ui-2xs); }
+.acid-durability-pill.is-durable { background: var(--state-success-border); }
+.acid-durability-pill.is-volatile { background: var(--state-danger-tint); }
+.acid-recovery-panel { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); }
+.acid-phase-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.acid-phase-pill { font-size: var(--ui-sm); }
+.acid-phase-pill.is-active { background: var(--state-info-border); opacity: 1; }
+.acid-phase-pill.is-inactive { background: var(--border-default); opacity: .5; }
+.acid-tx-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(13.75rem, 1fr)); }
+.acid-tx-status { color: var(--text-primary); font-size: var(--ui-sm); }
+.acid-queue-panel { max-height: 8.75rem; }
+.acid-metrics-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr)); }
+
 /* Context Switch Visualizer */
 .switch-animation-container {
   display: flex;
