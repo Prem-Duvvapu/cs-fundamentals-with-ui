@@ -6,7 +6,19 @@ The application layer is where a browser, mobile application, or service decides
 
 ## 🟢 Beginner Level
 
-### A request is more than a URL
+### Application protocols and their responsibilities
+
+| Protocol | Primary responsibility and typical backend use |
+|---|---|
+| **HTTP / HTTPS** | Request-response resource transfer; HTTPS is HTTP protected by TLS for server authentication, confidentiality, and integrity. |
+| **DNS** | Resolves hierarchical names into typed records so clients can locate services and mail infrastructure. |
+| **DHCP** | Dynamically leases IP configuration, including prefix, default gateway, DNS resolvers, and lease lifetime. |
+| **FTP / SFTP** | FTP transfers files with separate control and data channels; SFTP is the encrypted SSH File Transfer Protocol, not FTP with TLS. |
+| **SMTP** | Relays outgoing mail between clients and mail transfer agents and among mail servers. |
+| **IMAP / POP3** | IMAP synchronises server-side mailboxes across clients; POP3 primarily downloads messages using a simpler mailbox model. |
+| **SSH** | Authenticates and encrypts remote shells, command execution, tunnels, and SFTP sessions. |
+| **WebSocket** | Upgrades an HTTP connection to a persistent, full-duplex message channel for bidirectional low-latency updates. |
+| **gRPC** | Defines typed RPC services, commonly using Protocol Buffers and HTTP/2 streaming between internal services. |
 
 When a user enters `https://www.example.com/products`, the client first needs an address for `www.example.com`.
 
@@ -32,7 +44,9 @@ An `AAAA` record maps a name to an IPv6 address.
 
 A `CNAME` record makes one name an alias for another canonical name.
 
-An `MX` record identifies mail exchangers, while `TXT` is commonly used for ownership and policy data.
+An `MX` record identifies mail exchangers, `TXT` is commonly used for ownership and policy data, and `NS` delegates a zone to authoritative nameservers.
+
+The core record-type vocabulary is A, AAAA, CNAME, MX, TXT, and NS; each type carries different data and therefore answers a different resolution question.
 
 Most applications ask a recursive resolver, often supplied by the network or chosen by the operating system.
 
@@ -93,6 +107,8 @@ HTTP gives a common shape to application messages.
 The request line or pseudo-headers identify a method and target resource.
 
 Headers carry metadata such as content type, caching policy, credentials, and accepted representations.
+
+`Content-Type` identifies the body's media type, `Authorization` carries caller credentials, and cookies let a server associate later requests with browser state such as a session identifier. `Keep-Alive` and persistent connections amortise connection setup, compression reduces transferred representation or header bytes, and caching reuses responses only under the validators and freshness rules described later.
 
 The body carries a representation when the method needs one.
 
@@ -471,6 +487,16 @@ This can improve continuity for mobile users, especially for long-running transf
 It also requires careful anti-amplification checks and path validation so an attacker cannot cause a server to send traffic to a victim address.
 
 Connection IDs can create linkability concerns, so endpoints rotate them according to protocol rules and deployment policy.
+
+### Backend delivery patterns: proxies, streaming, and load balancing
+
+A **forward proxy** represents clients when reaching external origins, whereas a **reverse proxy** represents origins and terminates client traffic before routing it internally. An **L4 load balancer** distributes transport connections using addresses and ports; an **L7 load balancer** understands HTTP hosts, paths, headers, and methods, enabling content-aware routing at greater processing cost.
+
+An **API gateway** centralises authentication, routing, quotas, and protocol adaptation at an API boundary, while a **CDN** caches and serves eligible content from edge locations near users. Both can become policy bottlenecks, so ownership, bypass prevention, cache keys, invalidation, and failure behaviour must be explicit.
+
+Backend services use connection pools and keep-alive to reuse costly database or upstream connections, but pool limits, idle timeouts, and downstream capacity must agree to avoid queue amplification. **WebSockets** provide full-duplex sessions, **SSE** streams server-to-client events over HTTP, and **long polling** holds or repeats requests when true streaming is unavailable.
+
+**Rate limiting** protects finite capacity using an identity and time-window policy, while **sticky sessions** keep one client mapped to one backend when state cannot be shared. Stickiness weakens balancing and failover, so stateless services or external session stores are usually more resilient.
 
 ### Observability across the application layer
 
