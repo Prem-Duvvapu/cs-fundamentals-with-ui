@@ -61,7 +61,7 @@ It compares the stored hash first as a quick filter.
 It then checks reference equality or `equals` before replacing or returning a value.
 This is why collisions affect speed but should not normally affect correctness.
 
-### The key contract makes lookups reliable
+### equals and hashCode are a collection contract
 
 Keys obey an important contract.
 When `a.equals(b)` is true, `a.hashCode()` must equal `b.hashCode()`.
@@ -203,7 +203,7 @@ This efficient split is one reason capacity must remain a power of two.
 It is also why resizing is still expensive: every existing bucket must be visited even though hashes are reused.
 Pre-sizing a large predictable map reduces resize pauses and garbage pressure.
 
-### Collisions use a list and sometimes a tree
+### Buckets, collisions, resizing, and treeification
 
 Initially, a collision chain is linked nodes.
 Searching a chain of $k$ entries is $O(k)$.
@@ -249,6 +249,29 @@ Integer previous = balances.put(new AccountKey(7), 125);
 Map size counts distinct keys, not successful `put` calls.
 Value replacement does not normally change the structural modification count.
 That distinction explains iterator fail-fast behaviour later in the lesson.
+
+### Choosing HashMap, LinkedHashMap, or TreeMap
+
+These three maps implement `Map` but make different ordering and performance promises.
+`HashMap` has no contractual iteration order and provides expected $O(1)$ lookup with well-distributed keys.
+`LinkedHashMap` adds a doubly linked encounter-order chain across entries while retaining hash-based lookup.
+`TreeMap` stores entries in a red-black tree ordered by natural ordering or a supplied `Comparator`.
+
+| Implementation | Ordering contract | Typical lookup | Distinctive use |
+|---|---|---:|---|
+| `HashMap` | no guaranteed order | expected $O(1)$ | general key-value lookup |
+| `LinkedHashMap` | insertion order or access order | expected $O(1)$ | predictable iteration or simple LRU policy |
+| `TreeMap` | sorted by key comparator | $O(\log n)$ | range queries, nearest keys, sorted traversal |
+
+An access-ordered `LinkedHashMap` moves an entry toward the end when it is accessed.
+Overriding `removeEldestEntry` can build a small, synchronised LRU-style map, although production caches usually need stronger expiry, concurrency, and admission policies.
+
+`TreeMap` uses comparison rather than hash buckets.
+Its comparator should be consistent with `equals`; otherwise two keys that compare as zero can replace one another even when `equals` returns false.
+Mutable fields used by either hashing or ordering are unsafe because changing them breaks the collection's placement invariant.
+
+Neither `HashMap`, `LinkedHashMap`, nor `TreeMap` supports unsynchronised concurrent mutation.
+Choose `ConcurrentHashMap` for concurrent key-based access or `ConcurrentSkipListMap` when concurrent sorted navigation is required.
 
 ---
 
@@ -342,7 +365,7 @@ Synchronising externally around every related operation is valid for a small, ti
 For independently concurrent operations, use `ConcurrentHashMap`.
 For a single counter, use `LongAdder` or `computeIfAbsent` plus a concurrent counter rather than a read-modify-write sequence.
 
-### ConcurrentHashMap combines CAS and narrow locking
+### ConcurrentHashMap and concurrent map design
 
 Java 8 and later `ConcurrentHashMap` uses a shared table rather than the older segmented layout.
 It uses compare-and-set when installing a node into an empty bucket.
