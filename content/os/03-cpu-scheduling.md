@@ -99,7 +99,9 @@ They must still ensure CPU-bound work eventually makes progress.
 
 ## 🟡 Intermediate Level
 
-### FCFS, SJF, SRTF, and priority
+### CPU scheduling algorithms
+
+The core CPU scheduling algorithms are First-Come, First-Served (FCFS), Shortest Job First (SJF), its preemptive Shortest Remaining Time First (SRTF) variant, priority scheduling, and preemptive Round Robin (RR). Preemption lets the scheduler interrupt a running task, while non-preemptive policies wait for it to block or finish. Priority scheduling can cause starvation when urgent work keeps arriving, so aging gradually raises the priority of waiting tasks. Compare policies by calculating turnaround time, waiting time, and response time from each process's arrival, first dispatch, CPU service, and completion.
 
 First-Come, First-Served runs tasks in arrival order.
 

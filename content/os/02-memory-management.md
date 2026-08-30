@@ -8,7 +8,7 @@ The useful goal is not to memorize page-table acronyms but to follow exactly wha
 
 ## 🟢 Beginner Level
 
-### Virtual Addresses Are an Isolation Contract
+### Address translation, paging, and segmentation
 
 An application uses virtual addresses, also called logical addresses.
 RAM hardware uses physical addresses.
@@ -32,6 +32,11 @@ flowchart LR
 Virtual memory is therefore an isolation and abstraction mechanism, not merely a trick for using disk as extra RAM.
 It lets the kernel map program code, shared libraries, files, anonymous heap pages, stacks, and device memory using one address-space model.
 It also lets the kernel remove or delay mappings until the process actually needs them.
+
+Segmentation is an alternative variable-size model in which a logical address selects a semantic segment, such as code, stack, or data, plus an offset.
+The segment table supplies a physical base, a length limit, and protection bits; translation adds the offset to the base only when the offset is within that limit.
+Segmentation makes protection and sharing align with program regions, but variable-size placement creates external fragmentation and may require compaction.
+Modern general-purpose systems primarily use paging, although architectural segment concepts and segmented protection remain important historically and in some execution modes.
 
 ### Contiguous Allocation and Fragmentation
 
@@ -133,7 +138,7 @@ The hierarchy is not a chain searched linearly by page number.
 Different bit fields index each level directly.
 An absent upper-level entry proves that a whole region of the virtual address space has no mapping.
 
-### Demand Paging and the Fault Path
+### Virtual memory and page replacement
 
 Demand paging allocates or reads a page when a process first accesses it instead of eagerly loading all possible pages.
 This improves startup time and lets RAM hold the working sets of more processes.
@@ -161,6 +166,10 @@ Clock replacement keeps pages in a circular list and uses a reference bit.
 It clears a referenced page's bit and advances, selecting a page already observed unused on a later pass.
 Operating systems use more sophisticated active/inactive lists and aging approximations rather than a literal textbook list in every path.
 The common goal is to keep the current working set resident and evict cold pages cheaply.
+
+FIFO, LRU, and Optimal are the canonical page-replacement comparison points.
+Optimal supplies a lower bound for an observed reference string, while implementable policies use past access as an imperfect predictor of future reuse.
+When allocated frames fall below a workload's active working set, repeated eviction and refaulting create thrashing rather than useful memory sharing.
 
 | Policy | Choice rule | Strength | Important weakness |
 |---|---|---|---|

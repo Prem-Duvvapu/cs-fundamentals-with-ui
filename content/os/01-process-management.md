@@ -8,11 +8,59 @@ Interviewers ask about it because process state, context switching, `fork`, and 
 
 ## 🟢 Beginner Level
 
-### A program becomes a process when it runs
+### Operating system fundamentals
+
+An **operating system** manages hardware resources and provides durable abstractions such as processes, virtual memory, files, sockets, and devices.
+The **kernel** is its privileged core; the wider OS also includes system libraries, startup services, command tools, and user interfaces.
+Applications therefore depend on the OS without executing every service inside the kernel.
+
+Processors enforce at least two privilege levels.
+**User mode** restricts direct device access and privileged instructions, while **kernel mode** allows the kernel to configure memory mappings, interrupt controllers, and hardware.
+A **system call**, or syscall, is a controlled entry from user mode into a validated kernel service such as reading a file, mapping memory, or creating a process.
+
+An **interrupt** is usually an asynchronous hardware notification, such as a network card reporting received data.
+A **trap** is a synchronous transfer caused by the current instruction, such as a syscall request, breakpoint, invalid opcode, or page fault.
+Both enter a kernel handler, but their causes and restart semantics differ.
+
+```mermaid
+flowchart TD
+    P["Firmware powers on and validates hardware"] --> B["Bootloader selects and loads kernel"]
+    B --> K["Kernel initializes memory, CPUs, drivers, and scheduler"]
+    K --> I["Kernel starts first user-space process"]
+    I --> S["Init system starts services"]
+    S --> U["Login, shell, and applications in user mode"]
+    U -->|"system call or trap"| K
+    H["Device interrupt"] --> K
+```
+
+The **boot** process begins in firmware, which discovers hardware and transfers control to a bootloader.
+The bootloader loads the kernel and an initial filesystem; the kernel initializes subsystems and starts the first user-space process, which launches services and login environments.
+A boot failure is therefore diagnosed by the last completed layer rather than treating startup as one indivisible event.
+
+Operating systems are described by workload and timing goals.
+Batch systems prioritize throughput, time-sharing systems prioritize interactive fairness, real-time systems bound response deadlines, embedded systems fit constrained devices, and distributed systems coordinate resources across machines.
+These categories overlap; a general-purpose Linux host can run interactive, batch, and soft-real-time workloads simultaneously.
+
+A **monolithic kernel** keeps major services such as scheduling, filesystems, networking, and many drivers in one privileged address space, enabling efficient internal calls but increasing the fault impact of kernel defects.
+A **microkernel** keeps only minimal mechanisms such as scheduling, address spaces, and IPC in privileged mode and moves more services to isolated user processes.
+Microkernels gain isolation and replaceability at the cost of extra IPC and context transitions; practical kernels often combine ideas rather than fitting a pure label.
+
+### Processes and process control blocks
 
 A program is passive bytes on disk: executable code, static data, and metadata.
 A process is that program while the operating system is executing it.
 Each process has an identity, current CPU state, virtual address space, and operating-system-managed resources.
+
+The OS **creates** a process by assigning identity, a virtual address space, resource tables, and an initial thread; Unix `fork` and `exec` and Windows process-creation APIs expose different versions of this operation.
+The creator establishes a **parent-child** relationship used for accounting, signals, and exit-status collection.
+A process **terminates** normally by returning an exit status or abnormally through a fatal signal or fault, after which the kernel releases most resources.
+
+The process moves among process **states** such as ready, running, waiting, stopped, and terminated.
+Its **process control block (PCB)** retains the state required to schedule, suspend, and resume it, while a **context switch** saves one execution context and restores another.
+CPU-bound work spends long periods computing and tends to remain runnable; I/O-bound work frequently blocks for storage, network, or device completion and often runs in short bursts.
+
+A terminated child whose status has not been collected is a **zombie**, while a running child whose parent has exited is an **orphan** that must be adopted by a reaper.
+These are relationship and lifecycle terms, not scheduling algorithms.
 
 Launching the same executable twice normally creates two independent processes.
 They may map the same executable file pages, but their mutable memory and process IDs are distinct.
@@ -110,11 +158,23 @@ Frequent switching can also damage cache and TLB locality, making the cost great
 
 ## 🟡 Intermediate Level
 
-### Processes and threads trade isolation for sharing
+### Threads, concurrency, and parallelism
 
 A process owns a virtual address space and a set of kernel-managed resources.
 A thread is an execution context within a process.
 Threads in one process normally share heap memory, code mappings, and open files, while retaining separate registers and stacks.
+
+A **user-level thread** can be created and scheduled by a language runtime without a separate kernel schedulable entity for every logical task.
+This makes creation and switching cheap, but a blocking operation can stall the underlying carrier unless the runtime integrates with non-blocking I/O or multiple carriers.
+A **kernel-level thread** is known to the OS scheduler, can block independently, and can run directly on another core, but its creation and context switching require kernel bookkeeping.
+
+**Concurrency** means multiple tasks make progress during overlapping time intervals; one CPU can provide concurrency by interleaving them.
+**Parallelism** means tasks execute at the same instant, which requires multiple execution resources such as a multicore processor.
+On multicore hardware, kernel threads from one process may run truly in parallel, while user-level runtimes map many logical threads onto an available set of kernel threads.
+
+Threading improves responsiveness, resource sharing, and I/O overlap, but introduces stack memory, scheduling overhead, synchronization, races, deadlocks, and difficult failure containment.
+A thread context switch within one process can retain the address space and be cheaper than switching processes, yet it still saves registers and can disturb CPU caches.
+The right design bounds runnable work rather than assuming more threads always create more parallel throughput.
 
 | Property | Process | Thread in same process |
 |---|---|---|
