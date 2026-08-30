@@ -11,13 +11,12 @@ Full-stack interactive CS-fundamentals learning platform: a Spring Boot 3.2 / Ja
 ## Commands
 
 ```bash
-./start.sh                 # auto-detects Docker; else runs both locally
-./start.sh --local         # mvn spring-boot:run (8080) + vite dev (5173)
-./start.sh --docker        # docker-compose up --build (nginx :80 proxies /api -> backend:8080)
+./start.sh                 # local Spring Boot :9190 + Vite :3000; no Docker
+docker compose up --build  # optional containerized Nginx :3000 + API :9190
 
 npm test --prefix frontend                  # vitest run (all suites)
 npm test --prefix frontend -- erModelEngine # single suite by path/name substring
-npm run dev --prefix frontend               # Vite dev server, proxies /api -> localhost:8080
+npm run dev --prefix frontend               # Vite :3000, proxies /api -> localhost:9190
 npm run build --prefix frontend
 
 mvn test -f backend/pom.xml
@@ -89,5 +88,7 @@ JSON schema, and the known prop/styling drift).
 
 - **Doc & test sync rule** (from `AGENTS.md`): after any code, architecture, or feature change, update `README.md`, `CONTEXT.md`, and `AGENTS.md`, add/update the Vitest and JUnit suites, and verify both suites pass before calling the task done.
 - Branches/commits: `feat/<YYYY-MM-DD>-<topic>` or `fix/<description>`.
-- Styling is vanilla CSS (dark glassmorphism tokens in `src/App.css`) plus inline styles inside shared shells; there are no CSS-in-JS or utility frameworks.
+- Styling is vanilla CSS in `src/App.css`, with dark/light design tokens as the contract. Static
+  presentation belongs in classes; inline styles are reserved for computed geometry or state.
+  Check both themes and the standard responsive breakpoints. See `docs/DESIGN_SYSTEM.md`.
 - Comments are minimal — prefer self-documenting code.

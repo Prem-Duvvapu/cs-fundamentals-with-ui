@@ -16,7 +16,7 @@ mappings machine-verifiable alongside route and content validation.
                        │          Client Browser       │
                        └──────────────┬────────────────┘
                                       │
-                         HTTP Requests│ Ports 80 / 5173
+                         HTTP Requests│ Host port 3000 (configurable)
                                       ▼
              ┌──────────────────────────────────────────────────┐
              │       Frontend Service (Nginx Container)         │
@@ -38,14 +38,17 @@ mappings machine-verifiable alongside route and content validation.
 ### Docker Files & Services
 1. **`backend/Dockerfile`**:
    - Multi-stage build (Maven 3.9 + Temurin JDK 17 builder $\rightarrow$ Temurin JRE 17 Alpine runtime).
-   - Serves API on `http://localhost:8080`.
+   - Serves API on host port `9190` by default (container port `8080`).
 2. **`frontend/Dockerfile`**:
    - Multi-stage build (Node 18 Alpine builder $\rightarrow$ Nginx Alpine web server).
    - Implements `nginx.conf` reverse proxy routing `/api` requests to `http://backend:8080`.
 3. **`docker-compose.yml`**:
-   - Orchestrates `backend` and `frontend` services with health checks and restart policies.
+   - Orchestrates `backend` and `frontend` services with health checks, a read-only curriculum
+     mount, restart policies, and one configurable public port per service.
 4. **`start.sh`**:
-   - One-command launcher script. Run `./start.sh` (or `./start.sh --docker` / `./start.sh --local`).
+   - Location-independent local launcher. `./start.sh` starts its free-port search at `9190` for
+     Spring Boot and `3000` for Vite, wires the selected backend port into Vite's proxy, validates
+     prerequisites, and cleans up both child processes. It never invokes Docker.
 
 ---
 
@@ -135,21 +138,23 @@ interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 every file in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
 
-### Reading Experience Roadmap
+### Reading Experience
 
-The topic page is being rebuilt around long-form study. The next UI components are a sticky
-table-of-contents rail, tier jump navigation, reading progress and an interview deck generated
-from the Expert-tier Q&A. These must remain keyboard accessible and collapse cleanly on mobile.
+The topic page is built around long-form study. It provides a sticky table-of-contents rail,
+tier jump navigation, reading progress and an interview deck generated from the Expert-tier Q&A.
+Tabs expose full ARIA relationships and arrow-key navigation, while the rail collapses cleanly on mobile.
 Simulation-only pages remain lazy loaded so study readers do not pay their bundle cost upfront.
 
 The home route complements the reader with a category-first roadmap. It presents category
 summaries and counts, then ordered topic rows with level badges and direct Study links; filters
 remain semantic buttons so keyboard users receive the same orientation as pointer users.
 
-The shared dark palette keeps primary text, subdued supporting text, interactive purple, and
-semantic green/amber/red states distinct. All additions must retain keyboard focus indicators,
-respect `prefers-reduced-motion`, and use responsive breakpoints rather than relying on a single
-desktop layout. Design references: [WCAG 2.2](https://www.w3.org/WAI/WCAG22/quickref/),
+The token system in `frontend/src/App.css` provides dark and light palettes, five category accents,
+semantic state colours, reading typography, spacing and motion. The saved theme follows the system
+preference initially; Mermaid diagrams and syntax highlighting react to theme changes without a reload.
+All additions must retain keyboard focus indicators, pair colour with labels or glyphs, respect
+`prefers-reduced-motion`, and use responsive breakpoints rather than relying on a desktop layout.
+See [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Design references: [WCAG 2.2](https://www.w3.org/WAI/WCAG22/quickref/),
 [MDN media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using),
 and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 

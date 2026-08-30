@@ -19,17 +19,20 @@ cd cs-fundamentals-with-ui
 ./start.sh
 ```
 
-- **Frontend UI**: [http://localhost](http://localhost) (or [http://localhost:5173](http://localhost:5173))
-- **Backend API**: [http://localhost:8080/api/v1/topics](http://localhost:8080/api/v1/topics)
+- **Frontend UI**: starts at [http://localhost:3000](http://localhost:3000)
+- **Backend API**: starts at [http://localhost:9190/api/v1/topics](http://localhost:9190/api/v1/topics)
+
+If either port is occupied, `start.sh` selects the next free port and prints the actual URLs.
+`FRONTEND_PORT` and `BACKEND_PORT` change the starting ports when needed.
 
 ### Alternative Startup Options
 
 ```bash
-# Start via Docker Compose explicitly
-docker-compose up --build
+# Start via Docker Compose explicitly (separate from start.sh)
+docker compose up --build
 
-# Or start via local development mode (Spring Boot + Vite)
-./start.sh --local
+# start.sh always launches Spring Boot + Vite locally
+./start.sh
 ```
 
 ---
@@ -96,7 +99,7 @@ docker-compose up --build
 ## 🛠 Tech Stack & Architecture
 
 - **Backend**: Java 17, Spring Boot 3.2.0, Maven
-- **Frontend**: React 18, Vite, React Router v6, CSS Modules & Modern Animations
+- **Frontend**: React 18, Vite, React Router v6, and token-driven vanilla CSS
 - **Content rendering**: react-markdown + remark-gfm, KaTeX math, Mermaid diagrams, syntax highlighting
 - **Testing**: Vitest, React Testing Library, JUnit 5, Spring Boot Test
 - **Containerization**: Docker, Docker Compose, Nginx Reverse Proxy
@@ -127,7 +130,7 @@ adequate depth.
 
 ### Experience Standards
 
-Every learning surface must be responsive, keyboard-operable and readable in the dark theme.
+Every learning surface must be responsive, keyboard-operable and readable in both dark and light themes.
 Study navigation collapses for smaller screens, interactive targets retain visible focus, and the
 interface honours reduced-motion preferences. UI choices are guided by the [WCAG 2.2 quick
 reference](https://www.w3.org/WAI/WCAG22/quickref/), [MDN responsive-design
@@ -137,6 +140,11 @@ guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/
 The home page is a guided curriculum roadmap: category filters expose topic counts, ordered
 topic rows, level badges and a direct Study action. Each topic reader supplies an orientation,
 reading progress, a collapsible accessible table of contents, tier jumps and a recall deck.
+
+The interface follows the operating-system theme on first visit and persists an explicit choice.
+Category and learning-level states always combine colour with a glyph or text label. See the
+[design-system reference](docs/DESIGN_SYSTEM.md) for tokens, responsive behavior, and accessibility
+requirements.
 
 ---
 

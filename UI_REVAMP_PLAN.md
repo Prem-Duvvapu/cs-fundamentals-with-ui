@@ -3,6 +3,12 @@
 **Audience:** the coding agent (Codex) implementing this. **Author:** design lead.
 **Status:** approved by the owner on 2026-08-30. Implementation may proceed through all phases.
 
+**Implementation snapshot (2026-08-30):** phases 1–5 are implemented, including dual themes,
+the responsive navigation and curriculum roadmap, the accessible topic reader, live Mermaid
+retheming, and shared simulator primitives. Phase 6 token migration is complete for Java and
+networking visualizers; remaining visualizer directories and the final cleanup audit are follow-up
+work. The canonical contributor-facing rules now live in `docs/DESIGN_SYSTEM.md`.
+
 This document is the single source of truth for the revamp. It supersedes any styling
 guidance in `AGENTS.md`, `CONTEXT.md`, or `CLAUDE.md` where they disagree — and Phase 8
 exists specifically to correct those files.
