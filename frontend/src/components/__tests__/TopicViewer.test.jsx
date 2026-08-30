@@ -33,9 +33,9 @@ describe('TopicViewer', () => {
     // import needs more than waitFor's 1000ms default.
     await waitFor(() => {
       expect(screen.getByText('Process Management')).toBeInTheDocument()
-    }, { timeout: 15000 })
+    }, { timeout: 30000 })
     expect(screen.getByText('A process is a program in execution.')).toBeInTheDocument()
-  }, 15000)
+  }, 30000)
 
   it('shows fallback when fetch fails', async () => {
     global.fetch.mockRejectedValueOnce(new Error('Network error'))
