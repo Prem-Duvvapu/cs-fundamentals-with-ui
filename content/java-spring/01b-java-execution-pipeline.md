@@ -8,7 +8,7 @@ Interviewers ask about this pipeline because class loading, initialization, byte
 
 ## 🟢 Beginner Level
 
-### JDK, JRE, and JVM have different roles
+### JDK, JRE, JVM, and bytecode
 
 The **JVM** is the virtual machine specification and runtime that executes Java bytecode.
 It manages class loading, execution, memory, threads, and garbage collection.
@@ -131,11 +131,16 @@ Parent delegation prevents a class path JAR from replacing trusted `java.lang` c
 It also ensures most code sees one canonical definition of core types.
 Custom loaders can intentionally use child-first rules for isolated plugins, but class identity then requires extra care.
 
-### Loading, linking, and initialization are separate phases
+### Class loading, linking, and initialization
 
 **Loading** obtains bytes and creates the runtime class representation.
 **Linking** includes verification, preparation, and often symbolic reference resolution.
 **Initialization** executes class initialization code, including static field initializers and static blocks, once per class loader.
+
+These phases connect the class loader to every JVM runtime area. Method execution creates frames on
+each thread's stack, objects normally occupy the shared heap, and class metadata occupies metaspace.
+Loading defines the type metadata needed by those areas; it does not eagerly allocate every future
+object or invoke every method.
 
 ```java
 class Configuration {
