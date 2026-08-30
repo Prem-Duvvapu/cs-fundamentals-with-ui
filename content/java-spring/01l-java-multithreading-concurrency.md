@@ -70,7 +70,7 @@ An application should rarely create raw platform threads for each request.
 Thread construction, stack reservation, operating-system scheduling, and lifecycle management are resources that need a deliberate policy.
 Use executors for managed task execution unless a specialized lifecycle is truly required.
 
-### Tasks Are Not Threads
+### Threads, tasks, and executor services
 
 A `Runnable` represents work with no result.
 A `Callable<T>` represents work that can return `T` or throw a checked exception.
@@ -90,6 +90,18 @@ try {
 `Future.get` waits for task completion and makes the completed task's effects visible to the thread that retrieves the result.
 It can throw `InterruptedException`, so a caller should either propagate it or restore the interrupt flag after handling it.
 An executor must be shut down when its owning component ends, or its threads can keep a process alive and leak work.
+
+`Thread` is the execution mechanism, while `Runnable` and `Callable` are task descriptions.
+`ExecutorService` owns worker lifecycle, accepts submissions, and returns a `Future` for observing completion or cancellation.
+`ThreadPoolExecutor` makes worker bounds, queue capacity, idle time, and rejection policy explicit, which is essential when production traffic exceeds service capacity.
+
+`CompletableFuture` represents a stage that can be completed later and composed without immediately blocking the caller.
+Methods such as `thenApply`, `thenCompose`, and `allOf` build dependency graphs, but an eventual `join` or `get` still blocks the waiting thread.
+Unless an executor is supplied, asynchronous stages commonly use the shared `ForkJoinPool.commonPool`, so unrelated workloads can contend with one another.
+
+The ForkJoin framework, represented by `ForkJoinPool`, is designed for recursively divisible CPU work and uses work stealing: an idle worker takes tasks from another worker's deque.
+It is a poor default for long blocking I/O unless blocking is compensated deliberately, because blocked workers reduce available parallelism.
+Use a dedicated bounded executor when tasks call a dependency whose concurrency must be isolated.
 
 ### Shared-State Strategies
 
@@ -113,7 +125,7 @@ Do not replace a multi-field invariant with one atomic field simply because atom
 
 ## 🟡 Intermediate Level
 
-### Monitors, `synchronized`, `wait`, and `notify`
+### Monitors, locks, atomics, and coordination
 
 Every Java object can act as a monitor for `synchronized` code.
 Entering `synchronized (lock)` acquires that object's monitor before executing the block.
@@ -154,7 +166,23 @@ void markReady() {
 Higher-level types such as `CountDownLatch`, `Semaphore`, `BlockingQueue`, and `Condition` often describe intent better than manually managing wait sets.
 They also reduce the risk of signaling the wrong predicate in a monitor that protects multiple conditions.
 
-### The Java Memory Model and Happens-Before
+An instance `synchronized` method acquires that object's monitor, commonly called an **object lock**.
+A static `synchronized` method acquires the monitor of its declaring `Class` object, commonly called a **class lock**.
+Those are different monitors, so synchronizing one instance method does not exclude a static synchronized method.
+
+ReentrantLock provides interruptible acquisition through `lockInterruptibly`, timed `tryLock`, optional fairness, and multiple `Condition` wait sets.
+ReadWriteLock permits concurrent readers while giving writers exclusive access; it helps only when reads are sufficiently frequent and long to offset coordination overhead.
+Both require explicit release in `finally`, unlike the structured release performed when leaving a `synchronized` block.
+
+A `Semaphore` limits concurrent permit holders and is useful for protecting a pool of ten downstream connections without serializing them to one thread.
+A `CountDownLatch` is a one-shot gate: waiters proceed after its count reaches zero, and the latch cannot be reset.
+A `CyclicBarrier` lets a fixed group meet repeatedly at phase boundaries and can run a barrier action when the final party arrives.
+
+Choose each tool based on the state transition it proves, not on familiarity.
+A race violates a shared invariant; deadlock forms a permanent wait cycle; starvation repeatedly denies one participant progress; and livelock makes participants react forever without useful work.
+Fairness can reduce starvation but usually costs throughput, while lock ordering is the primary defence against deadlock.
+
+### Volatile, atomicity, and memory visibility
 
 The Java Memory Model defines which writes one thread is allowed to observe from another.
 It does not promise that every source-code statement executes in the textual order seen by all threads.
