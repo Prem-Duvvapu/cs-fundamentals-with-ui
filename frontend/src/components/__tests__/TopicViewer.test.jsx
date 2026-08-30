@@ -132,12 +132,20 @@ Apply it.`
     expect(screen.getByRole('button', { name: /show table of contents/i })).toHaveAttribute('aria-expanded', 'false')
   }, 15000)
 
-  it('uses the shared category map for newly registered topics', async () => {
+  it.each([
+    ['sql-querying', 'dbms'],
+    ['spring-boot-internals', 'java-spring'],
+    ['spring-rest-api-design', 'java-spring'],
+    ['spring-security', 'java-spring'],
+    ['spring-caching-async', 'java-spring'],
+    ['spring-testing-production', 'java-spring'],
+    ['ml-fundamentals', 'aiml']
+  ])('uses the shared category map for %s', async (topicId, category) => {
     global.fetch.mockResolvedValueOnce(new Response('# SQL'))
-    render(<TopicViewer topicId="sql-querying" />)
+    render(<TopicViewer topicId={topicId} />)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/v1/content/dbms/sql-querying')
+      expect(global.fetch).toHaveBeenCalledWith(`/api/v1/content/${category}/${topicId}`)
     })
   })
 })
