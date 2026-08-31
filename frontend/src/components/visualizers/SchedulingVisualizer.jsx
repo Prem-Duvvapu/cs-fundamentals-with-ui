@@ -201,7 +201,7 @@ export default function SchedulingVisualizer() {
         <div className="live-info-box">
           <div className="info-item">
             <span className="info-label">Active Process</span>
-            <span className="info-val" style={{ color: activeProcess?.color || '#a0a0b0' }}>
+            <span className="info-val" style={{ color: activeProcess?.color || 'var(--text-muted)' }}>
               {activeProcess ? activeProcess.id : 'None'}
             </span>
           </div>
@@ -235,7 +235,7 @@ export default function SchedulingVisualizer() {
                 key={idx}
                 className="gantt-block animated-block"
                 style={{
-                  backgroundColor: block.processId ? getProcessColor(processes, block.processId) : '#334155',
+                  backgroundColor: block.processId ? getProcessColor(processes, block.processId) : 'var(--border-default)',
                   flex: 1
                 }}
                 title={`t=${block.start}-${block.end}: ${block.processId || 'IDLE'}`}

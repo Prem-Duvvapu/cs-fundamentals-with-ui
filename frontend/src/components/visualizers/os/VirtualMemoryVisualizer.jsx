@@ -53,15 +53,14 @@ export default function VirtualMemoryVisualizer() {
   const simulationView = (
     <div className="visualizer-container">
       {/* Controls */}
-      <div className="viz-controls-card" style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Virtual Page to Access:</span>
+      <div className="viz-controls-card bptree-toolbar">
+        <div className="vpn-select-row">
+          <span className="field-label-strong">Select Virtual Page to Access:</span>
           {[0, 1, 2, 3, 4, 5, 6, 7].map(vpn => (
             <button
               key={vpn}
               onClick={() => handleTranslate(vpn)}
-              className={`btn ${selectedVpn === vpn ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
+              className={`btn btn-compact ${selectedVpn === vpn ? 'btn-primary' : 'btn-secondary'}`}
             >
               Page #{vpn} {vpn === 4 || vpn === 6 ? ' (Disk)' : ''}
             </button>
@@ -83,48 +82,38 @@ export default function VirtualMemoryVisualizer() {
       </div>
 
       {/* Action Banner */}
-      <div
-        style={{
-          background: '#0f172a',
-          border: '1px solid #3b82f6',
-          borderRadius: '8px',
-          padding: '0.85rem 1.1rem',
-          marginBottom: '1rem',
-          color: '#60a5fa',
-          fontSize: '0.92rem'
-        }}
-      >
+      <div className="action-banner">
         💡 <strong>MMU Action:</strong> {currentStep?.description || 'Ready for address translation.'}
       </div>
 
       {/* Grid: TLB Cache vs Page Table Array vs Physical Frame RAM */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="vm-grid">
         {/* TLB Cache */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#34d399', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card accent-success">
+          <h4 className="vm-card-header is-success">
             <span>⚡ Hardware TLB Cache (4 Slots)</span>
             <span>Fast L1 Lookup</span>
           </h4>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div className="vm-row-list">
             {state.tlb.map((entry, idx) => {
               const isMatch = currentStep?.isHit && entry.vpn === highlightVpn
               return (
                 <div
                   key={idx}
                   style={{
-                    background: isMatch ? 'rgba(16, 185, 129, 0.25)' : '#020617',
+                    background: isMatch ? 'var(--state-success-tint)' : 'var(--bg-code)',
                     border: '1px solid',
-                    borderColor: isMatch ? '#10b981' : 'rgba(255,255,255,0.08)',
+                    borderColor: isMatch ? 'var(--state-success)' : 'var(--border-subtle)',
                     borderRadius: '6px',
                     padding: '0.4rem 0.6rem',
                     fontSize: '0.8rem',
                     display: 'flex',
-                    justify: 'space-between'
+                    justifyContent: 'space-between'
                   }}
                 >
                   <span>VPN #{entry.vpn} ➔ Frame #{entry.frame}</span>
-                  <span style={{ color: entry.valid ? '#34d399' : '#64748b' }}>{entry.valid ? 'VALID' : 'INVALID'}</span>
+                  <span style={{ color: entry.valid ? 'var(--state-success)' : 'var(--text-muted)' }}>{entry.valid ? 'VALID' : 'INVALID'}</span>
                 </div>
               )
             })}
@@ -132,31 +121,31 @@ export default function VirtualMemoryVisualizer() {
         </div>
 
         {/* Page Table Array */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#60a5fa', display: 'flex', justifyContent: 'space-between' }}>
+        <div className="viz-card accent-info">
+          <h4 className="vm-card-header is-info">
             <span>📋 Page Table Array (RAM)</span>
             <span>8 Pages</span>
           </h4>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', maxHeight: '220px', overflowY: 'auto' }}>
+          <div className="vm-row-list is-scroll">
             {state.pageTable.map(pt => {
               const isHighlight = pt.vpn === highlightVpn
               return (
                 <div
                   key={pt.vpn}
                   style={{
-                    background: isHighlight ? 'rgba(59, 130, 246, 0.25)' : '#0f172a',
+                    background: isHighlight ? 'var(--state-info-tint)' : 'var(--bg-surface)',
                     border: '1px solid',
-                    borderColor: isHighlight ? '#3b82f6' : 'rgba(255,255,255,0.06)',
+                    borderColor: isHighlight ? 'var(--state-info)' : 'var(--border-subtle)',
                     borderRadius: '4px',
                     padding: '0.3rem 0.6rem',
                     fontSize: '0.78rem',
                     display: 'flex',
-                    justify: 'space-between'
+                    justifyContent: 'space-between'
                   }}
                 >
-                  <span style={{ fontWeight: 600, color: '#f8fafc' }}>Page #{pt.vpn}</span>
-                  <span style={{ color: pt.valid ? '#60a5fa' : '#ef4444' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Page #{pt.vpn}</span>
+                  <span style={{ color: pt.valid ? 'var(--state-info)' : 'var(--state-danger)' }}>
                     {pt.valid ? `Frame #${pt.frame} (Valid)` : 'Disk Swap (Valid=0)'}
                   </span>
                 </div>
@@ -166,24 +155,24 @@ export default function VirtualMemoryVisualizer() {
         </div>
 
         {/* Physical RAM Frames */}
-        <div className="viz-card" style={{ borderLeft: '4px solid #a78bfa' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#c084fc' }}>
+        <div className="viz-card accent-purple">
+          <h4 className="vm-card-header is-purple">
             🖥 Physical RAM Frame Output
           </h4>
 
-          <div style={{ background: '#020617', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+          <div className="vm-frame-panel">
             {highlightFrame !== null ? (
               <div>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Target Physical Memory Frame</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 'bold', color: '#34d399', margin: '0.4rem 0' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Target Physical Memory Frame</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'var(--state-success)', margin: '0.4rem 0' }}>
                   Frame #{highlightFrame}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#60a5fa' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--state-info)' }}>
                   Physical Address: 0x{((highlightFrame << 12) | 0x0A4).toString(16).toUpperCase()}
                 </div>
               </div>
             ) : (
-              <span style={{ color: '#64748b', fontSize: '0.85rem' }}>No frame selected. Select a page to translate.</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No frame selected. Select a page to translate.</span>
             )}
           </div>
         </div>

@@ -1534,6 +1534,20 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .stat-card .stat-value { color: var(--text-primary); font-family: var(--font-mono); font-size: var(--prose-h3); font-weight: 700; margin-top: var(--space-1); }
 .stat-card.is-success .stat-value { color: var(--state-success); }
 
+/* VirtualMemoryVisualizer */
+.vpn-select-row { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
+.vm-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr)); margin-bottom: var(--space-4); }
+.viz-card.accent-success { border-left: 4px solid var(--state-success); }
+.viz-card.accent-info { border-left: 4px solid var(--state-info); }
+.viz-card.accent-purple { border-left: 4px solid var(--cat-os-base); }
+.vm-card-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: var(--space-3); }
+.vm-card-header.is-success { color: var(--state-success); }
+.vm-card-header.is-info { color: var(--state-info); }
+.vm-card-header.is-purple { color: var(--cat-os-hover); }
+.vm-row-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.vm-row-list.is-scroll { max-height: 13.75rem; overflow-y: auto; }
+.vm-frame-panel { background: var(--bg-code); border-radius: var(--radius-sm); padding: var(--space-4); text-align: center; }
+
 /* Context Switch Visualizer */
 .switch-animation-container {
   display: flex;
@@ -1546,24 +1560,24 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 .process-box {
   flex: 1;
-  background: #0f172a;
-  border: 2px solid var(--border-color);
+  background: var(--bg-surface);
+  border: 2px solid var(--border-default);
   padding: 1.25rem;
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .process-box.box-active {
-  border-color: var(--accent-green);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  border-color: var(--state-success);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--state-success) 20%, transparent);
 }
 
 .cpu-switch-core {
   text-align: center;
-  background: #1e1b4b;
+  background: var(--cat-os-tint);
   padding: 1.5rem;
   border-radius: 12px;
-  border: 1px solid var(--accent-purple);
+  border: 1px solid var(--cat-border);
 }
 
 .cpu-core-status {
