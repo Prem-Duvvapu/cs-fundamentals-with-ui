@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import batchData from '../../../data/batch-concepts.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function SpringBatchVisualizer() {
   const [engine] = useState(() => new SpringBatchEngine(3))
@@ -19,7 +20,7 @@ export default function SpringBatchVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

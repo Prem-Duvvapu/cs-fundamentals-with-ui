@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import concData from '../../../data/concurrency-concepts.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function VirtualThreadsVisualizer() {
   const [engine] = useState(() => new VirtualThreadsEngine(2))
@@ -19,7 +20,7 @@ export default function VirtualThreadsVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import genericsData from '../../../data/java-fundamentals-generics.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function JavaGenericsVisualizer() {
   const [engine] = useState(() => new JavaGenericsEngine())
@@ -19,7 +20,7 @@ export default function JavaGenericsVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

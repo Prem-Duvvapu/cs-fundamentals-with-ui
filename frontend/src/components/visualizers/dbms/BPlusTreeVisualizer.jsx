@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import dbmsData from '../../../data/dbms-concepts-bplus-tree.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function BPlusTreeVisualizer() {
   const [order, setOrder] = useState(3) // Default Order M = 3
@@ -46,7 +47,7 @@ export default function BPlusTreeVisualizer() {
   // Auto-play timer
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import functionalData from '../../../data/java-fundamentals-functional.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function JavaFunctionalLambdasVisualizer() {
   const [engine] = useState(() => new JavaFunctionalLambdasEngine())
@@ -19,7 +20,7 @@ export default function JavaFunctionalLambdasVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

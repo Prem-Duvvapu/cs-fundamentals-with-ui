@@ -5,6 +5,7 @@ import StateInspector from '../../shared/StateInspector'
 import CodePanel from '../../shared/CodePanel'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import executionData from '../../../data/java-fundamentals-execution.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function JavaExecutionPipelineVisualizer() {
   const [engine] = useState(() => new JavaExecutionEngine())
@@ -20,7 +21,7 @@ export default function JavaExecutionPipelineVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

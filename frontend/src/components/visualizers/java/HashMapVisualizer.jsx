@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import javaData from '../../../data/java-concepts.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function HashMapVisualizer() {
   const [engine] = useState(() => new HashMapEngine(8, 0.75))
@@ -24,7 +25,7 @@ export default function HashMapVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

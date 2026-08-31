@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import netData from '../../../data/networking-concepts.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function TcpCongestionVisualizer() {
   const [algo, setAlgo] = useState('Reno')
@@ -29,7 +30,7 @@ export default function TcpCongestionVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

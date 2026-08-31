@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import springJpaData from '../../../data/spring-jpa-concepts.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function ConnectionPoolVisualizer() {
   const [engine] = useState(() => new ConnectionPoolEngine(4))
@@ -21,7 +22,7 @@ export default function ConnectionPoolVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

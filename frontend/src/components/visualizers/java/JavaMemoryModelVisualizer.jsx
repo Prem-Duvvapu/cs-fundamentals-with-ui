@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import memoryData from '../../../data/java-fundamentals-memory.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function JavaMemoryModelVisualizer() {
   const [engine] = useState(() => new JavaMemoryModelEngine())
@@ -19,7 +20,7 @@ export default function JavaMemoryModelVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {

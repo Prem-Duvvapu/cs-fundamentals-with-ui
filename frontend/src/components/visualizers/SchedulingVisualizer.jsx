@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchCpuSchedulingSimulation } from '../../utils/api'
+import { prefersReducedMotion } from '../../utils/motionPreference'
 
 const DEFAULT_PROCESSES = [
   { id: 'P1', arrivalTime: 0, burstTime: 5, priority: 2, color: '#3b82f6' },
@@ -47,7 +48,7 @@ export default function SchedulingVisualizer() {
   // Timer for auto-play
   useEffect(() => {
     let timer = null
-    if (isPlaying) {
+    if (isPlaying && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentTime(prev => {
           if (prev >= timeline.length) {

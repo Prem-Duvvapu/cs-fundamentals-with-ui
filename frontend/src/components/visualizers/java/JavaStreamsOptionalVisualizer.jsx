@@ -4,6 +4,7 @@ import SimulationControlBar from '../../shared/SimulationControlBar'
 import StateInspector from '../../shared/StateInspector'
 import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import streamsData from '../../../data/java-fundamentals-streams.json'
+import { prefersReducedMotion } from '../../../utils/motionPreference'
 
 export default function JavaStreamsOptionalVisualizer() {
   const [engine] = useState(() => new JavaStreamsOptionalEngine())
@@ -19,7 +20,7 @@ export default function JavaStreamsOptionalVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0) {
+    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {
