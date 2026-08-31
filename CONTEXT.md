@@ -6,6 +6,8 @@
 The curriculum expansion is governed by [`plan.md`](plan.md), which maps the complete SDE-2
 acceptance checklist to 63 registered lessons. [`content/COVERAGE_MANIFEST.json`](content/COVERAGE_MANIFEST.json)
 makes those mappings machine-verifiable alongside strict route and content validation.
+Confirmed regressions and their tested resolutions are tracked in [`RCA.md`](RCA.md); search it by
+symptom or component before repeating an investigation.
 
 ---
 

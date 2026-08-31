@@ -104,6 +104,7 @@ docker compose up --build
 - **Testing**: Vitest, React Testing Library, JUnit 5, Spring Boot Test
 - **Containerization**: Docker, Docker Compose, Nginx Reverse Proxy
 - **System Documentation**: See [CONTEXT.md](CONTEXT.md) and [AGENTS.md](AGENTS.md)
+- **Incident History**: Search [RCA.md](RCA.md) before debugging a repeated symptom
 - **Content authoring**: See [content/CONTENT_SPEC.md](content/CONTENT_SPEC.md)
 
 ---
