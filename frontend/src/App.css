@@ -1394,6 +1394,32 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .ra-result-table td.is-null { color: var(--state-danger); font-style: italic; }
 .ra-result-table td:not(.is-null) { color: var(--text-primary); }
 
+/* StorageIndexingVisualizer */
+.raid-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr; margin-top: var(--space-4); }
+@media (min-width: 768px) { .raid-grid { grid-template-columns: repeat(3, 1fr); } }
+.raid-disk { background: var(--bg-inset); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-4); transition: all var(--dur-fast) var(--ease-standard); }
+.raid-disk.is-dead { background: var(--state-danger-tint); border-color: var(--state-danger-border); box-shadow: var(--elev-2); }
+.raid-disk.is-recovered { background: var(--state-success-tint); border-color: var(--state-success-border); }
+.raid-disk-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: var(--space-2); }
+.raid-disk-header .name { color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--ui-xs); font-weight: 700; }
+.raid-disk-status { border-radius: var(--radius-xs); font-family: var(--font-mono); font-size: var(--ui-xs); font-weight: 700; padding: var(--space-1) var(--space-2); }
+.raid-disk-status.is-dead { background: var(--state-danger-tint); color: var(--state-danger); }
+.raid-disk-status.is-ok { background: var(--state-success-tint); color: var(--state-success); }
+.raid-blocks { display: flex; flex-direction: column; font-family: var(--font-mono); font-size: var(--ui-xs); gap: var(--space-2); margin-top: var(--space-3); }
+.raid-block-row { align-items: center; background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-xs); color: var(--text-secondary); display: flex; justify-content: space-between; padding: var(--space-2); }
+.raid-block-row .parity { color: var(--state-info); font-weight: 700; }
+
+.bitmap-panel { display: flex; flex-direction: column; font-family: var(--font-mono); font-size: var(--ui-xs); gap: var(--space-2); }
+.bitmap-row { align-items: center; border-bottom: var(--stroke-hair) solid var(--border-subtle); display: flex; justify-content: space-between; padding: var(--space-2) 0; }
+.bitmap-row .key { color: var(--text-muted); }
+.bitmap-row .vector { color: var(--state-info); font-size: var(--ui-base); font-weight: 700; letter-spacing: var(--tracking-wide); }
+
+.postings-panel { display: flex; flex-direction: column; font-family: var(--font-mono); font-size: var(--ui-xs); gap: var(--space-2); }
+.posting-row { align-items: center; display: flex; gap: var(--space-3); }
+.posting-term { color: var(--cat-os-base); font-weight: 700; width: 6rem; }
+.posting-docs { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.posting-doc { background: var(--cat-os-tint); border: var(--stroke-hair) solid var(--cat-os-border); border-radius: var(--radius-xs); color: var(--cat-os-hover); padding: var(--space-1) var(--space-2); }
+
 /* Context Switch Visualizer */
 .switch-animation-container {
   display: flex;

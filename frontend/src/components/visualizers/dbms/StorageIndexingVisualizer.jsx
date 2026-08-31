@@ -35,19 +35,15 @@ export default function StorageIndexingVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Mode Switcher */}
-        <div className="flex flex-wrap items-center gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Storage Model:</span>
+        <div className="filter-bar">
+          <span className="filter-bar-label">Storage Model:</span>
           {Object.keys(STORAGE_MODES).map(key => (
             <button
               key={key}
               onClick={() => handleModeChange(key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                mode === key
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 border border-blue-400'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 border border-slate-700'
-              }`}
+              className={`filter-chip ${mode === key ? 'is-active' : ''}`}
             >
               {STORAGE_MODES[key].name}
             </button>
@@ -55,19 +51,19 @@ export default function StorageIndexingVisualizer() {
         </div>
 
         {/* Step Visual Details */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
 
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
+          <p className="detail-card-desc">{stepData.description}</p>
 
           {/* RAID 5 Disk Visualizer */}
           {mode === 'raid' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="raid-grid">
               {['disk1', 'disk2', 'disk3'].map((dKey, idx) => {
                 const disk = stepData[dKey]
                 const isDead = disk.status.includes('FAILED')
@@ -76,27 +72,19 @@ export default function StorageIndexingVisualizer() {
                 return (
                   <div
                     key={dKey}
-                    className={`p-4 rounded-xl border transition-all ${
-                      isDead
-                        ? 'bg-rose-950/40 border-rose-500/60 shadow-lg shadow-rose-500/20'
-                        : isRecovered
-                        ? 'bg-emerald-950/40 border-emerald-500/60'
-                        : 'bg-slate-950/80 border-slate-800'
-                    }`}
+                    className={`raid-disk ${isDead ? 'is-dead' : isRecovered ? 'is-recovered' : ''}`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold font-mono text-slate-300">Disk {idx + 1}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded font-mono font-bold ${
-                        isDead ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300'
-                      }`}>
+                    <div className="raid-disk-header">
+                      <span className="name">Disk {idx + 1}</span>
+                      <span className={`raid-disk-status ${isDead ? 'is-dead' : 'is-ok'}`}>
                         {disk.status}
                       </span>
                     </div>
-                    <div className="space-y-1.5 font-mono text-xs text-slate-300 mt-3">
+                    <div className="raid-blocks">
                       {disk.data.map((block, bIdx) => (
-                        <div key={bIdx} className="p-2 bg-slate-900 rounded border border-slate-800 flex justify-between">
+                        <div key={bIdx} className="raid-block-row">
                           <span>{block.split(' ')[0]} {block.split(' ')[1]}</span>
-                          <span className="text-blue-400 font-bold">{block.split(' ')[2] || ''}</span>
+                          <span className="parity">{block.split(' ')[2] || ''}</span>
                         </div>
                       ))}
                     </div>
@@ -108,11 +96,11 @@ export default function StorageIndexingVisualizer() {
 
           {/* Bitmap Index Vectors */}
           {mode === 'bitmap-index' && stepData.bitmaps && (
-            <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 mt-4 space-y-2 font-mono text-xs">
+            <div className="sub-panel bitmap-panel field-block">
               {Object.keys(stepData.bitmaps).map(key => (
-                <div key={key} className="flex justify-between items-center py-1.5 border-b border-slate-800">
-                  <span className="text-slate-400">{key}:</span>
-                  <span className="text-blue-300 font-bold tracking-widest text-sm">{stepData.bitmaps[key]}</span>
+                <div key={key} className="bitmap-row">
+                  <span className="key">{key}:</span>
+                  <span className="vector">{stepData.bitmaps[key]}</span>
                 </div>
               ))}
             </div>
@@ -120,14 +108,14 @@ export default function StorageIndexingVisualizer() {
 
           {/* Inverted Index Postings */}
           {mode === 'inverted-index' && (
-            <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 mt-4 space-y-2 font-mono text-xs">
-              <div className="text-xs text-slate-400 font-semibold mb-2">Inverted Index Postings Lists:</div>
+            <div className="sub-panel postings-panel field-block">
+              <div className="sub-panel-label">Inverted Index Postings Lists:</div>
               {stepData.postings && Object.keys(stepData.postings).map(term => (
-                <div key={term} className="flex items-center gap-3">
-                  <span className="w-24 text-purple-300 font-bold">"{term}":</span>
-                  <div className="flex gap-1.5">
+                <div key={term} className="posting-row">
+                  <span className="posting-term">"{term}":</span>
+                  <div className="posting-docs">
                     {stepData.postings[term].map(docId => (
-                      <span key={docId} className="px-2 py-0.5 bg-purple-500/20 text-purple-200 rounded border border-purple-500/30">
+                      <span key={docId} className="posting-doc">
                         Doc #{docId}
                       </span>
                     ))}
@@ -139,7 +127,7 @@ export default function StorageIndexingVisualizer() {
         </div>
 
         {/* State Inspector & Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="metrics-2col">
           <StateInspector
             title="Storage Engine Metrics"
             state={{
