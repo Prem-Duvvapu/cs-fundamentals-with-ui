@@ -6,11 +6,22 @@ Model serving turns a trained model into a reliable online system that accepts r
 
 ## 🟢 Beginner Level
 
-### What an inference service does
+### LLM serving architecture and inference
 
 An inference service validates a request, selects a model version, prepares tokens, runs model computation, decodes output tokens, and returns a response.
 
 For a chat model, the request includes a conversation, system instructions, parameters, and sometimes tool definitions.
+
+The tokenizer converts that request into **tokens**, the units processed by the LLM. The effective
+**context** includes system instructions, conversation history, retrieved evidence, tool schemas,
+and the new user input—not only the visible user message. Input tokens plus the allowed generated
+tokens must fit the model's context window, so the server must count with the deployed model's
+tokenizer rather than estimate from characters.
+
+Inference first runs a forward pass over context during prefill, then repeatedly predicts a
+distribution for the next token during decode. Model weights stay fixed; the request-specific KV
+cache carries attention state while generation is active. This stateful compute explains why an
+HTTP endpoint that looks stateless still needs token-aware admission and cancellation.
 
 The service must apply authentication, rate limits, input limits, and policy checks before expensive GPU work begins.
 
@@ -190,7 +201,7 @@ Admission control should consider estimated prompt tokens, requested output toke
 
 Return a clear retryable overload response rather than silently allowing a queue to grow without bound.
 
-### Model loading and request contracts
+### Production inference APIs, streaming, and observability
 
 Loading a model is a deployment phase with its own failure modes.
 
@@ -204,15 +215,104 @@ The request contract should make limits explicit.
 
 It should state maximum input tokens, maximum generated tokens, supported sampling parameters, streaming behaviour, timeout semantics, and error codes.
 
+A versioned endpoint such as `POST /v1/responses` should separate model selection, input,
+generation limits, output contract, and tracing metadata:
+
+```json
+{
+  "model": "support-model-2026-08",
+  "messages": [
+    {"role": "user", "content": "Summarise ticket 4821"}
+  ],
+  "max_output_tokens": 400,
+  "stream": true,
+  "response_format": {
+    "type": "json_schema",
+    "name": "ticket_summary",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "summary": {"type": "string"},
+        "priority": {"enum": ["low", "medium", "high"]}
+      },
+      "required": ["summary", "priority"],
+      "additionalProperties": false
+    }
+  },
+  "conversation_id": "conv_7f31"
+}
+```
+
+The response should identify the request and deployed model version and report input, cached-input,
+and output token usage. HTTP status should remain meaningful: `400` for an invalid contract,
+`413` for an input limit, `429` for quota exhaustion, and `503` for temporary serving
+capacity. An overload response should include a bounded `Retry-After` value when retry is useful.
+
+For streaming, define typed events rather than treating arbitrary text fragments as complete
+messages. A stream can emit creation metadata, text or structured-output deltas, tool-call
+arguments, usage, a terminal completion event, or a terminal error. Once partial output has
+arrived, the client cannot assume that replaying the entire request is harmless.
+
+Use distinct connect, queue, time-to-first-token, stream-idle, and total deadlines. Retry only
+transient connection failures, `429`, or `503` responses with exponential backoff and jitter,
+and stop at the caller's total deadline. Action-taking requests need an idempotency key and durable
+tool state because a timeout does not prove that the previous attempt performed no side effect.
+
+Rate limits should charge estimated input plus allowed output tokens, not just request count. A
+token bucket that reserves 8,000 tokens for one long request reflects accelerator work more fairly
+than counting it as equivalent to a 20-token classification. Reconcile the estimate with actual
+usage for billing and capacity reports.
+
 Reject malformed or over-budget requests before adding them to an accelerator queue.
 
 Validate tool schemas and structured-output constraints before the model runs when possible.
+
+Structured JSON generation should use schema- or grammar-constrained decoding where supported,
+then still validate the completed value on the server. Constraints improve syntax but do not prove
+that a field is factually correct or authorised. Reject invalid outputs or route them through one
+bounded repair attempt; never silently parse a plausible substring from malformed model text.
+
+Prompt and conversation history are versioned production inputs. Keep the trusted system template
+server-side, distinguish user, retrieved, and tool messages by role, and record the prompt version
+used for every result. When history approaches the context limit, apply a documented policy such
+as dropping low-value turns, retrieving relevant turns, or summarising older turns while retaining
+the original audit trail.
+
+A **semantic cache** reuses a prior response when a new request embedding is sufficiently similar.
+Its key must also include tenant, model, prompt and policy versions, tool availability, response
+schema, and knowledge snapshot; similarity alone is unsafe. Use it for low-risk stable FAQs with
+measured false-hit rates, short TTLs, and explicit invalidation—not personalised, time-sensitive,
+or action-taking requests.
+
+Guardrails belong at several boundaries:
+
+- input checks enforce size, policy, and tenant permissions before GPU admission;
+- retrieved documents and tool outputs are treated as untrusted data because they can contain
+  **prompt injection** text such as “ignore previous instructions”;
+- tool calls use server-side allowlists, argument validation, least-privilege credentials, and
+  user authorisation rather than trusting the model's choice;
+- output checks apply policy and data-loss prevention before a token stream or structured result
+  crosses the trust boundary.
+
+A model instruction is not a security boundary. Prompt-injection resilience comes from separating
+instructions from data and enforcing authority in code even when the model follows malicious
+content.
 
 Return a stable request identifier that correlates gateway logs, scheduler decisions, worker errors, and client retries.
 
 Do not include raw prompts in general request logs by default.
 
 Store sensitive diagnostic samples only through an approved, access-controlled process with retention limits.
+
+Propagate one request ID and trace context through gateway, tokeniser, queue, scheduler, worker,
+cache, guardrail, and tool spans. Record stage timings, token counts, estimated cost, semantic-cache
+decisions, structured-output validity, policy outcomes, tool calls, cancellation, and model version
+without placing raw secrets or complete prompts in ordinary logs.
+
+Observability explains how the system behaved; **evaluation** determines whether the answer was
+useful. Maintain offline sets for task correctness, grounding, safety, schema compliance, and
+prompt-injection resistance, then watch sampled human feedback and canary metrics online. A
+deployment is not successful merely because latency and HTTP success rates stayed green.
 
 The server should define whether retries are safe for a generation request.
 
@@ -386,13 +486,20 @@ It allocates fixed KV-cache blocks from a shared pool as a sequence grows instea
 
 It measures delay from accepted request to the first generated token reaching the client. It includes queueing, tokenisation, prefill, scheduling, and transport delay. It is critical for interactive UX and can regress even while total tokens per second improves.
 
-**Q8. Why is replication often preferable to splitting a small model across GPUs?** `[medium]`
+**Q8. How should a streaming inference API handle timeouts and retries?** `[medium]`
 
-If one accelerator can hold the model, replicas avoid per-layer cross-GPU communication and independently serve requests. That improves availability and request-level parallelism. Splitting is necessary when a model does not fit or needs combined memory, but it adds topology and communication constraints.
+Use separate queue, first-token, idle-stream, and total deadlines so the failure stage is visible.
+Before output begins, retry transient `429` or `503` responses with jitter and `Retry-After`;
+after partial output, a retry may duplicate text or actions. Propagate cancellation and require
+idempotency plus durable execution state for any request that can call a side-effecting tool.
 
-**Q9. What can go wrong with a prefix cache?** `[medium]`
+**Q9. How does a prefix KV cache differ from a semantic response cache?** `[medium]`
 
-A weak cache key or missing tenant boundary can expose one user's context to another request. Unbounded shared prefixes can also monopolise cache blocks and evict useful active work. Include model version, tokenizer, policy, tenant scope, expiry, and reference ownership in the cache design.
+A prefix cache reuses model attention state for an identical token prefix and still performs
+generation, whereas a semantic cache can return a prior completed response for a similar request.
+Both need tenant and model-version isolation, but semantic caching additionally risks false matches
+and stale answers. Restrict it to stable low-risk requests and key policy, prompt, schema, tool,
+and knowledge versions alongside similarity.
 
 **Q10. How does speculative decoding work?** `[medium]`
 
@@ -406,9 +513,13 @@ Inspect request queue delay, prefill scheduler policy, maximum prompt length, ad
 
 Calculate and measure KV-cache bytes per token, active sequence count, weight footprint, and allocator reserve before simply adding retries. Lower concurrent-token admission, set context and output limits, enable paged allocation where supported, or add model-parallel capacity. Return explicit overload responses while protecting existing active requests rather than letting all requests fail together.
 
-**Q13. Why must a disconnected streaming request be cancelled?** `[hard]`
+**Q13. Scenario: retrieved content says “ignore all prior rules” and asks the model to call a refund tool. How should the serving layer respond?** `[hard]`
 
-Without cancellation, the server can continue decoding tokens and retaining KV blocks for a client that will never consume them. This wastes accelerator capacity and can increase queueing for active users. Propagate cancellation through the gateway, scheduler, and worker, then verify blocks and metrics are released promptly.
+Treat retrieved text as untrusted data, not as an instruction that can change system policy or user
+authority. Even if the model proposes the call, the server must enforce a tool allowlist, validate
+arguments, check the user's refund permission, and require confirmation or idempotency where the
+business action demands it. Record the injection signal and outcome for evaluation without logging
+unredacted sensitive context.
 
 **Q14. How would you safely roll out a quantised model version?** `[hard]`
 
@@ -417,6 +528,6 @@ Load it into isolated warm capacity, run offline task-specific quality evaluatio
 ### Further Reading
 
 - [vLLM PagedAttention paper](https://arxiv.org/abs/2309.06180) describes block-based KV-cache management and serving throughput.
-- [vLLM documentation](https://docs.vllm.ai/) documents scheduling, cache, and deployment behaviour.
+- [OWASP LLM Prompt Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html) covers indirect injection, least privilege, validation, and layered guardrails.
 - [Hugging Face Text Generation Inference documentation](https://huggingface.co/docs/text-generation-inference/index) covers production inference-server concepts.
 - [NVIDIA TensorRT-LLM documentation](https://nvidia.github.io/TensorRT-LLM/) explains accelerator-focused LLM inference optimisation.
