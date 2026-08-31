@@ -42,11 +42,11 @@ export default function FunctionalDependencyVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Mode Switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Analysis Tool:</span>
+        <div className="filter-bar is-split">
+          <div className="u-row">
+            <span className="filter-bar-label">Analysis Tool:</span>
             {[
               { id: 'closure', label: 'Attribute Closure (X)⁺' },
               { id: 'candidate-keys', label: 'Candidate Key Detection' },
@@ -55,11 +55,7 @@ export default function FunctionalDependencyVisualizer() {
               <button
                 key={m.id}
                 onClick={() => handleModeChange(m.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  mode === m.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 border border-blue-400'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 border border-slate-700'
-                }`}
+                className={`filter-chip ${mode === m.id ? 'is-active' : ''}`}
               >
                 {m.label}
               </button>
@@ -67,32 +63,28 @@ export default function FunctionalDependencyVisualizer() {
           </div>
 
           {mode === 'closure' && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-mono">Calculate Closure For:</span>
+            <div className="u-row">
+              <span className="mono-label">Calculate Closure For:</span>
               <input
                 type="text"
                 value={inputAttr}
                 onChange={(e) => handleTargetChange(e.target.value)}
                 maxLength={4}
-                className="w-20 px-2.5 py-1 bg-slate-950 border border-blue-500/40 rounded text-center text-xs font-mono text-blue-300 uppercase focus:outline-none focus:border-blue-400"
+                className="closure-input"
               />
             </div>
           )}
         </div>
 
         {/* Relation Schema & FD Set Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Relation Schema Attributes</div>
-            <div className="flex items-center gap-2">
+        <div className="metrics-2col">
+          <div className="sub-panel">
+            <div className="sub-panel-label">Relation Schema Attributes</div>
+            <div className="attr-chip-row">
               {attributes.map(attr => (
                 <span
                   key={attr}
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center font-mono font-bold text-sm border transition-all ${
-                    stepData.closure && stepData.closure.includes(attr)
-                      ? 'bg-blue-600/30 border-blue-400 text-blue-300 shadow-md shadow-blue-500/20'
-                      : 'bg-slate-800/60 border-slate-700 text-slate-400'
-                  }`}
+                  className={`attr-chip ${stepData.closure && stepData.closure.includes(attr) ? 'is-active' : ''}`}
                 >
                   {attr}
                 </span>
@@ -100,17 +92,13 @@ export default function FunctionalDependencyVisualizer() {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Functional Dependencies (F)</div>
-            <div className="flex flex-wrap gap-2">
+          <div className="sub-panel">
+            <div className="sub-panel-label">Functional Dependencies (F)</div>
+            <div className="fd-pill-row">
               {fds.map((fd, idx) => (
                 <span
                   key={idx}
-                  className={`px-2.5 py-1 rounded font-mono text-xs border transition-all ${
-                    stepData.activeFd === idx
-                      ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-bold animate-pulse'
-                      : 'bg-slate-800 border-slate-700 text-slate-300'
-                  }`}
+                  className={`fd-pill ${stepData.activeFd === idx ? 'is-active' : ''}`}
                 >
                   {fd.lhs.join('')} → {fd.rhs.join('')}
                 </span>
@@ -120,40 +108,40 @@ export default function FunctionalDependencyVisualizer() {
         </div>
 
         {/* Step Progress & Closure Visual Card */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-blue-500/30 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
 
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
+          <p className="detail-card-desc">{stepData.description}</p>
 
           {mode === 'closure' && (
-            <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-mono">Current Attribute Set in Closure:</span>
-              <div className="font-mono text-lg font-bold text-blue-400 tracking-wider">
+            <div className="closure-display">
+              <span className="mono-label">Current Attribute Set in Closure:</span>
+              <div className="closure-value">
                 ({targetAttribute})⁺ = &#123; {stepData.closure ? stepData.closure.join(', ') : ''} &#125;
               </div>
             </div>
           )}
 
           {mode === 'candidate-keys' && stepData.candidateKeys && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            <div className="key-grid">
               {stepData.candidateKeys.map(k => (
-                <div key={k} className="p-3 rounded-lg bg-slate-950/80 border border-emerald-500/30 text-center">
-                  <div className="text-xs text-slate-400 uppercase tracking-wider mb-1 font-semibold">Candidate Key</div>
-                  <div className="font-mono text-base font-bold text-emerald-300">{k}</div>
+                <div key={k} className="key-card">
+                  <div className="sub-panel-label">Candidate Key</div>
+                  <div className="value">{k}</div>
                 </div>
               ))}
             </div>
           )}
 
           {mode === 'canonical-cover' && stepData.rawFds && (
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="canonical-pill-row">
               {stepData.rawFds.map((fdStr, idx) => (
-                <span key={idx} className="px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-xs font-bold">
+                <span key={idx} className="canonical-pill">
                   {fdStr}
                 </span>
               ))}
@@ -162,7 +150,7 @@ export default function FunctionalDependencyVisualizer() {
         </div>
 
         {/* State Inspector & Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="metrics-2col">
           <StateInspector
             title="FD Engine Analysis Metrics"
             state={{

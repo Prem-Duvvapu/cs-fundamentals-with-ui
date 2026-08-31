@@ -1215,6 +1215,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .lock-grid { display: grid; gap: var(--space-4); grid-template-columns: 1fr 1fr; margin-top: var(--space-4); }
 .lock-holder-chip { background: var(--state-info-tint); border: var(--stroke-hair) solid var(--state-info-border); border-radius: var(--radius-xs); color: var(--state-info); font-family: var(--font-mono); font-size: var(--ui-2xs); font-weight: 700; padding: var(--space-1) var(--space-2); }
 .no-locks-text { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--ui-xs); font-style: italic; }
+.mono-label { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--ui-xs); }
 
 .wait-for-graph { align-items: center; display: flex; gap: var(--space-6); justify-content: center; padding: var(--space-3) 0; }
 .wait-for-node { border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: var(--ui-base); font-weight: 700; padding: var(--space-2) var(--space-4); }
@@ -1306,6 +1307,31 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .er-table-row { background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: var(--ui-2xs); padding: var(--space-3); }
 .er-table-row .table-name { color: var(--state-success); font-weight: 700; margin-bottom: var(--space-1); }
 .er-table-row .table-cols { color: var(--text-secondary); overflow-wrap: break-word; }
+
+.filter-bar.is-split { justify-content: space-between; }
+
+/* FunctionalDependencyVisualizer */
+.attr-chip-row { align-items: center; display: flex; gap: var(--space-2); }
+.attr-chip { align-items: center; border: var(--stroke-hair) solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-muted); display: flex; font-family: var(--font-mono); font-size: var(--ui-base); font-weight: 700; height: 2.25rem; justify-content: center; transition: all var(--dur-fast) var(--ease-standard); width: 2.25rem; }
+.attr-chip.is-active { background: var(--state-info-tint); border-color: var(--state-info); box-shadow: var(--elev-1); color: var(--state-info); }
+
+.fd-pill-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fd-pill { background: var(--bg-raised); border: var(--stroke-hair) solid var(--border-default); border-radius: var(--radius-xs); color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--ui-xs); padding: var(--space-1) var(--space-3); }
+.fd-pill.is-active { animation: pulse-glow 1.6s ease-in-out infinite; background: var(--state-success-tint); border-color: var(--state-success); color: var(--state-success); font-weight: 700; }
+
+.closure-input { background: var(--bg-code); border: var(--stroke-hair) solid var(--state-info-border); border-radius: var(--radius-xs); color: var(--state-info); font-family: var(--font-mono); font-size: var(--ui-xs); padding: var(--space-1) var(--space-2); text-align: center; text-transform: uppercase; width: 5rem; }
+.closure-input:focus { border-color: var(--state-info); outline: none; }
+
+.closure-display { align-items: center; background: var(--bg-inset); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-lg); display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; padding: var(--space-4); }
+.closure-value { color: var(--state-info); font-family: var(--font-mono); font-size: var(--ui-lg); font-weight: 700; letter-spacing: var(--tracking-wide); }
+
+.key-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, 1fr); margin-top: var(--space-4); }
+@media (min-width: 768px) { .key-grid { grid-template-columns: repeat(4, 1fr); } }
+.key-card { background: var(--bg-inset); border: var(--stroke-hair) solid var(--state-success-border); border-radius: var(--radius-md); padding: var(--space-3); text-align: center; }
+.key-card .value { color: var(--state-success); font-family: var(--font-mono); font-size: var(--ui-md); font-weight: 700; }
+
+.canonical-pill-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.canonical-pill { background: var(--cat-os-tint); border: var(--stroke-hair) solid var(--cat-os-border); border-radius: var(--radius-sm); color: var(--cat-os-base); font-family: var(--font-mono); font-size: var(--ui-xs); font-weight: 700; padding: var(--space-2) var(--space-3); }
 
 /* Context Switch Visualizer */
 .switch-animation-container {
