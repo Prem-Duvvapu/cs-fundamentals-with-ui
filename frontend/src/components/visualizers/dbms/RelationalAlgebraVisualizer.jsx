@@ -41,10 +41,10 @@ export default function RelationalAlgebraVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Operation Selector Bar */}
-        <div className="flex flex-wrap items-center gap-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Operation:</span>
+        <div className="filter-bar">
+          <span className="filter-bar-label">Operation:</span>
           {[
             { id: 'selection', label: 'Selection (σ)' },
             { id: 'projection', label: 'Projection (π)' },
@@ -54,11 +54,7 @@ export default function RelationalAlgebraVisualizer() {
             <button
               key={op.id}
               onClick={() => handleOperationChange(op.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                operation === op.id
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 border border-blue-400'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80 border border-slate-700'
-              }`}
+              className={`filter-chip ${operation === op.id ? 'is-active' : ''}`}
             >
               {op.label}
             </button>
@@ -66,53 +62,49 @@ export default function RelationalAlgebraVisualizer() {
         </div>
 
         {/* Math & Query Formula Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-slate-900/70 border border-blue-500/30">
-            <div className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1">Relational Algebra</div>
-            <div className="font-mono text-sm text-blue-200">{stepData.formula}</div>
+        <div className="metrics-3col">
+          <div className="ra-formula-card is-info">
+            <div className="label">Relational Algebra</div>
+            <div className="value">{stepData.formula}</div>
           </div>
-          <div className="p-4 rounded-xl bg-slate-900/70 border border-emerald-500/30">
-            <div className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-1">Equivalent SQL Query</div>
-            <div className="font-mono text-xs text-emerald-200">{stepData.sqlEquivalent}</div>
+          <div className="ra-formula-card is-success">
+            <div className="label">Equivalent SQL Query</div>
+            <div className="value">{stepData.sqlEquivalent}</div>
           </div>
-          <div className="p-4 rounded-xl bg-slate-900/70 border border-purple-500/30">
-            <div className="text-xs text-purple-400 font-semibold uppercase tracking-wider mb-1">Tuple Calculus (TRC)</div>
-            <div className="font-mono text-xs text-purple-200">{stepData.trcFormula}</div>
+          <div className="ra-formula-card is-purple">
+            <div className="label">Tuple Calculus (TRC)</div>
+            <div className="value">{stepData.trcFormula}</div>
           </div>
         </div>
 
         {/* Dual Input Tables & Active Scanner */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="ra-table-grid">
           {/* Left Table: Employees */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 shadow-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-slate-200">Relation: Employees (R)</h4>
-              <span className="text-xs font-mono text-slate-400">Cardinality: {employees.length} tuples</span>
+          <div className="ra-table-card">
+            <div className="ra-table-card-header">
+              <h4>Relation: Employees (R)</h4>
+              <span className="mono-label">Cardinality: {employees.length} tuples</span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
+            <div className="viz-table-scroll">
+              <table className="ra-table">
                 <thead>
-                  <tr className="border-b border-slate-700 text-slate-400">
-                    <th className="py-2 px-2">emp_id</th>
-                    <th className="py-2 px-2">name</th>
-                    <th className="py-2 px-2">dept_id</th>
-                    <th className="py-2 px-2">salary</th>
+                  <tr>
+                    <th>emp_id</th>
+                    <th>name</th>
+                    <th>dept_id</th>
+                    <th>salary</th>
                   </tr>
                 </thead>
                 <tbody>
                   {employees.map((emp, idx) => (
                     <tr
                       key={emp.emp_id}
-                      className={`border-b border-slate-800/60 transition-colors ${
-                        stepData.activeLeftRow === idx
-                          ? 'bg-blue-500/20 text-blue-300 font-bold border-blue-500/50'
-                          : 'text-slate-300 hover:bg-slate-800/30'
-                      }`}
+                      className={stepData.activeLeftRow === idx ? 'is-active-left' : ''}
                     >
-                      <td className="py-2 px-2">{emp.emp_id}</td>
-                      <td className="py-2 px-2">{emp.name}</td>
-                      <td className="py-2 px-2">{emp.dept_id || 'NULL'}</td>
-                      <td className="py-2 px-2">${emp.salary.toLocaleString()}</td>
+                      <td>{emp.emp_id}</td>
+                      <td>{emp.name}</td>
+                      <td>{emp.dept_id || 'NULL'}</td>
+                      <td>${emp.salary.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -121,33 +113,29 @@ export default function RelationalAlgebraVisualizer() {
           </div>
 
           {/* Right Table: Departments */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 shadow-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-slate-200">Relation: Departments (S)</h4>
-              <span className="text-xs font-mono text-slate-400">Cardinality: {departments.length} tuples</span>
+          <div className="ra-table-card">
+            <div className="ra-table-card-header">
+              <h4>Relation: Departments (S)</h4>
+              <span className="mono-label">Cardinality: {departments.length} tuples</span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
+            <div className="viz-table-scroll">
+              <table className="ra-table">
                 <thead>
-                  <tr className="border-b border-slate-700 text-slate-400">
-                    <th className="py-2 px-2">dept_id</th>
-                    <th className="py-2 px-2">dept_name</th>
-                    <th className="py-2 px-2">location</th>
+                  <tr>
+                    <th>dept_id</th>
+                    <th>dept_name</th>
+                    <th>location</th>
                   </tr>
                 </thead>
                 <tbody>
                   {departments.map((dept, idx) => (
                     <tr
                       key={dept.dept_id}
-                      className={`border-b border-slate-800/60 transition-colors ${
-                        stepData.activeRightRow === idx
-                          ? 'bg-emerald-500/20 text-emerald-300 font-bold border-emerald-500/50'
-                          : 'text-slate-300 hover:bg-slate-800/30'
-                      }`}
+                      className={stepData.activeRightRow === idx ? 'is-active-right' : ''}
                     >
-                      <td className="py-2 px-2">{dept.dept_id}</td>
-                      <td className="py-2 px-2">{dept.dept_name}</td>
-                      <td className="py-2 px-2">{dept.location}</td>
+                      <td>{dept.dept_id}</td>
+                      <td>{dept.dept_name}</td>
+                      <td>{dept.location}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -157,36 +145,36 @@ export default function RelationalAlgebraVisualizer() {
         </div>
 
         {/* Live Result Table */}
-        <div className="p-5 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-4">
+        <div className="detail-card">
+          <div className="ra-result-header">
             <div>
-              <h4 className="text-base font-semibold text-white">Result Relation Output</h4>
-              <p className="text-xs text-slate-400 mt-0.5">{stepData.description}</p>
+              <h4>Result Relation Output</h4>
+              <p>{stepData.description}</p>
             </div>
-            <span className="px-2.5 py-1 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-xs">
+            <span className="status-chip is-normal">
               Tuples: {stepData.resultRows.length}
             </span>
           </div>
 
           {stepData.resultRows.length === 0 ? (
-            <div className="p-6 text-center text-slate-500 font-mono text-xs bg-slate-950/40 rounded-lg border border-dashed border-slate-800">
+            <div className="ra-result-empty">
               No result tuples emitted yet in this step. Step through the simulation to observe evaluation.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
+            <div className="viz-table-scroll">
+              <table className="ra-table ra-result-table">
                 <thead>
-                  <tr className="border-b border-slate-700 text-slate-300">
+                  <tr>
                     {Object.keys(stepData.resultRows[0]).map(key => (
-                      <th key={key} className="py-2 px-3 bg-slate-800/50 text-blue-400 uppercase tracking-wider">{key}</th>
+                      <th key={key}>{key}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {stepData.resultRows.map((row, idx) => (
-                    <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/20">
+                    <tr key={idx}>
                       {Object.values(row).map((val, vIdx) => (
-                        <td key={vIdx} className={`py-2.5 px-3 ${val === 'NULL' ? 'text-rose-400 italic' : 'text-slate-200'}`}>
+                        <td key={vIdx} className={val === 'NULL' ? 'is-null' : ''}>
                           {typeof val === 'number' && val > 1000 ? `$${val.toLocaleString()}` : String(val)}
                         </td>
                       ))}
@@ -199,7 +187,7 @@ export default function RelationalAlgebraVisualizer() {
         </div>
 
         {/* State Inspector & Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="metrics-2col">
           <StateInspector
             title="Relational Algebra Engine State"
             state={{
