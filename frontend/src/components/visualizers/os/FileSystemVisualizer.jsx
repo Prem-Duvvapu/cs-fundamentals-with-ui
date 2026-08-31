@@ -61,22 +61,18 @@ export default function FileSystemVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Module Sub-tabs */}
-        <div className="flex gap-2 border-b border-slate-800 pb-3">
+        <div className="fs-tab-row">
           <button
             onClick={() => setActiveTab('inode')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'inode' ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800 text-slate-400 hover:text-white'
-            }`}
+            className={`fs-tab-btn ${activeTab === 'inode' ? 'is-active-info' : ''}`}
           >
             🗂️ Inode Block Allocation Explorer
           </button>
           <button
             onClick={() => setActiveTab('vfs')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'vfs' ? 'bg-purple-600 text-white shadow-lg' : 'bg-slate-800 text-slate-400 hover:text-white'
-            }`}
+            className={`fs-tab-btn ${activeTab === 'vfs' ? 'is-active-purple' : ''}`}
           >
             🏗️ Virtual File System (VFS) Layer Stack
           </button>
@@ -85,20 +81,16 @@ export default function FileSystemVisualizer() {
         {activeTab === 'inode' ? (
           <>
             {/* File Size Presets */}
-            <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xl">
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            <div className="scenario-picker-panel">
+              <label className="scenario-picker-label">
                 Select File Size Preset:
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className="scenario-picker-grid">
                 {FILE_SIZE_PRESETS.map((preset, idx) => (
                   <button
                     key={idx}
                     onClick={() => handlePresetChange(preset.bytes)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium text-left transition-all ${
-                      engineState.targetSizeBytes === preset.bytes
-                        ? 'bg-blue-600 text-white shadow border border-blue-400'
-                        : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/50'
-                    }`}
+                    className={`scenario-chip ${engineState.targetSizeBytes === preset.bytes ? 'is-active' : ''}`}
                   >
                     {preset.label}
                   </button>
@@ -107,56 +99,50 @@ export default function FileSystemVisualizer() {
             </div>
 
             {/* Inode Pointer Visualization Canvas */}
-            <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-                <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+            <div className="detail-card">
+              <div className="detail-card-header">
+                <h4>{stepData.title}</h4>
+                <span className="status-chip is-normal">
                   Step {engineState.stepIndex + 1} of {engineState.totalSteps}
                 </span>
               </div>
-              <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
-              <p className="text-xs font-medium text-emerald-300 p-3 bg-emerald-950/40 rounded-lg border border-emerald-500/30 mb-6">
+              <p className="detail-card-desc">{stepData.description}</p>
+              <div className="anomaly-banner is-success">
                 💡 {stepData.explanation}
-              </p>
+              </div>
 
               {/* Inode Structure Visual Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="tier-grid">
                 {/* Direct Pointers */}
-                <div className={`p-4 rounded-xl border ${
-                  stepData.activeTier === 'direct' ? 'bg-blue-950/40 border-blue-500 ring-2 ring-blue-500/40' : 'bg-slate-950/80 border-slate-800'
-                }`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-blue-400">Direct Pointers [0..11]</span>
-                    <span className="text-[10px] font-mono text-slate-400">Max 48 KB</span>
+                <div className={`tier-card ${stepData.activeTier === 'direct' ? 'is-active-info' : ''}`}>
+                  <div className="tier-card-header">
+                    <span className="name is-info">Direct Pointers [0..11]</span>
+                    <span className="cap">Max 48 KB</span>
                   </div>
-                  <div className="text-lg font-bold text-white font-mono">{stepData.directUsed} / 12</div>
-                  <div className="text-[11px] text-slate-400 mt-1">Direct data block pointers</div>
+                  <div className="tier-value">{stepData.directUsed} / 12</div>
+                  <div className="tier-caption">Direct data block pointers</div>
                 </div>
 
                 {/* Single Indirect */}
-                <div className={`p-4 rounded-xl border ${
-                  stepData.activeTier === 'single' ? 'bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/40' : 'bg-slate-950/80 border-slate-800'
-                }`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-amber-400">Single Indirect Pointer</span>
-                    <span className="text-[10px] font-mono text-slate-400">Max ~4 MB</span>
+                <div className={`tier-card ${stepData.activeTier === 'single' ? 'is-active-warning' : ''}`}>
+                  <div className="tier-card-header">
+                    <span className="name is-warning">Single Indirect Pointer</span>
+                    <span className="cap">Max ~4 MB</span>
                   </div>
-                  <div className="text-lg font-bold text-white font-mono">{stepData.singleDataUsed} Data Blocks</div>
-                  <div className="text-[11px] text-amber-300/80 mt-1">
+                  <div className="tier-value">{stepData.singleDataUsed} Data Blocks</div>
+                  <div className="tier-caption is-warning">
                     Index Blocks: {stepData.singleIndexUsed} (1024 ptrs/block)
                   </div>
                 </div>
 
                 {/* Double Indirect */}
-                <div className={`p-4 rounded-xl border ${
-                  stepData.activeTier === 'double' ? 'bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/40' : 'bg-slate-950/80 border-slate-800'
-                }`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-purple-400">Double Indirect Pointer</span>
-                    <span className="text-[10px] font-mono text-slate-400">Max ~4 GB</span>
+                <div className={`tier-card ${stepData.activeTier === 'double' ? 'is-active-purple' : ''}`}>
+                  <div className="tier-card-header">
+                    <span className="name is-purple">Double Indirect Pointer</span>
+                    <span className="cap">Max ~4 GB</span>
                   </div>
-                  <div className="text-lg font-bold text-white font-mono">{stepData.doubleDataUsed} Data Blocks</div>
-                  <div className="text-[11px] text-purple-300/80 mt-1">
+                  <div className="tier-value">{stepData.doubleDataUsed} Data Blocks</div>
+                  <div className="tier-caption is-purple">
                     Index Blocks: {stepData.doubleIndexUsed}
                   </div>
                 </div>
@@ -187,56 +173,56 @@ export default function FileSystemVisualizer() {
           </>
         ) : (
           /* VFS Layer Stack Diagram */
-          <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl space-y-4">
-            <h4 className="text-base font-semibold text-white mb-2">Linux Virtual File System (VFS) Abstraction Layers</h4>
-            <p className="text-sm text-slate-300 mb-4">
+          <div className="detail-card">
+            <h4>Linux Virtual File System (VFS) Abstraction Layers</h4>
+            <p className="detail-card-desc">
               VFS decoupling allows standard POSIX calls (`open`, `read`, `write`) to operate transparently across local disk file systems, network drives, and kernel pseudo-filesystems.
             </p>
 
-            <div className="space-y-3 font-mono">
-              <div className="p-4 rounded-xl bg-blue-950/40 border border-blue-500/40 flex items-center justify-between">
+            <div className="vfs-stack">
+              <div className="vfs-layer is-info">
                 <div>
-                  <span className="text-xs font-bold text-blue-300">1. User Application Space</span>
-                  <p className="text-[11px] text-slate-300 font-sans mt-0.5">Calls standard C library `read(fd, buf, count)` or Java `FileInputStream`</p>
+                  <span className="name">1. User Application Space</span>
+                  <p className="desc">Calls standard C library `read(fd, buf, count)` or Java `FileInputStream`</p>
                 </div>
-                <span className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">User Mode</span>
+                <span className="tag">User Mode</span>
               </div>
 
-              <div className="text-center text-amber-400 font-bold text-xs">↓ System Call Interface (`sys_read`) ↓</div>
+              <div className="vfs-arrow">↓ System Call Interface (`sys_read`) ↓</div>
 
-              <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 flex items-center justify-between">
+              <div className="vfs-layer is-purple">
                 <div>
-                  <span className="text-xs font-bold text-purple-300">2. Virtual File System (VFS) Layer</span>
-                  <p className="text-[11px] text-slate-300 font-sans mt-0.5">Dispatches calls via `struct file_operations` and `struct inode_operations` vnode pointers</p>
+                  <span className="name">2. Virtual File System (VFS) Layer</span>
+                  <p className="desc">Dispatches calls via `struct file_operations` and `struct inode_operations` vnode pointers</p>
                 </div>
-                <span className="text-[10px] px-2 py-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Kernel Abstraction</span>
+                <span className="tag">Kernel Abstraction</span>
               </div>
 
-              <div className="text-center text-amber-400 font-bold text-xs">↓ File System Specific Drivers ↓</div>
+              <div className="vfs-arrow">↓ File System Specific Drivers ↓</div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800 text-center">
-                  <div className="text-xs font-bold text-emerald-400">ext4 / xfs Driver</div>
-                  <div className="text-[10px] text-slate-400 mt-1">Local Disk Inode Mapping</div>
+              <div className="vfs-driver-grid">
+                <div className="vfs-driver-card">
+                  <div className="name is-success">ext4 / xfs Driver</div>
+                  <div className="desc">Local Disk Inode Mapping</div>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800 text-center">
-                  <div className="text-xs font-bold text-cyan-400">NFS Driver</div>
-                  <div className="text-[10px] text-slate-400 mt-1">Network RPC Packet Calls</div>
+                <div className="vfs-driver-card">
+                  <div className="name is-cyan">NFS Driver</div>
+                  <div className="desc">Network RPC Packet Calls</div>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800 text-center">
-                  <div className="text-xs font-bold text-amber-400">procfs / sysfs</div>
-                  <div className="text-[10px] text-slate-400 mt-1">Kernel Memory Data</div>
+                <div className="vfs-driver-card">
+                  <div className="name is-warning">procfs / sysfs</div>
+                  <div className="desc">Kernel Memory Data</div>
                 </div>
               </div>
 
-              <div className="text-center text-amber-400 font-bold text-xs">↓ Block Device Driver & I/O Scheduler ↓</div>
+              <div className="vfs-arrow">↓ Block Device Driver & I/O Scheduler ↓</div>
 
-              <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800 flex items-center justify-between">
+              <div className="vfs-layer is-neutral">
                 <div>
-                  <span className="text-xs font-bold text-slate-300">3. Physical Storage Controller</span>
-                  <p className="text-[11px] text-slate-400 font-sans mt-0.5">NVMe SSD Controller, SATA HDD, or RAID Storage Array</p>
+                  <span className="name">3. Physical Storage Controller</span>
+                  <p className="desc">NVMe SSD Controller, SATA HDD, or RAID Storage Array</p>
                 </div>
-                <span className="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">Hardware Layer</span>
+                <span className="tag">Hardware Layer</span>
               </div>
             </div>
           </div>
