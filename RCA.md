@@ -19,13 +19,15 @@ Do not add hypothetical risks, credentials, personal data, or raw logs containin
 |---|---|---|---|---|
 | [RCA-2026-08-30-01](#rca-2026-08-30-01--startsh-failed-with-bashr) | `/usr/bin/env: ‘bash\r’: No such file or directory` | Local launcher | Resolved | `c792a5a` |
 | [RCA-2026-08-30-02](#rca-2026-08-30-02--topic-header-consumed-the-reading-viewport) | Topic chrome occupied much of the viewport | Reader UI | Resolved | `4dea181`, merged by `923da21` |
-| [RCA-2026-08-31-01](#rca-2026-08-31-01--route-tests-failed-during-parallel-content-rewrites) | Registered topic temporarily reported missing | Agent workflow | Mitigated; final rerun pending | Avoid multi-call delete/recreate edits |
+| [RCA-2026-08-31-01](#rca-2026-08-31-01--route-tests-failed-during-parallel-content-rewrites) | Registered topic temporarily reported missing | Agent workflow | Resolved | Avoid multi-call delete/recreate edits |
+| [RCA-2026-08-31-02](#rca-2026-08-31-02--final-interview-answer-absorbs-further-reading) | Final answer includes Further Reading | Interview deck | Open | Planned for P5 parser work |
+| [RCA-2026-08-31-03](#rca-2026-08-31-03--unsupported-topics-show-an-unrelated-simulation) | Topic opens the wrong simulator | Simulation routing | Open | Planned for P3 registry work |
 
 ---
 
 ## RCA-2026-08-30-01 — `start.sh` failed with `bash\r`
 
-**Status:** Resolved  
+**Status:** Resolved
 **Affected area:** `start.sh`, WSL/Linux startup  
 **Observed symptom:** Running `./start.sh` produced
 `/usr/bin/env: ‘bash\r’: No such file or directory`.
@@ -99,8 +101,8 @@ while scrolling, so the issue affected every topic route rather than a single le
 
 ## RCA-2026-08-31-01 — Route tests failed during parallel content rewrites
 
-**Status:** Mitigated; rerun the backend suite after the active DBMS batch  
-**Affected area:** Parallel agent workflow, content route-integrity tests  
+**Status:** Resolved
+**Affected area:** Parallel agent workflow, content route-integrity tests
 **Observed symptom:** `mvn test` reported `Registered topic has no content: dbms/concurrency-control`
 while the lesson was being rebuilt.
 
@@ -119,8 +121,9 @@ intermediate state. The same risk existed for other lessons undergoing delete-th
 
 - Classified the failure as transient only after checking the shared Git status and confirming the
   assigned agent was actively rebuilding that exact file.
-- Deferred the backend rerun until all assigned files are restored and pass scoped validation.
+- Deferred the backend rerun until all assigned files were restored and passed scoped validation.
 - No backend or route-registration code was changed.
+- Reran the complete backend suite after the content batch: 32 tests passed with zero failures.
 
 ### Prevention
 
@@ -129,3 +132,71 @@ intermediate state. The same risk existed for other lessons undergoing delete-th
 - Do not run route-integrity or all-content suites while another agent owns a content rewrite.
 - Before responding to a missing-content failure, check `git status` and active agent ownership.
 
+---
+
+## RCA-2026-08-31-02 — Final interview answer absorbs Further Reading
+
+**Status:** Open; fix before category Interview Mode
+**Affected area:** `TopicViewer.jsx`, interview-question parsing and rendering
+**Observed symptom:** The last interview answer can contain the lesson's `### Further Reading`
+heading and links, and answer Markdown is displayed as plain paragraph text.
+
+### Impact
+
+The final recall card presents unrelated source material as part of its answer. Markdown constructs
+such as inline code, links and math also lose their intended rendering, reducing readability and
+making the deck unsuitable for reuse in category-wide Interview Mode.
+
+### Root cause
+
+The current regular expression searches the whole lesson and terminates an answer only at the next
+question or end of file. It does not first enter the exact `### Interview Questions` section or stop
+at the next H3, so the final answer naturally runs through `### Further Reading`. `InterviewDeck`
+then places the captured Markdown inside a plain `<p>`.
+
+### Planned resolution and verification
+
+- Replace the loose regex with a fence-aware, section-aware parser over the validated authoring
+  format; stop at the next H3 and preserve answer Markdown.
+- Extract a reusable deck and render answers through the safe shared Markdown renderer.
+- Add tests for CRLF, Q-like text in code fences, final-answer boundaries, Markdown answers, stable
+  IDs, dataset changes and the real 63-file corpus.
+
+### Prevention
+
+- Parsers must use the curriculum's explicit section boundaries rather than EOF as structure.
+- Test the final element in every repeated Markdown construct; middle-item tests miss EOF bugs.
+
+---
+
+## RCA-2026-08-31-03 — Unsupported topics show an unrelated simulation
+
+**Status:** Open; address during P3 simulator triage
+**Affected area:** `TopicPage` visualizer routing and category visualizer hubs
+**Observed symptom:** Some topics open a category hub that silently selects its first or fallback
+simulation instead of showing an exact topic-specific experience.
+
+### Impact
+
+Practical SQL can fall back to relational algebra; Java HashMap, concurrency and Spring production
+topics can fall back to the Java execution pipeline; ML fundamentals can fall back to embeddings.
+The UI therefore implies that a relevant simulation exists when it does not.
+
+### Root cause
+
+`TopicPage` routes nearly every topic in a category to one monolithic hub. Hub defaults are valid
+for their original modes but are not a complete topic-ID mapping, and there is no explicit
+unsupported state controlling whether the Simulation tab should appear.
+
+### Planned resolution and verification
+
+- Replace broad category switches with a topic-ID-to-lazy-visualizer registry.
+- Move reusable simulations such as consistent hashing to their correct curriculum owner.
+- Hide the Simulation tab when no exact entry exists instead of choosing a fallback.
+- Add a parameterised route test covering all 63 topic IDs and asserting the exact visualizer or
+  an intentionally absent Simulation tab.
+
+### Prevention
+
+- Every optional feature route must model unsupported state explicitly.
+- Do not use a category default to satisfy a topic-specific contract.

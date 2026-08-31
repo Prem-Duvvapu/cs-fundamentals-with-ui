@@ -163,13 +163,13 @@ existing lesson and rerunning the manifest validator.
 2. Complete the remaining Networking lesson and backend-networking sections.
 3. Validate category manifests and cross-link browser→DNS→TCP→TLS→HTTP flows.
 
-### Phase E — DBMS and SQL — ◐ In progress; 10/13 lessons structurally complete
+### Phase E — DBMS and SQL — ✅ Complete
 
 1. Rebuild the eleven non-exemplar DBMS files.
 2. Add the practical SQL lesson with executable query examples and expected results.
 3. Ensure indexes, transactions, isolation, MVCC, scaling, and NoSQL have scenario questions.
 
-### Phase F — AI/ML — ◐ ML lesson complete; two legacy rebuilds pending
+### Phase F — AI/ML — ✅ Complete
 
 1. Add the ML fundamentals lesson.
 2. Complete model serving, LLM parameters, feature stores, and recommendations.
@@ -183,12 +183,37 @@ existing lesson and rerunning the manifest validator.
 4. Run frontend unit/integration tests, backend tests, production build, full content validation,
    accessibility checks, route checks, and documentation synchronization.
 
+### P3 audit checkpoint — simulation triage
+
+- Current inventory: 47 visualizer components, 31 simulation engines and 26 JSON datasets.
+- Keep 14 stateful engines where interaction materially teaches a mechanism: B+ tree, DBMS
+  concurrency, connection pools, consistent hashing, disk scheduling, file-system allocation,
+  functional dependencies, HashMap internals, JVM/GC, normalization, relational algebra, TCP
+  congestion, virtual memory and virtual threads.
+- Convert the remaining 17 fixed step-through engines to lesson Mermaid diagrams/tables before
+  removing their JSX, tests or data dependencies.
+- Migration gate: verify all 49 JSON interview questions, 56 JSON quizzes and 4 inline quizzes
+  (109 items total) are represented or intentionally superseded in Markdown before deletion.
+- Replace category hubs with a topic-to-lazy-visualizer registry and hide Simulation for topics
+  without an exact visualizer. Current fallbacks can show the wrong simulation for practical SQL,
+  Java HashMap/concurrency, Spring production testing and ML fundamentals.
+
+### P5 audit checkpoint — search and Interview Mode
+
+- Build one immutable backend discovery index from `TopicService` plus validated Markdown; do not
+  add another 63-topic registry or load the entire curriculum into the browser.
+- Add stateless `GET /api/v1/search` and `GET /api/v1/interview/questions` endpoints, followed by
+  dedicated `/search` and `/interview/:category` routes.
+- Replace the loose frontend Q&A regex with a section-aware Markdown parser. The current parser
+  lets the final answer absorb `### Further Reading` and renders answer Markdown as plain text.
+- Reuse one extracted InterviewDeck for topic and category practice, with dataset reset, difficulty
+  filtering, source links, accessible reveal state and responsive controls.
+
 ## Question targets
 
 - Existing full-contract lesson: 14 validated interview questions.
 - Seven added lessons: 14 each, adding 98 validated questions.
-- Final minimum after all 63 lessons: 756 questions at 12 each.
-- Final target at 14 each: 882 questions.
+- Final result: 883 validated questions across all 63 lessons (minimum target was 756).
 - Every category must include easy, medium, hard, debugging, design, trade-off, and production scenarios.
 
 ## Definition of done

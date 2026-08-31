@@ -86,6 +86,9 @@ docker compose up --build
 
 ## 📚 63 Curriculum Topics Covered
 
+All 63 lessons satisfy the authoring contract and coverage manifest: 28,683 curriculum lines,
+277 Mermaid diagrams, and 883 validated interview Q&As across the seven preparation areas.
+
 | Category | Topics Count | Key Areas Covered |
 | :--- | :--- | :--- |
 | **Operating Systems** | 8 Topics | Process Management, Memory Management, CPU Scheduling, Synchronization, Deadlocks, File Systems, I/O Systems, Disk Scheduling & Allocation |
@@ -117,11 +120,10 @@ study product. The implementation sequence is:
 1. Keep content routes, validation and CI reliable.
 2. Make Study the default topic view and add a table of contents, tier navigation, reading
    progress and an interview-practice deck.
-3. Rebuild every curriculum file to the authoring contract: 400–600 lines, three Mermaid
-   diagrams and 12–15 interview Q&As.
-4. Retain only high-value simulations; migrate any retained theory and questions before a
+3. Retain only high-value simulations; migrate any retained theory and questions before a
    simulator is removed.
-5. Add cross-topic search and category interview mode.
+4. Add cross-topic search and category interview mode.
+5. Complete the responsive/accessibility audit and full release verification.
 
 The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).
 The expanded [SDE-2 coverage plan](plan.md) is the acceptance checklist for OS, Networking,

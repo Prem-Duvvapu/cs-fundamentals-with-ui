@@ -166,7 +166,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 | **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ✅ **Done** |
 | **P2** | Reading experience — compact topic chrome, responsive TOC, tier nav, interview deck | ✅ **Done** |
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ☐ Not started |
-| **P4** | Content authoring, 63 topics in priority waves | ◐ **In progress — 58/63 pass the structural contract; manifest audit continues** |
+| **P4** | Content authoring, 63 topics in priority waves | ✅ **Done — 63/63 lessons and 83/83 manifest entries pass** |
 | **P5** | Cross-topic search + per-category Interview Mode | ☐ Not started |
 | **P6** | Verify, doc sync, ship | ☐ Not started |
 
@@ -183,12 +183,10 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 
 ### Current implementation priorities
 
-1. **Complete P4 by priority.** Core Java, Advanced Java, Spring, OS and Networking are
-   manifest-clean. Finish the three remaining DBMS rebuilds before AI/ML.
-2. **Complete P3.** Triage simulations only after migrating useful interview questions and theory
+1. **Complete P3.** Triage simulations only after migrating useful interview questions and theory
    from `frontend/src/data/*.json` into their lessons.
-3. **Complete P5.** Add cross-topic search and per-category Interview Mode.
-4. **Complete P6.** Run the full responsive/accessibility audit, verification suite and doc sync;
+2. **Complete P5.** Add cross-topic search and per-category Interview Mode.
+3. **Complete P6.** Run the full responsive/accessibility audit, verification suite and doc sync;
    do not claim the curriculum is complete while validation reports failures.
 
 ### Rules for content work (P4)
@@ -197,9 +195,9 @@ All 63 topics are registered at all integration points, so content work requires
 **zero** registration changes. Never edit `.java`, `.jsx`, `.js` or `.json` in a content unit.
 
 Current contract-completion order:
-- **Complete** — all Core Java, Advanced Java and Spring lessons, including manifest anchors
-- **Next** — remaining OS and Networking manifest anchors
-- **Then** — 7 legacy DBMS structural rebuilds, followed by 2 legacy AI/ML rebuilds
+- **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS and AI/ML
+- **Verified** — 28,683 curriculum lines, 277 Mermaid diagrams and 883 interview Q&As
+- **Gate** — `node scripts/validate-content.mjs` passes all 63 lessons and 83 manifest entries
 
 `content/dbms/06-transactions-acid.md` is the full-contract **exemplar** every later unit matches.
 
