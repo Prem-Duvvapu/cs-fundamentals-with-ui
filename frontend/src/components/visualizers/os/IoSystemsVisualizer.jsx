@@ -61,22 +61,18 @@ export default function IoSystemsVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Scenario Selector Tabs */}
-        <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xl">
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <div className="scenario-picker-panel">
+          <label className="scenario-picker-label">
             Select I/O Simulation Mode:
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="scenario-picker-grid">
             {Object.values(IO_SCENARIOS).map((scenario) => (
               <button
                 key={scenario.id}
                 onClick={() => handleScenarioChange(scenario.id)}
-                className={`px-3 py-2.5 rounded-lg text-xs font-medium text-left transition-all ${
-                  activeScenario === scenario.id
-                    ? 'bg-blue-600 text-white shadow-lg border border-blue-400'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/50'
-                }`}
+                className={`scenario-chip ${activeScenario === scenario.id ? 'is-active' : ''}`}
               >
                 {scenario.name}
               </button>
@@ -85,43 +81,43 @@ export default function IoSystemsVisualizer() {
         </div>
 
         {/* Step Visual Canvas */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
-          <p className="text-xs font-medium text-cyan-300 p-3 bg-cyan-950/40 rounded-lg border border-cyan-500/30 mb-6">
+          <p className="detail-card-desc">{stepData.description}</p>
+          <div className="anomaly-banner is-cyan">
             ⚡ {stepData.status}
-          </p>
+          </div>
 
           {activeScenario === 'io-modes' ? (
             /* Timeline & CPU Metrics */
-            <div className="space-y-6">
+            <div className="u-col-lg">
               {/* CPU Utilization Bar Comparison */}
-              <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              <div className="sub-panel">
+                <div className="sub-panel-label">
                   CPU Execution Allocation
                 </div>
-                <div className="flex gap-4 items-center">
-                  <div className="w-1/2">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-rose-400 font-semibold">Busy-Wait Polling Overhead</span>
-                      <span className="font-mono text-rose-300">{stepData.cpuBusyWait}</span>
+                <div className="cpu-bar-row">
+                  <div className="cpu-bar-col">
+                    <div className="cpu-bar-label">
+                      <span className="name is-danger">Busy-Wait Polling Overhead</span>
+                      <span className="value is-danger">{stepData.cpuBusyWait}</span>
                     </div>
-                    <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
-                      <div className="bg-rose-500 h-full transition-all duration-300" style={{ width: stepData.cpuBusyWait }}></div>
+                    <div className="cpu-bar-track">
+                      <div className="cpu-bar-fill is-danger" style={{ width: stepData.cpuBusyWait }}></div>
                     </div>
                   </div>
-                  <div className="w-1/2">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-emerald-400 font-semibold">Useful User Compute</span>
-                      <span className="font-mono text-emerald-300">{stepData.cpuOtherWork}</span>
+                  <div className="cpu-bar-col">
+                    <div className="cpu-bar-label">
+                      <span className="name is-success">Useful User Compute</span>
+                      <span className="value is-success">{stepData.cpuOtherWork}</span>
                     </div>
-                    <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full transition-all duration-300" style={{ width: stepData.cpuOtherWork }}></div>
+                    <div className="cpu-bar-track">
+                      <div className="cpu-bar-fill is-success" style={{ width: stepData.cpuOtherWork }}></div>
                     </div>
                   </div>
                 </div>
@@ -129,16 +125,16 @@ export default function IoSystemsVisualizer() {
 
               {/* Execution Timeline */}
               {stepData.timeline && (
-                <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800">
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                <div className="sub-panel">
+                  <div className="sub-panel-label">
                     Execution Step Timeline
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 font-mono text-xs">
+                  <div className="timeline-grid">
                     {stepData.timeline.map((item, idx) => (
-                      <div key={idx} className="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                        <div className="text-amber-400 font-bold text-[11px] mb-1">{item.time}</div>
-                        <div className="text-blue-300 text-[11px]">CPU: {item.cpuState}</div>
-                        <div className="text-slate-400 text-[10px] mt-1">Dev: {item.deviceState}</div>
+                      <div key={idx} className="timeline-item">
+                        <div className="time">{item.time}</div>
+                        <div className="cpu">CPU: {item.cpuState}</div>
+                        <div className="dev">Dev: {item.deviceState}</div>
                       </div>
                     ))}
                   </div>
@@ -147,14 +143,14 @@ export default function IoSystemsVisualizer() {
             </div>
           ) : (
             /* Select vs Epoll Comparison */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800">
-                <span className="text-xs font-bold text-slate-400 uppercase">Sockets Monitored</span>
-                <div className="text-2xl font-bold text-white font-mono mt-1">{stepData.fdsMonitored} Sockets</div>
+            <div className="stat-grid">
+              <div className="stat-card">
+                <span className="label">Sockets Monitored</span>
+                <div className="stat-value">{stepData.fdsMonitored} Sockets</div>
               </div>
-              <div className="p-4 rounded-xl bg-slate-950/90 border border-emerald-500/30">
-                <span className="text-xs font-bold text-emerald-400 uppercase">Descriptors Scanned Per Call</span>
-                <div className="text-2xl font-bold text-emerald-300 font-mono mt-1">{stepData.scansPerformed} Checks ({stepData.complexity})</div>
+              <div className="stat-card is-success">
+                <span className="label">Descriptors Scanned Per Call</span>
+                <div className="stat-value">{stepData.scansPerformed} Checks ({stepData.complexity})</div>
               </div>
             </div>
           )}
