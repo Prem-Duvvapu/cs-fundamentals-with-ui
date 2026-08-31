@@ -182,7 +182,7 @@ export default function BPlusTreeVisualizer() {
       </div>
 
       {/* Interactive B+ Tree Canvas */}
-      <div className="viz-card bptree-canvas-card">
+      <div className="viz-card bptree-canvas-card u-scroll-x-hint">
         <h3>
           <span>📊 Animated B+ Tree Structure (Order M = {order})</span>
           <span className="hint">
@@ -312,6 +312,7 @@ export default function BPlusTreeVisualizer() {
           </svg>
         </div>
       </div>
+      <p className="scroll-hint-caption">Scroll to see the full tree →</p>
 
       {/* State Inspector Grid */}
       <div className="field-block">

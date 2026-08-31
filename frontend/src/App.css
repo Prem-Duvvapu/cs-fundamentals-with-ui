@@ -108,6 +108,9 @@
   --radius-lg: 14px; --radius-xl: 20px; --radius-full: 9999px;
   --stroke-hair: 1px; --stroke-thick: 2px; --stroke-marker: 3px;
   --nav-height: 3.5rem; --topic-toolbar-height: 3.25rem; --rail-width: 16rem; --shell-max: 80rem;
+  /* Breakpoint scale (reference only — custom properties don't work inside @media, so every
+     media query below writes these pixel values literally):
+     --bp-sm: 480px  --bp-md: 768px  --bp-lg: 1024px  --bp-xl: 1280px */
   --dur-instant: 80ms; --dur-fast: 140ms; --dur-base: 200ms;
   --dur-slow: 320ms; --dur-slower: 520ms; --dur-sim-step: 400ms;
   --ease-standard: cubic-bezier(.2, 0, 0, 1);
@@ -192,6 +195,28 @@
 .u-col { display: flex; flex-direction: column; gap: var(--space-2); }
 .u-grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: var(--space-3); }
 .u-scroll-x { overflow-x: auto; overscroll-behavior-x: contain; }
+/* Persistent horizontal-scroll affordance for intrinsically-wide content (Gantt charts, the B+
+   tree canvas, encoding waveforms). The scrollbar is invisible on touch, so this pairs a
+   right-edge fade (sticky within the scroll container, so it stays visible mid-scroll, not just
+   at the untouched starting position) with a below-768px text caption naming the scroll. */
+.u-scroll-x-hint {
+  --scroll-fade-bg: var(--bg-surface);
+  position: relative;
+}
+.u-scroll-x-hint::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2rem;
+  background: linear-gradient(to right, transparent, var(--scroll-fade-bg));
+  pointer-events: none;
+}
+.scroll-hint-caption { display: none; }
+@media (max-width: 767px) {
+  .scroll-hint-caption { color: var(--text-muted); display: block; font-size: var(--ui-2xs); margin-top: var(--space-2); text-align: center; }
+}
 .u-pill { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); font-size: var(--ui-2xs); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; border: var(--stroke-hair) solid transparent; }
 .u-pill-success { background: var(--state-success-tint); color: var(--state-success); border-color: var(--state-success-border); }
 .u-pill-warning { background: var(--state-warning-tint); color: var(--state-warning); border-color: var(--state-warning-border); }
@@ -407,11 +432,6 @@ body {
   color: var(--text-primary);
 }
 
-button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
-  outline: 3px solid #c4b5fd;
-  outline-offset: 3px;
-}
-
 .study-layout {
   display: grid;
   grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr);
@@ -469,7 +489,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .interview-deck-actions button { background: var(--accent-purple); color: white; padding: 0.5rem 0.8rem; }
 .interview-deck-actions button:disabled { cursor: not-allowed; opacity: 0.45; }
 
-@media (max-width: 780px) {
+@media (max-width: 767px) {
   .study-layout { display: block; }
   .study-navigation { margin-bottom: 1rem; position: static; }
   .study-navigation nav { flex-direction: row; flex-wrap: wrap; }
@@ -479,7 +499,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   .interview-deck { padding: 1rem; }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 479px) {
   .main-content { padding: 1rem; }
   .tier-navigation button, .study-navigation button { font-size: 0.85rem; }
   .interview-deck-actions button { flex: 1 1 8rem; }
@@ -645,7 +665,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .roadmap-cta:hover,
 .category-cta:hover { filter: brightness(1.12); transform: translateY(-1px); }
 
-@media (max-width: 780px) {
+@media (max-width: 767px) {
   .roadmap-index-selectors,
   .roadmap-selectors,
   .category-selectors { flex-wrap: nowrap; margin-inline: -0.25rem; overflow-x: auto; padding: 0.25rem; scrollbar-color: var(--border-color) transparent; }
@@ -952,7 +972,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   gap: 1.5rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .metrics-grid {
     grid-template-columns: 1fr;
   }
@@ -1155,7 +1175,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .btn.is-snug { padding: var(--space-2) var(--space-4); }
 .action-banner { align-items: center; background: var(--bg-surface); border: var(--stroke-hair) solid var(--state-info-border); border-radius: var(--radius-sm); color: var(--state-info); display: flex; font-size: .92rem; gap: var(--space-2); margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); }
 .action-banner .banner-icon { font-size: 1.2rem; }
-.bptree-canvas-card { background: var(--bg-code); border-radius: var(--radius-lg); min-height: 23.75rem; overflow-x: auto; padding: var(--space-4); }
+.bptree-canvas-card { --scroll-fade-bg: var(--bg-code); background: var(--bg-code); border-radius: var(--radius-lg); min-height: 23.75rem; overflow-x: auto; padding: var(--space-4); }
 .bptree-canvas-card h3 { align-items: center; color: var(--text-secondary); display: flex; font-size: var(--ui-lg); justify-content: space-between; margin: 0 0 var(--space-4); }
 .bptree-canvas-card h3 .hint { color: var(--text-muted); font-size: var(--ui-xs); font-weight: 400; }
 .bptree-svg { overflow: visible; }
@@ -2125,7 +2145,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 .scope-panel { background: var(--bg-code); border: var(--stroke-hair) solid var(--state-info-border); border-radius: var(--radius-lg); margin-bottom: var(--space-5); padding: var(--space-5); }
 .scope-legend { color: var(--text-muted); display: flex; font-size: var(--ui-xs); justify-content: space-between; margin-bottom: var(--space-3); }
-.scope-track { display: flex; overflow-x: auto; padding-bottom: var(--space-2); }
+.scope-track { --scroll-fade-bg: var(--bg-code); display: flex; overflow-x: auto; padding-bottom: var(--space-2); }
 .scope-bit { border-right: 1px dashed var(--border-subtle); flex: 1; min-width: 3.75rem; text-align: center; }
 .scope-bit .bit-value { color: var(--cat-base); font-family: var(--font-mono); font-size: var(--ui-md); font-weight: 700; margin-bottom: var(--space-2); }
 .scope-wave-box { align-items: center; background: var(--bg-code); border-radius: var(--radius-xs); display: flex; height: 4.375rem; padding: 0 2px; }
@@ -2530,8 +2550,18 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { box-shadow: va
   .roadmap-selectors, .level-selectors { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--space-2); }
   .roadmap-selector, .level-selector, .main-tab-btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-danger { min-height: 44px; }
   .field-grid { grid-template-columns: minmax(0, 1fr); }
-  .gantt-wrapper, .tcp-segment-grid, .encoding-waveform, .btree-container { overflow-x: auto; overscroll-behavior-x: contain; }
-  .gantt-chart, .tcp-segment-grid > *, .encoding-waveform > *, .btree-container > * { min-width: 34rem; }
+  .gantt-wrapper { overflow-x: auto; overscroll-behavior-x: contain; position: relative; }
+  .gantt-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(to right, transparent, var(--bg-surface));
+    pointer-events: none;
+  }
+  .gantt-chart { min-width: 34rem; }
 }
 
 @media (max-width: 479px) {

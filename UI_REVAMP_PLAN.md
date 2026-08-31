@@ -45,16 +45,35 @@ used a non-canonical `640px` breakpoint; they now match the project's 480/768/10
 `frontend/src/hooks/useSimulationTimer.js` is a second, unused auto-play implementation (zero
 consumers) — left alone rather than fixed, since fixing dead code changes nothing that ships.
 
-Still pending in Phase 7: consolidating the three legacy, non-canonical media queries
-(`max-width: 780px / 520px / 900px`, still present in `App.css` alongside the canonical
-`1023px / 767px / 479px` ones added in Phase 4 — the exact "three inconsistent breakpoints"
-§4.7 calls out) into the canonical scale; the persistent scroll-hint affordance (edge gradient +
-caption) on the Gantt/TCP-segment/waveform/B+-tree horizontal-scroll containers, which currently
-scroll but give no visible cue that they do; a dead, fully-shadowed duplicate `:focus-visible`
-rule (line ~410, hardcoded `#c4b5fd`) sitting before the real tokenized one (line ~2422); and no
-Lighthouse/axe pass has been run. Phase 8 (delete the legacy token shim once nothing references
-it, delete the ~36 dead CSS classes, sync `AGENTS.md:171`) has not started. The canonical
-contributor-facing rules live in `docs/DESIGN_SYSTEM.md`.
+More of Phase 7 is now done. The three legacy, non-canonical media queries (`max-width: 780px`
+×2, `520px`, `900px`) are renumbered onto the canonical 480/768/1024/1280 scale (767px/479px/
+1023px respectively), matching the `1023px/767px/479px` queries already added in Phase 4; a
+`/* --bp-sm: 480px --bp-md: 768px --bp-lg: 1024px --bp-xl: 1280px */` reference comment sits
+next to the layout tokens in `:root` per §4.7 (custom properties don't work inside `@media`,
+so every query still writes the pixel value literally). The dead, fully-shadowed duplicate
+`:focus-visible` rule (hardcoded `#c4b5fd`) is deleted; only the tokenized one remains.
+
+The persistent scroll-hint affordance (§4.7 point 2 — an edge fade plus a `Scroll to see the
+full … →` caption, since the scrollbar is invisible on touch) is added to the three
+visualizers that actually have an intrinsically-wide horizontal-scroll container today:
+`SchedulingVisualizer`'s Gantt chart, `dbms/BPlusTreeVisualizer`'s tree canvas, and
+`NetworkingVisualizer`'s encoding waveform (`.u-scroll-x-hint` for the edge fade,
+`.scroll-hint-caption` for the below-768px text). While auditing this, found that the
+media query's old selector list (`.tcp-segment-grid`, `.encoding-waveform`, `.btree-container`)
+named classes that no longer exist anywhere in the codebase — dead since the Phase 6 rewrites
+of `NetworkingVisualizer`/`BPlusTreeVisualizer` renamed them, and `TcpSegmentVisualizer` was
+never structured that way (its field grid already reflows via `auto-fit`, needing no scroll
+treatment — tier 1, not tier 2). Not a regression: both real replacement classes
+(`.scope-track`, `.bptree-canvas-card`) already carry `overflow-x: auto` unconditionally from
+the Phase 6 rewrite, so scrolling itself never broke — only the *hint* was missing. The dead
+selectors are removed; `.gantt-wrapper`/`.gantt-chart` (still real) keep the mobile-gated
+treatment.
+
+Still pending in Phase 7: no Lighthouse/axe pass has been run (no browser in this environment);
+the tier-3 substitution list remains unapproved (owner decision #6 — none needed yet, since
+nothing has failed reflow or tier-2 scroll). Phase 8 (delete the legacy token shim once nothing
+references it, delete the ~36 dead CSS classes, sync `AGENTS.md:171`) has not started. The
+canonical contributor-facing rules live in `docs/DESIGN_SYSTEM.md`.
 
 **§3.5 addendum — `SchedulingVisualizer.jsx`'s process-color palette.** `DEFAULT_PROCESSES`
 and the dynamic-add `colors` array need up to 9 mutually distinguishable hues for concurrent

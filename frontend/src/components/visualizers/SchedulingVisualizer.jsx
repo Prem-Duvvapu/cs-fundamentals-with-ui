@@ -267,6 +267,7 @@ export default function SchedulingVisualizer() {
             ))}
           </div>
         </div>
+        <p className="scroll-hint-caption">Scroll to see the full timeline →</p>
       </div>
 
       {/* Metrics & Performance Analytics */}

@@ -443,7 +443,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
               <span>0V Level</span>
             </div>
 
-            <div className="scope-track">
+            <div className="scope-track u-scroll-x-hint">
               {waveformData.map((item, idx) => (
                 <div key={idx} className="scope-bit">
                   <div className="bit-value">
@@ -470,6 +470,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
               ))}
             </div>
           </div>
+          <p className="scroll-hint-caption">Scroll to see the full waveform →</p>
         </div>
       )}
 
