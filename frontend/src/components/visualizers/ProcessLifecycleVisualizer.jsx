@@ -197,7 +197,7 @@ export default function ProcessLifecycleVisualizer() {
         <div className="context-switch-wrapper">
           <div className="viz-card">
             <h3>⚡ Process Context Switch vs Thread Context Switch</h3>
-            <p style={{ color: '#a0a0b0', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
               Observe how the CPU context is saved to PCB #1 and restored from PCB #2 during a context switch.
             </p>
 

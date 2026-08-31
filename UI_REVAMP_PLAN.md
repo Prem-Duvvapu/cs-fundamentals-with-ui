@@ -30,13 +30,25 @@ relational-algebra tables, `raid-disk`/`bitmap-panel`/`postings-panel` for stora
 `stat-grid` for I/O systems, `thread-panel`/`pattern-panel` for design patterns, and per-file
 classes as needed) — zero raw hex or Tailwind classNames remain in any of the 13.
 
-Also still pending from the original Phase 6 file order: `visualizers/os/VirtualMemoryVisualizer`
-(23 raw hex), the long tail (`SchedulingVisualizer` 9 hex, `ProcessLifecycleVisualizer` 2 hex,
-one remaining `networking/` file with 2 hex), Phase 7 (responsive/accessibility pass — the
-existing media queries are a mix of the new standard breakpoints and un-migrated legacy ones),
-and the Phase 8 cleanup (delete the legacy token shim once nothing references it, delete the
-~36 dead CSS classes, sync `AGENTS.md:171`). The canonical contributor-facing rules live in
+The original Phase 6 file order (§3.6) is now fully complete: `visualizers/os/VirtualMemoryVisualizer`
+(23 hex), `SchedulingVisualizer`, `ProcessLifecycleVisualizer`, and `networking/DistanceVectorVisualizer`
+are all on the token system. `SchedulingVisualizer`'s per-process Gantt colors are a deliberate,
+documented exception (see §3.5 addendum below) rather than an oversight — they stay literal hex.
+
+Still pending: Phase 7 (responsive/accessibility pass — the existing media queries are a mix of
+the new standard breakpoints and un-migrated legacy ones; no Lighthouse/axe pass run yet), and
+the Phase 8 cleanup (delete the legacy token shim once nothing references it, delete the ~36
+dead CSS classes, sync `AGENTS.md:171`). The canonical contributor-facing rules live in
 `docs/DESIGN_SYSTEM.md`.
+
+**§3.5 addendum — `SchedulingVisualizer.jsx`'s process-color palette.** `DEFAULT_PROCESSES`
+and the dynamic-add `colors` array need up to 9 mutually distinguishable hues for concurrent
+Gantt-chart processes. The token system's 5 category accents + 4 state colors overlap in hue
+(`--cat-dbms-base` ≈ `--state-success`, `--cat-networking-base` ≈ `--state-info`), so a
+mechanical token substitution would make adjacent processes visually indistinguishable —
+a real legibility regression for a chart whose entire purpose is telling processes apart. Left
+as literal hex, matching this file's own explicit bucket-2 carve-out ("a per-process Gantt
+color keyed off a process index"). Every other hex in the file was tokenized.
 
 This document is the single source of truth for the revamp. It supersedes any styling
 guidance in `AGENTS.md`, `CONTEXT.md`, or `CLAUDE.md` where they disagree — and Phase 8
