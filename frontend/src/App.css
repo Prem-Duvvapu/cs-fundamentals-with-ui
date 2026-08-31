@@ -1347,6 +1347,16 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .sub-panel-value-sm { color: var(--state-info); font-family: var(--font-mono); font-size: var(--ui-xs); }
 .sub-panel-value-sm.is-muted { color: var(--text-secondary); }
 
+/* QueryOptimizerVisualizer */
+.sub-panel.is-recommended { border-color: var(--state-success-border); }
+.sub-panel-label.is-success { color: var(--state-success); }
+.cost-value { font-family: var(--font-mono); font-size: var(--ui-md); font-weight: 700; }
+.cost-value.is-danger { color: var(--state-danger); }
+.cost-value.is-warning { color: var(--state-warning); }
+.cost-value.is-success { color: var(--state-success); }
+.cost-caption { color: var(--text-muted); font-size: var(--ui-xs); margin-top: var(--space-1); }
+.cost-caption.is-success { color: var(--state-success); }
+
 /* Context Switch Visualizer */
 .switch-animation-container {
   display: flex;

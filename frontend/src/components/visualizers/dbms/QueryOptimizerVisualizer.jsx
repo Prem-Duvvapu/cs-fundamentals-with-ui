@@ -29,49 +29,49 @@ export default function QueryOptimizerVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Step Header & Description */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
 
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
+          <p className="detail-card-desc">{stepData.description}</p>
 
           {/* Relational Algebra Tree Visualization */}
           {stepData.treeLayout && (
-            <div className="p-5 bg-slate-950/90 rounded-xl border border-blue-500/30 font-mono text-xs text-blue-300 whitespace-pre-wrap leading-relaxed">
+            <pre className="acid-sql-block is-accent">
               {stepData.treeLayout.join('\n')}
-            </div>
+            </pre>
           )}
 
           {/* Physical Join Cost Comparison Matrix */}
           {stepData.costs && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <div className="p-3.5 bg-slate-950/80 rounded-lg border border-slate-800">
-                <div className="text-xs text-slate-400 font-semibold mb-1">Nested Loop Join Cost</div>
-                <div className="font-mono text-base font-bold text-rose-400">{costs.nestedLoop.toLocaleString()} I/Os</div>
-                <div className="text-xs text-slate-500 mt-1">Br + |R| × Bs (Very Slow)</div>
+            <div className="metrics-3col field-block">
+              <div className="sub-panel">
+                <div className="sub-panel-label">Nested Loop Join Cost</div>
+                <div className="cost-value is-danger">{costs.nestedLoop.toLocaleString()} I/Os</div>
+                <div className="cost-caption">Br + |R| × Bs (Very Slow)</div>
               </div>
-              <div className="p-3.5 bg-slate-950/80 rounded-lg border border-slate-800">
-                <div className="text-xs text-slate-400 font-semibold mb-1">Block Nested Loop Join Cost</div>
-                <div className="font-mono text-base font-bold text-amber-400">{costs.blockNestedLoop.toLocaleString()} I/Os</div>
-                <div className="text-xs text-slate-500 mt-1">Buffered (M=50 pages)</div>
+              <div className="sub-panel">
+                <div className="sub-panel-label">Block Nested Loop Join Cost</div>
+                <div className="cost-value is-warning">{costs.blockNestedLoop.toLocaleString()} I/Os</div>
+                <div className="cost-caption">Buffered (M=50 pages)</div>
               </div>
-              <div className="p-3.5 bg-slate-950/80 rounded-lg border border-emerald-500/40">
-                <div className="text-xs text-emerald-400 font-semibold mb-1">Hash Join Cost (Recommended)</div>
-                <div className="font-mono text-base font-bold text-emerald-300">{costs.hashJoin.toLocaleString()} I/Os</div>
-                <div className="text-xs text-emerald-500 mt-1">3 × (Br + Bs) (Optimal)</div>
+              <div className="sub-panel is-recommended">
+                <div className="sub-panel-label is-success">Hash Join Cost (Recommended)</div>
+                <div className="cost-value is-success">{costs.hashJoin.toLocaleString()} I/Os</div>
+                <div className="cost-caption is-success">3 × (Br + Bs) (Optimal)</div>
               </div>
             </div>
           )}
         </div>
 
         {/* State Inspector & Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="metrics-2col">
           <StateInspector
             title="Optimizer Transformation Stage"
             state={{
