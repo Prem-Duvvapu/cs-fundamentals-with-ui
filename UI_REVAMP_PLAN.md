@@ -35,11 +35,26 @@ The original Phase 6 file order (§3.6) is now fully complete: `visualizers/os/V
 are all on the token system. `SchedulingVisualizer`'s per-process Gantt colors are a deliberate,
 documented exception (see §3.5 addendum below) rather than an oversight — they stay literal hex.
 
-Still pending: Phase 7 (responsive/accessibility pass — the existing media queries are a mix of
-the new standard breakpoints and un-migrated legacy ones; no Lighthouse/axe pass run yet), and
-the Phase 8 cleanup (delete the legacy token shim once nothing references it, delete the ~36
-dead CSS classes, sync `AGENTS.md:171`). The canonical contributor-facing rules live in
-`docs/DESIGN_SYSTEM.md`.
+**Phase 7 (responsive/accessibility pass) has started.** Done: `prefers-reduced-motion` now
+pauses auto-play (§4.8) — added `frontend/src/utils/motionPreference.js` and wired it into the
+auto-play `useEffect` in all 18 visualizers that implement one (`SchedulingVisualizer`,
+`dbms/BPlusTreeVisualizer`, `os/VirtualMemoryVisualizer`, `networking/{ConsistentHashing,
+TcpCongestion}`, and 14 `java/` visualizers) — manual step-forward/back is unaffected, only the
+automatic advance is suppressed. Also fixed five grids from the dead-Tailwind-class work that
+used a non-canonical `640px` breakpoint; they now match the project's 480/768/1024/1280 scale.
+`frontend/src/hooks/useSimulationTimer.js` is a second, unused auto-play implementation (zero
+consumers) — left alone rather than fixed, since fixing dead code changes nothing that ships.
+
+Still pending in Phase 7: consolidating the three legacy, non-canonical media queries
+(`max-width: 780px / 520px / 900px`, still present in `App.css` alongside the canonical
+`1023px / 767px / 479px` ones added in Phase 4 — the exact "three inconsistent breakpoints"
+§4.7 calls out) into the canonical scale; the persistent scroll-hint affordance (edge gradient +
+caption) on the Gantt/TCP-segment/waveform/B+-tree horizontal-scroll containers, which currently
+scroll but give no visible cue that they do; a dead, fully-shadowed duplicate `:focus-visible`
+rule (line ~410, hardcoded `#c4b5fd`) sitting before the real tokenized one (line ~2422); and no
+Lighthouse/axe pass has been run. Phase 8 (delete the legacy token shim once nothing references
+it, delete the ~36 dead CSS classes, sync `AGENTS.md:171`) has not started. The canonical
+contributor-facing rules live in `docs/DESIGN_SYSTEM.md`.
 
 **§3.5 addendum — `SchedulingVisualizer.jsx`'s process-color palette.** `DEFAULT_PROCESSES`
 and the dynamic-add `colors` array need up to 9 mutually distinguishable hues for concurrent
