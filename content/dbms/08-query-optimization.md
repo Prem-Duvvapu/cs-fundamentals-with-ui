@@ -1,253 +1,480 @@
-# Query Processing & Cost-Based Query Optimization
+# Query Processing, Relational Trees, and Cost-Based Optimization
+
+Query processing turns declarative SQL into an executable program over pages, indexes, memory, and CPUs. It sits between the SQL interface and the storage engine, deciding which equivalent relational plan is likely to finish with the least work. Interviewers ask about it because plan choice connects SQL correctness, data distribution, index design, and production performance diagnosis.
+
+---
 
 ## 🟢 Beginner Level
 
-### The GPS Navigation Analogy
-SQL is declarative: you state WHAT you want (all users older than 25), never HOW to fetch it. That makes the database a GPS navigator: your destination is the result set, but dozens of routes can reach it — scan this table first or that one, nest the loops or build a hash? The navigator picks using live traffic data; the optimizer picks using **statistics** about your tables (how many rows, how many distinct cities, how clustered). And like a GPS running on outdated maps, an optimizer with stale statistics confidently picks terrible routes.
+### Declarative SQL and the Optimizer's Job
 
-### What Is Query Processing?
-**Query processing** is the pipeline that converts a SQL string into executed rows:
+SQL describes **what** result is required, not the algorithm that must produce it. The query below does not require an index scan, a particular join order, or a particular join algorithm:
 
-```
-SQL TEXT
-   -> Parser / Lexer             checks syntax, builds a parse tree
-   -> Binder / Analyzer          resolves tables, columns, types against catalog
-   -> Logical Rewriter           applies relational-algebra equivalence rules
-   -> Physical Optimizer (CBO)   enumerates candidate plans, prices each with
-                                 statistics, keeps the cheapest
-   -> Execution Engine           runs the winning plan, streams results
+```sql
+SELECT c.name, o.total
+FROM customers AS c
+JOIN orders AS o ON o.customer_id = c.id
+WHERE c.region = 'SOUTH'
+  AND o.status = 'PENDING';
 ```
 
-### Logical Plan vs Physical Plan
-One algebraic expression maps to many physical plans. For SELECT name FROM users WHERE age > 25:
+Many programs can return the same rows:
 
-```
-Plan A:  Seq Scan users  ->  Filter age > 25          touches every row
-Plan B:  Index Scan on idx_users_age                   touches only matches,
-                                                       plus random row fetches
+- scan `customers`, scan `orders`, and hash the smaller input;
+- use an index on `customers(region)` and probe an index on `orders(customer_id)`;
+- scan filtered `orders` first and then look up each customer;
+- sort both inputs and merge them on `customer_id`.
+
+The **query optimizer** explores a bounded set of those alternatives. It estimates their resource costs from table and column statistics, then chooses a physical plan before execution begins.
+
+Optimization is therefore a prediction problem. The chosen plan is only as good as the estimates and alternatives available at planning time.
+
+### Query Processing Pipeline
+
+A query passes through distinct stages. Product names differ, but the responsibilities are broadly shared by relational engines.
+
+```mermaid
+flowchart LR
+    A["SQL text"] --> B["Parse and validate syntax"]
+    B --> C["Bind names and infer types"]
+    C --> D["Build logical relational tree"]
+    D --> E["Rewrite equivalent expressions"]
+    E --> F["Enumerate physical alternatives"]
+    F --> G["Estimate cardinality and cost"]
+    G --> H["Execute selected plan"]
+    H --> I["Return or stream rows"]
 ```
 
-If the query matched 90% of rows, Plan A wins despite touching everything — sequential I/O beats millions of random probes. Choosing correctly requires **cost estimation**, which is the entire game at higher levels.
+1. **Parser** converts tokens into a syntax tree and rejects malformed SQL.
+2. **Binder or analyzer** resolves tables, columns, functions, aliases, and data types against the catalog.
+3. **Logical rewriter** expresses the request as relational operators and applies equivalence rules.
+4. **Cost-based optimizer (CBO)** chooses access paths, join order, join algorithms, and operator properties.
+5. **Execution engine** runs the chosen operators and exchanges tuples or batches between them.
+
+Parsing proves that the statement is syntactically meaningful. Planning decides how to perform it; execution is where predicted work becomes real work.
+
+### Logical Plans and Physical Plans
+
+A **logical plan** states relational operations without committing to implementation. Its common operators include:
+
+- selection $\sigma$ for filtering rows;
+- projection $\pi$ for retaining columns;
+- join $\bowtie$ for combining related tuples;
+- aggregation $\gamma$ for grouping and computing aggregates;
+- sort, duplicate elimination, union, and set difference.
+
+A **physical plan** selects executable operators such as `Seq Scan`, `Index Scan`, `Hash Join`, `Nested Loop`, `Sort`, and `HashAggregate`.
+
+For `SELECT name FROM users WHERE age >= 65`, the logical plan is a selection followed by a projection. A physical plan may scan all user pages and filter, or traverse a B+ tree on `age` and fetch only qualifying rows.
+
+Logical equivalence preserves the answer. Physical alternatives preserve the answer while changing latency, memory use, I/O pattern, and sensitivity to data distribution.
+
+### Relational Trees and Early Reduction
+
+Relational operators form a tree whose leaves are base relations and whose root produces the final result. Rows flow upward, so work saved near a leaf is usually amplified by every operator above it.
+
+```mermaid
+flowchart BT
+    O["orders base table"] --> FO["Filter status = PENDING"]
+    C["customers base table"] --> FC["Filter region = SOUTH"]
+    FO --> JO["Join on customer_id = id"]
+    FC --> JO
+    JO --> PR["Project name and total"]
+```
+
+**Predicate pushdown** moves a selection as close as legally possible to its table scan. Filtering 10 million orders down to 40,000 before a join is much cheaper than joining all 10 million and discarding rows afterward.
+
+**Projection pushdown** removes unused columns early. If an order tuple is 400 bytes but the remaining plan needs only a 16-byte customer ID and total, reducing width can make a hash table 25 times smaller.
+
+Pushdown must preserve semantics. A predicate on the nullable side of an outer join cannot always cross the join because moving it may change whether null-extended rows survive.
+
+### Access Paths: Scan or Index
+
+An access path is the physical way an engine obtains rows from a relation.
+
+| Access path | Work pattern | Good fit | Common failure case |
+|---|---|---|---|
+| Sequential scan | Read table pages in physical order | Large fraction of rows, compact table | Wasteful for a highly selective lookup |
+| Index scan | Traverse index, then fetch table rows | Selective predicate with useful ordering | Many random heap fetches for a broad predicate |
+| Index-only scan | Read values from index without heap data | Covering index and visible tuples/pages | Falls back to heap checks or misses needed columns |
+| Bitmap scan | Combine row locations, then visit heap pages in order | Medium selectivity or multiple indexes | Bitmap memory grows; not ideal for one-row probes |
+
+An index is not automatically faster. If 70% of a table qualifies, a sequential scan can read each page once while an index plan performs thousands of scattered lookups.
+
+The optimizer chooses from access paths that existing indexes and engine capabilities make possible. A missing index removes an alternative; it does not make the optimizer irrational.
+
+### Join Order and Join Method Are Different Decisions
+
+For three relations, the optimizer decides both **order** and **method**. It may compute `(customers join orders) join payments` or `customers join (orders join payments)`, then independently choose a nested loop, hash join, or merge join at each node.
+
+Join order controls intermediate cardinalities. Joining a selective 100-row input before a 50-million-row event table may be dramatically cheaper than creating a huge intermediate relation first.
+
+Join method controls how two selected inputs are combined. The best method depends on input size, available indexes, ordering, join predicate, memory, and expected output size.
+
+---
 
 ## 🟡 Intermediate Level
 
-### Relational Algebra Equivalence Rules (the Rewriter's Toolbox)
-The logical optimizer transforms the parse tree into cheaper equivalent trees using provable rules:
+### Equivalence Rules and Safe Rewrites
 
-1. **Cascade of selections**: σa(σb(R)) = σ(a∧b)(R) — merge consecutive filters into one pass.
-2. **Commutativity of selections**: filter order among independent predicates is free; put the most selective first.
-3. **Push selections through joins**: if predicate p references only R's attributes, σp(R ⋈ S) = σp(R) ⋈ S. This is the single highest-value rule — filtering before joining shrinks the join input.
-4. **Cascade and push projections**: drop unused columns as early as possible; narrower tuples mean more tuples per memory page.
-5. **Commutativity of joins**: R ⋈ S = S ⋈ R.
-6. **Associativity of joins**: (R ⋈ S) ⋈ T = R ⋈ (S ⋈ T) — this unlocks all join orders.
-7. **Selection splits over union/difference** and distributes across join keys when it constrains them.
-8. Combined, rules 3, 5, 6 let the optimizer seek the join order minimizing intermediate result size.
+The rewriter reduces work using algebraic identities:
 
-### Heuristic Rewrite Pipeline
-Before any costing, rule-based rewrites shrink the tree:
+1. Consecutive selections combine: $\sigma_p(\sigma_q(R)) = \sigma_{p \land q}(R)$.
+2. A predicate referencing only $R$ can move below an inner join: $\sigma_p(R \bowtie S) = \sigma_p(R) \bowtie S$.
+3. Inner joins are commutative: $R \bowtie S = S \bowtie R$.
+4. Inner joins are associative: $(R \bowtie S) \bowtie T = R \bowtie (S \bowtie T)$.
+5. Projections can move downward if they retain columns needed by later predicates and join keys.
+6. `EXISTS` and `IN` subqueries may become semi-joins; `NOT EXISTS` may become an anti-join.
 
-```
-UNOPTIMIZED TREE:
-  project(name)  ->  select(age > 25)  ->  join(users, orders)
+The qualifier **inner** matters. Outer joins, volatile functions, duplicate-sensitive operations, window functions, and null semantics restrict legal reordering.
 
-AFTER PUSHDOWN AND REORDERING:
-  project(name)
-     -> join( select(age > 25) applied to users ,
-              select(total > 100) applied to orders )
-```
+`NOT IN` is especially dangerous when its subquery can return `NULL`. SQL's three-valued logic can make the predicate unknown for every candidate, so an apparently equivalent anti-join rewrite needs a proven non-null key or explicit `NOT EXISTS` semantics.
 
-Both compute identical answers, but the optimized version filters each table before the join instead of joining full tables first.
+### Cardinality, Selectivity, and Statistics
 
-### Projection Pushdown Has Its Own Arithmetic
-Filtering shrinks row counts; projecting shrinks row width — both multiply into I/O savings:
+**Cardinality** is an operator's estimated or actual row count. **Selectivity** is the fraction of input rows expected to survive a predicate.
 
-```
-orders row:  order_id 8B  customer_id 8B  status 12B  items jsonb ~150B
-             total 200 bytes per tuple
+For a relation with $N$ rows and $V(A)$ distinct values in column $A$, a simple equality estimate is:
 
-Query needs: SELECT customer_id FROM orders WHERE status = 'PENDING';
+$$
+\operatorname{sel}(A = c) \approx \frac{1}{V(A)}
+$$
 
-Late projection : join carries 200 B tuples through every operator
-Early projection: drop items immediately -> tuples shrink to ~28 B,
-                  ~7x more tuples per memory page, hash tables and
-                  sort runs shrink by the same factor
-```
+The estimated output cardinality is:
 
-Column stores (Parquet, ClickHouse, Redshift) push this to the limit — unneeded columns are never read from disk at all.
+$$
+\widehat{N}_{out} = N \times \operatorname{sel}(predicate)
+$$
 
-### Subquery Unnesting and Decorrelation
-The rewriter must also flatten SQL's imperative nesting back into algebra:
+Engines improve on uniform assumptions with:
 
-1. `WHERE x IN (SELECT ...)` becomes a **semi-join** (each outer row emitted at most once).
-2. `NOT IN`/`EXISTS` variants become anti-joins — with a famous NULL-semantics trap that makes naive NOT IN catastrophically slow against nullable columns.
-3. Correlated scalar subqueries (`SELECT (SELECT max(x) ...)` per row) become aggregates joined on the correlation key; engines that fail this rewrite execute the subquery once per outer row.
-4. CTEs: PostgreSQL inlined them (materializing only when recursive, side-effecting, or referenced multiple times) starting with version 12.
+- most-common-value frequencies for skewed values;
+- histograms for value ranges;
+- null fractions and distinct-value counts;
+- index cardinality and physical correlation;
+- multicolumn or extended statistics for correlated predicates.
 
-### Cardinality Estimation: Selectivity Formulas
-The cost model's raw fuel is the estimated output size of each operator. From catalog statistics (N rows in R, V(A,R) distinct values in column A):
+Cardinality is the optimizer's most consequential input. A tenfold error near a leaf can become a thousandfold error after several joins.
 
-- Equality: sel(σ A = c) = 1 ÷ V(A,R)
-- Range: sel(σ A > c) = (High − c) ÷ (High − Low) under the uniformity assumption
-- Conjunction (independence assumption): sel(p ∧ q) = sel(p) × sel(q)
-- Disjunction: sel(p ∨ q) = sel(p) + sel(q) − sel(p) × sel(q)
+### Worked Selectivity Example
 
-Worked micro-example — users with N = 1,000,000:
+Assume `orders` contains 20,000,000 rows across 200,000 pages. Catalog statistics say:
 
-```
-V(city) = 500      ->  sel(city = 'Mumbai') = 1/500       = 0.0020
-ages span 0..80    ->  sel(age > 60)        = (80-60)/80  = 0.25
+- `status` has four distinct values;
+- `region` has 20 distinct values;
+- dates span 1,000 days;
+- a query requests a 10-day range.
 
-Conjunction (assuming independence):
-sel(city = 'Mumbai' AND age > 60) = 0.002 x 0.25 = 0.0005
-Estimated rows                    = 1,000,000 x 0.0005 = 500 rows
-```
+Under uniformity and independence assumptions:
 
-Real distributions violate these assumptions constantly — cities are not uniform and city/age are often correlated — which is why histograms exist (Expert level).
+$$
+\operatorname{sel}(status = PENDING) = \frac{1}{4} = 0.25
+$$
 
-### Histograms: Equi-Width vs Equi-Depth, Worked
-Take 8 salary values: 5, 5, 6, 7, 8, 90, 95, 100 and estimate `salary < 25` (true answer: 5 of 8 rows).
+$$
+\operatorname{sel}(region = SOUTH) = \frac{1}{20} = 0.05
+$$
 
-```
-EQUI-WIDTH buckets (fixed value range, 0..100 in four buckets):
-  [0-25]   [26-50]   [51-75]   [76-100]
-     5        0         0          3    row counts per bucket
-Estimate for < 25 : uniform-within-bucket interpolation ~ 2.5 rows
-Reality           : 5 rows   -> badly wrong; the dense bucket hides skew
+$$
+\operatorname{sel}(10\ day\ range) = \frac{10}{1000} = 0.01
+$$
 
-EQUI-DEPTH buckets (~equal row counts, variable value ranges):
-  [5-7]   [8]   [90]   [95-100]
-Estimate for < 25 : bucket [5-7] fully inside -> ~3 rows + fraction of [8]
-```
+The combined estimate is:
 
-Equi-depth adapts to skew — dense regions get narrow buckets, sparse regions wide ones — which is why PostgreSQL builds equi-depth histograms and keeps a separate MCV list for the most skewed values.
+$$
+20{,}000{,}000 \times 0.25 \times 0.05 \times 0.01 = 2{,}500\ rows
+$$
 
-### Cost Model
-Costs combine I/O and CPU, weighted per engine:
+Suppose production data actually contains 1,000,000 matching rows because `PENDING`, `SOUTH`, and recent dates are strongly correlated. The estimate is low by $1{,}000{,}000 / 2{,}500 = 400$ times.
 
-Cost = (page fetches × W_io) + (operator evaluations × W_cpu)
+A plan sized for 2,500 rows may choose index probes and a small nested loop. At one million rows, repeated probes and random heap fetches dominate; a scan plus hash join could be much faster.
 
-- PostgreSQL's planner costs: seq_page_cost = 1.0, random_page_cost = 4.0, cpu_tuple_cost = 0.01 by default — lowering random_page_cost toward 1 on fast SSDs nudges the planner toward index scans.
-- The dominant term in practice is almost always the **cardinality estimate**, because page counts derive from it multiplicatively.
+This is why refreshing single-column statistics may not solve correlated data. The engine needs multicolumn statistics, a more informative index, a rewritten data model, or an engine-specific planning aid.
+
+### Cost Models and Plan Selection
+
+Optimizer cost is a dimensionless comparison score, not promised milliseconds. A simplified model is:
+
+$$
+C = P_s c_s + P_r c_r + T c_t + O c_o
+$$
+
+where $P_s$ is sequential pages, $P_r$ is random pages, $T$ is tuples processed, $O$ is operator evaluations, and each $c$ term is an engine-calibrated weight.
+
+Cost models may also represent startup cost, total cost, network transfer, parallel coordination, memory, sort passes, and spill I/O. The optimizer primarily compares candidate plans within the same model.
+
+Bad cost constants can matter, such as treating modern cached SSD access like slow random disk access. In practice, wrong row estimates usually cause larger errors because cardinality multiplies page, CPU, and loop estimates together.
 
 ### Join Algorithms Compared
 
-| Algorithm | Mechanism | Complexity | Memory | Best When |
-| --- | --- | --- | --- | --- |
-| Nested loop (tuple) | Per outer row, rescan inner | O(N × M) | O(1) | Tiny inputs |
-| Block nested loop | Load outer blocks into memory | O(N/M_buf × M) | Buffer pool chunk | No usable index |
-| Indexed nested loop | Probe inner index per outer row | O(N × log M) | Index cached | Small outer, indexed inner, few matches |
-| Sort-merge | Sort both on key, merge | O(N log N + M log M) | Sort runs | Inputs pre-sorted, range joins |
-| Hash join | Build table on smaller input, probe | O(N + M) | Build side fits RAM | Large unsorted equi-joins |
+| Algorithm | Core mechanism | Typical complexity | Strong case | Weak case |
+|---|---|---|---|---|
+| Tuple nested loop | Scan inner input for every outer tuple | $O(NM)$ | Tiny inputs | Two large unindexed inputs |
+| Indexed nested loop | Probe inner index for each outer tuple | About $O(N\log M)$ | Small outer input, selective indexed probe | Large outer input or many matches per probe |
+| Block nested loop | Reuse buffered outer pages while scanning inner | Depends on buffers and pages | No index, buffered small outer relation | Repeated inner scans when memory is small |
+| Hash join | Build hash table, then probe by equality key | Expected $O(N+M)$ | Large unsorted equi-join | Non-equality join or build-side spill |
+| Sort-merge join | Sort inputs, then advance ordered streams | $O(N\log N + M\log M)$ if sorting | Pre-sorted inputs, range joins, useful output order | Sorting both small unordered inputs |
 
-### Worked Example: Nested Loop vs Hash Join
-Setup: R (outer) = 10,000 tuples occupying 100 pages; S (inner) = 1,000,000 tuples occupying 10,000 pages (100 tuples per 8 KB page); memory available M = 1,000 buffer pages.
+Hash join requires an equality-compatible key. Sort-merge can exploit inputs already ordered by indexes and is useful when the requested output order avoids another sort.
 
+Nested loop is not inherently naive. With ten outer rows and a cached inner B+ tree, ten index probes can beat the startup cost of scanning and hashing a large table.
+
+### Worked Numeric Join-Cost Example
+
+Let relation $R$ occupy 100 pages with 10,000 tuples. Let $S$ occupy 10,000 pages with 1,000,000 tuples, and let the executor have 52 buffer pages available.
+
+For a tuple nested loop with $R$ outermost:
+
+$$
+B(R) + T(R)B(S) = 100 + 10{,}000 \times 10{,}000 = 100{,}000{,}100\ page\ reads
+$$
+
+For a block nested loop, 50 pages are usable for an outer block after reserving input/output buffers:
+
+$$
+B(R) + \left\lceil\frac{B(R)}{M-2}\right\rceil B(S)
+= 100 + \left\lceil\frac{100}{50}\right\rceil 10{,}000
+= 20{,}100\ page\ reads
+$$
+
+If $R$ fits in the hash-join memory budget, a one-pass hash join reads each input approximately once:
+
+$$
+B(R) + B(S) = 100 + 10{,}000 = 10{,}100\ page\ reads
+$$
+
+If the hash table does not fit and Grace partitioning is required, a common first approximation is:
+
+$$
+3(B(R)+B(S)) = 3 \times 10{,}100 = 30{,}300\ page\ transfers
+$$
+
+An indexed nested loop with a cached index and about two page fetches per outer tuple costs roughly $100 + 10{,}000 \times 2 = 20{,}100$ logical page visits. It becomes attractive if a prior filter reduces $R$ to 100 tuples, dropping those probes to about 200.
+
+The calculation demonstrates the decision boundary: join choice depends on **estimated input after filtering**, not only base-table size.
+
+### Search Space and Cost-Based Enumeration
+
+Join count makes exhaustive search expensive. A Selinger-style dynamic program finds good plans for subsets of relations and reuses those results rather than recomputing every tree.
+
+```mermaid
+flowchart TD
+    A["Base access paths for R, S, and T"] --> B["Cheapest plans for pairs"]
+    B --> C1["R join S"]
+    B --> C2["R join T"]
+    B --> C3["S join T"]
+    C1 --> D["Complete three-relation candidates"]
+    C2 --> D
+    C3 --> D
+    D --> E["Keep cheapest plan and useful orderings"]
 ```
-1) TUPLE-AT-A-TIME NESTED LOOP  (R outer)
-   cost = B_R + T_R x B_S = 100 + 10,000 x 10,000 = 100,000,100 page reads
-   HDD at 8 ms/read  ->  ~9.3 days
-   SSD at 0.1 ms     ->  ~2.8 hours
 
-2) BLOCK NESTED LOOP  (R fully cached: ceil(100/998) = 1 pass over S)
-   cost = B_R + 1 x B_S = 100 + 10,000 = 10,100 page reads
-   HDD  ->  ~81 seconds ;  SSD  ->  ~1 second
+The optimizer may retain a more expensive subplan if it provides an **interesting order** useful for `ORDER BY`, grouping, merge join, or window processing. Lowest local cost is not always lowest end-to-end cost.
 
-3) INDEXED NESTED LOOP  (S has B+ tree on join key, upper levels cached)
-   cost = B_R + T_R x probe = 100 + 10,000 x ~2 = ~20,100 logical reads,
-   mostly cache hits; shines only if few rows match per outer row
+For many joins, engines restrict the search to left-deep trees, prune expensive alternatives, use greedy heuristics, or switch to genetic search. Planning time stays bounded, but the mathematically best plan may not be explored.
 
-4) HASH JOIN  (build on R, probe with S)
-   I/O  = 3 x (B_R + B_S) = 3 x 10,100 = 30,300 page transfers,
-          nearly all SEQUENTIAL  ->  ~243 MB
-   NVMe ->  well under 1 second ;  HDD sequential  ->  ~1.6 seconds
-   CPU  = O(N + M), linear
+### Indexes, Scans, and Sargability
+
+A predicate is **sargable** when it can be converted into a searchable index range. Compare:
+
+```sql
+-- Often non-sargable: transforms every stored value.
+WHERE EXTRACT(YEAR FROM created_at) = 2026
+
+-- Sargable half-open range.
+WHERE created_at >= DATE '2026-01-01'
+  AND created_at <  DATE '2027-01-01'
 ```
 
-Verdict: block nested loop minimizes page-touch counts here, but hash join wins wall-clock on spinning disks because its I/O is sequential while nested loop re-reads S randomly. If S carried a good join index and each outer row matched ~1 row, indexed nested loop could beat both. The optimizer's choice flows entirely from cardinality estimates — get those wrong and it will happily run option 1 for nine days.
+The second form maps directly to an ordered range on `created_at`. A matching expression index can support the first form, but only when the indexed expression matches the query semantics.
+
+Composite index order matters. An index on `(customer_id, created_at)` efficiently narrows equality on `customer_id` and then a date range, while a query filtering only `created_at` may not use its leading structure effectively.
+
+Even a usable index can lose to a scan when selectivity is poor, row fetches are scattered, the table is tiny, or the required columns are not covered. Read the chosen plan in context rather than treating `Seq Scan` as an error message.
 
 ### Reading EXPLAIN ANALYZE
-Plain EXPLAIN shows estimates; EXPLAIN ANALYZE actually executes and prints reality:
 
-```
-EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 42;
+Plain `EXPLAIN` displays the optimizer's estimated plan without running the statement. `EXPLAIN ANALYZE` executes it and reports actual observations alongside estimates.
 
-BEFORE THE INDEX EXISTS:
-Seq Scan on orders
-  Filter: (customer_id = 42)
-  Rows Removed by Filter: 999850
-  Planning Time: 0.21 ms
-  Execution Time: 212.4 ms
-
-AFTER CREATE INDEX ON orders (customer_id) PLUS ANALYZE:
-Index Scan using idx_orders_customer on orders
-  Index Cond: (customer_id = 42)
-  Buffers: shared hit=4
-  Execution Time: 0.09 ms
+```sql
+EXPLAIN (ANALYZE, BUFFERS, VERBOSE)
+SELECT id, total
+FROM orders
+WHERE customer_id = 42
+  AND status = 'PENDING';
 ```
 
-How to read it like an engineer: compare **estimated rows vs actual rows** at every node — divergence above one order of magnitude means statistics are lying; check `Rows Removed by Filter` (work thrown away per node); read BUFFERS output to separate logical hits from physical reads; sum node times along the critical path rather than trusting totals alone.
+A simplified PostgreSQL-style node might look like:
+
+```text
+Index Scan using orders_customer_status_idx on orders
+  (cost=0.43..92.10 rows=40 width=16)
+  (actual time=0.030..5.800 rows=12000 loops=1)
+  Index Cond: (customer_id = 42 AND status = 'PENDING')
+  Buffers: shared hit=96 read=410
+```
+
+Read a plan in this order:
+
+1. Compare **estimated rows** with `actual rows × loops` at every node.
+2. Start near the first large divergence; errors propagate upward.
+3. Check loop counts, especially on the inner side of nested loops.
+4. Inspect filter removals to find work performed and then discarded.
+5. Use buffer hits and reads to separate CPU/cache work from physical I/O.
+6. Look for sorts or hashes that spill to temporary storage.
+7. Distinguish startup time from total time and blocking from streaming operators.
+
+Here, the index is usable, but the optimizer predicted 40 rows and received 12,000: a 300-fold error. The first question is not merely "how do I force a different index?" but "why do statistics misunderstand this parameter combination?"
+
+`EXPLAIN ANALYZE` has side effects because it really runs the statement. Wrap write statements in a transaction and roll them back when safe, or diagnose against a representative non-production environment.
+
+---
 
 ## 🔴 Expert Level
 
-### Statistics Vectors Inside Real Engines
-- **PostgreSQL pg_stats**: per column it stores n_distinct (negative values encode "fraction of table"), most_common_vals/freqs (MCV lists capturing skew), histogram_bounds (equi-depth buckets covering non-MCV values, default_statistics_target = 100 buckets), and correlation (physical clustering of the column). ANALYZE samples 300 × statistics_target rows; autovacuum triggers autoanalyze after roughly 50 + 10% of rows change. Correlated columns need CREATE STATISTICS (extended objects: dependencies, ndistinct, MCV lists) because single-column stats multiply badly.
-- **MySQL InnoDB persistent stats**: n_diff_pfx cardinalities derived from innodb_stats_persistent_sample_pages = 20 pages per index; at optimization time the engine additionally performs up to 8 index dives for range estimates. Recompute with ANALYZE TABLE; STATS_AUTO_RECALC refreshes automatically after ~10% churn.
-- **SQL Server**: DBCC SHOW_STATISTICS exposes the density vector plus a ≤201-step histogram; auto-create kicks in on optimizer demand, auto-update after 500 + 20% modifications (pre-2016) or dynamic sqrt-based thresholds (2016+, compat-dependent). Its notorious ascending-key problem: fresh rows beyond the histogram's max are underestimated until update, strangling date-ordered workloads with nested-loop plans.
+### Estimation Failure: Skew, Correlation, and Unknown Values
 
-### Join Order Enumeration: System R Dynamic Programming
-- Selinger-style DP: find cheapest plans bottom-up over subsets of relations — exact optimum costs O(3ⁿ)-ish time/memory, so engines cap it.
-- Left-deep trees were classically preferred (one input always a base relation → index/pipeline friendly); modern optimizers also explore bushy shapes.
-- **Interesting orders** matter: a plan that delivers rows sorted on a useful key earns credit (sort-merge feeding ORDER BY, index nested loops feeding GROUP BY).
-- PostgreSQL falls back to the genetic algorithm GEQO once relations ≥ geqo_threshold (default 12), trading optimality for compile time.
-- Cardinality errors compound multiplicatively down the tree: three successive 10x underestimates yield a 1000x lie, which is exactly how 24-second dashboards happen.
+Uniformity assumes each distinct value occurs equally often. Independence assumes predicates do not affect one another. Both are often false:
 
-### Parameter Sniffing and Generic Plans
-- **SQL Server**: compiled plans are cached and reused; the first execution's parameter values are sniffed into the plan. A query tuned for the common case then executes with an atypical parameter (returning 5 rows vs 5 million) and reuses the wrong plan. Fixes: OPTION (RECOMPILE) per statement, OPTIMIZE FOR / OPTIMIZE FOR UNKNOWN hints, filtered indexes/statistics, and Parameter Sensitive Plan optimization introduced in SQL Server 2022 (multiple plans per query for divergent ranges).
-- **PostgreSQL**: prepared statements run custom plans for the first 5 executions, then flip to a parameter-agnostic generic plan if not clearly worse — tunable via plan_cache_mode (force_custom_plan / force_generic_plan).
+- one tenant may own 60% of a multitenant table;
+- postal code and city describe the same population;
+- `status = 'PENDING'` may correlate strongly with recent dates;
+- monotonically increasing IDs place new values beyond an old histogram boundary;
+- user-defined functions hide selectivity from the planner.
 
-### Execution Engine Models: Volcano vs Vectorized vs JIT
-- **Volcano iterator model**: every operator exposes next() returning one tuple; composable but pays virtual-call overhead per row — negligible for heavy joins, dominant for trivial scans over billions of narrow rows.
-- **Vectorized execution**: operators process batches (~1024 tuples) tight loops, unlocking SIMD instructions and cache-friendly access (DuckDB, ClickHouse, SQL Server batch mode over columnstore).
-- **JIT compilation**: PostgreSQL 11 compiles expression trees to native code via LLVM — big wins for CPU-bound analytical queries, net loss for sub-millisecond OLTP where compilation overhead exceeds execution.
-- Pipelined operators stream rows without materializing; blocking ones (sorts, hash builds) materialize — spilling to temp files via external merge sort or grace/hash partitioning once work_mem is exhausted, which multiplies I/O visibly in plans as "spill" warnings.
+Most-common-value lists capture frequent outliers, while histograms approximate remaining ranges. Extended statistics can describe multicolumn dependencies or joint frequencies.
 
-### Translating Plan Vocabulary Across Engines
-The same physical concepts wear different names in each engine's EXPLAIN output:
+Sampling introduces uncertainty, and stale statistics describe an earlier table. Bulk loads, partitions, rapidly ascending keys, and highly skewed tenants therefore deserve deliberate `ANALYZE` strategy and plan monitoring.
 
-| Concept | PostgreSQL | MySQL | SQL Server |
-| --- | --- | --- | --- |
-| Full table read | Seq Scan | type = ALL (Extra: Using where) | Table Scan |
-| B+ tree lookup | Index Scan / Index Only Scan | type = ref / range | Index Seek |
-| In-memory hash build + probe | Hash Join | Using join buffer (hash join, 8.0+) | Hash Match |
-| External spill | temp file in plan output | Using temporary | Hash Warning (spill event) |
-| Estimated vs actual | rows=... vs actual rows | filtered/% of examined | EstimateRows vs ActualRows |
+### Plan Caching and Parameter Sensitivity
 
-Learning one engine's plan language transfers directly — only the syntax rotates.
+Prepared statements avoid repeating parsing and planning, but one plan may not suit every parameter. A point lookup for a customer with five orders wants an index-driven nested loop; a customer with five million orders may prefer a scan and hash join.
 
-### Failure Modes: When Good Plans Go Bad
-1. **Stale statistics**: after bulk loads without ANALYZE, row estimates collapse and the planner flips to nested loops over millions of rows — the classic 1000x regression.
-2. **Correlated predicates vs independence assumption**: filtering city = 'Mumbai' AND zip = '400001' — two conditions pointing at the same rows — yields a product-of-selectivities underestimate, cascading into join-order disasters.
-3. **Parameter sniffing** (above): right plan, wrong parameters.
-4. **Non-sargable predicates**: YEAR(created_at) = 2026 wraps the column in a function so no index seek applies — rewrite as created_at ≥ '2026-01-01' AND < '2027-01-01'. Implicit type casts do the same damage invisibly (varchar_col = 42 numeric in MySQL casts every value).
-5. **Hash spill**: build side exceeding work_mem forces partitioned spills and temp-file storms.
-6. **Search-space pruning**: wide star-schema queries falling off DP onto greedy/GEQO paths occasionally emit cartesian blowups; manual join-order hints become justified escape hatches.
+This family of problems is often called **parameter sniffing** or **parameter sensitivity**. Engine-specific mitigations include custom versus generic plans, recompilation, parameter-sensitive plan variants, filtered statistics, query splitting, and carefully scoped hints.
 
-### High-Frequency Interview Q&As
+Recompiling every execution improves parameter awareness but consumes planning CPU and loses plan-cache benefits. Forcing one plan stabilizes behavior but can lock in the wrong choice as data evolves.
 
-### Q1: When does the optimizer pick the wrong join order or join algorithm?
-**Answer**: Almost always via bad cardinality estimates, not bad code: stale statistics after ETL, correlated columns breaking the independence assumption, skewed data hidden behind averages, parameter sniffing reusing a foreign plan, UDFs whose selectivity is opaque, or huge queries pushed from exhaustive DP onto heuristic/genetic search. The fix hierarchy: refresh statistics, verify with EXPLAIN ANALYZE estimate-vs-actual gaps, add extended statistics, rewrite sargably, hint only as a last resort.
+### Executor Reality: Memory, Spills, and Pipelines
 
-### Q2: Nested loop or hash join — what is the actual decision boundary?
-**Answer**: Nested loop wins when the outer input is small and the inner lookup is indexed or cheap — especially when few rows match per outer row (OLTP point-ish joins). Hash join wins for large unsorted inputs joined on equality with substantial output (analytics). Sort-merge wins when inputs already arrive sorted (from indexes) or for range/non-equi joins, and when memory is too tight to hold a hash table. Engines encode exactly this logic in cost formulas driven by estimated sizes.
+Some operators pipeline rows immediately; others must accumulate input. Nested-loop probes and many filters stream, while sorts, hash-table builds, and some aggregates are blocking.
 
-### Q3: What does EXPLAIN ANALYZE tell you that plain EXPLAIN cannot?
-**Answer**: Ground truth. Plain EXPLAIN renders the plan with estimated costs/rows; ANALYZE also executes, exposing actual row counts, actual per-node milliseconds, loop counts (nested-loop iterations multiply apparent costs), rows removed by filters, memory used vs spilled to disk, buffer hits vs reads, and JIT time. Comparing estimated vs actual rows per node is the fastest way to locate the statistic lie poisoning the whole plan.
+When a hash build exceeds its memory grant, it partitions data to temporary files and rereads them. When a sort exceeds memory, it produces sorted runs and performs external merge passes.
 
-### Q4: Explain parameter sniffing end to end.
-**Answer**: First execution of a parameterized statement compiles a plan specialized for the sniffed parameter values; that plan is cached and reused for all later executions. When the value distribution is skewed — one customer with 5 orders, another with 5 million — the cached plan fits one regime and sabotages the other. Remedies: OPTION (RECOMPILE), OPTIMIZE FOR UNKNOWN, plan guides, filtered statistics per regime, PostgreSQL's custom-plan switch (plan_cache_mode), and SQL Server 2022 Parameter Sensitive Plans.
+Physical execution styles also differ:
 
-### Q5: Volcano iterators vs vectorization vs JIT — how do modern engines execute plans?
-**Answer**: Classic Volcano pulls one tuple per next() call through operator trees — elegant, but per-row virtual-call overhead dominates cheap scans. Vectorized engines push batches of ~1024 tuples through tight loops exploiting SIMD caches (DuckDB, ClickHouse, SQL Server batch mode). JIT compilation (PostgreSQL 11 LLVM, Spark Tungsten) eliminates interpretation entirely for CPU-heavy expressions. Rule of thumb: vectorization for analytics, plain iteration for latency-critical OLTP, JIT selectively for complex expressions.
+| Model | Unit of work | Advantage | Cost or trade-off |
+|---|---|---|---|
+| Volcano iterator | One tuple per `next()` call | Simple, composable, low startup | Per-row call and interpretation overhead |
+| Vectorized | Batch of hundreds or thousands of values | Cache locality and SIMD-friendly loops | Batch setup; less helpful for tiny OLTP requests |
+| JIT compiled | Native code specialized for expressions | Reduces interpretation on CPU-heavy scans | Compilation startup may exceed short query runtime |
 
-### Q6: Why does wrapping an indexed column in a function destroy index usage, and how do you fix it?
-**Answer**: A B+ Tree stores ordered raw key values; the predicate YEAR(col) = 2026 asks for a function output, which exists nowhere in the index, forcing evaluation per row — a full scan. Fix by rewriting into half-open range form: col ≥ '2026-01-01' AND col < '2027-01-01'. Same disease, other symptoms: implicit casts (varchar_col = 12345 casting every stored value), collation mismatches, leading-wildcard LIKE '%abc'. Where the functional form is unavoidable, create a function-based/expression index (CREATE INDEX ON t ((YEAR(col))) in MySQL, ((lower(email))) in PostgreSQL) so the indexed expression matches the predicate.
+The optimizer estimates whether memory-intensive operators will fit, but concurrency changes available memory. A plan that is fast alone can spill when 100 copies run simultaneously.
+
+### Plan Diagnosis Under Production Load
+
+Use plans as evidence within a repeatable investigation, not as decorative output.
+
+```mermaid
+flowchart TD
+    A["Capture slow query and parameters"] --> B["Obtain actual plan and runtime counters"]
+    B --> C{"Estimate and actual rows diverge?"}
+    C -->|"Yes"| D["Check stale stats, skew, correlation, parameters"]
+    C -->|"No"| E["Check I/O, spills, locks, CPU, network"]
+    D --> F["Refresh or extend statistics and retest"]
+    E --> G["Change access path, memory, or query shape"]
+    F --> H["Validate representative parameter sets"]
+    G --> H
+    H --> I["Measure latency and resource regression"]
+```
+
+Always capture representative parameter values. A fast test tenant and a pathological production tenant can legitimately require different physical plans.
+
+Compare cold-cache and warm-cache behavior, but do not flush shared production caches for an experiment. Include concurrency, locks, and memory grants because elapsed time is not solely operator CPU plus I/O.
+
+### Failure Modes and Practical Remedies
+
+1. **Stale statistics after bulk ingestion:** estimates still describe the old table size and distribution. Run or schedule statistics collection, then verify actual-versus-estimated rows rather than assuming the refresh fixed everything.
+2. **Correlated predicates multiplied as independent:** a city and postal-code filter can be underestimated by orders of magnitude. Add supported multicolumn statistics, redesign the index, or expose a better correlation key.
+3. **Non-sargable filter:** a function or implicit cast on an indexed column forces row-by-row evaluation. Rewrite it as a range or equality on the stored type, or create a matching expression index.
+4. **Hash or sort spill:** the chosen build side exceeds the memory grant and generates temporary I/O. Reduce input earlier, correct estimates, tune bounded memory carefully, or choose a suitable access path.
+5. **Parameter-sensitive cached plan:** a plan compiled for a rare value is reused for a common value. Evaluate custom plans or supported parameter-sensitive mechanisms before adding a blanket hint.
+6. **Search-space pruning:** a very wide join graph falls back to bounded heuristics and misses a strong order. Simplify the query, improve constraints/statistics, materialize a justified stage, or use a narrow engine-specific hint as a last resort.
+7. **Twenty-million-row dashboard regression:** an unindexed post-join date filter can scan and discard nearly the entire orders table. A sargable early date restriction plus a composite index can turn a 24-second full scan into a millisecond-scale plan, but the improvement must be measured on production-shaped data.
+
+### Common Misconceptions
+
+1. **"An index scan is always better than a sequential scan."**
+   A broad index predicate may perform more random heap work than reading each table page once. Selectivity, coverage, clustering, caching, and table size determine the better access path.
+2. **"`EXPLAIN ANALYZE` is a harmless way to inspect any statement."**
+   It executes the statement, including writes and function side effects. Use transaction safeguards and an appropriate environment before analyzing mutating SQL.
+3. **"The optimizer's cost is expected runtime in milliseconds."**
+   Cost units are internal weighted estimates for comparing plans. Actual time also depends on cache state, concurrency, storage latency, locks, and hardware.
+4. **"A nested loop means the optimizer made a mistake."**
+   A nested loop is excellent when its outer input is small and its inner access is selective and indexed. It becomes disastrous when the outer cardinality was underestimated or the inner operation is repeatedly expensive.
+5. **"Refreshing statistics guarantees the best plan."**
+   Fresh single-column statistics still miss cross-column correlation and may be based on samples. Search-space limits, parameter sensitivity, cost calibration, and missing indexes can still constrain the chosen plan.
+
+### Interview Questions
+
+**Q1. What is predicate pushdown, and why is it effective?** `[easy]`
+
+Predicate pushdown moves a filter toward the base scan that supplies its referenced columns. It reduces tuples before joins, sorts, transfers, and aggregates, so every later operator performs less work. The rewrite is only legal when it preserves semantics, which is why outer joins, null behavior, and volatile expressions require care.
+
+**Q2. What is the difference between a logical plan and a physical plan?** `[easy]`
+
+A logical plan expresses relational operations such as selection, projection, join, and aggregation without selecting algorithms. A physical plan chooses executable implementations such as an index scan, hash join, or external sort. Multiple physical plans can implement one logical plan with identical results but very different I/O, memory, and latency.
+
+**Q3. Why might a database choose a sequential scan even when a usable index exists?** `[easy]`
+
+A broad predicate can qualify enough rows that index traversal plus scattered table fetches costs more than reading each page once. A small table, poor physical clustering, missing covered columns, or a warm sequential path can further favor the scan. The choice is reasonable unless actual selectivity or cost assumptions differ substantially from estimates.
+
+**Q4. What does `EXPLAIN ANALYZE` provide that plain `EXPLAIN` does not?** `[easy]`
+
+Plain `EXPLAIN` reports the estimated plan and costs without executing the query. `EXPLAIN ANALYZE` runs it and reports actual rows, timings, loops, and engine-specific runtime counters, enabling estimate-versus-reality comparison. Because it executes the statement, it can modify data or trigger side effects and must be used safely.
+
+**Q5. How does a cost-based optimizer use cardinality estimates?** `[medium]`
+
+It estimates how many rows each operator produces, then derives I/O, CPU, memory, and repeated-loop work for candidate plans. Those estimates influence access paths, join order, join methods, parallelism, and memory grants. An early underestimate compounds upward and can make a locally cheap nested loop catastrophically expensive at runtime.
+
+**Q6. When is sort-merge join preferred over hash join?** `[medium]`
+
+Sort-merge is attractive when both inputs already arrive ordered on the join key, when the required output order is useful later, or when the predicate supports ordered/range matching. Hash join is normally simpler for large unsorted equality joins whose build side fits memory. If sorting is required for both inputs, its $O(N\log N)$ preparation can make hash join cheaper, while either method can spill under insufficient memory.
+
+**Q7. How do predicate pushdown and projection pushdown reduce different dimensions of work?** `[medium]`
+
+Predicate pushdown reduces row count, while projection pushdown reduces row width. Both lower bytes processed by joins, hashes, sorts, and network exchanges, and their benefits multiply when applied together. Projection must retain all later join keys, filter columns, and output expressions or it changes or invalidates the plan.
+
+**Q8. Why do correlated columns break simple selectivity estimation?** `[medium]`
+
+Simple estimators multiply independent single-column selectivities. If `city = 'Mumbai'` and `postal_code = '400001'` describe much of the same population, multiplying them severely underestimates matching rows. Multicolumn statistics, joint most-common-value data, or a more explicit data model can give the optimizer evidence about that dependency.
+
+**Q9. Scenario: An actual plan shows 800,000 inner index-scan loops instead of the estimated 200. What do you inspect first?** `[medium]`
+
+Start at the earliest plan node where estimated rows diverge from `actual rows × loops`, because that error likely drove the nested-loop choice. Check stale statistics, skewed parameter values, correlated predicates, and whether a generic cached plan was reused. Then refresh or extend statistics and retest representative values before forcing a join method.
+
+**Q10. Why can a function around an indexed column prevent index use?** `[medium]`
+
+A normal B+ tree orders the stored column values, not arbitrary function results. A predicate such as `EXTRACT(YEAR FROM created_at) = 2026` may therefore require evaluating every row instead of seeking a contiguous key range. Rewrite it to a half-open date range or create a matching expression index, while confirming type and timezone semantics remain correct.
+
+**Q11. How does Selinger-style dynamic programming control join-order optimization?** `[hard]`
+
+It builds cheapest known plans for small relation subsets and combines those results to form plans for larger subsets. Reusing subset solutions avoids enumerating every execution tree from scratch, and retaining interesting output orders prevents premature loss of useful plans. The search still grows rapidly, so real engines cap it, restrict tree shapes, prune candidates, or switch to heuristic search for many joins.
+
+**Q12. Scenario: A prepared query is fast for most tenants but 1,000 times slower for the largest tenant. Explain the likely mechanism and fixes.** `[hard]`
+
+The engine likely cached a plan optimized for a low-cardinality parameter and reused it for a tenant returning millions of rows. Its nested loops or index probes remain logically correct but scale badly in the high-cardinality regime. Validate this with actual plans for both values, then consider supported custom or parameter-sensitive plans, better statistics, query splitting, or carefully bounded recompilation before resorting to a fixed hint.
+
+**Q13. Scenario: A hash join estimate is accurate, but production still spills while an isolated test does not. Why?** `[hard]`
+
+Accurate row count does not guarantee the runtime memory grant remains available under concurrency, nor that estimated row width matches reality. Many simultaneous queries can divide memory, and variable-width values or skewed hash buckets can make the build structure larger than predicted. Inspect spill counters, granted versus used memory, concurrent workload, and tuple widths before globally increasing per-query memory, which could worsen system-wide pressure.
+
+**Q14. Scenario: A dashboard query over 20 million orders takes 24 seconds and filters most rows after joining. How do you approach the regression?** `[hard]`
+
+Capture the exact parameters and an actual plan, then locate where estimated and actual rows first diverge and where rows are discarded. Make the date and status predicates sargable, verify they can be pushed to the orders scan, and evaluate a composite or covering index whose leading columns match the access pattern. Re-run with production-shaped cardinalities and concurrency, because an apparent 8 ms test result may depend on warm cache, one selective tenant, or an unrepresentative dataset.
+
+### Further Reading
+
+- [PostgreSQL documentation: Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html) explains plan nodes, estimates, `EXPLAIN ANALYZE`, and measurement caveats.
+- [PostgreSQL documentation: Statistics Used by the Planner](https://www.postgresql.org/docs/current/planner-stats.html) describes histograms, most-common values, distinct counts, and extended statistics.
+- [MySQL Reference Manual: EXPLAIN Statement](https://dev.mysql.com/doc/refman/8.4/en/explain.html) documents MySQL plan inspection and `EXPLAIN ANALYZE` behavior.
+- [IBM Research: Access Path Selection in a Relational Database Management System](https://research.ibm.com/publications/access-path-selection-in-a-relational-database-management-system) is the original System R cost-based access-path and join-order paper.
