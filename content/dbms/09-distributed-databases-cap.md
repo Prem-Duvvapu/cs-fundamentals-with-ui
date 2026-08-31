@@ -1,286 +1,578 @@
-# Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem
+# Distributed Databases, Atomic Commit, and CAP
+
+A distributed database stores or replicates one logical data set across independent machines, so
+capacity and availability can grow beyond one server's limits. The difficult part is preserving
+useful guarantees when messages are delayed, nodes disagree, or a coordinator fails mid-transaction.
+Interviewers use this topic to test whether you can connect replication, sharding, quorum math,
+atomic commit, and failure handling to concrete product requirements.
+
+---
 
 ## 🟢 Beginner Level
 
-### The Group Trip Analogy
-Five friends plan a non-refundable group booking. The organizer texts everyone: "Reply YES only if you can pay your share today." Once all five say YES, the organizer announces BOOKED and everyone pays. Now the failure mode that defines this entire topic: the organizer's phone dies right after collecting the five YES votes but before announcing the decision. Nobody can safely pay (maybe others dropped out?) and nobody can safely cancel; everyone is stuck holding their money and their calendar block. That frozen limbo is exactly what 2PC participants experience when a coordinator crashes mid-decision. And if two friends become unreachable by phone (a network partition), the group must choose: proceed with whoever answers (available, possibly wrong totals) or halt until everyone is reachable again (consistent, unavailable). That choice is the CAP theorem.
+### Why a Database Becomes Distributed
+
+A single database server keeps local transactions, joins, backups, and indexes straightforward,
+but one machine has finite CPU, memory, storage, I/O bandwidth, and one failure domain.
+
+A distributed design uses multiple machines for two different goals:
+
+- **Replication** copies the same data so reads can be spread out and another copy survives failure.
+- **Partitioning**, also called **sharding**, divides rows or columns among machines so total
+  storage and write capacity can grow.
+- **Geographic placement** puts data nearer users or inside a required legal region.
+- **Fault isolation** prevents one hardware failure from making the whole service unavailable.
+
+Distribution also creates costs that a single node does not have:
+
+- Networks delay, duplicate, reorder, and sometimes lose messages.
+- Machines fail independently and can restart with older durable state.
+- Clocks disagree, so wall-clock timestamps alone cannot safely order concurrent writes.
+- Cross-node joins and transactions require extra round trips and coordination.
+
+```mermaid
+flowchart LR
+    Client["Application requests"] --> Router["Database router"]
+    Router --> SA["Shard A"]
+    Router --> SB["Shard B"]
+    SA --> RA["Replica A2"]
+    SB --> RB["Replica B2"]
+    SA -. "replication" .-> RA
+    SB -. "replication" .-> RB
+    SA -. "cross-shard coordination" .-> SB
+```
+
+The application sees one logical database while routing, replication, and transaction layers hide
+several physical failure domains.
 
 ### Scaling Out: Vertical vs Horizontal
 
-```
-   VERTICAL SCALING (Scale-Up)            HORIZONTAL SCALING (Scale-Out)
-   +--------------------------+           +----------+   +----------+   +----------+
-   │  Bigger box: more CPU,   │     vs    │  Node 1  │   │  Node 2  │   │  Node 3  │
-   │  more RAM, faster disk   │           +----------+   +----------+   +----------+
-   │  (hard ceiling, SPOF)    │           (partition data, replicate for HA)
-   +--------------------------+
-```
+**Vertical scaling** replaces one server with a larger server: more CPU, RAM, disk, or network
+capacity. It preserves local semantics, but hardware has a ceiling and remains one failure domain.
 
-- **Replication**: copying the same dataset to multiple nodes so reads scale and failures are survivable. Leader-follower replication streams changes from one primary to replicas; synchronous replication waits for followers (safer, slower), asynchronous returns immediately (faster, risks losing recent writes on failover; typical lag is milliseconds locally, seconds cross-region).
-- **Partitioning (Sharding)**: splitting a large table across nodes by key range or hash bucket. Queries touching one shard stay fast; queries without the shard key become scatter-gather fan-outs whose cost grows with shard count.
+**Horizontal scaling** adds servers, increasing aggregate storage, writes, and reads while
+requiring explicit placement, rebalancing, failure detection, and consistency rules.
 
-### Data Placement Vocabulary
-1. **Replication factor (RF)**: how many copies of each piece of data exist.
-2. **Shard key**: the column whose value routes a row to a node; choosing it well keeps related rows together.
-3. **Rebalancing**: moving partitions when nodes join or leave; cheap schemes move little data, naive modulo hashing moves almost everything.
-4. **Failover**: promoting a replica when a leader dies; its safety depends entirely on the replication mode below.
+| Dimension | Vertical scaling | Horizontal scaling |
+|---|---|---|
+| Capacity change | Upgrade one machine | Add or remove machines |
+| Application complexity | Usually low | Higher: routing and coordination |
+| Practical ceiling | Largest available machine | Many commodity nodes |
+| Failure domain | One large server | Multiple independent nodes |
+| Transaction cost | Local memory and disk | May include network consensus |
+| Best first step | Most systems | When one node or one region is insufficient |
 
-### Why Distributed Transactions Exist
-A bank shards customers across three nodes. A transfer from customer A (node 1) to customer B (node 3) must debit and credit atomically, but the two rows live on different machines with independent disks that can crash independently. Local ACID cannot span machines; you need a distributed atomic-commit protocol.
+Scale up first when economical. Premature sharding creates complexity that a larger instance and
+read replicas may have avoided.
+
+### Replication, Primaries, and Read Replicas
+
+In **primary-replica replication**, writes go to one primary, which sends its ordered change log
+to replicas for replay.
+
+A **read replica** serves workloads that tolerate lag; it does not scale writes because write
+order still passes through the primary.
+
+Replication may acknowledge at different durability points:
+
+1. **Asynchronous replication** acknowledges after the primary commits locally.
+   It is fast, but immediate failover can lose writes that had not reached a replica.
+2. **Semi-synchronous replication** waits for at least one replica to receive or durably store the
+   log record.
+   It reduces the recovery-point objective but adds a network round trip.
+3. **Synchronous replication** waits for every required replica or a quorum.
+   It protects acknowledged data but turns slow or partitioned replicas into write latency.
+
+Safe failover selects the newest replica, fences the old primary, starts a new replication epoch,
+and redirects clients without letting two primaries accept writes.
+
+### Sharding and Partitioning
+
+**Horizontal partitioning** assigns rows by a rule such as `hash(customer_id)` or date range.
+
+**Vertical partitioning** splits columns or table groups, keeping hot profile fields apart from
+large documents or audit details.
+
+Common horizontal strategies are:
+
+| Strategy | Placement rule | Strength | Failure mode |
+|---|---|---|---|
+| Range | Ordered key intervals | Efficient range scans | Sequential keys create a hot shard |
+| Hash | Hash of shard key | Even distribution | Range scans become scatter-gather |
+| Directory | Lookup service maps key to shard | Flexible movement | Extra hop and directory dependency |
+| Geography | User or tenant region | Data locality | Cross-region operations are expensive |
+
+A good shard key distributes traffic and co-locates rows that transact or join; a bad one causes
+hot partitions and cross-shard work.
+
+### Local and Distributed Transactions
+
+A local transaction changes one node's data, so local ACID machinery and WAL are sufficient.
+
+A distributed transaction spans participants. A transfer across shards requires debit and credit
+to reach the same final decision despite shard or network failure.
+
+Atomic commitment asks a binary question:
+
+> Can every participant commit, or must every participant abort?
+
+Two-phase commit answers that question through a coordinator. Consensus systems solve a related
+but different problem: several replicas agree on one ordered decision even when a minority fails.
+
+---
 
 ## 🟡 Intermediate Level
 
-### Two-Phase Commit: Complete Message Walkthrough
-Coordinator C coordinates participants P1 and P2. Every participant owns local locks and its own durable log; "fsync" means the record reached stable storage.
+### Replication Flow, Lag, and Failover
 
-```
-   PHASE 1: PREPARE / VOTING
-   COORDINATOR C                        PARTICIPANT P1            PARTICIPANT P2
-   --------------                       --------------            --------------
-   append START-2PC to log (fsync)
-   send PREPARE ----------------------> received PREPARE
-                                        acquire/verify needed locks,
-                                        flush local redo+undo records
-                                        append PREPARED to log (fsync)
-                                        send VOTE-YES -----------\
-                                        send VOTE-YES ------------------------> same steps at P2
-   collect all votes
-   PHASE 2: DECIDE / COMMIT   (only if every vote was YES)
-   append GLOBAL-COMMIT decision to log (fsync)
-   send GLOBAL-COMMIT ----------------> append COMMIT, apply changes,
-                                        release locks, ACK
-   send GLOBAL-COMMIT -------------------------------------------> same, then ACK
-   receive all ACKs
-   append DONE to log (protocol complete)
-   ONE NO VOTE ANYWHERE => decision becomes GLOBAL-ABORT, sent identically.
+The primary assigns every write an ordered log position. Depending on configuration, a replica
+acknowledges receipt, durable storage, or application, and each point implies different guarantees.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant P as Primary
+    participant R1 as Replica 1
+    participant R2 as Replica 2
+    C->>P: Write order 842
+    P->>P: Append and flush log
+    par Replicate
+        P->>R1: Log entry 842
+        P->>R2: Log entry 842
+    end
+    R1-->>P: Durable acknowledgement
+    P-->>C: Commit acknowledged
+    R2-->>P: Delayed acknowledgement
 ```
 
-Rules that make it correct:
-1. A participant may unilaterally abort any time BEFORE voting YES; after voting YES it has surrendered the decision.
-2. The coordinator's decision-log write (fsync) happens BEFORE broadcasting GLOBAL-COMMIT, so once decided, the decision survives coordinator crashes.
-3. A voted-YES participant must remain blocked (locks held) until it learns the decision; it may ask nobody else, because no other process knows it either.
+If the client reads immediately from replica 2, it may not yet see order 842.
+Mitigations include:
 
-### Failure Case 1: Someone Votes No
-P2 hits a constraint violation during PREPARE, appends ABORTED, replies VOTE-NO. The coordinator broadcasts GLOBAL-ABORT; P1 releases locks and rolls back. Fast, clean, nobody blocks beyond message latency.
+- route read-after-write traffic to the primary;
+- carry a log-position token and wait until the chosen replica reaches it;
+- use sticky sessions for a bounded workflow;
+- request a quorum or linearizable read where the database supports it.
 
-### Failure Case 2: Coordinator Crashes in the Decision Window (the in-doubt state)
-Timeline of the dangerous window:
+Measure replica lag in bytes and time: 5 MB may be minutes stale in quiet traffic, while 500 MB may
+represent only seconds during a burst.
 
-| Step | Event | State Afterwards |
-| --- | --- | --- |
-| 1 | P1, P2 both vote YES, holding prepared locks | Both locked, waiting |
-| 2 | Coordinator receives both YES votes | Nothing decided yet |
-| 3 | Coordinator machine loses power BEFORE appending its decision | Decision exists nowhere on disk |
-| 4 | Participants time out, query coordinator, get no answer | Indefinitely blocked |
+Failover has two distinct objectives:
 
-Participants cannot commit (another participant might have voted NO) and cannot abort (the decision might have been COMMIT). This **in-doubt** state holds all row locks, blocking unrelated transactions behind them, until the coordinator recovers or an operator applies a heuristic resolution.
+- **RTO**, the recovery-time objective, measures how long service is unavailable.
+- **RPO**, the recovery-point objective, measures how much acknowledged data can be lost.
 
-Blocking-window math worth quoting: suppose the decision window averages 10 ms and traffic is 10,000 commits per second through this coordinator. The fraction of time the system sits inside the dangerous window is 10 ms times 10,000 per second, about 10 percent of wall-clock time. With a coordinator failing once every 30 days, roughly one crash in ten lands mid-decision, so expect a blocking incident a few times per year; each incident freezes about window-times-rate, around 100 in-flight prepared transactions' locks, until manual intervention. Rare per transaction, operationally expensive per incident.
+Async replication gives short RTO with nonzero RPO; synchronous quorum can prevent acknowledged
+write loss but may reject writes during a partition.
 
-### Failure Case 3: Participant Crashes After Voting Yes
-On restart the participant finds PREPARED in its log with no decision. It enters recovery: repeatedly contact the coordinator (or a human consulting the coordinator's log), and never guess. If the coordinator's log shows GLOBAL-COMMIT, commit locally; if unreachable, keep locks and retry. Databases expose this machinery operationally: PostgreSQL `pg_prepared_xacts` with `COMMIT PREPARED` / `ROLLBACK PREPARED`, MySQL `XA RECOVER` followed by `XA COMMIT` / `XA ROLLBACK`.
+### Shard Routing and Consistent Hashing
 
-### Cost Accounting: Why Teams Avoid Cross-Shard Transactions
-One distributed commit costs 4 messages plus forced fsyncs: the coordinator's decision log plus each participant's prepare and commit logs, so latency approximates 2 RTT + 3 fsyncs. Intra-region (RTT 0.5 ms, fsync 0.5 ms): roughly 3 ms, tolerable. Cross-region (RTT 40 ms): well over 100 ms while holding locks throughout, which is why architects prefer designing shard keys so related rows share a node, or use sagas instead.
+Naive `hash(key) mod N` routing remaps most keys when the node count changes, causing migration
+storms and cache misses.
 
-### Three-Phase Commit (3PC)
-3PC inserts a PreCommit stage: CanCommit, PreCommit, DoCommit. Timeouts now carry meaning: a participant already in PreCommit that hears nothing concludes the coordinator died after a unanimous YES and may safely commit; a participant still in CanCommit times out toward abort. This removes blocking under single-crash failures, but only under fail-stop assumptions: if a network partitions and an old coordinator keeps operating, a healed partition can produce two coordinators issuing opposite decisions (split brain). Because real networks partition, almost no production system ships textbook 3PC; they ship consensus-based commit instead.
+Consistent hashing places nodes and keys on a ring. A key belongs to the next clockwise node, so a
+new node takes neighboring ranges rather than remapping the entire keyspace.
 
-### Quorum Consensus: R + W > N
-For N replicas where a write acknowledges from W replicas and a read consults R:
-
-```
-   TWO CONSTRAINTS
-   1)  R + W > N      every read set intersects every write set
-                      => reads always see the latest acknowledged value
-   2)  W > N / 2      every pair of concurrent write sets intersects
-                      => conflicting writes are detected and ordered,
-                         never silently applied on disjoint replicas
+```mermaid
+flowchart LR
+    K1["Key at token 12"] --> N1["Node A at 20"]
+    K2["Key at token 31"] --> N2["Node B at 45"]
+    K3["Key at token 66"] --> N3["Node C at 80"]
+    K4["Key at token 91"] --> N1
+    Join["New node at 60"] -. "takes part of B to C range" .-> N3
 ```
 
-Consistency check with versions, worked concretely: replicas A, B, C hold balance values tagged with version numbers. A write of balance = 90 (version 8) was acknowledged by A and B; replica C missed it and still holds version 7 (value 70).
-1. Read with R = 2 landing on {A, B}: both report v8; return 90, trivially consistent.
-2. Read landing on {B, C}: versions {8, 7}; newest version wins, return 90, and a background **read repair** copies v8 to C.
-3. Read with R = 1 hitting C alone: returns stale 70. Quorum guarantees bind only when R and W actually form quorums, which is precisely why R = 1 trades consistency for latency.
-Dynamo-style systems tag values with vector clocks so concurrent writers create detectable siblings rather than silent overwrites; application logic or last-write-wins reconciles them. Background anti-entropy (Merkle-tree comparisons between replicas) plus hinted handoff converge missed writes after failures heal.
+Many **virtual nodes** per server reduce variance, allow weighted ownership, and make rebalancing
+incremental.
 
-Configuration trade-offs:
+Consistent hashing does not solve every placement problem:
 
-| Configuration | Read Latency | Write Latency | Availability Under Failures |
-| --- | --- | --- | --- |
-| N=3, R=1, W=3 | Fastest: one replica answers | Slowest-of-3; stalls if any node down | Writes die with one node loss |
-| N=3, R=2, W=2 | Moderate: max of 2 parallel RPCs | Moderate | Tolerates 1 node down fully |
-| N=5, R=2, W=3 | Fast-ish reads (6 > 5 holds) | Moderate; tolerates 2 down for reads, 1 for writes | Balanced for read-heavy loads |
+- A popular key remains hot even if overall data is evenly distributed.
+- Replicas must be placed across racks or zones, not merely on adjacent ring positions.
+- Rebalancing consumes network and disk bandwidth and should be rate-limited.
+- Membership needs epochs or consensus so partitioned sides do not calculate different owners.
 
-Latency reality check: reading from R replicas issues R parallel RPCs and waits for the slowest of them (tail amplification: per-replica p99 of 10 ms yields worse than 10 ms p99 for R = 2), and cross-region quorums pull inter-region RTT (70 to 100 ms) into the tail. This is the everyday shape of the consistency tax even with zero partitions.
+### Connection Pooling and Caching in a Distributed Database
 
-### CAP Theorem, Stated Precisely
-Gilbert and Lynch formalized Brewer's conjecture: in an asynchronous network where messages can be lost or delayed, no system can simultaneously provide linearizable consistency and total availability while tolerating partitions. During a partition a system must reject operations somewhere (choosing C) or accept them everywhere (choosing A).
+If 40 application instances each open 100 connections, the cluster has 4,000 sessions before any
+request executes.
 
-```
-                    Consistency (C)
-                    linearizability
-                   /               \
-                  /                 \
-                 /                   \
-                /                     \
-     Availability (A) ---------- Partition tolerance (P)
-     always respond             survive message loss
-```
+A pool limits concurrent sessions and reuses authenticated connections:
 
-CAP misconceptions worth correcting on sight:
-1. "CP systems are always consistent." False. CAP says nothing about normal operation; outside partitions every system faces a latency-versus-consistency choice (that is PACELC). A CP label does not buy strong reads at low latency on an ordinary Tuesday.
-2. "My architecture is CA." Impossible among replicated nodes connected by fallible networks; CA effectively means one node. P is not optional because partitions, GC pauses, and dead switches happen regardless of your diagram.
-3. CAP-C equals linearizability, not ACID consistency, and not read-your-writes.
-4. AP does not mean permanently divergent garbage; it means available-but-stale responses during the partition, converging afterwards via anti-entropy, with staleness bounds usually undocumented until you measure them.
-5. Real deployments choose per operation: payment authorization versus telemetry need different answers from the same cluster.
+- size the pool from database concurrency capacity, not from HTTP request count;
+- set acquisition and statement timeouts so overload fails quickly;
+- maintain separate limits for transactions and long analytical queries;
+- make the pool topology-aware so it does not keep sending traffic to a demoted primary.
 
-### PACELC
-Abadi's extension: IF there is a Partition, choose Available or Consistent; ELSE (normal operation), choose Latency or Consistency. Concrete deltas:
-1. Cassandra at consistency level ONE acknowledges a local write in about 1 ms; QUORUM adds a second replica round trip, roughly doubling write latency, and cross-datacenter EACH_QUORUM pushes toward 100 ms.
-2. DynamoDB eventually-consistent reads hit one replica; strongly-consistent reads hit a quorum, costing roughly double read latency plus tail amplification.
-3. Spanner always pays consensus: every write is a Paxos round (one RTT within a region, tens of ms across regions) plus TrueTime commit-wait, buying external consistency unconditionally.
-Classification shorthand: Spanner is PC/EC; MongoDB defaults PC/EC (majority write concern); Cassandra and vintage Dynamo are PA/EL tunable per request.
+Pooling reduces setup overhead but does not add database CPU or lock capacity; oversized pools
+increase context switching, memory pressure, and tail latency.
 
-### Replication Modes and What Failover Costs
-1. **Fully synchronous**: leader waits for all followers; zero data loss but any laggard stalls writes. Rare outside small quorum clusters.
-2. **Semi-sync**: wait for exactly one follower's receipt acknowledgment; bounds loss to zero under single-failure scenarios, degrades gracefully to async if the follower stalls (MySQL semi-sync does exactly this).
-3. **Asynchronous**: acknowledge immediately; failover after a leader crash can lose the last few hundred milliseconds of acknowledged writes (RPO measured in seconds worst-case), which auditors treat very differently from mode 2.
+Caches reduce repeated reads but introduce another copy of data:
 
-### Sharding Strategies and Their Failure Modes
-1. **Range partitioning**: rows ordered by key across shards; efficient range scans, but monotonically increasing keys (timestamps, ids) hammer the last shard as a permanent hotspot.
-2. **Hash partitioning**: hash(key) spreads load evenly; kills hotspots but destroys range-scan locality.
-3. **Directory lookup**: a service maps keys to nodes; maximally flexible, adds a lookup hop and a new failure point.
-4. **Consistent hashing** fixes rebalancing pain: nodes sit on a ring, each key belongs to the next node clockwise, so adding a node steals only one neighbor arc instead of rehashing the world. Virtual nodes (hundreds of ring positions per physical node) smooth load variance.
+- **Cache-aside** loads on a miss and invalidates after writes.
+- **Read-through** delegates loading to the cache layer.
+- **Write-through** updates cache and storage together.
+- **TTL-based caching** bounds how long stale values may survive but does not guarantee immediate
+  invalidation.
 
-```
-            CONSISTENT HASHING RING
-                  0 degrees
-                     .
-               .           .
-            nA               nB
-            .       .       .
-               .         .
-            nD               nC
-                     .
-                 180 degrees
-   a key hashes onto a circle position;
-   the next node clockwise owns it;
-   adding node C moves only the arc between its neighbors.
+During failover, stale cache entries can outlive the old primary. Versioned values, short TTLs,
+and commit-linked invalidations reduce risk; balances must not trust an unverified cache copy.
+
+### Two-Phase Commit: Prepare and Decide
+
+Two-phase commit, or **2PC**, has one coordinator and multiple participants, each with a local
+transaction and durable log.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Coordinator
+    participant A as Shard A
+    participant B as Shard B
+    C->>A: PREPARE transaction 71
+    C->>B: PREPARE transaction 71
+    A->>A: Validate, lock, flush PREPARED
+    B->>B: Validate, lock, flush PREPARED
+    A-->>C: VOTE YES
+    B-->>C: VOTE YES
+    C->>C: Flush GLOBAL COMMIT
+    C->>A: COMMIT transaction 71
+    C->>B: COMMIT transaction 71
+    A-->>C: ACK
+    B-->>C: ACK
 ```
 
-### Gossip and Cluster Membership
-Quorums presuppose agreement about WHO is in the cluster, which itself must survive partitions. Decentralized systems (Cassandra, Dynamo) gossip membership state: each node periodically exchanges small state vectors with random peers, so full knowledge spreads in roughly log(N) rounds; nodes mark peers dead after a timeout of a few seconds, then rejoin them when gossip proves otherwise. The subtle failure: two sides of a partition can each evict the other and keep operating on shrunken membership, silently converting strict quorums into sloppy ones unless token-aware placement resists it.
+**Phase 1: prepare or vote**
 
-### Consistency Spectrum
-Linearizable (strongest: real-time ordering) gives way to sequential (per-process order preserved, no global clock), causal (cause precedes effect), read-your-writes and monotonic-reads (session guarantees), and eventual (convergence given no new writes). Most "eventual consistency outages" reported in practice are really missing session guarantees: a user writes through replica X then reads from replica Y. Sticky sessions, monotonic-read tokens, or leader-pinned reads fix it cheaply.
+1. The coordinator records that the distributed transaction began.
+2. It sends `PREPARE` to every participant.
+3. Each participant validates constraints, acquires required locks, and flushes enough redo and
+   undo state to commit after a restart.
+4. It records `PREPARED` before voting yes.
+5. Any participant that cannot prepare votes no.
+
+**Phase 2: decision**
+
+1. One no vote or timeout makes the coordinator durably record global abort.
+2. Only unanimous yes votes allow it to durably record global commit.
+3. The coordinator sends the recorded decision until every participant acknowledges it.
+4. Participants commit or roll back locally, release locks, and remember the outcome for retries.
+
+Log ordering provides correctness: participants vote yes only after durable prepare, and the
+coordinator announces commit only after durably recording the global decision.
+
+### Why 2PC Blocks
+
+After voting yes, a participant cannot choose on its own:
+
+- aborting could contradict a global commit already recorded elsewhere;
+- committing could contradict a no vote that forced global abort.
+
+If the coordinator is unreachable, the participant is **in doubt** and keeps locks. PostgreSQL
+shows it in `pg_prepared_xacts`; resolve it only after establishing the global outcome.
+
+With two 1 ms round trips and three 0.5 ms durable flushes, a simplified lower bound is:
+
+$$
+2(1\text{ ms}) + 3(0.5\text{ ms}) = 3.5\text{ ms}
+$$
+
+At an 80 ms inter-region RTT, the network portion becomes 160 ms while locks remain held.
+Co-location, sagas, and transactional outboxes avoid that cross-boundary cost.
+
+### Three-Phase Commit and Consensus-Based Decisions
+
+Three-phase commit, or **3PC**, adds `PRECOMMIT`; a participant there can infer more from a
+timeout than a merely prepared 2PC participant.
+
+| Property | 2PC | 3PC | Consensus-replicated decision |
+|---|---|---|---|
+| Main phases | Prepare, decide | CanCommit, precommit, doCommit | Propose and replicate log entry |
+| Coordinator crash | Can block | Nonblocking under narrow assumptions | New leader recovers decision |
+| Network partition | Blocks safely | Can split into conflicting decisions | Majority side progresses |
+| Agreement requirement | All participants prepare | All participants across three phases | Majority of decision replicas |
+| Typical use | XA and prepared transactions | Mostly academic | Raft/Paxos database control planes |
+
+3PC assumes bounded delays and fail-stop failures. Async networks cannot distinguish a crash from
+a partition, so independent timeout decisions can split history.
+
+Consensus replicates the decision for leader recovery, but does not remove cross-shard atomic
+commit; Spanner and CockroachDB still coordinate transactions spanning consensus ranges.
+
+### Worked Quorum and Partition Example
+
+Let a record have $N = 5$ replicas: A, B, C, D, and E. A write is acknowledged after $W = 3$
+replicas store version 42, and a read consults $R = 3$ replicas.
+
+Two intersection rules matter:
+
+$$
+R + W > N
+$$
+
+ensures every read set intersects the most recent acknowledged write set, while
+
+$$
+W > \frac{N}{2}
+$$
+
+ensures two successful write sets cannot be disjoint.
+
+Suppose version 42 reaches A, B, and C before the network partitions:
+
+| Replica | A | B | C | D | E |
+|---|---:|---:|---:|---:|---:|
+| Stored version | 42 | 42 | 42 | 41 | 41 |
+
+Now follow concrete reads:
+
+1. A read from C, D, and E observes versions 42, 41, and 41.
+   It returns version 42 because the read set intersects the write set at C.
+2. A read with $R = 1$ that reaches D returns stale version 41.
+   The configured quorum guarantee did not apply because the client requested only one replica.
+3. A new write needs any three replicas.
+   A partition containing only D and E has two nodes, so it cannot acknowledge a conflicting
+   quorum write.
+4. The A-B-C side has three nodes and can continue reading and writing.
+   The D-E side must reject quorum operations or explicitly fall back to weaker consistency.
+
+The minimum $R + W$ for $N = 5$ is 6, not 5. Common choices include:
+
+| Configuration | Read behavior | Write behavior | One-node failure |
+|---|---|---|---|
+| $R=1, W=5$ | Lowest read latency | Waits for every replica | Writes unavailable |
+| $R=3, W=3$ | Majority read | Majority write | Both remain available |
+| $R=5, W=1$ | Waits for every replica | Lowest write latency | Reads unavailable |
+
+Quorum intersection alone is not a complete consistency proof. The system also needs version
+ordering, conflict resolution, stable membership, and rules preventing a stale leader from
+accepting writes.
+
+---
 
 ## 🔴 Expert Level
 
-### Production 2PC: Logs, Recovery, Heuristics
-The protocol's correctness lives entirely in logging discipline: participants fsync PREPARED before voting YES, the coordinator fsyncs its decision before sending it, and recovery replays those logs after crashes. Operations teams meet the theory as orphaned prepared transactions: PostgreSQL's `max_prepared_transactions` defaults to 0 partly because forgotten `PREPARE TRANSACTION` calls have caused multi-day lock pile-ups invisible to most dashboards until something times out en masse. Heuristic completion (commit because "most transactions commit", abort because "someone must act now") trades availability for possible inconsistency; document which heuristic your runbook chose, because auditors will ask.
+### CAP Under a Real Network Partition
 
-### A Raft Primer for Commit Discussions
-1. Raft elects one leader per term using randomized timeouts (typically 150 to 300 ms election timeout, heartbeats far shorter); a candidate needs votes from a majority of N.
-2. All writes flow through the leader, which appends them to its log and replicates entries; an entry is committed once a majority stores it, and majorities guarantee any committed entry survives later elections (Leader Completeness).
-3. Term numbers act as logical clocks: any node seeing a higher term immediately adopts it, fencing stale leaders with zero clock hardware required.
-4. Consensus replicates ONE decision log safely; it does not by itself give multi-key distributed atomicity, which is why Spanner and CockroachDB still layer a commit protocol above per-shard consensus groups.
+The CAP theorem concerns an asynchronous distributed system during a network partition:
 
-### Percolator and Spanner: Google's Two Answers
-Percolator (2010) built incremental indexing over Bigtable using client-driven snapshot-isolation transactions: one designated primary row's lock serves as the commit point; secondary rows carry pointer-locks resolved lazily against the primary during cleanup. It proved 2PC-shaped coordination could run at petabyte scale over weak infrastructure, directly inspiring TiDB. Spanner went further: each shard is a Paxos group replicating synchronously; 2PC appears only when a transaction spans shards, layered above per-shard Paxos so neither phase can lose the decision. TrueTime provides bounded clock-uncertainty intervals from GPS plus atomic clocks; a leader cannot apply a commit until TT.after(timestamp) holds, the famous commit-wait, converting bounded skew into externally consistent (strictly serializable) ordering. Historically uncertainty averaged about 4 ms with worst cases under 10 ms; newer hardware reports sub-millisecond typical skew, directly lowering Spanner's write-latency floor of roughly two Paxos RTTs plus epsilon.
+- **Consistency** means linearizability: each operation appears to take effect atomically in one
+  real-time order.
+- **Availability** means every request received by a nonfailed node eventually returns a
+  non-error response.
+- **Partition tolerance** means the system continues operating despite lost or indefinitely
+  delayed messages between groups of nodes.
 
-### 2PC vs 3PC vs Raft/Paxos for Atomic Commit
-
-| Property | 2PC | 3PC | Raft/Paxos-based commit |
-| --- | --- | --- | --- |
-| Blocks on coordinator crash | Yes, in-doubt window | No, crash-only assumptions | No: the decision itself is replicated |
-| Survives network partitions | No (blocking) | No: can split-brain | Yes: majority side proceeds |
-| Failures tolerated in window | Zero | One, crash-only | Minority of N (floor((N-1)/2)) |
-| Messages per commit | 4 messages + forced logs | 6+ messages | Majority quorum round(s) |
-| Used by | XA, PostgreSQL PREPARE, MQ coordinators | Textbooks | Spanner, CockroachDB, etcd |
-
-Key insight: 2PC's flaw is the single unilateral decision point sitting on one volatile machine; consensus protocols fix it by replicating the decision itself through majorities. But consensus solves replicating ONE log, not multi-key atomicity: Spanner and CockroachDB therefore combine Raft-per-shard with cross-shard 2PC glue, optimized by CockroachDB's parallel commit toward roughly one RTT. Kafka's transactional coordinator is 2PC-shaped over replicated logs; the pattern recurs everywhere.
-
-### Split-Brain and Stale Reads: Quorum Failure Modes
-With W > N/2, two acknowledging write-quorums cannot coexist (pigeonhole: floor(N/2)+1 sized sets must overlap), so genuine quorum systems cannot double-commit. The dangers live at the edges:
-1. **Stale quorum reads**: N = 3, R = 1, a partition isolates one replica; clients routed there silently read old data. Mitigations: R = 2, monotonic-read session guarantees, or pinning reads to the current leader via epoch checks.
-2. **Leader without fencing**: a paused old leader wakes believing it still leads (a GC pause outran its lease) and writes anyway; storage nodes must reject writes carrying stale fencing tokens (monotonically increasing epochs), otherwise history forks.
-3. **Clock-bounded leases**: leader leases expire using conservative clock-skew budgets; a leader must stop serving before any replica could plausibly consider the lease live elsewhere.
-4. **Sloppy quorums** (Dynamo-style hinted handoff) deliberately accept writes on non-home nodes during failures, boosting availability while quietly voiding the strict R+W>N intersection guarantee until handoff completes.
-
-Split-brain arithmetic: any two majorities of N share at least one node, so at most one side can ever acknowledge a quorum write; everything else is configuration drift away from this invariant (for example a cluster whose membership view differs between sides).
-
-### Consistency-Level Cheat Sheet
-
-| Guarantee | What It Actually Promises | Typical Implementation Cost |
-| --- | --- | --- |
-| Linearizable reads/writes | Real-time ordering across all clients | Quorum R+W>N plus coordination; highest latency |
-| Sequential consistency | Per-client order preserved, no global clock | Leader-based replication without commit-wait |
-| Bounded staleness | Reads at most T seconds or K versions old | Version tracking plus anti-entropy cadence |
-| Read-your-writes (session) | A client never misses its own writes | Sticky sessions or monotonic tokens; near-free |
-| Eventual convergence | Replicas agree once updates stop | Async replication; cheapest, weakest |
-
-### Cross-Region Topologies
-1. **Single-region writer + async DR**: simplest and fastest for local users; disaster-recovery failover loses seconds of writes (RPO equals replication lag).
-2. **Witness/quorum across regions**: keep the leader region plus two voting witnesses elsewhere; elections stay safe but writes still pay one regional round trip.
-3. **Multi-active regional leaders** (Spanner model): each shard has home-region leaders near its users via Paxos; cross-region transactions pay 2PC-over-Paxos cost, typically 100+ ms, so schema design tries to keep transactions inside one region.
-4. Follow-the-sun workloads simply migrate leadership; the hard part is not mechanics but untangling sessions pinned to the old leader.
-
-### Exactly-Once Myths and the Transactional Outbox
-Exactly-once delivery across arbitrary system boundaries does not exist; networks duplicate and delay, and receivers crash mid-side-effect. Engineering substitutes:
-1. **Idempotency keys**: clients attach unique request ids; the server records processed ids and replays stored responses for duplicates, making retries harmless.
-2. **Transactional outbox**: write business data AND the outbound event in one local transaction, then let a relay publish events afterward; consumers dedupe by event id. Atomicity comes free from the local transaction, no distributed commit involved.
-
-```
-   SAME LOCAL TRANSACTION (no distributed commit needed)
-   BEGIN
-     INSERT INTO orders (...) VALUES (...);
-     INSERT INTO outbox (topic, payload) VALUES ('order.created', ...);
-   COMMIT
-   separate relay process polls outbox, publishes to Kafka,
-   marks rows sent; consumers dedupe by event id.
+```mermaid
+flowchart TD
+    P["Network partition separates replicas"] --> Choice{"What does an isolated side do?"}
+    Choice -->|"Reject or wait"| CP["Preserve one linearizable history"]
+    Choice -->|"Accept independently"| AP["Remain available with possible divergence"]
+    CP --> CostC["Unavailable operations on minority side"]
+    AP --> CostA["Conflict detection and reconciliation after healing"]
 ```
 
-3. **Effectively-once = at-least-once delivery + deduplication**, everywhere, forever; interviewers reward candidates who say this plainly.
+Partition tolerance is not a feature switch in a multi-node system; partitions happen.
+The choice during the partition is whether an isolated side rejects operations to preserve one
+history or accepts operations that may require later reconciliation.
 
-### Distributed Query Planning Costs
-Sharding breaks the single-node query optimizer's assumptions:
-1. **Scatter-gather**: without a shard-key predicate, every node runs the fragment and a coordinator merges; latency equals slowest shard plus merge, and LIMIT/ORDER BY must ship top-K partials, not raw rows.
-2. **Secondary indexes become local**: an index on a non-shard column only finds rows on its own node, forcing fan-out index probes or global secondary indexes (extra distributed writes to keep them fresh).
-3. **Joins across shards** degrade into nested distributed lookups unless tables are co-partitioned on join keys; this is why schema design (co-locating customer with orders) dominates distributed query performance.
-4. Distributed transactions multiply all of the above by 2PC cost, which is why analytical engines prefer shipping queries to data rather than data to queries.
+CAP does not say a database chooses exactly two letters forever. Real systems choose guarantees
+per operation: a ledger debit may require a majority, while a product-view counter accepts local
+writes and converges later.
 
-### Jepsen Lessons: Marketing Labels vs Reality
-Kyle Kingsbury's Jepsen analyses repeatedly found documented behavior diverging from partition tests:
-1. Older Elasticsearch lost acknowledged indexing operations during primary/replica flips; later versions tightened replication, but the safe-by-default story took years.
-2. MongoDB historically returned stale or lost acknowledged documents at w=1 concerns; majority write/read concerns became the sane default posture afterward.
-3. Redis lost acknowledged writes under asymmetric partitions when a demoted master kept accepting them; WAIT helps but durability-by-default remains conditional.
-4. Aerospike resolved partitions by discarding minority-side data ("lose-C") in configurations marketed as strong.
-5. Kafka's historical `unclean.leader.election=true` promoted out-of-sync replicas, silently dropping acknowledged messages; today acks=all plus min.insync.replicas plus clean elections is the durable configuration.
-Lesson: treat every vendor CP/AP claim as a hypothesis requiring adversarial testing; demand documented staleness bounds and acknowledged-write guarantees in writing.
+**PACELC** adds normal operation: if there is a Partition, trade Availability against Consistency;
+Else, trade Latency against Consistency. Even without failures, a cross-region linearizable write
+waits for communication that an eventually consistent local write avoids.
 
-### CAP for Financial Systems: Design Discussion
-Authorization paths (card approvals, wallet debits, ledger postings) choose consistency: a double-spend costs real money, so briefly refusing service beats accepting twice; the canonical architecture is CP quorum (for example W = 3 of N = 5) for balances. Non-authoritative paths (analytics, notifications, fraud scoring) ride async replicas and tolerate seconds of lag. Rather than long cross-institution 2PC, which blocks on partner outages, modern designs use sagas: local transactions plus compensating actions, idempotency keys on every request so retries never double-charge, reconciliation jobs as the final safety net. Exactly-once does not exist across boundaries; effectively-once comes from consumer-side deduplication.
+### Consistency Spectrum
+
+Consistency is not only “strong” or “eventual”:
+
+| Guarantee | Observable promise | Typical mechanism |
+|---|---|---|
+| Linearizable | Operations respect real-time order globally | Leader or quorum plus fencing |
+| Sequential | One global order preserves each client's order | Ordered replicated log |
+| Causal | Causes are visible before their effects | Causal metadata or dependency tracking |
+| Read-your-writes | A session sees its own committed changes | Session token or leader pinning |
+| Monotonic reads | A session never moves backward in versions | Minimum-version token |
+| Bounded staleness | Reads lag by at most time or versions | Lag-aware routing |
+| Eventual | Replicas converge after writes stop | Anti-entropy and conflict resolution |
+
+**Strong consistency** usually refers to linearizable reads and writes, but product documentation
+must name the exact guarantee. **Eventual consistency** promises convergence, not a maximum delay
+and not correct conflict resolution.
+
+**BASE** contrasts a common availability-oriented model with strict transactional expectations:
+
+- **Basically Available** means the service aims to respond despite partial failures.
+- **Soft state** means replicas and caches may change as background propagation continues.
+- **Eventual consistency** means copies converge when no new updates arrive.
+
+BASE does not remove business invariants. It moves reconciliation, idempotency, and conflict rules
+into the data model and application workflow.
+
+### Quorum Consensus and Failure Trade-offs
+
+A quorum protocol typically routes writes through a leader or coordinates replica responses using
+versions. Majority intersection prevents two disjoint groups from both committing the next value
+under one membership epoch.
+
+Production failure cases include:
+
+1. **Stale leader**: an old leader resumes after a long pause and sends writes.
+   Storage nodes must reject its lower fencing epoch.
+2. **Sloppy quorum**: temporary non-home replicas accept hinted writes for availability.
+   The usual $R + W > N$ home-set intersection may not hold until hinted handoff completes.
+3. **Divergent membership**: each partition calculates quorum from a different cluster size.
+   Joint-consensus membership changes prevent both views from claiming a majority.
+4. **Clock-based last-write-wins**: a fast clock can overwrite a causally newer value.
+   Logical versions, hybrid clocks, or application merges are safer.
+5. **Tail amplification**: a request that waits for three replicas inherits the slowest required
+   response, increasing p99 latency even when the median is low.
+
+Anti-entropy compares replica state in the background, often using Merkle trees to locate differing
+ranges. Read repair updates stale copies discovered during a read. Neither mechanism makes a weak
+read linearizable at the moment it returns.
+
+### Distributed Transactions Without Long-Lived 2PC
+
+Cross-service 2PC is often unavailable because message brokers, payment providers, and external
+APIs do not share one transaction manager. Two common alternatives are:
+
+- A **saga** commits a sequence of local transactions and invokes compensating actions when a later
+  step fails. Compensation restores a business outcome but may not recreate the exact previous
+  state.
+- A **transactional outbox** writes domain state and an outbound event in one local transaction.
+  A relay publishes the event at least once, and consumers deduplicate by event ID.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant API as Order API
+    participant DB as Local database
+    participant Relay as Outbox relay
+    participant Bus as Event broker
+    participant Consumer as Consumer
+    API->>DB: Commit order and outbox row atomically
+    DB-->>API: Local commit succeeds
+    Relay->>DB: Read unpublished rows
+    Relay->>Bus: Publish event with idempotency key
+    Bus->>Consumer: Deliver at least once
+    Consumer->>Consumer: Deduplicate and apply
+```
+
+“Exactly once” across arbitrary side effects is not a network guarantee.
+Effectively-once behavior combines durable state, at-least-once retries, idempotency keys, and
+consumer-side deduplication.
+
+### Production Design and Operational Signals
+
+Distributed-database incidents usually reveal missing operational guarantees rather than missing
+definitions. Track:
+
+- replication lag by bytes, seconds, and log position;
+- current leader term and rejected stale-epoch writes;
+- prepared-transaction count and oldest prepared age;
+- quorum success, timeout, and fallback rates;
+- per-shard size, request rate, and hot-key concentration;
+- connection-pool utilization and acquisition wait;
+- cache hit rate, invalidation lag, and stale-read reports;
+- rebalance traffic and remaining token ranges.
+
+For a financial ledger, keep authoritative balance writes on a CP path with quorum durability and
+fencing. Use asynchronous replicas and caches for statements or analytics only when their
+staleness is visible and acceptable.
+
+For globally distributed collaboration or feeds, availability may be more valuable. Use
+operation-specific conflict semantics such as commutative counters, sets, or CRDTs instead of
+blind last-write-wins.
+
+### Common Misconceptions
+
+1. **“A read replica always returns the latest committed write.”**
+   An asynchronous replica can lag even when it is healthy.
+   Read-after-write requires leader routing, a version token, or a consistency level that waits for
+   the required log position.
+
+2. **“CAP means every database permanently chooses two of three features.”**
+   CAP constrains behavior during a partition, and partition tolerance is unavoidable once nodes
+   communicate over a fallible network.
+   Systems make different consistency and availability choices per operation.
+
+3. **“If $R + W > N$, reads are automatically linearizable.”**
+   Intersection finds at least one overlapping copy only when replica sets, membership, version
+   order, and failure handling satisfy the model.
+   Sloppy quorums, stale leaders, or last-write-wins clock errors can still violate expectations.
+
+4. **“Three-phase commit solves 2PC blocking in production networks.”**
+   3PC avoids blocking only with bounded-delay and fail-stop assumptions.
+   Under a network partition, timeout-driven participants can make conflicting decisions.
+
+5. **“Connection pooling and caching make an overloaded database horizontally scalable.”**
+   A pool reduces connection setup and caps concurrency, while a cache avoids selected reads.
+   Neither adds write capacity or removes hot shards, locks, and replication bottlenecks.
 
 ### Interview Questions
 
-### Q1: Why is 2PC considered a "blocking" protocol?
-**Answer**: If the coordinator crashes after participants voted VOTE_COMMIT but before they learn the decision, participants sit in PREPARED holding locks, unable to commit (another participant might have voted no) and unable to abort (the decision might have been commit). No third party knows the outcome, so they block indefinitely until the coordinator recovers or an operator applies a heuristic resolution.
+**Q1. What is the difference between replication and sharding?** `[easy]`
 
-### Q2: Compare 2PC, 3PC, and Raft-based commit for atomic commit. Which would you pick for payment settlement?
-**Answer**: 2PC blocks in the in-doubt window but is simple, widely supported (XA, PostgreSQL prepared transactions), acceptable intra-region. 3PC removes blocking only under crash-only assumptions and breaks under partitions, hence near-zero production adoption. Consensus-based commit replicates the decision via majorities, tolerating minority failures and partitions, at higher constant cost. For payments I would pick consensus-replicated state (Spanner/CockroachDB-style) for balances, or avoid cross-system atomicity entirely with sagas plus idempotency keys, reserving plain 2PC for short intra-datacenter transactions.
+Replication copies the same data for availability and read scaling. Sharding divides data to scale storage and writes. Production systems often replicate every shard.
 
-### Q3: How do you reason about CAP for a financial system?
-**Answer**: Classify flows by error cost. Authorization and ledger writes choose C: during partitions refuse or queue rather than risk double-spends; deploy CP quorums (W exceeding half of N). Telemetry, analytics, and notifications choose A with eventual consistency and measured staleness bounds. Replace fragile cross-organization 2PC with sagas and compensations, enforce idempotency everywhere, and remember CAP constrains only partition moments: normal-operation latency-versus-consistency choices come from PACELC.
+**Q2. Why is two-phase commit considered a blocking protocol?** `[easy]`
 
-### Q4: Design a quorum for (a) a read-heavy social feed and (b) a wallet balance. Use N=5.
-**Answer**: Feed: N = 5, W = 3, R = 1 with read repair; R+W = 6 > 5, reads cost one replica RPC, writes tolerate two node failures, and eventual convergence suffices since seconds of feed lag harm nobody. Wallet: N = 5, W = 3, R = 3; both constraints hold strictly, reads self-heal through version comparison, and paying extra RPCs buys certainty against acting on a stale balance. Same cluster, different consistency classes per endpoint, with tail-latency math (slowest-of-R) priced in.
+After durably voting yes, a participant cannot commit or abort without the coordinator's decision. If the coordinator is unreachable, it remains prepared and holds resources. This preserves atomicity but can turn one failure into lock pile-ups and timeouts.
 
-### Q5: What is PACELC? Give concrete numbers for the EL/EC choice.
-**Answer**: If Partition: trade Availability against Consistency; Else: trade Latency against Consistency. Numbers: a single-replica (ONE/eventual) write in-region completes in about 1 ms; adding a second replica round trip for quorum roughly doubles it to 2 ms plus tail effects; involving a remote region injects 70 to 100 ms into p99. Strongly consistent reads similarly cost about twice eventual reads in DynamoDB-class systems. Teams tune per endpoint: checkout stays EC, view counters stay EL.
+**Q3. What happens when one participant votes abort during 2PC prepare?** `[easy]`
 
-### Q6: You just found 400 orphaned prepared transactions in PostgreSQL holding thousands of row locks. What happened and what do you do?
-**Answer**: Some client called PREPARE TRANSACTION (two-phase commit stage one) and never resolved stage two, likely after an application crash or misconfigured transaction manager. Each appears in pg_prepared_xacts with its GID. Inspect each, decide commit versus rollback from application-side evidence (did the counterpart branch commit?), then resolve with COMMIT PREPARED or ROLLBACK PREPARED. Prevention: alert on pg_prepared_xacts age, and unless true 2PC is required leave max_prepared_transactions = 0.
+The coordinator chooses global abort because commit requires unanimous yes votes. It durably records and broadcasts abort, including to prepared participants. They roll back and release locks; dropping the failed node and committing would violate atomicity.
 
-### Q7: Your "CP" database served stale data after a partition healed. How is that possible?
-**Answer**: Several honest mechanisms produce this: R = 1 reads hitting a minority-side replica (no quorum check occurs), sloppy quorums serving hinted-handoff data written off its home nodes, absent session guarantees bouncing a user between replicas, or caches pinned to the old leader's epoch. CAP labels describe worst-case partition behavior, not per-request guarantees; achieving read-your-writes needs explicit session tokens, R large enough to intersect recent writes, or leader-pinned reads verified by fencing tokens. Jepsen's history shows many marketed CP systems exhibiting exactly these gaps.
+**Q4. What is the minimum value of $R + W$ for $N = 5$ replicas?** `[easy]`
+
+The minimum sum is 6 because $R + W > N$, not greater than or equal to $N$. Examples are $R=3, W=3$ and $R=2, W=4$. Correct versioning, membership, and conflict handling are still required.
+
+**Q5. Compare vertical scaling with horizontal scaling for a database.** `[medium]`
+
+Vertical scaling grows one machine and preserves simple local behavior. Horizontal scaling exceeds one server's capacity but adds routing, replication, rebalancing, and failure modes. Scale up until capacity or availability justifies scale-out complexity.
+
+**Q6. Why can an acknowledged asynchronous write disappear after failover?** `[medium]`
+
+The primary may acknowledge locally before any replica receives the change. If it fails permanently, the promoted replica's log can end before that entry. Semi-sync or quorum acknowledgement lowers this RPO by waiting for replicas.
+
+**Q7. What is PACELC, and how does it extend CAP?** `[medium]`
+
+PACELC says Partition means Availability versus Consistency; Else means Latency versus Consistency. CAP covers only the partition case, while PACELC exposes healthy-day coordination cost. Cross-region quorum writes therefore pay network RTT without any failure.
+
+**Q8. Why does consistent hashing use virtual nodes?** `[medium]`
+
+Few ring positions create uneven ranges and traffic. Virtual nodes smooth distribution, support capacity weighting, and make rebalancing incremental. They do not solve a hot individual key.
+
+**Q9. Compare 2PC, 3PC, and a consensus-replicated commit decision.** `[medium]`
+
+2PC is common but can block after prepare. 3PC avoids blocking only under assumptions that real partitions violate. Raft or Paxos lets a majority recover a replicated decision, though cross-shard atomicity still needs coordination.
+
+**Q10. How do connection pooling and caching affect distributed-database performance?** `[medium]`
+
+A pool amortizes setup and bounds sessions. A cache removes selected reads but creates staleness and invalidation duties. Oversized pools or authoritative mutable cache entries can worsen latency and correctness.
+
+**Q11. Why is quorum intersection insufficient by itself to prove linearizability?** `[hard]`
+
+$R + W > N$ proves set overlap under stable membership. It does not order concurrent values, fence stale leaders, or constrain sloppy quorums. Linearizability also needs a protocol respecting real-time completion through failures.
+
+**Q12. Scenario: a user updates a profile and immediately reads the old value from another region. What do you investigate?** `[hard]`
+
+Compare the write's log position with the remote replay position and confirm the requested consistency. Inspect cache invalidation, pool routing, and the session's read-your-writes token. Leader-pinned reads, minimum-version tokens, or replica waiting fix it with latency or availability costs.
+
+**Q13. Scenario: 400 PostgreSQL prepared transactions hold locks after a deployment. How do you recover safely?** `[hard]`
+
+The transaction manager likely disappeared after `PREPARE TRANSACTION` but before the global decision. Correlate `pg_prepared_xacts` IDs with the coordinator outcome, then commit or roll back prepared work; guessing can make shards disagree. Alert on age and count, and disable prepares without a real 2PC coordinator.
+
+**Q14. Scenario: both sides of a network partition accepted conflicting wallet debits. Which invariants failed?** `[hard]`
+
+One side lacked a shared majority, or divergent membership let both claim quorum. A stale leader may also have lacked fencing, so storage accepted an obsolete epoch. Reconcile one authoritative history, then enforce joint membership changes, majority writes, fencing, and idempotent debit keys despite future rejection risk.
+
+### Further Reading
+
+- [Formal proof of Brewer's CAP conjecture](https://groups.csail.mit.edu/tds/papers/Gilbert/Brewer6.pdf)
+- [Amazon Dynamo design paper](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)
+- [Google Spanner design paper](https://research.google/pubs/spanner-googles-globally-distributed-database-2/)
+- [PostgreSQL two-phase transaction documentation](https://www.postgresql.org/docs/current/two-phase.html)
