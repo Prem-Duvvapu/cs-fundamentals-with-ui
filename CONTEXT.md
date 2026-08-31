@@ -6,6 +6,8 @@
 The curriculum expansion is governed by [`plan.md`](plan.md), which maps the complete SDE-2
 acceptance checklist to 63 registered lessons. [`content/COVERAGE_MANIFEST.json`](content/COVERAGE_MANIFEST.json)
 makes those mappings machine-verifiable alongside strict route and content validation.
+Confirmed regressions and their tested resolutions are tracked in [`RCA.md`](RCA.md); search it by
+symptom or component before repeating an investigation.
 
 ---
 
@@ -137,6 +139,8 @@ interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 **Guard suite:** `frontend/src/components/__tests__/TopicViewer.markdown.test.jsx` renders
 all 63 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
+The content gate currently passes all 63 lessons and all 83 coverage-manifest entries, covering
+28,683 curriculum lines, 277 Mermaid diagrams, and 883 interview Q&As.
 
 ### Reading Experience
 

@@ -2,6 +2,8 @@
 
 Retrieval-augmented generation connects a language model to an external knowledge source at request time. It is useful when facts change, answers must be traceable, or a model needs private domain context without fine-tuning on every document revision. A convincing response is not evidence that retrieval, permissions, or freshness works.
 
+---
+
 ## 🟢 Beginner Level
 
 ### The mental model: open-book answering
@@ -41,7 +43,7 @@ A basic policy is 350 tokens per chunk with 50 tokens of overlap. Overlap protec
 Metadata travels with every chunk. Useful fields include `document_id`, `source_url`, `title`, `section`, `updated_at`, `tenant_id`, `classification`, and `embedding_model`. Metadata makes a result inspectable and allows filters before evidence reaches the model.
 
 ### What is RAG (Retrieval-Augmented Generation)?
-**Retrieval-Augmented Generation (RAG)** is an enterprise architecture pattern that connects Large Language Models (LLMs) to external domain-specific knowledge bases (databases, documentation, APIs) to ground responses in factual data and eliminate hallucinations.
+**Retrieval-Augmented Generation (RAG)** is an architecture pattern that connects a language model to external domain-specific knowledge such as databases, documentation, and APIs. It reduces dependence on stale model memory by grounding responses in retrieved evidence, but it cannot eliminate unsupported claims by itself.
 
 ```mermaid
 flowchart LR
@@ -56,15 +58,55 @@ flowchart LR
 
 ## 🟡 Intermediate Level
 
-### The 5-Step RAG Pipeline
+### Retrieval-augmented generation pipeline
 
-1. **Document Ingestion & Chunking**: Splits large documents into smaller chunks (e.g. 512 tokens with 50-token overlap).
-   - *Fixed-size Chunking*: Fast, but breaks sentences in half.
-   - *Semantic Chunking*: Splits at natural paragraph/heading boundaries using NLP models.
-2. **Embedding Generation**: Converts chunks into dense vectors using embedding models (e.g., `text-embedding-3-small`).
-3. **Vector Storage**: Stores embeddings alongside text metadata in a vector database (`Qdrant`, `Pinecone`, `pgvector`).
-4. **Hybrid Retrieval**: Combines **Dense Vector Search** (HNSW semantic search) with **Sparse Keyword Search** (BM25 / TF-IDF) using Reciprocal Rank Fusion (RRF).
-5. **Re-Ranking & Generation**: Re-ranks top 50 retrieved chunks down to top 5 using a Cross-Encoder model (`cohere-rerank`), passes them into LLM context window.
+A complete RAG pipeline has an offline **ingestion and indexing** path plus an online **retrieval and generation** path.
+Conflating those paths makes incidents difficult to diagnose: an answer failure may originate in stale ingestion, weak retrieval, poor context assembly, or unsupported generation.
+
+```mermaid
+flowchart LR
+    subgraph Build["Offline ingestion and indexing"]
+        S["Versioned sources"] --> P["Parse and normalize"]
+        P --> C["Structure-aware chunking"]
+        C --> E["Embed and attach metadata"]
+        E --> I["Lexical and vector indexes"]
+    end
+    subgraph Answer["Online retrieval and generation"]
+        Q["Authenticated question"] --> R["Hybrid retrieval"]
+        R --> X["Reranking and diversification"]
+        X --> G["Grounded context injection"]
+        G --> A["Answer, citations, or abstention"]
+    end
+    I --> R
+```
+
+The stages are:
+
+1. **Ingestion** reads canonical sources through connectors or change events, extracts text, and assigns stable document and version identifiers.
+2. **Chunking** creates passages at semantic boundaries while preserving headings, table context, permissions, and links to the original source.
+3. **Indexing** writes lexical terms and embeddings to versioned indexes used for exact lookup and semantic search.
+4. **Query preparation** derives server-controlled access filters, embeds or rewrites the question, and routes identifier lookups differently from conceptual questions.
+5. **Retrieval** gathers a broad candidate set from dense, sparse, structured, or API-backed sources without allowing relevance to bypass authorization.
+6. **Reranking** scores the question and candidate text together, removes duplicates, and selects a small evidence set under the token budget.
+7. **Grounded context injection** places only selected passages, source IDs, and explicit evidence-handling instructions into a delimited prompt section.
+8. **Generation** answers from that evidence, cites stable source IDs, or abstains when the context cannot support a claim.
+
+The adjective **grounded** describes a verifiable relationship between answer claims and supplied evidence.
+It does not mean retrieved text becomes trusted instructions: source content remains untrusted data and cannot change tool permissions or system policy.
+Post-generation validation should reject invented citation IDs and flag claims that no selected span supports.
+
+RAG and fine-tuning solve different problems:
+
+| Requirement | RAG | Fine-tuning |
+|---|---|---|
+| Frequently changing facts | Update and reindex sources | Retraining for each revision is slow and opaque |
+| Private per-tenant knowledge | Retrieve after authorization | Mixing tenant facts into weights is unsafe and hard to remove |
+| Citations and provenance | Preserve source IDs and spans | Weights do not identify a supporting source |
+| Style or response format | Prompting helps but is not always stable | Can teach durable behavioural patterns |
+| New task behaviour | Limited to model capability and tools | Can specialize behaviour using examples |
+
+Use RAG for current evidence and fine-tuning for repeatable behaviour, style, or task adaptation.
+They are complementary: a fine-tuned model can still retrieve current policy, and a RAG system still needs a capable generator.
 
 ### Worked hybrid retrieval example
 
@@ -377,9 +419,9 @@ A fluent answer can hide that retrieval selected the wrong evidence, while corre
 
 The server derives tenant and principal filters from authenticated identity, never from the prompt. It applies them during retrieval and rechecks selected source IDs before generation. Isolated collections provide defence in depth for sensitive data.
 
-**Q11. What causes context-window degradation?** `[medium]`
+**Q11. Scenario: retrieval metrics remain stable, but cited answers become less faithful after a model and prompt release. How do you isolate the regression?** `[hard]`
 
-Many weakly relevant or duplicate chunks dilute important evidence and can expose contradictory versions. They also increase token cost and latency. Use reranking, deduplication, source diversity, and a deliberate context budget.
+Replay a fixed set of retrieved contexts through the old and new generation configurations so retrieval is held constant. Compare claim-to-span support, citation validity, abstention rate, and prompt assembly traces rather than relying on answer fluency. If the regression follows the generator version, roll it back or canary a corrected prompt; changing chunking or top-k would obscure the actual fault.
 
 **Q12. Scenario: users receive old policy answers after a CMS update. What do you check?** `[hard]`
 

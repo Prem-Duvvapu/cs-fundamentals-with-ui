@@ -15,6 +15,18 @@ It receives integer token IDs from a tokenizer and predicts the next token ID.
 Tokens are often word pieces, so a common word can be one token while an uncommon identifier can be several.
 Whitespace can be significant because many tokenizers encode a leading space as part of a token.
 
+Tokenization is the first step of an LLM's Transformer computation.
+An embedding table maps each token ID to a dense vector, positional information preserves order, and self-attention lets each position weigh relevant earlier positions.
+These internal token embeddings are contextual representations, not automatically the same vectors used by an external semantic-search index.
+
+The **context window** bounds the tokens available to one model call: system instructions, conversation history, retrieved evidence, tool results, and requested output all compete for that budget.
+**Prompting** arranges those inputs and defines the task, but a prompt does not grant new knowledge or authority.
+When an LLM states a plausible claim unsupported by its inputs or reliable model knowledge, the result is a **hallucination**; grounding supplies evidence and validation, while abstention handles an evidence gap.
+
+Structured JSON output and tool calling narrow how a model communicates with an application.
+A schema can constrain keys and value types, but the application still parses, validates, and authorizes the proposed operation.
+Constrained structure improves reliability without turning probabilistic text generation into a trusted principal.
+
 For example, a tokenizer might split `cache_miss_rate` into `cache`, `_miss`, and `_rate`.
 The exact split is tokenizer-specific, so token counts are estimates unless measured with the model's own tokenizer.
 This matters for cost, context-window limits, rate limits, and latency.
@@ -192,6 +204,10 @@ A tool definition should describe a narrow action with typed arguments.
 For example, an inventory lookup can accept a SKU and return availability without granting write access to orders.
 The schema helps the model form a request, but it is not a security boundary by itself.
 
+A structured JSON tool call is a **proposal**, not an instruction the backend must execute.
+Conversation history and prompt text provide task context but cannot establish identity, resource ownership, or permission.
+The server derives authorization from authenticated state outside the context window and checks it again for every proposed tool call.
+
 ```json
 {
   "name": "get_inventory",
@@ -210,6 +226,19 @@ The schema helps the model form a request, but it is not a security boundary by 
 The server must parse and validate the actual arguments independently.
 It must authorize the authenticated principal for that specific SKU or tenant.
 It must not treat a tool name produced by a model as permission to call arbitrary internal endpoints.
+
+| Boundary | Required application control | Failure it prevents |
+|---|---|---|
+| Structured output | Parse JSON and validate the complete schema | Malformed or extra arguments reaching a tool |
+| Identity and ownership | Authenticate the caller and authorize the exact resource | Cross-tenant access and privilege escalation |
+| Timeout | Set a per-tool timeout and an end-to-end deadline | One dependency consuming the whole request budget |
+| Retry | Retry only safe or idempotent operations with a bounded budget | Duplicate writes and retry storms |
+| Rate limit | Limit requests, tool turns, and concurrent expensive calls | Cost abuse and downstream exhaustion |
+| Prompt-injection guardrail | Treat prompt history and tool results as untrusted data | Retrieved text overriding policy or choosing tools |
+
+Guardrails must remain deterministic at the execution boundary.
+A model can classify risk or request clarification, but it cannot waive an allowlist, spending limit, tenant check, or user confirmation.
+Tool authorization should be least privilege: expose a narrow read tool instead of a generic SQL, shell, URL-fetch, or internal-service tool.
 
 For writes, use idempotency keys, explicit confirmation, bounded amounts, and an audit trail.
 The tool result given back to the model should be minimal and structured.
@@ -393,7 +422,7 @@ A timeout does not prove that the remote system failed before applying the reque
 If a client retries a write such as order creation, both attempts can succeed and create duplicate state unless the server recognizes the same idempotency key.
 The safest pattern persists a key with the result and lets subsequent calls return that original result, followed by reconciliation for uncertain outcomes.
 
-**Q11. Scenario: A support bot returns valid JSON at `temperature = 0.8`, but different runs route the same customer to different teams. What do you investigate first?** `[medium]`
+**Q11. Scenario: A support bot returns valid JSON at `temperature = 0.8`, but different runs route the same customer to different teams. What do you investigate first?** `[hard]`
 
 First inspect whether the routing task is framed as an open-ended generation task rather than a constrained classification contract.
 Lower the diversity setting, require a fixed enum schema, and evaluate routing accuracy and invalid-output rate on a labeled fixture rather than judging a few examples.
