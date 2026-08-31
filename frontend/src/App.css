@@ -1420,6 +1420,29 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 .posting-docs { display: flex; flex-wrap: wrap; gap: var(--space-1); }
 .posting-doc { background: var(--cat-os-tint); border: var(--stroke-hair) solid var(--cat-os-border); border-radius: var(--radius-xs); color: var(--cat-os-hover); padding: var(--space-1) var(--space-2); }
 
+/* DesignPatternsVisualizer */
+.anomaly-banner.is-warning { background: var(--state-warning-tint); border-color: var(--state-warning-border); color: var(--state-warning); }
+.acid-sql-block.is-success { color: var(--state-success); }
+.u-col-md { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.thread-grid { display: grid; font-family: var(--font-mono); font-size: var(--ui-xs); gap: var(--space-4); grid-template-columns: 1fr; }
+@media (min-width: 640px) { .thread-grid { grid-template-columns: 1fr 1fr; } }
+.thread-panel { background: var(--bg-inset); border-radius: var(--radius-lg); padding: var(--space-4); }
+.thread-panel.is-cyan { border: var(--stroke-hair) solid var(--state-info-border); }
+.thread-panel.is-cyan .thread-label { color: var(--state-info); }
+.thread-panel.is-purple { border: var(--stroke-hair) solid var(--cat-os-border); }
+.thread-panel.is-purple .thread-label { color: var(--cat-os-base); }
+.thread-label { font-size: var(--ui-xs); font-weight: 700; }
+.thread-state { color: var(--text-primary); margin-top: var(--space-2); }
+
+.pattern-panel { background: var(--bg-inset); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-lg); font-family: var(--font-mono); font-size: var(--ui-xs); padding: var(--space-4); }
+.pattern-panel-label { font-size: var(--ui-xs); font-weight: 700; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.pattern-panel-label.is-info { color: var(--state-info); }
+.pattern-panel-label.is-purple { color: var(--cat-os-base); }
+.observer-pill-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.observer-pill { background: var(--bg-raised); border: var(--stroke-hair) solid var(--border-default); border-radius: var(--radius-xs); color: var(--text-primary); padding: var(--space-1) var(--space-3); }
+.event-log-lines { color: var(--text-secondary); display: flex; flex-direction: column; gap: var(--space-1); margin-top: var(--space-2); }
+
 /* Context Switch Visualizer */
 .switch-animation-container {
   display: flex;

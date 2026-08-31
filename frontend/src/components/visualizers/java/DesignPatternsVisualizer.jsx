@@ -60,22 +60,18 @@ export default function DesignPatternsVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Scenario Tabs */}
-        <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xl">
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <div className="scenario-picker-panel">
+          <label className="scenario-picker-label">
             Select Design Pattern Scenario:
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="scenario-picker-grid">
             {Object.values(DESIGN_PATTERN_SCENARIOS).map((scenario) => (
               <button
                 key={scenario.id}
                 onClick={() => handleScenarioChange(scenario.id)}
-                className={`px-3 py-2.5 rounded-lg text-xs font-medium text-left transition-all ${
-                  activeScenario === scenario.id
-                    ? 'bg-blue-600 text-white shadow-lg border border-blue-400'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/50'
-                }`}
+                className={`scenario-chip ${activeScenario === scenario.id ? 'is-active' : ''}`}
               >
                 {scenario.name}
               </button>
@@ -84,55 +80,55 @@ export default function DesignPatternsVisualizer() {
         </div>
 
         {/* Step Canvas */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
-          <p className="text-sm text-slate-300 mb-4">{stepData.description}</p>
-          <p className="text-xs font-medium text-amber-300 p-3 bg-amber-950/40 rounded-lg border border-amber-500/30 mb-6">
+          <p className="detail-card-desc">{stepData.description}</p>
+          <div className="anomaly-banner is-warning">
             💡 {stepData.status}
-          </p>
+          </div>
 
           {activeScenario === 'singleton-race' ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
-                <div className="p-4 rounded-xl bg-slate-950/90 border border-cyan-500/30">
-                  <span className="text-xs font-bold text-cyan-400">Thread-1 Execution</span>
-                  <div className="text-slate-200 mt-2">{stepData.thread1State}</div>
+            <div className="u-col-md">
+              <div className="thread-grid">
+                <div className="thread-panel is-cyan">
+                  <span className="thread-label">Thread-1 Execution</span>
+                  <div className="thread-state">{stepData.thread1State}</div>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-950/90 border border-purple-500/30">
-                  <span className="text-xs font-bold text-purple-400">Thread-2 Execution</span>
-                  <div className="text-slate-200 mt-2">{stepData.thread2State}</div>
+                <div className="thread-panel is-purple">
+                  <span className="thread-label">Thread-2 Execution</span>
+                  <div className="thread-state">{stepData.thread2State}</div>
                 </div>
               </div>
 
               {stepData.codeSnippet && (
-                <pre className="p-3 bg-slate-950/90 rounded-lg border border-slate-800 text-emerald-300 font-mono text-xs overflow-x-auto">
+                <pre className="acid-sql-block is-success">
                   {stepData.codeSnippet}
                 </pre>
               )}
             </div>
           ) : (
-            <div className="space-y-4 font-mono text-xs">
-              <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Registered Observers</span>
-                <div className="flex flex-wrap gap-2 mt-2">
+            <div className="u-col-md">
+              <div className="pattern-panel">
+                <span className="pattern-panel-label is-info">Registered Observers</span>
+                <div className="observer-pill-row">
                   {stepData.observers.map((obs, idx) => (
-                    <span key={idx} className="px-2.5 py-1 rounded bg-slate-800 text-slate-200 border border-slate-700">
+                    <span key={idx} className="observer-pill">
                       {obs}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800">
-                <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">Event Bus Execution Logs</span>
-                <div className="space-y-1 mt-2 text-slate-300">
+              <div className="pattern-panel">
+                <span className="pattern-panel-label is-purple">Event Bus Execution Logs</span>
+                <div className="event-log-lines">
                   {stepData.logs.map((log, idx) => (
-                    <div key={idx} className="text-[11px]">{log}</div>
+                    <div key={idx}>{log}</div>
                   ))}
                 </div>
               </div>
