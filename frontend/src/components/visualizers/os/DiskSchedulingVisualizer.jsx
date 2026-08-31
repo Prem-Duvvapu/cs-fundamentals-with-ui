@@ -61,22 +61,18 @@ export default function DiskSchedulingVisualizer() {
       theoryData={conceptData.theoryData}
       quizData={conceptData.quizData}
     >
-      <div className="space-y-6">
+      <div className="u-col-lg">
         {/* Algorithm Selector Tabs */}
-        <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-xl">
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <div className="scenario-picker-panel">
+          <label className="scenario-picker-label">
             Select Disk Scheduling Algorithm:
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="scenario-picker-grid">
             {Object.entries(DISK_ALGORITHMS).map(([key, name]) => (
               <button
                 key={key}
                 onClick={() => handleAlgoChange(key)}
-                className={`px-3 py-2.5 rounded-lg text-xs font-medium text-left transition-all ${
-                  algorithm === key
-                    ? 'bg-blue-600 text-white shadow-lg border border-blue-400'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/50'
-                }`}
+                className={`scenario-chip ${algorithm === key ? 'is-active' : ''}`}
               >
                 {name}
               </button>
@@ -85,42 +81,40 @@ export default function DiskSchedulingVisualizer() {
         </div>
 
         {/* Head Position Canvas & Step Info */}
-        <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base font-semibold text-white">{stepData.title}</h4>
-            <span className="text-xs font-mono text-blue-400 px-2.5 py-1 bg-blue-500/10 rounded border border-blue-500/20">
+        <div className="detail-card">
+          <div className="detail-card-header">
+            <h4>{stepData.title}</h4>
+            <span className="status-chip is-normal">
               Step {engineState.stepIndex + 1} of {engineState.totalSteps}
             </span>
           </div>
-          <p className="text-sm text-slate-300 mb-4">{stepData.explanation}</p>
+          <p className="detail-card-desc">{stepData.explanation}</p>
 
           {/* Disk Cylinder Line Graphic */}
-          <div className="p-5 rounded-xl bg-slate-950/90 border border-slate-800 mb-4">
-            <div className="flex justify-between text-xs text-slate-400 font-mono mb-2">
+          <div className="disk-track-panel">
+            <div className="disk-track-header">
               <span>Cylinder 0</span>
-              <span className="text-blue-400 font-bold">Current Head: {stepData.currentHead}</span>
+              <span className="head-pos">Current Head: {stepData.currentHead}</span>
               <span>Cylinder 199</span>
             </div>
             {/* Visual Track Bar */}
-            <div className="relative w-full bg-slate-800 h-6 rounded-lg overflow-hidden border border-slate-700">
+            <div className="disk-track-bar">
               {/* Head Pointer Indicator */}
               <div
-                className="absolute top-0 bottom-0 w-3 bg-blue-500 rounded shadow-lg shadow-blue-500/50 transition-all duration-300 transform -translate-x-1/2"
+                className="disk-head-pointer"
                 style={{ left: `${(stepData.currentHead / 199) * 100}%` }}
               ></div>
               {/* Target Requests Pins */}
               {engineState.requests.map((req, idx) => (
                 <div
                   key={idx}
-                  className={`absolute top-1 bottom-1 w-1 rounded ${
-                    stepData.servicedSoFar.includes(req) ? 'bg-emerald-400' : 'bg-rose-400'
-                  }`}
+                  className={`disk-request-pin ${stepData.servicedSoFar.includes(req) ? 'is-serviced' : 'is-pending'}`}
                   style={{ left: `${(req / 199) * 100}%` }}
                   title={`Request: Cylinder ${req}`}
                 ></div>
               ))}
             </div>
-            <div className="flex justify-between text-[11px] text-slate-400 mt-2">
+            <div className="disk-track-legend">
               <span>🟩 Serviced Requests</span>
               <span>🟥 Pending Requests</span>
             </div>
