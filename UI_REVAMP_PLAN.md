@@ -12,25 +12,23 @@ files. `visualizers/java/*` already carries zero raw hex from an earlier pass (i
 inline `style={{}}` blocks are legitimate per-cell/per-item computed values, not static
 presentation).
 
-**A second, more severe defect was found mid-Phase-6 and is being fixed alongside it:** 13
-visualizer files (`dbms/{ConcurrencyControl,DbmsIntro,DistributedDb,ErModel,
-FunctionalDependency,Normalization,QueryOptimizer,RelationalAlgebra,StorageIndexing}`,
-`java/DesignPatterns`, `os/{DiskScheduling,FileSystem,IoSystems}Visualizer`) were authored
-entirely with Tailwind utility classNames (`flex`, `gap-2`, `bg-slate-900/60`, `rounded-xl`,
-`space-y-6`, …). This project has no Tailwind and no PostCSS config, so every one of those
-classes was — and where not yet fixed, still is — a silent no-op: the affected file renders
-with no layout, no color, no spacing at all, not just the wrong palette. This was invisible to
-the Phase 6 hex audit (Tailwind's `bg-blue-500/10` doesn't match a `#hex` grep) and is not
-covered by the §3 migration strategy below, which assumes real-but-wrong CSS to retint rather
-than absent CSS to rebuild. Fixed so far (rebuilt onto a new shared vocabulary — `filter-bar`/
-`filter-chip`, `detail-card`, `status-chip`, `compare-grid`/`compare-panel`, `kv-list`/
-`kv-entry`/`kv-row`, `scenario-picker-*`, `sub-panel`, `anomaly-banner`, and file-specific
-classes — added to `App.css`'s "Shared vocabulary" section): `ConcurrencyControlVisualizer`,
-`DbmsIntroVisualizer`, `DistributedDbVisualizer`, `ErModelVisualizer`. Still broken and
-pending the same treatment: `FunctionalDependencyVisualizer`, `NormalizationVisualizer`,
-`QueryOptimizerVisualizer`, `RelationalAlgebraVisualizer`, `StorageIndexingVisualizer`,
-`java/DesignPatternsVisualizer`, `os/DiskSchedulingVisualizer`, `os/FileSystemVisualizer`,
-`os/IoSystemsVisualizer`.
+**A second, more severe defect was found mid-Phase-6 and is now fully fixed:** 13 visualizer
+files (`dbms/{ConcurrencyControl,DbmsIntro,DistributedDb,ErModel,FunctionalDependency,
+Normalization,QueryOptimizer,RelationalAlgebra,StorageIndexing}`, `java/DesignPatterns`,
+`os/{DiskScheduling,FileSystem,IoSystems}Visualizer`) were authored entirely with Tailwind
+utility classNames (`flex`, `gap-2`, `bg-slate-900/60`, `rounded-xl`, `space-y-6`, …). This
+project has no Tailwind and no PostCSS config, so every one of those classes was a silent
+no-op: the affected file rendered with no layout, no color, no spacing at all, not just the
+wrong palette. This was invisible to the Phase 6 hex audit (Tailwind's `bg-blue-500/10` etc.
+don't match a `#hex` grep) and is not covered by the §3 migration strategy below, which
+assumes real-but-wrong CSS to retint rather than absent CSS to rebuild. All 13 files were
+rebuilt onto a new shared vocabulary in `App.css` (`filter-bar`/`filter-chip`, `detail-card`,
+`status-chip`, `compare-grid`/`compare-panel`, `kv-list`/`kv-entry`/`kv-row`,
+`scenario-picker-*`, `sub-panel`, `anomaly-banner`, `ra-table`/`ra-formula-card` for the
+relational-algebra tables, `raid-disk`/`bitmap-panel`/`postings-panel` for storage/indexing,
+`tier-card`/`vfs-stack` for the file-system inode/VFS diagrams, `cpu-bar-row`/`timeline-grid`/
+`stat-grid` for I/O systems, `thread-panel`/`pattern-panel` for design patterns, and per-file
+classes as needed) — zero raw hex or Tailwind classNames remain in any of the 13.
 
 Also still pending from the original Phase 6 file order: `visualizers/os/VirtualMemoryVisualizer`
 (23 raw hex), the long tail (`SchedulingVisualizer` 9 hex, `ProcessLifecycleVisualizer` 2 hex,
