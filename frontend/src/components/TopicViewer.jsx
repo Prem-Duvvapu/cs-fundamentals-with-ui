@@ -1,5 +1,6 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { getTopicCategory } from '../utils/topicCategories'
+import { parseInterviewQuestions } from '../utils/interviewQuestions'
 
 // react-markdown + KaTeX + highlight.js are ~600KB and are only needed once
 // a topic's content is actually being read, so they get their own chunk
@@ -28,15 +29,6 @@ function getSections(content) {
     .map(([, title]) => ({ title, id: slugify(title) }))
 }
 
-function getQuestions(content) {
-  const questionPattern = /(?:^|\n)\*\*(Q\d+\. .+?)\*\*\s*`?\[(easy|medium|hard)\]`?\s*\n+([\s\S]*?)(?=\n\*\*Q\d+\.|$)/g
-  return [...content.matchAll(questionPattern)].map(([, question, difficulty, answer]) => ({
-    question,
-    difficulty,
-    answer: answer.trim()
-  }))
-}
-
 function cleanSectionTitle(title) {
   return title.replace(/^(?:🟢|🟡|🔴)\s*/u, '')
 }
@@ -49,8 +41,15 @@ function InterviewDeck({ questions }) {
   const [index, setIndex] = useState(0)
   const [revealed, setRevealed] = useState(false)
 
+  useEffect(() => {
+    setIndex(0)
+    setRevealed(false)
+  }, [questions])
+
   if (questions.length === 0) return null
-  const current = questions[index]
+  const safeIndex = Math.min(index, questions.length - 1)
+  const current = questions[safeIndex]
+  const answerId = `interview-answer-${current.id}`
   const move = (nextIndex) => {
     setIndex(nextIndex)
     setRevealed(false)
@@ -63,14 +62,27 @@ function InterviewDeck({ questions }) {
           <p className="study-eyebrow">Interview practice</p>
           <h2 id="interview-practice-title">Test your recall</h2>
         </div>
-        <span>{index + 1} / {questions.length}</span>
+        <span>{safeIndex + 1} / {questions.length}</span>
       </div>
       <p className="interview-question"><strong>{current.question}</strong> <code>[{current.difficulty}]</code></p>
-      {revealed && <p className="interview-answer">{current.answer}</p>}
+      {revealed && (
+        <div id={answerId} className="interview-answer">
+          <Suspense fallback={<p>Loading answer…</p>}>
+            <MarkdownRenderer content={current.answerMarkdown} />
+          </Suspense>
+        </div>
+      )}
       <div className="interview-deck-actions">
-        <button type="button" onClick={() => setRevealed(value => !value)}>{revealed ? 'Hide answer' : 'Reveal answer'}</button>
-        <button type="button" onClick={() => move(Math.max(0, index - 1))} disabled={index === 0}>Previous</button>
-        <button type="button" onClick={() => move(Math.min(questions.length - 1, index + 1))} disabled={index === questions.length - 1}>Next</button>
+        <button
+          type="button"
+          aria-expanded={revealed}
+          aria-controls={answerId}
+          onClick={() => setRevealed(value => !value)}
+        >
+          {revealed ? 'Hide answer' : 'Reveal answer'}
+        </button>
+        <button type="button" onClick={() => move(Math.max(0, safeIndex - 1))} disabled={safeIndex === 0}>Previous</button>
+        <button type="button" onClick={() => move(Math.min(questions.length - 1, safeIndex + 1))} disabled={safeIndex === questions.length - 1}>Next</button>
       </div>
     </section>
   )
@@ -155,6 +167,8 @@ export default function TopicViewer({ topicId, category }) {
     return () => window.removeEventListener('scroll', updateProgress)
   }, [content])
 
+  const questions = useMemo(() => parseInterviewQuestions(content, topicId), [content, topicId])
+
   if (loading) {
     return (
       <div className="reader-loading" role="status" aria-label="Loading topic">
@@ -167,7 +181,6 @@ export default function TopicViewer({ topicId, category }) {
   if (notFound) return <div className="topic-content"><p>Content not available yet.</p></div>
 
   const sections = getSections(content)
-  const questions = getQuestions(content)
   const currentSection = sections.find(section => section.id === activeSection) || sections[0]
   const currentLabel = currentSection ? cleanSectionTitle(currentSection.title) : 'the first section'
 

@@ -484,7 +484,9 @@ body {
 .interview-deck-heading { align-items: start; display: flex; justify-content: space-between; gap: 1rem; }
 .interview-deck h2 { margin: 0; }
 .interview-question { font-size: 1.05rem; margin: 1.25rem 0; }
-.interview-answer { background: rgba(15, 23, 42, 0.7); border-left: 3px solid var(--accent-purple); padding: 0.85rem 1rem; white-space: pre-line; }
+.interview-answer { background: rgba(15, 23, 42, 0.7); border-left: 3px solid var(--accent-purple); padding: 0.85rem 1rem; }
+.interview-answer > :first-child { margin-top: 0; }
+.interview-answer > :last-child { margin-bottom: 0; }
 .interview-deck-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .interview-deck-actions button { background: var(--accent-purple); color: white; padding: 0.5rem 0.8rem; }
 .interview-deck-actions button:disabled { cursor: not-allowed; opacity: 0.45; }

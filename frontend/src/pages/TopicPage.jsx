@@ -1,20 +1,8 @@
-import { useEffect, useRef, useState, lazy, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import TopicViewer from '../components/TopicViewer'
+import { hasTopicVisualizer, TopicVisualizer } from '../components/visualizers/topicVisualizerRegistry'
 import { CATEGORY_METADATA, getTopicCategory } from '../utils/topicCategories'
-
-const SchedulingVisualizer = lazy(() => import('../components/visualizers/SchedulingVisualizer'))
-const ProcessLifecycleVisualizer = lazy(() => import('../components/visualizers/ProcessLifecycleVisualizer'))
-const MemoryVisualizer = lazy(() => import('../components/visualizers/MemoryVisualizer'))
-const SynchronizationVisualizer = lazy(() => import('../components/visualizers/SynchronizationVisualizer'))
-const DeadlockVisualizer = lazy(() => import('../components/visualizers/DeadlockVisualizer'))
-const NetworkingVisualizer = lazy(() => import('../components/visualizers/NetworkingVisualizer'))
-const DbmsVisualizer = lazy(() => import('../components/visualizers/DbmsVisualizer'))
-const AiMlVisualizer = lazy(() => import('../components/visualizers/AiMlVisualizer'))
-const JavaSpringVisualizer = lazy(() => import('../components/visualizers/JavaSpringVisualizer'))
-const FileSystemVisualizer = lazy(() => import('../components/visualizers/os/FileSystemVisualizer'))
-const IoSystemsVisualizer = lazy(() => import('../components/visualizers/os/IoSystemsVisualizer'))
-const DiskSchedulingVisualizer = lazy(() => import('../components/visualizers/os/DiskSchedulingVisualizer'))
 
 export default function TopicPage() {
   const { topicId } = useParams()
@@ -91,7 +79,9 @@ export default function TopicPage() {
   const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
   const category = getTopicCategory(topicId)
   const categoryMetadata = CATEGORY_METADATA[category]
-  const tabs = ['theory', 'simulator']
+  const canSimulate = hasTopicVisualizer(topicId)
+  const tabs = canSimulate ? ['theory', 'simulator'] : ['theory']
+  const selectedTab = canSimulate ? activeTab : 'theory'
 
   useEffect(() => {
     const updateHeader = () => setCompactHeader(window.scrollY > 120)
@@ -100,6 +90,10 @@ export default function TopicPage() {
     return () => window.removeEventListener('scroll', updateHeader)
   }, [])
 
+  useEffect(() => {
+    setActiveTab('theory')
+  }, [topicId])
+
   const selectTab = (tab, focus = false) => {
     const index = tabs.indexOf(tab)
     setActiveTab(tab)
@@ -107,7 +101,7 @@ export default function TopicPage() {
   }
 
   const handleTabKeyDown = (event) => {
-    const currentIndex = tabs.indexOf(activeTab)
+    const currentIndex = tabs.indexOf(selectedTab)
     let nextIndex
     if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length
     if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length
@@ -116,92 +110,6 @@ export default function TopicPage() {
     if (nextIndex === undefined) return
     event.preventDefault()
     selectTab(tabs[nextIndex], true)
-  }
-
-  const renderVisualizer = () => {
-    switch (topicId) {
-      case 'cpu-scheduling':
-        return <SchedulingVisualizer />
-      case 'process-management':
-        return <ProcessLifecycleVisualizer />
-      case 'memory-management':
-        return <MemoryVisualizer />
-      case 'synchronization':
-        return <SynchronizationVisualizer />
-      case 'deadlocks':
-        return <DeadlockVisualizer />
-      case 'file-systems':
-        return <FileSystemVisualizer />
-      case 'io-systems':
-        return <IoSystemsVisualizer />
-      case 'disk-scheduling':
-        return <DiskSchedulingVisualizer />
-      case 'network-fundamentals':
-      case 'physical-layer-media':
-      case 'osi-model':
-      case 'data-link-layer':
-      case 'ip-subnetting':
-      case 'routing-algorithms':
-      case 'tcp-ip':
-      case 'tcp-congestion':
-      case 'transport-layer-protocols':
-      case 'application-layer':
-      case 'network-security':
-      case 'network-performance-qos':
-      case 'networking':
-        return <NetworkingVisualizer defaultTopicId={topicId} />
-      case 'embeddings-vector-db':
-      case 'ml-fundamentals':
-      case 'rag-architecture':
-      case 'model-serving':
-      case 'llm-parameters':
-      case 'feature-stores':
-      case 'recommendation-systems':
-      case 'aiml':
-        return <AiMlVisualizer defaultTopicId={topicId} />
-      case 'java-execution-pipeline':
-      case 'java-memory-model':
-      case 'java-oop-pillars':
-      case 'java-static-final-records':
-      case 'jvm-gc':
-      case 'java-functional-lambdas':
-      case 'java-generics':
-      case 'java-collections-framework':
-      case 'java-hashmap-internals':
-      case 'java-streams-optional':
-      case 'java-reflection-exceptions':
-      case 'java-multithreading-concurrency':
-      case 'spring-bean-lifecycle':
-      case 'spring-mvc-lifecycle':
-      case 'jpa-hibernate-lifecycle':
-      case 'spring-batch-lifecycle':
-      case 'quartz-scheduler':
-      case 'design-patterns-solid':
-      case 'spring-boot-internals':
-      case 'spring-rest-api-design':
-      case 'spring-security':
-      case 'spring-caching-async':
-      case 'spring-testing-production':
-      case 'java-spring':
-        return <JavaSpringVisualizer defaultTopicId={topicId} />
-      case 'dbms-introduction':
-      case 'dbms-architecture':
-      case 'er-model':
-      case 'relational-algebra-calculus':
-      case 'sql-querying':
-      case 'functional-dependencies-keys':
-      case 'database-normalization':
-      case 'dbms-indexing':
-      case 'storage-raid-indexing':
-      case 'transactions-acid':
-      case 'concurrency-control':
-      case 'query-optimization':
-      case 'distributed-databases-cap':
-      case 'dbms':
-        return <DbmsVisualizer defaultTopicId={topicId} />
-      default:
-        return <div className="viz-card"><h3>Visualizer coming soon for this topic.</h3></div>
-    }
   }
 
   return (
@@ -217,48 +125,50 @@ export default function TopicPage() {
         </nav>
         <h1 className="topic-page-title">{title}</h1>
 
-        <div className="main-tab-switcher" role="tablist" aria-label="Topic view">
-          <button
-            ref={element => { tabRefs.current[0] = element }}
-            id="topic-tab-theory"
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'theory'}
-            aria-controls="topic-panel-theory"
-            tabIndex={activeTab === 'theory' ? 0 : -1}
-            onClick={() => selectTab('theory')}
-            onKeyDown={handleTabKeyDown}
-            className={`main-tab-btn ${activeTab === 'theory' ? 'active-tab' : ''}`}
-          >
-            <span aria-hidden="true">📖</span> Study
-          </button>
-          <button
-            ref={element => { tabRefs.current[1] = element }}
-            id="topic-tab-simulator"
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'simulator'}
-            aria-controls="topic-panel-simulator"
-            tabIndex={activeTab === 'simulator' ? 0 : -1}
-            onClick={() => selectTab('simulator')}
-            onKeyDown={handleTabKeyDown}
-            className={`main-tab-btn ${activeTab === 'simulator' ? 'active-tab' : ''}`}
-          >
-            <span aria-hidden="true">⚡</span> Simulation
-          </button>
-        </div>
+        {canSimulate && (
+          <div className="main-tab-switcher" role="tablist" aria-label="Topic view">
+            <button
+              ref={element => { tabRefs.current[0] = element }}
+              id="topic-tab-theory"
+              type="button"
+              role="tab"
+              aria-selected={selectedTab === 'theory'}
+              aria-controls="topic-panel-theory"
+              tabIndex={selectedTab === 'theory' ? 0 : -1}
+              onClick={() => selectTab('theory')}
+              onKeyDown={handleTabKeyDown}
+              className={`main-tab-btn ${selectedTab === 'theory' ? 'active-tab' : ''}`}
+            >
+              <span aria-hidden="true">📖</span> Study
+            </button>
+            <button
+              ref={element => { tabRefs.current[1] = element }}
+              id="topic-tab-simulator"
+              type="button"
+              role="tab"
+              aria-selected={selectedTab === 'simulator'}
+              aria-controls="topic-panel-simulator"
+              tabIndex={selectedTab === 'simulator' ? 0 : -1}
+              onClick={() => selectTab('simulator')}
+              onKeyDown={handleTabKeyDown}
+              className={`main-tab-btn ${selectedTab === 'simulator' ? 'active-tab' : ''}`}
+            >
+              <span aria-hidden="true">⚡</span> Simulation
+            </button>
+          </div>
+        )}
       </div>
 
       <div
         className="tab-content-area"
-        id={`topic-panel-${activeTab}`}
-        role="tabpanel"
-        aria-labelledby={`topic-tab-${activeTab}`}
-        tabIndex="0"
+        id={canSimulate ? `topic-panel-${selectedTab}` : undefined}
+        role={canSimulate ? 'tabpanel' : undefined}
+        aria-labelledby={canSimulate ? `topic-tab-${selectedTab}` : undefined}
+        tabIndex={canSimulate ? '0' : undefined}
       >
-        {activeTab === 'simulator' ? (
+        {selectedTab === 'simulator' ? (
           <Suspense fallback={<div className="viz-card"><h3>Loading visualizer…</h3></div>}>
-            {renderVisualizer()}
+            <TopicVisualizer topicId={topicId} />
           </Suspense>
         ) : (
           <TopicViewer topicId={topicId} category={category} />
