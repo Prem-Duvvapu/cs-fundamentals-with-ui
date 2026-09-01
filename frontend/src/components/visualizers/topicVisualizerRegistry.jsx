@@ -10,7 +10,6 @@ const DbmsVisualizer = lazy(() => import('./DbmsVisualizer'))
 const AiMlVisualizer = lazy(() => import('./AiMlVisualizer'))
 const JavaSpringVisualizer = lazy(() => import('./JavaSpringVisualizer'))
 const FileSystemVisualizer = lazy(() => import('./os/FileSystemVisualizer'))
-const IoSystemsVisualizer = lazy(() => import('./os/IoSystemsVisualizer'))
 const DiskSchedulingVisualizer = lazy(() => import('./os/DiskSchedulingVisualizer'))
 const HashMapVisualizer = lazy(() => import('./java/HashMapVisualizer'))
 const VirtualThreadsVisualizer = lazy(() => import('./java/VirtualThreadsVisualizer'))
@@ -32,7 +31,6 @@ const registry = Object.freeze({
   synchronization: direct(SynchronizationVisualizer),
   deadlocks: direct(DeadlockVisualizer),
   'file-systems': direct(FileSystemVisualizer),
-  'io-systems': direct(IoSystemsVisualizer),
   'disk-scheduling': direct(DiskSchedulingVisualizer),
 
   'network-fundamentals': hub(NetworkingVisualizer, 'network-fundamentals'),
@@ -47,36 +45,21 @@ const registry = Object.freeze({
   'application-layer': hub(NetworkingVisualizer, 'application-layer'),
   'network-performance-qos': hub(NetworkingVisualizer, 'network-performance-qos'),
 
-  'dbms-introduction': hub(DbmsVisualizer, 'dbms-introduction'),
-  'dbms-architecture': hub(DbmsVisualizer, 'dbms-architecture'),
-  'er-model': hub(DbmsVisualizer, 'er-model'),
   'relational-algebra-calculus': hub(DbmsVisualizer, 'relational-algebra-calculus'),
   'functional-dependencies-keys': hub(DbmsVisualizer, 'functional-dependencies-keys'),
   'database-normalization': hub(DbmsVisualizer, 'database-normalization'),
   'dbms-indexing': hub(DbmsVisualizer, 'dbms-indexing'),
-  'storage-raid-indexing': hub(DbmsVisualizer, 'storage-raid-indexing'),
-  'transactions-acid': hub(DbmsVisualizer, 'transactions-acid'),
   'concurrency-control': hub(DbmsVisualizer, 'concurrency-control'),
-  'query-optimization': hub(DbmsVisualizer, 'query-optimization'),
-  'distributed-databases-cap': hub(DbmsVisualizer, 'distributed-databases-cap'),
+  // distributed-databases-cap has no dedicated engine of its own; it reuses the retained
+  // consistent-hashing engine, the one part of its lesson that materially benefits from
+  // an interactive simulation (see P3 audit checkpoint in plan.md).
+  'distributed-databases-cap': hub(NetworkingVisualizer, 'distributed-databases-cap'),
 
-  'java-execution-pipeline': hub(JavaSpringVisualizer, 'java-execution-pipeline'),
-  'java-memory-model': hub(JavaSpringVisualizer, 'java-memory-model'),
-  'java-oop-pillars': hub(JavaSpringVisualizer, 'java-oop-pillars'),
-  'java-static-final-records': hub(JavaSpringVisualizer, 'java-static-final-records'),
   'jvm-gc': hub(JavaSpringVisualizer, 'jvm-gc'),
-  'java-functional-lambdas': hub(JavaSpringVisualizer, 'java-functional-lambdas'),
-  'java-generics': hub(JavaSpringVisualizer, 'java-generics'),
-  'java-collections-framework': hub(JavaSpringVisualizer, 'java-collections-framework'),
   'java-hashmap-internals': direct(HashMapVisualizer),
-  'java-streams-optional': hub(JavaSpringVisualizer, 'java-streams-optional'),
   'java-multithreading-concurrency': direct(VirtualThreadsVisualizer),
-  'spring-bean-lifecycle': hub(JavaSpringVisualizer, 'spring-bean-lifecycle'),
   'spring-mvc-lifecycle': hub(JavaSpringVisualizer, 'spring-mvc-lifecycle'),
-  'jpa-hibernate-lifecycle': hub(JavaSpringVisualizer, 'jpa-hibernate-lifecycle'),
-  'spring-batch-lifecycle': hub(JavaSpringVisualizer, 'spring-batch-lifecycle'),
   'quartz-scheduler': hub(JavaSpringVisualizer, 'quartz-scheduler'),
-  'design-patterns-solid': hub(JavaSpringVisualizer, 'design-patterns-solid'),
   'spring-testing-production': direct(ConnectionPoolVisualizer),
 
   'embeddings-vector-db': hub(AiMlVisualizer, 'embeddings-vector-db'),

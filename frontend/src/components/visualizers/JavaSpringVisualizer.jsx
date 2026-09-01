@@ -3,64 +3,19 @@ import JvmMemoryVisualizer from './java/JvmMemoryVisualizer'
 import HashMapVisualizer from './java/HashMapVisualizer'
 import VirtualThreadsVisualizer from './java/VirtualThreadsVisualizer'
 import ConnectionPoolVisualizer from './java/ConnectionPoolVisualizer'
-import SpringBatchVisualizer from './java/SpringBatchVisualizer'
-import JavaExecutionPipelineVisualizer from './java/JavaExecutionPipelineVisualizer'
-import JavaMemoryModelVisualizer from './java/JavaMemoryModelVisualizer'
-import JavaOopVisualizer from './java/JavaOopVisualizer'
-import JavaStaticRecordsVisualizer from './java/JavaStaticRecordsVisualizer'
-import JavaFunctionalLambdasVisualizer from './java/JavaFunctionalLambdasVisualizer'
-import JavaGenericsVisualizer from './java/JavaGenericsVisualizer'
-import JavaCollectionsVisualizer from './java/JavaCollectionsVisualizer'
-import JavaStreamsOptionalVisualizer from './java/JavaStreamsOptionalVisualizer'
-import DesignPatternsVisualizer from './java/DesignPatternsVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
   const getInitialTab = () => {
     switch (defaultTopicId) {
-      case 'java-execution-pipeline': return 'pipeline'
-      case 'java-memory-model': return 'memory-model'
-      case 'java-oop-pillars':
-      case 'java-oop-vtable': return 'oop-vtable'
-      case 'java-static-final-records': return 'static-records'
-      case 'java-functional-lambdas': return 'functional-lambdas'
-      case 'java-generics': return 'generics'
-      case 'java-collections-framework': return 'collections'
-      case 'java-streams-optional': return 'streams-optional'
-      case 'design-patterns-solid': return 'design-patterns'
       case 'jvm-gc': return 'jvm'
-      case 'spring-bean-lifecycle': return 'bean'
       case 'spring-mvc-lifecycle': return 'mvc'
-      case 'jpa-hibernate-lifecycle': return 'jpa'
-      case 'spring-batch-lifecycle': return 'batch'
       case 'quartz-scheduler': return 'quartz'
-      default: return 'pipeline'
+      default: return 'jvm'
     }
   }
 
   const [activeTab, setActiveTab] = useState(getInitialTab())
-
-  // ==========================================
-  // MODE 1: JVM MEMORY & THREAD 6-STATE MACHINE
-  // ==========================================
-  const [threadState, setThreadState] = useState('NEW')
-  const [threadType, setThreadType] = useState('platform') // 'platform', 'virtual'
-
-  // ==========================================
-  // MODE 2: SPRING BEAN LIFECYCLE PIPELINE
-  // ==========================================
-  const [beanStep, setBeanStep] = useState(0)
-  const beanSteps = [
-    { title: 'Step 1: Bean Definition Loading', desc: 'Spring scans @Component classes and registers BeanDefinition in BeanFactory registry.' },
-    { title: 'Step 2: Bean Instantiation', desc: 'Constructs raw Bean instance using Java reflection / constructor injection.' },
-    { title: 'Step 3: Populate Properties', desc: 'Injects dependencies annotated with @Autowired, @Value, or @Resource.' },
-    { title: 'Step 4: Aware Interfaces Execution', desc: 'Invokes BeanNameAware.setBeanName(), BeanFactoryAware.setBeanFactory(), ApplicationContextAware.' },
-    { title: 'Step 5: BeanPostProcessor (Before Initialization)', desc: 'Executes postProcessBeforeInitialization() across custom BeanPostProcessors.' },
-    { title: 'Step 6: @PostConstruct / InitializingBean', desc: 'Executes @PostConstruct method or InitializingBean.afterPropertiesSet() custom init logic.' },
-    { title: 'Step 7: BeanPostProcessor (After Initialization)', desc: 'Executes postProcessAfterInitialization() — Wraps bean in CGLIB/JDK AOP Proxy for @Transactional & @Async!' },
-    { title: 'Step 8: BEAN IS READY FOR USE', desc: 'Bean is fully initialized and stored in Spring Singleton Bean Registry.' },
-    { title: 'Step 9: @PreDestroy (Shutdown)', desc: 'Executes @PreDestroy / DisposableBean.destroy() when ApplicationContext closes.' }
-  ]
 
   // ==========================================
   // MODE 3: SPRING MVC REQUEST LIFECYCLE
@@ -77,36 +32,8 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
   ]
 
   // ==========================================
-  // MODE 4: JPA / HIBERNATE ENTITY STATE MACHINE & N+1 SOLVER
-  // ==========================================
-  const [entityState, setEntityState] = useState('TRANSIENT')
-  const [dirtyField, setDirtyField] = useState('Alice')
-  const [isDirty, setIsDirty] = useState(false)
-  const [fetchStrategy, setFetchStrategy] = useState('lazy') // 'lazy', 'joinfetch'
-
-  const handleUpdateField = (val) => {
-    setDirtyField(val)
-    if (entityState === 'PERSISTENT') {
-      setIsDirty(true)
-    }
-  }
-
-  // ==========================================
-  // MODE 5: SPRING BATCH CHUNK EXECUTION ENGINE
-  // ==========================================
-  const [batchStep, setBatchStep] = useState(0)
-  const [chunkSize, setChunkSize] = useState(3)
-  const [processedCount, setProcessedCount] = useState(0)
-  const [skipCount, setSkipCount] = useState(0)
-
-  const handleRunChunk = () => {
-    setProcessedCount(prev => prev + chunkSize)
-  }
-
-  // ==========================================
   // MODE 6: QUARTZ SCHEDULER & CLUSTER LOCKING
   // ==========================================
-  const [quartzState, setQuartzState] = useState('IDLE')
   const [disallowConcurrent, setDisallowConcurrent] = useState(true)
   const [misfirePolicy, setMisfirePolicy] = useState('fire_now')
 
@@ -115,66 +42,12 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       {/* HEADER & SUB-NAVIGATION */}
       <div className="viz-header">
         <div className="viz-title-group">
-          <h2>☕ Java, Spring Boot, JPA & Enterprise Batch Engine</h2>
-          <p>Explore JVM Memory & Threads, Spring Bean Lifecycle, Spring MVC Pipeline, JPA Entity States, Spring Batch & Quartz.</p>
+          <h2>☕ Java, Spring Boot & JPA Runtime Engine</h2>
+          <p>Explore JVM Memory & Threads, HashMap internals, Virtual Threads, Connection Pools, Spring MVC Pipeline & Quartz.</p>
         </div>
 
         {/* SUB-TABS NAVIGATION */}
         <div className="main-tab-switcher hub-subnav is-centered">
-          <button
-            onClick={() => setActiveTab('pipeline')}
-            className={`main-tab-btn ${activeTab === 'pipeline' ? 'active-tab' : ''}`}
-          >
-            ⚙️ Execution Pipeline
-          </button>
-          <button
-            onClick={() => setActiveTab('memory-model')}
-            className={`main-tab-btn ${activeTab === 'memory-model' ? 'active-tab' : ''}`}
-          >
-            💾 Memory Model (Stack vs Heap)
-          </button>
-          <button
-            onClick={() => setActiveTab('oop-vtable')}
-            className={`main-tab-btn ${activeTab === 'oop-vtable' ? 'active-tab' : ''}`}
-          >
-            🐕 OOP & vtable Dispatch
-          </button>
-          <button
-            onClick={() => setActiveTab('static-records')}
-            className={`main-tab-btn ${activeTab === 'static-records' ? 'active-tab' : ''}`}
-          >
-            🔒 Static, Final & Records
-          </button>
-          <button
-            onClick={() => setActiveTab('functional-lambdas')}
-            className={`main-tab-btn ${activeTab === 'functional-lambdas' ? 'active-tab' : ''}`}
-          >
-            ⚡ Lambdas & invokedynamic
-          </button>
-          <button
-            onClick={() => setActiveTab('generics')}
-            className={`main-tab-btn ${activeTab === 'generics' ? 'active-tab' : ''}`}
-          >
-            🧬 Generics & PECS
-          </button>
-          <button
-            onClick={() => setActiveTab('collections')}
-            className={`main-tab-btn ${activeTab === 'collections' ? 'active-tab' : ''}`}
-          >
-            📚 Collections & Heap
-          </button>
-          <button
-            onClick={() => setActiveTab('streams-optional')}
-            className={`main-tab-btn ${activeTab === 'streams-optional' ? 'active-tab' : ''}`}
-          >
-            🌊 Streams & Optional
-          </button>
-          <button
-            onClick={() => setActiveTab('design-patterns')}
-            className={`main-tab-btn ${activeTab === 'design-patterns' ? 'active-tab' : ''}`}
-          >
-            🎨 SOLID & Design Patterns
-          </button>
           <button
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
@@ -194,12 +67,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             🌀 Virtual Threads (Loom)
           </button>
           <button
-            onClick={() => setActiveTab('bean')}
-            className={`main-tab-btn ${activeTab === 'bean' ? 'active-tab' : ''}`}
-          >
-            🌱 Spring Bean Lifecycle
-          </button>
-          <button
             onClick={() => setActiveTab('mvc')}
             className={`main-tab-btn ${activeTab === 'mvc' ? 'active-tab' : ''}`}
           >
@@ -212,18 +79,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             🔌 HikariCP Connection Pool
           </button>
           <button
-            onClick={() => setActiveTab('jpa')}
-            className={`main-tab-btn ${activeTab === 'jpa' ? 'active-tab' : ''}`}
-          >
-            🗄 JPA Entity States & N+1
-          </button>
-          <button
-            onClick={() => setActiveTab('batch')}
-            className={`main-tab-btn ${activeTab === 'batch' ? 'active-tab' : ''}`}
-          >
-            📦 Spring Batch Chunk Engine
-          </button>
-          <button
             onClick={() => setActiveTab('quartz')}
             className={`main-tab-btn ${activeTab === 'quartz' ? 'active-tab' : ''}`}
           >
@@ -231,51 +86,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
           </button>
         </div>
       </div>
-
-      {/* MODE 0: JAVA EXECUTION PIPELINE */}
-      {activeTab === 'pipeline' && (
-        <JavaExecutionPipelineVisualizer />
-      )}
-
-      {/* MODE 0.5: JAVA MEMORY MODEL (STACK VS HEAP) */}
-      {activeTab === 'memory-model' && (
-        <JavaMemoryModelVisualizer />
-      )}
-
-      {/* MODE 0.75: JAVA OOP & DYNAMIC METHOD DISPATCH (VTABLE) */}
-      {activeTab === 'oop-vtable' && (
-        <JavaOopVisualizer />
-      )}
-
-      {/* MODE 0.85: STATIC, FINAL, IMMUTABILITY & JAVA RECORDS */}
-      {activeTab === 'static-records' && (
-        <JavaStaticRecordsVisualizer />
-      )}
-
-      {/* MODE 0.90: FUNCTIONAL INTERFACES & LAMBDAS */}
-      {activeTab === 'functional-lambdas' && (
-        <JavaFunctionalLambdasVisualizer />
-      )}
-
-      {/* MODE 0.92: GENERICS & PECS */}
-      {activeTab === 'generics' && (
-        <JavaGenericsVisualizer />
-      )}
-
-      {/* MODE 0.94: COLLECTIONS FRAMEWORK & PRIORITYQUEUE */}
-      {activeTab === 'collections' && (
-        <JavaCollectionsVisualizer />
-      )}
-
-      {/* MODE 0.96: STREAMS API & OPTIONAL */}
-      {activeTab === 'streams-optional' && (
-        <JavaStreamsOptionalVisualizer />
-      )}
-
-      {/* MODE 0.98: SOLID PRINCIPLES & DESIGN PATTERNS */}
-      {activeTab === 'design-patterns' && (
-        <DesignPatternsVisualizer />
-      )}
 
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
       {activeTab === 'jvm' && (
@@ -297,25 +107,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
         <ConnectionPoolVisualizer />
       )}
 
-      {/* MODE 2: SPRING BEAN LIFECYCLE */}
-      {activeTab === 'bean' && (
-        <div className="viz-card">
-          <h3>🌱 Spring IoC Container & Bean Initialization Pipeline</h3>
-
-          <div className="action-buttons-group">
-            <button onClick={() => setBeanStep(0)} className="btn btn-secondary">⏮ Reset Context</button>
-            <button onClick={() => setBeanStep(prev => Math.min(8, prev + 1))} disabled={beanStep >= 8} className="btn btn-primary">
-              Next Lifecycle Step ▶
-            </button>
-          </div>
-
-          <div className="info-panel">
-            <h4>{beanSteps[beanStep].title}</h4>
-            <p>{beanSteps[beanStep].desc}</p>
-          </div>
-        </div>
-      )}
-
       {/* MODE 3: SPRING MVC REQUEST LIFECYCLE */}
       {activeTab === 'mvc' && (
         <div className="viz-card">
@@ -333,77 +124,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             <p>{mvcPipeline[mvcStep].desc}</p>
           </div>
         </div>
-      )}
-
-      {/* MODE 4: JPA / HIBERNATE ENTITY STATE MACHINE */}
-      {activeTab === 'jpa' && (
-        <div className="metrics-grid">
-          <div className="viz-card">
-            <h3>🗄 JPA / Hibernate 4-State Entity Machine</h3>
-
-            <div className="entity-state-grid">
-              <button onClick={() => { setEntityState('TRANSIENT'); setIsDirty(false) }} className={`btn ${entityState === 'TRANSIENT' ? 'btn-primary' : 'btn-secondary'}`}>
-                1. Transient (new User())
-              </button>
-              <button onClick={() => { setEntityState('PERSISTENT'); setIsDirty(false) }} className={`btn ${entityState === 'PERSISTENT' ? 'btn-primary' : 'btn-secondary'}`}>
-                2. Persistent / Managed (em.persist())
-              </button>
-              <button onClick={() => setEntityState('DETACHED')} className={`btn ${entityState === 'DETACHED' ? 'btn-primary' : 'btn-secondary'}`}>
-                3. Detached (em.detach())
-              </button>
-              <button onClick={() => setEntityState('REMOVED')} className={`btn ${entityState === 'REMOVED' ? 'btn-primary' : 'btn-secondary'}`}>
-                4. Removed (em.remove())
-              </button>
-            </div>
-
-            <div className="info-panel mt-panel">
-              <h4>Current Entity State: <span className="state-value">{entityState}</span></h4>
-
-              <div className="dirty-check-row">
-                <label className="field-label-strong">Test Dirty Checking (Modify Field):</label>
-                <input
-                  type="text"
-                  value={dirtyField}
-                  onChange={e => handleUpdateField(e.target.value)}
-                  className="num-input is-full"
-                />
-              </div>
-
-              {isDirty && (
-                <div className="dirty-alert">
-                  🔥 <strong>Automatic Dirty Checking Triggered!</strong> Hibernate tracked field change and will automatically execute SQL UPDATE upon transaction commit!
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="viz-card">
-            <h3>⚡ N+1 Query Problem vs JOIN FETCH Optimization</h3>
-
-            <div className="main-tab-switcher subnav-compact">
-              <button onClick={() => setFetchStrategy('lazy')} className={`main-tab-btn ${fetchStrategy === 'lazy' ? 'active-tab' : ''}`}>
-                Unoptimized LAZY Fetch (N+1 Problem)
-              </button>
-              <button onClick={() => setFetchStrategy('joinfetch')} className={`main-tab-btn ${fetchStrategy === 'joinfetch' ? 'active-tab' : ''}`}>
-                Optimized JOIN FETCH (1 SQL Query)
-              </button>
-            </div>
-
-            <div className="info-panel">
-              <div className="query-compare-row">
-                <span>SQL Queries Executed for 100 Orders:</span>
-                <strong className={`query-count ${fetchStrategy === 'lazy' ? 'is-danger' : 'is-success'}`}>
-                  {fetchStrategy === 'lazy' ? '101 SQL Queries (1 + 100 N+1 Queries!)' : '1 SQL Query (JOIN FETCH)'}
-                </strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODE 5: SPRING BATCH CHUNK ENGINE */}
-      {activeTab === 'batch' && (
-        <SpringBatchVisualizer />
       )}
 
       {/* MODE 6: QUARTZ SCHEDULER & CLUSTER LOCKING */}

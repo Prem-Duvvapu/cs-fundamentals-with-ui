@@ -183,7 +183,8 @@ existing lesson and rerunning the manifest validator.
    frontend `/interview/:category` route not started; topic-level `InterviewDeck` already reads
    validated Markdown via the section-aware parser.
 3. Complete simulator triage only after migrating JSON questions. — ✅ migration gate passes
-   (109/109 ledger items resolved); the 17 engine conversions/deletions themselves have not started.
+   (109/109 ledger items resolved); the 17 engine conversions/deletions are done (see checkpoint
+   below) — 18 non-retained visualizer components, engines, and JSON files removed in 4 commits.
 4. Run frontend unit/integration tests, backend tests, production build, full content validation,
    accessibility checks, route checks, and documentation synchronization. — ongoing; backend and
    content-validator suites are green, frontend suite green as of the last full run.
@@ -196,8 +197,25 @@ existing lesson and rerunning the manifest validator.
   functional dependencies, HashMap internals, JVM/GC, normalization, relational algebra, TCP
   congestion, virtual memory and virtual threads.
 - Convert the remaining 17 fixed step-through engines to lesson Mermaid diagrams/tables before
-  removing their JSX, tests or data dependencies. **Not started** — the migration gate below is a
-  prerequisite for this step, not the step itself.
+  removing their JSX, tests or data dependencies. **Done.** Every target lesson already carried
+  3-7 Mermaid diagrams from P4 content authoring (past CONTENT_SPEC's ≥3 minimum), including
+  diagrams of the exact mechanisms these simulators animated, so no new diagrams were needed —
+  the conversion was verifying that coverage, then deleting. Removed: DbmsIntroVisualizer,
+  DbmsArchitectureVisualizer, ErModelVisualizer, StorageIndexingVisualizer,
+  TransactionsAcidVisualizer, QueryOptimizerVisualizer, DistributedDbVisualizer,
+  IoSystemsVisualizer, DesignPatternsVisualizer, JavaExecutionPipelineVisualizer,
+  JavaMemoryModelVisualizer, JavaOopVisualizer, JavaStaticRecordsVisualizer,
+  JavaFunctionalLambdasVisualizer, JavaGenericsVisualizer, JavaCollectionsVisualizer,
+  JavaStreamsOptionalVisualizer, SpringBatchVisualizer (18 components — one more than the
+  plan's "~17" estimate) plus their engines, tests, and JSON data, and the inline Spring
+  Bean/JPA step-throughs that were never engine-backed. distributed-databases-cap kept a
+  Simulation tab by retargeting to the retained ConsistentHashingVisualizer (previously wired to
+  no topic at all — a pre-existing gap fixed as part of this pass). DbmsVisualizer shrank from
+  12 sub-tabs to 5; JavaSpringVisualizer from ~17 to 6. **Deferred, not done:** pruning the dead
+  App.css rules these components owned, and the pre-existing orphaning of the
+  hashmap/virtual-threads/hikari-pool sub-tabs inside JavaSpringVisualizer (their topics route
+  directly to standalone components now, bypassing the hub, so those 3 tabs are reachable only
+  by manual click from a different topic's Simulation view — not introduced by this pass).
 - Migration gate: verify all 49 JSON interview questions, 56 JSON quizzes and 4 inline quizzes
   (109 items total) are represented or intentionally superseded in Markdown before deletion.
   **Done.** `content/SIMULATION_QUESTION_MIGRATION.json` resolves all 109 items — 42 `retained`

@@ -23,14 +23,14 @@ afterEach(() => {
 describe('TopicPage Component', () => {
   it('should render TopicPage with Study active by default', async () => {
     render(
-      <MemoryRouter initialEntries={['/topic/dbms-architecture']}>
+      <MemoryRouter initialEntries={['/topic/dbms-indexing']}>
         <Routes>
           <Route path="/topic/:topicId" element={<TopicPage />} />
         </Routes>
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('heading', { name: /DBMS Architecture & 3-Schema ANSI-SPARC/i })).toBeDefined()
+    expect(screen.getByRole('heading', { name: /B\/B\+ Tree Indexing & Storage Structures/i })).toBeDefined()
     const studyBtn = screen.getByRole('tab', { name: /study/i })
     expect(studyBtn.className).toContain('active-tab')
     expect(screen.getByRole('tab', { name: /simulation/i })).toBeDefined()
@@ -41,8 +41,8 @@ describe('TopicPage Component', () => {
     const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i })
     expect(breadcrumb).toHaveTextContent('All topics')
     expect(breadcrumb).toHaveTextContent('Database Management Systems')
-    expect(breadcrumb).not.toHaveTextContent('DBMS Architecture & 3-Schema ANSI-SPARC')
-    expect(screen.getAllByText('DBMS Architecture & 3-Schema ANSI-SPARC', { exact: true })).toHaveLength(1)
+    expect(breadcrumb).not.toHaveTextContent('B/B+ Tree Indexing & Storage Structures')
+    expect(screen.getAllByText('B/B+ Tree Indexing & Storage Structures', { exact: true })).toHaveLength(1)
     expect(screen.queryByText(/back to all topics/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
   })
@@ -117,7 +117,26 @@ describe('TopicPage Component', () => {
     'spring-rest-api-design',
     'spring-security',
     'spring-caching-async',
-    'ml-fundamentals'
+    'ml-fundamentals',
+    'dbms-architecture',
+    'dbms-introduction',
+    'er-model',
+    'query-optimization',
+    'storage-raid-indexing',
+    'transactions-acid',
+    'io-systems',
+    'design-patterns-solid',
+    'java-execution-pipeline',
+    'java-memory-model',
+    'java-oop-pillars',
+    'java-static-final-records',
+    'java-functional-lambdas',
+    'java-generics',
+    'java-collections-framework',
+    'java-streams-optional',
+    'spring-bean-lifecycle',
+    'jpa-hibernate-lifecycle',
+    'spring-batch-lifecycle'
   ])('hides simulation controls when %s has no exact visualizer', topicId => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
@@ -139,7 +158,26 @@ describe('TopicPage Component', () => {
     ['spring-security', 'Spring Security, JWT & OAuth2 Fundamentals'],
     ['spring-caching-async', 'Spring Caching, Async Work & Scheduling'],
     ['spring-testing-production', 'Spring Testing & Production Operations'],
-    ['ml-fundamentals', 'Machine Learning Fundamentals & Evaluation']
+    ['ml-fundamentals', 'Machine Learning Fundamentals & Evaluation'],
+    ['dbms-architecture', 'DBMS Architecture & 3-Schema ANSI-SPARC'],
+    ['dbms-introduction', 'DBMS Introduction, Architecture & Components'],
+    ['er-model', 'ER Diagram Modeling & Relational Mapping'],
+    ['query-optimization', 'Query Processing & Cost-Based Optimizer'],
+    ['storage-raid-indexing', 'File Organization, RAID Storage & Advanced Indexing'],
+    ['transactions-acid', 'Transactions, ACID States & Crash Recovery'],
+    ['io-systems', 'I/O Systems & Kernel Architecture'],
+    ['design-patterns-solid', 'SOLID Principles & Design Patterns'],
+    ['java-execution-pipeline', 'Java Execution Pipeline & JDK/JRE/JVM Architecture'],
+    ['java-memory-model', 'Java Memory Model: Primitives, References, Stack & Heap'],
+    ['java-oop-pillars', 'OOP Pillars & Dynamic Method Dispatch (vtable)'],
+    ['java-static-final-records', 'Static, Final, Immutability & Java Records'],
+    ['java-functional-lambdas', 'Interfaces, Functional Interfaces & Lambda Expressions'],
+    ['java-generics', 'Generics, Wildcards (PECS) & Type Erasure'],
+    ['java-collections-framework', 'Collections Framework: List, Set, Queue & PriorityQueue'],
+    ['java-streams-optional', 'Java Streams API Lazy Pipeline & Optional'],
+    ['spring-bean-lifecycle', 'Spring IoC Container & Bean Lifecycle'],
+    ['jpa-hibernate-lifecycle', 'JPA / Hibernate Entity Lifecycle & N+1 Solver'],
+    ['spring-batch-lifecycle', 'Spring Batch Execution Architecture & Chunk Engine']
   ])('renders the registered topic title for %s', (topicId, title) => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>

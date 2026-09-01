@@ -26,6 +26,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
       case 'application-layer':
       case 'network-security': return 'dns'
       case 'network-performance-qos': return 'traffic-shaping'
+      case 'distributed-databases-cap': return 'consistent-hashing'
       default: return 'encapsulation'
     }
   }
