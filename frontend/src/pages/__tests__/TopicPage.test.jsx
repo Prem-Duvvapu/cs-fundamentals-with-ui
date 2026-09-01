@@ -23,14 +23,14 @@ afterEach(() => {
 describe('TopicPage Component', () => {
   it('should render TopicPage with Study active by default', async () => {
     render(
-      <MemoryRouter initialEntries={['/topic/dbms-architecture']}>
+      <MemoryRouter initialEntries={['/topic/dbms-indexing']}>
         <Routes>
           <Route path="/topic/:topicId" element={<TopicPage />} />
         </Routes>
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('heading', { name: /DBMS Architecture & 3-Schema ANSI-SPARC/i })).toBeDefined()
+    expect(screen.getByRole('heading', { name: /B\/B\+ Tree Indexing & Storage Structures/i })).toBeDefined()
     const studyBtn = screen.getByRole('tab', { name: /study/i })
     expect(studyBtn.className).toContain('active-tab')
     expect(screen.getByRole('tab', { name: /simulation/i })).toBeDefined()
@@ -41,8 +41,8 @@ describe('TopicPage Component', () => {
     const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i })
     expect(breadcrumb).toHaveTextContent('All topics')
     expect(breadcrumb).toHaveTextContent('Database Management Systems')
-    expect(breadcrumb).not.toHaveTextContent('DBMS Architecture & 3-Schema ANSI-SPARC')
-    expect(screen.getAllByText('DBMS Architecture & 3-Schema ANSI-SPARC', { exact: true })).toHaveLength(1)
+    expect(breadcrumb).not.toHaveTextContent('B/B+ Tree Indexing & Storage Structures')
+    expect(screen.getAllByText('B/B+ Tree Indexing & Storage Structures', { exact: true })).toHaveLength(1)
     expect(screen.queryByText(/back to all topics/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
   })
@@ -117,7 +117,13 @@ describe('TopicPage Component', () => {
     'spring-rest-api-design',
     'spring-security',
     'spring-caching-async',
-    'ml-fundamentals'
+    'ml-fundamentals',
+    'dbms-architecture',
+    'dbms-introduction',
+    'er-model',
+    'query-optimization',
+    'storage-raid-indexing',
+    'transactions-acid'
   ])('hides simulation controls when %s has no exact visualizer', topicId => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
@@ -139,7 +145,13 @@ describe('TopicPage Component', () => {
     ['spring-security', 'Spring Security, JWT & OAuth2 Fundamentals'],
     ['spring-caching-async', 'Spring Caching, Async Work & Scheduling'],
     ['spring-testing-production', 'Spring Testing & Production Operations'],
-    ['ml-fundamentals', 'Machine Learning Fundamentals & Evaluation']
+    ['ml-fundamentals', 'Machine Learning Fundamentals & Evaluation'],
+    ['dbms-architecture', 'DBMS Architecture & 3-Schema ANSI-SPARC'],
+    ['dbms-introduction', 'DBMS Introduction, Architecture & Components'],
+    ['er-model', 'ER Diagram Modeling & Relational Mapping'],
+    ['query-optimization', 'Query Processing & Cost-Based Optimizer'],
+    ['storage-raid-indexing', 'File Organization, RAID Storage & Advanced Indexing'],
+    ['transactions-acid', 'Transactions, ACID States & Crash Recovery']
   ])('renders the registered topic title for %s', (topicId, title) => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>

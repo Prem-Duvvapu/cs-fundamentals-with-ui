@@ -47,18 +47,15 @@ const registry = Object.freeze({
   'application-layer': hub(NetworkingVisualizer, 'application-layer'),
   'network-performance-qos': hub(NetworkingVisualizer, 'network-performance-qos'),
 
-  'dbms-introduction': hub(DbmsVisualizer, 'dbms-introduction'),
-  'dbms-architecture': hub(DbmsVisualizer, 'dbms-architecture'),
-  'er-model': hub(DbmsVisualizer, 'er-model'),
   'relational-algebra-calculus': hub(DbmsVisualizer, 'relational-algebra-calculus'),
   'functional-dependencies-keys': hub(DbmsVisualizer, 'functional-dependencies-keys'),
   'database-normalization': hub(DbmsVisualizer, 'database-normalization'),
   'dbms-indexing': hub(DbmsVisualizer, 'dbms-indexing'),
-  'storage-raid-indexing': hub(DbmsVisualizer, 'storage-raid-indexing'),
-  'transactions-acid': hub(DbmsVisualizer, 'transactions-acid'),
   'concurrency-control': hub(DbmsVisualizer, 'concurrency-control'),
-  'query-optimization': hub(DbmsVisualizer, 'query-optimization'),
-  'distributed-databases-cap': hub(DbmsVisualizer, 'distributed-databases-cap'),
+  // distributed-databases-cap has no dedicated engine of its own; it reuses the retained
+  // consistent-hashing engine, the one part of its lesson that materially benefits from
+  // an interactive simulation (see P3 audit checkpoint in plan.md).
+  'distributed-databases-cap': hub(NetworkingVisualizer, 'distributed-databases-cap'),
 
   'java-execution-pipeline': hub(JavaSpringVisualizer, 'java-execution-pipeline'),
   'java-memory-model': hub(JavaSpringVisualizer, 'java-memory-model'),

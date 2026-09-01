@@ -12,15 +12,12 @@ const EXPECTED_SUPPORTED_IDS = [
   'cpu-scheduling',
   'data-link-layer',
   'database-normalization',
-  'dbms-architecture',
   'dbms-indexing',
-  'dbms-introduction',
   'deadlocks',
   'design-patterns-solid',
   'disk-scheduling',
   'distributed-databases-cap',
   'embeddings-vector-db',
-  'er-model',
   'feature-stores',
   'file-systems',
   'functional-dependencies-keys',
@@ -47,7 +44,6 @@ const EXPECTED_SUPPORTED_IDS = [
   'physical-layer-media',
   'process-management',
   'quartz-scheduler',
-  'query-optimization',
   'rag-architecture',
   'recommendation-systems',
   'relational-algebra-calculus',
@@ -56,11 +52,9 @@ const EXPECTED_SUPPORTED_IDS = [
   'spring-bean-lifecycle',
   'spring-mvc-lifecycle',
   'spring-testing-production',
-  'storage-raid-indexing',
   'synchronization',
   'tcp-congestion',
   'tcp-ip',
-  'transactions-acid',
   'transport-layer-protocols'
 ]
 
@@ -72,7 +66,13 @@ const UNSUPPORTED_REGISTERED_IDS = [
   'spring-rest-api-design',
   'spring-security',
   'spring-caching-async',
-  'ml-fundamentals'
+  'ml-fundamentals',
+  'dbms-architecture',
+  'dbms-introduction',
+  'er-model',
+  'query-optimization',
+  'storage-raid-indexing',
+  'transactions-acid'
 ]
 
 describe('topic visualizer registry', () => {
