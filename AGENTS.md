@@ -165,7 +165,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 | **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
 | **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ✅ **Done** |
 | **P2** | Reading experience — compact topic chrome, responsive TOC, tier nav, interview deck | ✅ **Done** |
-| **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | 🟡 **In progress — migration gate passes (109/109), registry done, engine conversions not started** |
+| **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ✅ **Done — 18 non-retained components removed; dead App.css and 3 orphaned hub sub-tabs still to clean up** |
 | **P4** | Content authoring, 63 topics in priority waves | ✅ **Done — 63/63 lessons and 83/83 manifest entries pass** |
 | **P5** | Cross-topic search + per-category Interview Mode | 🟡 **In progress — backend endpoints + tests done, frontend `/search` and `/interview/:category` routes not started** |
 | **P6** | Verify, doc sync, ship | ☐ Not started |
@@ -181,7 +181,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 - Topic pages own one semantic H1, collapse to a one-line desktop toolbar while scrolling, leave
   the toolbar in document flow on mobile, and default the TOC closed below 1024px.
 
-### What P3/P5 delivered so far (this branch, uncommitted)
+### What P3/P5 delivered so far (this branch)
 - `backend/.../controller/DiscoveryController.java` + `service/DiscoveryService.java` — stateless
   `GET /api/v1/search` and `GET /api/v1/interview/questions`, backed by one immutable index built
   from `TopicService` + `ContentService` at startup (no second topic registry, no whole-curriculum
@@ -197,15 +197,26 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
   migration gate. Extracts every legacy JSON/inline interview and quiz question, and requires each
   to be resolved as `retained` (still owned by one of the 14 kept engines), `migrated` (a literal
   quote from it is verified present in the target lesson), or `superseded` (replaced by stronger
-  lesson coverage, with a rationale) before that source can be deleted. Currently 109/109 resolved,
-  gate passes (`node scripts/audit-simulation-questions.mjs`).
+  lesson coverage, with a rationale) before that source can be deleted. 109/109 resolved, gate
+  passes (`node scripts/audit-simulation-questions.mjs`).
+- 18 non-retained visualizer components (plus their engines, tests, and JSON data) deleted across
+  4 commits, using the migration gate above as the deletion prerequisite: 7 DBMS hub sub-tabs
+  (dbms-introduction, dbms-architecture, er-model, storage-raid-indexing, transactions-acid,
+  query-optimization, distributed-databases-cap — the last retargeted to the retained
+  `ConsistentHashingVisualizer` instead of losing its Simulation tab entirely), io-systems,
+  design-patterns-solid, 8 core-Java topics (java-execution-pipeline, java-memory-model,
+  java-oop-pillars, java-static-final-records, java-functional-lambdas, java-generics,
+  java-collections-framework, java-streams-optional), and spring-batch-lifecycle plus the inline
+  (never engine-backed) spring-bean-lifecycle/jpa-hibernate-lifecycle step-throughs.
+  `DbmsVisualizer.jsx` shrank from 12 sub-tabs to 5; `JavaSpringVisualizer.jsx` from ~17 to 6.
 
 ### Current implementation priorities
 
-1. **Complete P3.** The migration gate is satisfied — convert the 17 non-retained engines' JSX to
-   lesson Mermaid diagrams/tables and delete their JSX, tests, and `frontend/src/data/*.json`
-   sources one engine at a time, re-running `node scripts/audit-simulation-questions.mjs` after
-   each deletion (it fails if a deleted source's ledger item is not already resolved).
+1. **Finish P3 cleanup (optional, low priority).** The 18-component removal itself is done; what's
+   left is pruning the dead App.css rules those components owned (needs a per-class usage check —
+   several classes may still be shared with retained components) and re-wiring or removing the 3
+   orphaned JavaSpringVisualizer sub-tabs (hashmap/virtual-threads/hikari-pool — reachable only by
+   manual click, since their topics route directly to standalone components now).
 2. **Complete P5.** Backend search/interview endpoints exist; build the `/search` and
    `/interview/:category` frontend routes/pages and extract `InterviewDeck` out of
    `TopicViewer.jsx` into a shared component both the topic page and the category page can use.

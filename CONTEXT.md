@@ -74,31 +74,27 @@ symptom or component before repeating an investigation.
 - **Distance Vector Bellman-Ford (`DistanceVectorVisualizer.jsx`)**: Multi-router vector exchange convergence.
 
 ### 🗄️ Database Management Systems (`DbmsVisualizer.jsx`)
-- **File System vs DBMS Simulator (`DbmsIntroVisualizer.jsx`)**: Interactive data redundancy anomalies, Lost Update race conditions, mid-flight power outage ARIES rollback, and B+ Tree seek vs linear file scan cost analysis.
-- **ER Model & Relational Mapping (`ErModelVisualizer.jsx`)**: Interactive ER diagram blueprint builder, weak entities, multivalued/derived attributes, mapping cardinalities, and real-time SQL DDL table synthesis.
+5 sub-tabs — the P3 simulation triage (see `plan.md`'s P3 audit checkpoint) kept only the engines
+whose interaction materially teaches a mechanism; `dbms-introduction`, `dbms-architecture`,
+`er-model`, `storage-raid-indexing`, `transactions-acid`, `query-optimization` read Study only now
+(their Mermaid diagrams cover the same ground). `distributed-databases-cap` keeps a Simulation tab
+via the retained `ConsistentHashingVisualizer` (see Networking, below), not this hub.
 - **Relational Algebra Simulator (`RelationalAlgebraVisualizer.jsx`)**: Animated Selection ($\sigma$), Projection ($\pi$), Equi-Join ($\bowtie$), Left Outer Join ($\$), and TRC query translation.
 - **Keys & Closures (`FunctionalDependencyVisualizer.jsx`)**: Attribute Closure $(X)^+$ solver, Armstrong's Axioms inference, Candidate Key detection, and Minimal Canonical Cover ($F_c$).
 - **Normalization Engine (`NormalizationVisualizer.jsx`)**: Step-by-step anomaly detection (Insertion, Deletion, Update) and lossless join decomposition simulator.
 - **B+ Tree Indexing Engine (`BPlusTreeVisualizer.jsx`)**: Dynamic multi-way node insertion, node splitting, and leaf range scans.
-- **Storage Engine & RAID (`StorageIndexingVisualizer.jsx`)**: RAID 0/1/5/6/10 parity reconstruction simulator, Bitmap Indexing bitwise ops, and Inverted Index postings lists.
 - **Concurrency Control & 2PL (`ConcurrencyControlVisualizer.jsx`)**: Conflict serializability, Strict 2PL locks, Timestamp Ordering, Thomas Write Rule, and deadlock wait-for graphs.
-- **Query Optimizer & CBO (`QueryOptimizerVisualizer.jsx`)**: Relational algebra query trees, Predicate/Projection pushdown heuristics, and join algorithm cost formulas (Nested Loop vs Hash vs Sort-Merge).
-- **Distributed DBMS (`DistributedDbVisualizer.jsx`)**: 2-Phase Commit (2PC), CAP theorem network partition simulator, and Quorum consensus ($R+W>N$).
 
 ### ☕ Java & Spring Ecosystem (`JavaSpringVisualizer.jsx`)
-- **Java Execution Pipeline (`JavaExecutionPipelineVisualizer.jsx`)**: Source $\rightarrow$ javac $\rightarrow$ ClassLoader $\rightarrow$ Verifier $\rightarrow$ JIT Machine Assembly.
-- **Java Memory Model (`JavaMemoryModelVisualizer.jsx`)**: Stack Frame allocations, Heap Objects, and 100% Pass-by-Value mechanics.
-- **OOP Pillars & vtable (`JavaOopVisualizer.jsx`)**: Polymorphic method dispatch via JVM `vtable`.
-- **Static, Final & Records (`JavaStaticRecordsVisualizer.jsx`)**: Metaspace static allocation and Java 14+ Record value semantics.
-- **Functional Interfaces & Lambdas (`JavaFunctionalLambdasVisualizer.jsx`)**: SAM contracts, method references, and `invokedynamic`.
-- **Generics & PECS (`JavaGenericsVisualizer.jsx`)**: Producer Extends Consumer Super wildcard mechanics and bytecode Type Erasure.
-- **Collections Framework (`JavaCollectionsVisualizer.jsx`)**: ArrayList 1.5x dynamic growth and PriorityQueue Min-Heap sift operations.
-- **Java Streams & Optional (`JavaStreamsOptionalVisualizer.jsx`)**: Lazy pipeline execution, vertical loop fusion, and Optional monad chaining.
+6 sub-tabs after the same P3 triage; the 8 core-Java topics (execution pipeline, memory model, OOP
+pillars, static/final/records, functional/lambdas, generics, collections, streams/Optional) and
+Spring Batch/Bean/JPA read Study only now.
 - **JVM Heap & GC (`JvmMemoryVisualizer.jsx`)**: Young/Old Gen allocations, G1GC/ZGC collectors, and Virtual Threads.
-- **Spring Bean Lifecycle**: 9-step IoC container bean initialization pipeline.
-- **Spring MVC Flow**: DispatcherServlet request pipeline and security filter chain execution.
-- **JPA Entity Lifecycle**: Transient, Managed, Detached, Removed states with N+1 Query Solver.
-- **Spring Batch & Quartz**: Chunk-oriented processing engine and clustered JobStoreTX execution.
+- **HashMap & Bucket Internals (`HashMapVisualizer.jsx`)**: reachable directly at `java-hashmap-internals`, not through this hub; the hub still carries a duplicate tab, reachable only by manual click.
+- **Virtual Threads / Loom (`VirtualThreadsVisualizer.jsx`)**: reachable directly at `java-multithreading-concurrency`; same manual-click-only duplicate tab in this hub.
+- **Spring MVC Flow**: DispatcherServlet request pipeline and security filter chain execution (inline step-through, never engine-backed).
+- **HikariCP Connection Pool (`ConnectionPoolVisualizer.jsx`)**: reachable directly at `spring-testing-production`; same manual-click-only duplicate tab in this hub.
+- **Quartz Scheduler & Cluster**: misfire policy and `JobStoreTX` cluster locking (inline step-through, never engine-backed).
 
 ---
 
@@ -173,6 +169,12 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 - `GET /api/v1/topics` — Lists all 63 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
+- `GET /api/v1/search?q=&category=&limit=` — Cross-topic search over title, headings, coverage-manifest
+  tags, summary and body, ranked and returning a matched heading + excerpt per hit
+  (`DiscoveryController`/`DiscoveryService`, P5). No dedicated frontend route yet.
+- `GET /api/v1/interview/questions?category=&difficulty=&offset=&limit=` — Paginated interview Q&A
+  parsed directly from each lesson's `### Interview Questions` section, answers returned as
+  Markdown. No dedicated frontend route yet.
 
 ---
 
