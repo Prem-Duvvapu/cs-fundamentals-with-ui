@@ -110,4 +110,13 @@ class ContentServiceTest {
         String contentEmpty = service.getContent("os", "");
         assertTrue(contentEmpty.startsWith("Content not found"));
     }
+
+    @Test
+    void getCoverageManifest_shouldExposeTheValidatedDiscoveryTags() {
+        String manifest = service.getCoverageManifest();
+
+        assertTrue(manifest.contains("\"entries\""));
+        assertTrue(manifest.contains("\"topicId\""));
+        assertTrue(manifest.contains("\"requiredTerms\""));
+    }
 }

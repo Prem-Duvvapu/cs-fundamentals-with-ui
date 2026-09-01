@@ -1,0 +1,2359 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Immutable provenance for interview and quiz questions owned by legacy simulator data.",
+  "workflow": {
+    "refresh": "node scripts/audit-simulation-questions.mjs --write-inventory",
+    "check": "node scripts/audit-simulation-questions.mjs --check",
+    "rule": "A source may disappear only after every owned item is migrated or superseded with verified lesson evidence. Retained items require their source owner to remain present."
+  },
+  "dispositions": {
+    "pending": "Not yet verified; always fails the gate.",
+    "migrated": "Represented in the target lesson; evidence.contains must occur in that lesson.",
+    "superseded": "Intentionally replaced by stronger target-lesson coverage; evidence.contains and evidence.note are required.",
+    "retained": "Intentionally kept in its simulator; evidence.owner must continue to exist."
+  },
+  "items": [
+    {
+      "id": "legacy-inline:designpatternsvisualizer:quiz:93ee569b3bc8",
+      "kind": "quiz",
+      "sourceType": "inline-jsx",
+      "sourceFile": "frontend/src/components/visualizers/java/DesignPatternsVisualizer.jsx",
+      "sourceLocator": "line:20:quizData[0][0]",
+      "sourceQuestion": "Which SOLID principle is violated if extending a base class requires modifying existing client code handling that base class?",
+      "sourcePayload": {
+        "correctAnswer": 2,
+        "explanation": "Liskov Substitution Principle (LSP) states that subtypes must be substitutable for their base types without altering client correctness.",
+        "options": [
+          "Single Responsibility Principle (SRP)",
+          "Open/Closed Principle (OCP)",
+          "Liskov Substitution Principle (LSP)",
+          "Interface Segregation Principle (ISP)"
+        ],
+        "question": "Which SOLID principle is violated if extending a base class requires modifying existing client code handling that base class?"
+      },
+      "sourceDigest": "sha256:16d323f47c3fc8ec619b45121acf45a81275f36c594390c808f93491ea9565bf",
+      "targetTopicId": "design-patterns-solid",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "The issue is behavioural contract incompatibility, not the mathematical fact that a square is a rectangle."
+      }
+    },
+    {
+      "id": "legacy-inline:diskschedulingvisualizer:quiz:806f34455fcc",
+      "kind": "quiz",
+      "sourceType": "inline-jsx",
+      "sourceFile": "frontend/src/components/visualizers/os/DiskSchedulingVisualizer.jsx",
+      "sourceLocator": "line:21:quizData[0][0]",
+      "sourceQuestion": "Which disk scheduling algorithm can cause starvation for requests at extreme cylinder locations?",
+      "sourcePayload": {
+        "correctAnswer": 1,
+        "explanation": "SSTF constantly selects the request closest to the current head location, so requests far away on extreme cylinders can be starved if new closer requests keep arriving.",
+        "options": [
+          "FCFS",
+          "SSTF (Shortest Seek Time First)",
+          "SCAN",
+          "C-SCAN"
+        ],
+        "question": "Which disk scheduling algorithm can cause starvation for requests at extreme cylinder locations?"
+      },
+      "sourceDigest": "sha256:b7d785e00bb0ad431c63554ed0ba553db5414b6cca20a175aead5eecbc255773",
+      "targetTopicId": "disk-scheduling",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/os/DiskSchedulingVisualizer.jsx",
+        "note": "Disk scheduling is one of the 14 retained P3 engines; comparing SCAN/C-SCAN/SSTF seek paths interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-inline:filesystemvisualizer:quiz:53eacbf67c76",
+      "kind": "quiz",
+      "sourceType": "inline-jsx",
+      "sourceFile": "frontend/src/components/visualizers/os/FileSystemVisualizer.jsx",
+      "sourceLocator": "line:20:quizData[0][0]",
+      "sourceQuestion": "With 4 KB disk blocks and 4-byte block pointers, how many block pointers can a single indirect block hold?",
+      "sourcePayload": {
+        "correctAnswer": 2,
+        "explanation": "4,096 bytes per block / 4 bytes per pointer = 1,024 block pointers per single-indirect block.",
+        "options": [
+          "12 pointers",
+          "256 pointers",
+          "1,024 pointers",
+          "4,096 pointers"
+        ],
+        "question": "With 4 KB disk blocks and 4-byte block pointers, how many block pointers can a single indirect block hold?"
+      },
+      "sourceDigest": "sha256:34e39200a74d4493ae5af9122a86ac710ece66f49933242d0555cdf7b434f039",
+      "targetTopicId": "file-systems",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/os/FileSystemVisualizer.jsx",
+        "note": "File-system allocation is one of the 14 retained P3 engines; walking inode/FAT allocation interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-inline:iosystemsvisualizer:quiz:3d1221943b2b",
+      "kind": "quiz",
+      "sourceType": "inline-jsx",
+      "sourceFile": "frontend/src/components/visualizers/os/IoSystemsVisualizer.jsx",
+      "sourceLocator": "line:21:quizData[0][0]",
+      "sourceQuestion": "Why is DMA superior to interrupt-driven I/O for high-throughput disk reads?",
+      "sourcePayload": {
+        "correctAnswer": 1,
+        "explanation": "Interrupt-driven I/O forces the CPU to execute an Interrupt Service Routine (ISR) for every transferred word. DMA handles multi-megabyte transfers directly to RAM and interrupts the CPU only once at the end.",
+        "options": [
+          "DMA eliminates the need for RAM memory.",
+          "DMA bypasses CPU execution during data transfer, firing only 1 interrupt per block instead of 1 interrupt per byte/word.",
+          "DMA runs without requiring device drivers.",
+          "DMA forces all processes to pause during transfers."
+        ],
+        "question": "Why is DMA superior to interrupt-driven I/O for high-throughput disk reads?"
+      },
+      "sourceDigest": "sha256:36e16f164895dbd10f22f8249f646a7029f27563aab415981b6992504d542f28",
+      "targetTopicId": "io-systems",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "DMA lets a controller transfer a block between a device and RAM without the CPU moving each word through registers."
+      }
+    },
+    {
+      "id": "legacy-json:batch-concepts:springbatch:interview:0b67fece4675",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/batch-concepts.json",
+      "sourceLocator": "/springBatch/theoryData/interviewQA/0",
+      "sourceQuestion": "What happens when an exception occurs inside ItemProcessor during a chunk commit?",
+      "sourcePayload": {
+        "a": "Spring Batch rolls back the active transaction for the entire chunk. If a Skip Policy is configured, it re-reads the items one-by-one in non-chunked mode to isolate the single bad item, skips it, logs it to `BATCH_STEP_EXECUTION`, and resumes chunked processing.",
+        "q": "What happens when an exception occurs inside ItemProcessor during a chunk commit?"
+      },
+      "sourceDigest": "sha256:a02d9bd621aae333a2d0f868effb9719f4dc1d2d047cb7aace9ebff74a12fac1",
+      "targetTopicId": "spring-batch-lifecycle",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "A skip policy can isolate a known bad item and allow the remaining valid items to proceed within its configured limit."
+      }
+    },
+    {
+      "id": "legacy-json:batch-concepts:springbatch:quiz:89c97441413a",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/batch-concepts.json",
+      "sourceLocator": "/springBatch/quizData/0",
+      "sourceQuestion": "If chunk size is 100 and item 47 throws a skipped exception, how many items are committed in the database?",
+      "sourcePayload": {
+        "answer": "Item 47 is skipped. The remaining 99 valid items in that chunk are processed and committed together in the transaction.",
+        "difficulty": "Core Fundamental",
+        "question": "If chunk size is 100 and item 47 throws a skipped exception, how many items are committed in the database?"
+      },
+      "sourceDigest": "sha256:3245a661e172eb948a07dc49b69bdbd157f53695e3bda30c14939891ae4973da",
+      "targetTopicId": "spring-batch-lifecycle",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Skip records and bypasses a classified bad item so the batch can continue."
+      }
+    },
+    {
+      "id": "legacy-json:concurrency-concepts:threadpool:interview:3c8e578dc728",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/concurrency-concepts.json",
+      "sourceLocator": "/threadPool/theoryData/interviewQA/0",
+      "sourceQuestion": "What is the exact order ThreadPoolExecutor follows when a new task is submitted?",
+      "sourcePayload": {
+        "a": "1. If active threads < corePoolSize, spawn new core thread to run task.\n2. Else if work queue is not full, add task to work queue.\n3. Else if active threads < maximumPoolSize, spawn new non-core thread.\n4. Else execute Rejection Execution Handler policy.",
+        "q": "What is the exact order ThreadPoolExecutor follows when a new task is submitted?"
+      },
+      "sourceDigest": "sha256:b49950229c6f2eefa116d35d0d9811a781f76b285fc6f8d55b1e794a6d16cd86",
+      "targetTopicId": "java-multithreading-concurrency",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Only if the queue rejects work does it create non-core workers up to `maximumPoolSize`."
+      }
+    },
+    {
+      "id": "legacy-json:concurrency-concepts:threadpool:quiz:63e63abdd555",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/concurrency-concepts.json",
+      "sourceLocator": "/threadPool/quizData/0",
+      "sourceQuestion": "Why does `Executors.newCachedThreadPool()` risk server crash under heavy load?",
+      "sourcePayload": {
+        "answer": "`newCachedThreadPool()` sets core size to 0, max size to `Integer.MAX_VALUE`, and queue to `SynchronousQueue`. Under heavy traffic spikes, it will spawn thousands of OS threads, exhausting server native memory and CPU context-switching capacity.",
+        "difficulty": "Core Fundamental",
+        "question": "Why does `Executors.newCachedThreadPool()` risk server crash under heavy load?"
+      },
+      "sourceDigest": "sha256:4b1bb8692d057640ed627b11264f59ea2e6f27e865e8b2f909d6d0233162de9c",
+      "targetTopicId": "java-multithreading-concurrency",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "`Executors.newCachedThreadPool` can create an unbounded number of platform threads with a `SynchronousQueue`."
+      }
+    },
+    {
+      "id": "legacy-json:concurrency-concepts:virtualthreads:interview:c1546d472ec0",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/concurrency-concepts.json",
+      "sourceLocator": "/virtualThreads/theoryData/interviewQA/0",
+      "sourceQuestion": "What is Virtual Thread Pinning and how do you resolve it?",
+      "sourcePayload": {
+        "a": "Pinning happens when a Virtual Thread cannot be unmounted from its Carrier OS Thread during blocking I/O because it is executing inside a `synchronized` block/method. Fix it by replacing `synchronized` with `java.util.concurrent.locks.ReentrantLock`.",
+        "q": "What is Virtual Thread Pinning and how do you resolve it?"
+      },
+      "sourceDigest": "sha256:3ea1465653f0f830e7e6dc05e5ca7b10a7951683cd410e6ac44c8fac7e06379a",
+      "targetTopicId": "java-multithreading-concurrency",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/VirtualThreadsVisualizer.jsx",
+        "note": "Virtual threads is one of the 14 retained P3 engines; watching mount/unmount onto carrier threads live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:concurrency-concepts:virtualthreads:quiz:e52e2bddfa96",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/concurrency-concepts.json",
+      "sourceLocator": "/virtualThreads/quizData/0",
+      "sourceQuestion": "Should you pool Virtual Threads using a fixed ThreadPoolExecutor (`newFixedThreadPool`)?",
+      "sourcePayload": {
+        "answer": "NO! Virtual Threads are extremely cheap (~1KB memory footprint) and intended to be created per-task and discarded. Pooling virtual threads limits concurrency and reintroduces resource contention bottlenecks.",
+        "difficulty": "Core Fundamental",
+        "question": "Should you pool Virtual Threads using a fixed ThreadPoolExecutor (`newFixedThreadPool`)?"
+      },
+      "sourceDigest": "sha256:5d60117f84574ecb34038991c39ce19f26d3983e0f22bfc0979ac0778239bcd8",
+      "targetTopicId": "java-multithreading-concurrency",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/VirtualThreadsVisualizer.jsx",
+        "note": "Virtual threads is one of the 14 retained P3 engines; watching mount/unmount onto carrier threads live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-architecture:root:interview:81e508fa099f",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-architecture.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "Distinguish physical and logical data independence with examples.",
+      "sourcePayload": {
+        "answer": "Physical data independence: changing storage structures (heap → B+ tree, row → columnar) without touching the conceptual schema or queries. Logical data independence: evolving the conceptual schema (adding columns, splitting tables behind views) without modifying external user views or application code.",
+        "question": "Distinguish physical and logical data independence with examples."
+      },
+      "sourceDigest": "sha256:f4056bb31e786d39c0a7ae7299d985ed41e9d5dba9d121f2ac9613a63f577b27",
+      "targetTopicId": "dbms-architecture",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Physical data independence is the ability to change internal storage without changing the conceptual schema or application queries."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-architecture:root:interview:89271e5906ed",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-architecture.json",
+      "sourceLocator": "/theoryData/interviewQA/2",
+      "sourceQuestion": "Which schema level describes 'which data is stored' versus 'how it is stored'?",
+      "sourcePayload": {
+        "answer": "The conceptual schema describes what data is stored and its relationships (entities, constraints); the internal schema describes how it is physically organized (files, indexes, compression, access paths).",
+        "question": "Which schema level describes 'which data is stored' versus 'how it is stored'?"
+      },
+      "sourceDigest": "sha256:101638dc00cb74cabb77e149349a1148e8220166f7c3098ce23c11eea72724c0",
+      "targetTopicId": "dbms-architecture",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "the conceptual level defines enterprise entities and constraints, and the internal level defines physical representation"
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-architecture:root:interview:fe63dd4dc35e",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-architecture.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "Why does a 3-tier architecture scale better than 2-tier?",
+      "sourcePayload": {
+        "answer": "The middle application tier owns a connection pool shared by thousands of concurrent users instead of one persistent DB session per client, centralizes business/security rules, and can scale out statelessly — the DB sees tens of pooled connections rather than thousands of direct sockets.",
+        "question": "Why does a 3-tier architecture scale better than 2-tier?"
+      },
+      "sourceDigest": "sha256:07703dc7da9a042b3a02b9d7695a7e17d24c43cb1b105b689b0d819a95b4f60b",
+      "targetTopicId": "dbms-architecture",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "The service authenticates callers, enforces use cases, owns transactions, and multiplexes requests through a database connection pool."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-architecture:root:quiz:24e63eccdcee",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-architecture.json",
+      "sourceLocator": "/quizData/2",
+      "sourceQuestion": "What is the primary scaling motivation for inserting an application tier between clients and the database?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "3-tier pools a few dozen DB connections across thousands of users and centralizes security logic, avoiding the per-client session cost of 2-tier designs.",
+        "options": [
+          "Faster disk I/O",
+          "Connection multiplexing through a shared pool plus centralized authorization",
+          "Automatic index creation",
+          "Replication of the conceptual schema"
+        ],
+        "question": "What is the primary scaling motivation for inserting an application tier between clients and the database?"
+      },
+      "sourceDigest": "sha256:fb7a189f5e33d7eddbec7c1f0983779cb580b274f258037c49f3921ff142f4a2",
+      "targetTopicId": "dbms-architecture",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Three-tier deployment inserts an application service that owns authentication, use cases, transactions, and pooled database access."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-architecture:root:quiz:39bb2af12834",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-architecture.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "In the ANSI-SPARC architecture, swapping an HDD heap-file layout for an NVMe B+ tree cluster without changing any SQL demonstrates which property?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Only the internal schema changed while the conceptual schema stayed fixed — that insulation is exactly physical data independence.",
+        "options": [
+          "Logical data independence",
+          "Physical data independence",
+          "View materialization",
+          "Connection multiplexing"
+        ],
+        "question": "In the ANSI-SPARC architecture, swapping an HDD heap-file layout for an NVMe B+ tree cluster without changing any SQL demonstrates which property?"
+      },
+      "sourceDigest": "sha256:d303f50cfe217e7be766446aa16976a3f43e44353e54b5ff9c2d6f6b8d54e7f0",
+      "targetTopicId": "dbms-architecture",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Adding an index, changing compression, or moving files to another device are typical examples."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-architecture:root:quiz:a5b8a295937b",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-architecture.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Adding a new attribute to the conceptual schema while external views continue running unchanged requires which mapping to absorb the change?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Logical data independence lives in the conceptual↔external mapping: views are redefined over the evolved schema so consumers never notice.",
+        "options": [
+          "Internal-to-conceptual mapping",
+          "Conceptual-to-external mapping",
+          "Storage manager buffer map",
+          "Query optimizer plan cache"
+        ],
+        "question": "Adding a new attribute to the conceptual schema while external views continue running unchanged requires which mapping to absorb the change?"
+      },
+      "sourceDigest": "sha256:73d0cb7a1f389ee376eb7b0b9ab0a42b32b06e62d54dd170513723a104060c50",
+      "targetTopicId": "dbms-architecture",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "An external-conceptual mapping translates a consumer view into conceptual entities and attributes."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-bplus-tree:bplustree:interview:0c859400fc8e",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-bplus-tree.json",
+      "sourceLocator": "/bplusTree/theoryData/interviewQA/2",
+      "sourceQuestion": "What is a Covered Query in B+ Tree indexing?",
+      "sourcePayload": {
+        "a": "A query is 'covered' when all SELECT and WHERE columns exist directly inside the secondary index keys. The database answers the query directly from the index leaf without performing a secondary lookup to the clustered table data page.",
+        "q": "What is a Covered Query in B+ Tree indexing?"
+      },
+      "sourceDigest": "sha256:7ae6286cae9e40ebaa87b118fa5910f96b59750990008f4122ac66c38312568e",
+      "targetTopicId": "dbms-indexing",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/BPlusTreeVisualizer.jsx",
+        "note": "B+ tree indexing is one of the 14 stateful engines the P3 triage keeps; its interaction materially teaches node splits and leaf-list traversal that a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-bplus-tree:bplustree:interview:a3b496ec6ed6",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-bplus-tree.json",
+      "sourceLocator": "/bplusTree/theoryData/interviewQA/0",
+      "sourceQuestion": "Why do relational databases use B+ Trees instead of Binary Search Trees (BST) or Red-Black Trees?",
+      "sourcePayload": {
+        "a": "Disk block access is the main bottleneck. BSTs have a low branching factor (fan-out of 2), requiring $O(\\log_2 N)$ disk seeks. A B+ Tree node matches the OS disk page size (4KB/16KB), giving a fan-out of 100+ keys per node, reducing tree height to 3 or 4 levels even for millions of rows.",
+        "q": "Why do relational databases use B+ Trees instead of Binary Search Trees (BST) or Red-Black Trees?"
+      },
+      "sourceDigest": "sha256:2baf0c9ef4f72423eb535daba1337c7c5b030967c47b2a9042951f3f4661dcb6",
+      "targetTopicId": "dbms-indexing",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/BPlusTreeVisualizer.jsx",
+        "note": "B+ tree indexing is one of the 14 stateful engines the P3 triage keeps; its interaction materially teaches node splits and leaf-list traversal that a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-bplus-tree:bplustree:interview:d282841dd858",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-bplus-tree.json",
+      "sourceLocator": "/bplusTree/theoryData/interviewQA/1",
+      "sourceQuestion": "What is the difference between a Clustered Index and a Secondary Non-Clustered Index?",
+      "sourcePayload": {
+        "a": "In InnoDB (MySQL), the Clustered Index stores full table row data inside the leaves of the primary key B+ Tree. A Secondary Index leaf stores only the Primary Key value, requiring a second B+ tree lookup ('bookmark lookup') to fetch full row data unless covered by an index.",
+        "q": "What is the difference between a Clustered Index and a Secondary Non-Clustered Index?"
+      },
+      "sourceDigest": "sha256:aed865752c6ef3ca922fe3ae9c5670d1fc62e909a1e06f845b5d1525c4d92e48",
+      "targetTopicId": "dbms-indexing",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/BPlusTreeVisualizer.jsx",
+        "note": "B+ tree indexing is one of the 14 stateful engines the P3 triage keeps; its interaction materially teaches node splits and leaf-list traversal that a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-bplus-tree:bplustree:quiz:2f178762a9e5",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-bplus-tree.json",
+      "sourceLocator": "/bplusTree/quizData/1",
+      "sourceQuestion": "Why are sequential random UUID v4 primary keys considered an anti-pattern for B+ Tree indexes in MySQL InnoDB?",
+      "sourcePayload": {
+        "answer": "UUID v4 values are completely random, causing inserts to hit arbitrary page locations across the B+ tree. This triggers constant leaf node splits, page fragmentation, and heavy disk I/O thrashing compared to monotonically increasing AUTO_INCREMENT or TSID/ULID keys.",
+        "difficulty": "Core Fundamental",
+        "question": "Why are sequential random UUID v4 primary keys considered an anti-pattern for B+ Tree indexes in MySQL InnoDB?"
+      },
+      "sourceDigest": "sha256:7fa368440fa92a13c4b6281d5865f534f5004fb52807aa028ee3ba2b928a56fc",
+      "targetTopicId": "dbms-indexing",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/BPlusTreeVisualizer.jsx",
+        "note": "B+ tree indexing is one of the 14 stateful engines the P3 triage keeps; its interaction materially teaches node splits and leaf-list traversal that a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-bplus-tree:bplustree:quiz:595bd7abf163",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-bplus-tree.json",
+      "sourceLocator": "/bplusTree/quizData/0",
+      "sourceQuestion": "Suppose a B+ Tree of order M = 4 has a leaf node containing 3 keys [10, 20, 30]. If we insert key 25, what happens to the leaf node?",
+      "sourcePayload": {
+        "answer": "Inserting 25 makes 4 keys [10, 20, 25, 30], which exceeds maxKeys (M-1 = 3). The leaf splits into two leaves: Left leaf [10, 20] and Right leaf [25, 30]. The key 25 (first key of the right leaf) is promoted upward into the parent internal node.",
+        "difficulty": "Core Fundamental",
+        "question": "Suppose a B+ Tree of order M = 4 has a leaf node containing 3 keys [10, 20, 30]. If we insert key 25, what happens to the leaf node?"
+      },
+      "sourceDigest": "sha256:eb1eb8ef27d517e96ec67ccfe83f2f6a786eacbe9ee572a26570155f75e19e7e",
+      "targetTopicId": "dbms-indexing",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/BPlusTreeVisualizer.jsx",
+        "note": "B+ tree indexing is one of the 14 stateful engines the P3 triage keeps; its interaction materially teaches node splits and leaf-list traversal that a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-bplus-tree:bplustree:quiz:ac771a2f3690",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-bplus-tree.json",
+      "sourceLocator": "/bplusTree/quizData/2",
+      "sourceQuestion": "How many disk page lookups are required for a 3-level B+ Tree with a root, internal layer, and leaf layer?",
+      "sourcePayload": {
+        "answer": "With a 3-level tree: 1 page read for Root + 1 page read for Internal Node + 1 page read for Leaf Node = 3 disk I/Os. If Root and Internal nodes are cached in memory (Buffer Pool), it requires only 1 physical disk read!",
+        "difficulty": "Core Fundamental",
+        "question": "How many disk page lookups are required for a 3-level B+ Tree with a root, internal layer, and leaf layer?"
+      },
+      "sourceDigest": "sha256:c38655c8aafbf4c2dd01e70ed57a41d2a6c23a469a403d58d937814e1b46f557",
+      "targetTopicId": "dbms-indexing",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/BPlusTreeVisualizer.jsx",
+        "note": "B+ tree indexing is one of the 14 stateful engines the P3 triage keeps; its interaction materially teaches node splits and leaf-list traversal that a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-concurrency:root:interview:26d7bb711be0",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-concurrency.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "What is the difference between Strict 2PL and Rigorous 2PL?",
+      "sourcePayload": {
+        "answer": "In Strict 2PL, all EXCLUSIVE (write) locks must be held until transaction commit/abort. In Rigorous 2PL, ALL locks (both Shared read locks AND Exclusive write locks) must be held until transaction commit/abort, guaranteeing serializability in commit order.",
+        "question": "What is the difference between Strict 2PL and Rigorous 2PL?"
+      },
+      "sourceDigest": "sha256:bb2a7e9e2620ed5accfaab9f71ce0aa29ea3f1243e6399bf597f4583e4019f60",
+      "targetTopicId": "concurrency-control",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/ConcurrencyControlVisualizer.jsx",
+        "note": "DBMS concurrency control is one of the 14 retained P3 engines; the lock-conflict simulation teaches blocking/deadlock timing a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-concurrency:root:interview:4277f47312e7",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-concurrency.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "How does Multi-Version Concurrency Control (MVCC) eliminate read-write blocking?",
+      "sourcePayload": {
+        "answer": "MVCC creates a new version of a row on every UPDATE and keeps historical versions in Undo logs. Readers read historical snapshot versions without acquiring read locks, allowing concurrent writers to write without blocking readers.",
+        "question": "How does Multi-Version Concurrency Control (MVCC) eliminate read-write blocking?"
+      },
+      "sourceDigest": "sha256:f9933a29b789c4bea91b9f3bdc79bd0054956044ff34bcac7318d55eb7e28ea7",
+      "targetTopicId": "concurrency-control",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/ConcurrencyControlVisualizer.jsx",
+        "note": "DBMS concurrency control is one of the 14 retained P3 engines; the lock-conflict simulation teaches blocking/deadlock timing a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-concurrency:root:quiz:906c6e8ba8c6",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-concurrency.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "Which concurrency control protocol holds all exclusive locks until transaction completion to prevent cascading aborts?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Strict 2PL holds exclusive write locks until COMMIT/ABORT, ensuring no transaction reads uncommitted dirty data.",
+        "options": [
+          "Basic 2PL",
+          "Strict 2PL",
+          "Timestamp Ordering",
+          "Thomas Write Rule"
+        ],
+        "question": "Which concurrency control protocol holds all exclusive locks until transaction completion to prevent cascading aborts?"
+      },
+      "sourceDigest": "sha256:0efaa7105949d94da5280cc2bee2695e7a210fda78db05b2ea42a9b886d79395",
+      "targetTopicId": "concurrency-control",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/ConcurrencyControlVisualizer.jsx",
+        "note": "DBMS concurrency control is one of the 14 retained P3 engines; the lock-conflict simulation teaches blocking/deadlock timing a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-concurrency:root:quiz:b1f88ee2d3c8",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-concurrency.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "In a Wait-For Graph (WFG), what condition indicates that a deadlock has occurred?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "A directed cycle (e.g. T1 -> T2 -> T1) in a Wait-For Graph represents a mutual resource dependency deadlock.",
+        "options": [
+          "The graph is bipartite",
+          "A directed cycle exists in the graph",
+          "All transactions are in WAITING state",
+          "The graph has disconnected components"
+        ],
+        "question": "In a Wait-For Graph (WFG), what condition indicates that a deadlock has occurred?"
+      },
+      "sourceDigest": "sha256:00167c887528a7128b318e5888fcf69ede3531d07d4952297815418269609978",
+      "targetTopicId": "concurrency-control",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/ConcurrencyControlVisualizer.jsx",
+        "note": "DBMS concurrency control is one of the 14 retained P3 engines; the lock-conflict simulation teaches blocking/deadlock timing a diagram cannot."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-distributed:root:interview:5563ba3f1e56",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-distributed.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "Why is 2-Phase Commit (2PC) considered a 'blocking' protocol?",
+      "sourcePayload": {
+        "answer": "If the Coordinator crashes after participants have voted VOTE_COMMIT but before sending GLOBAL_COMMIT, participants are in a PREPARED state and cannot unilaterally commit or abort because they do not know the coordinator's decision. They remain blocked holding locks indefinitely.",
+        "question": "Why is 2-Phase Commit (2PC) considered a 'blocking' protocol?"
+      },
+      "sourceDigest": "sha256:77c49589f1f6877bf16d6a3b4d8171f1da1fcd06fb17fa59684fc3e108353018",
+      "targetTopicId": "distributed-databases-cap",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "After durably voting yes, a participant cannot commit or abort without the coordinator's decision."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-distributed:root:interview:fa484a202318",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-distributed.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What is the PACELC theorem and how does it extend the CAP theorem?",
+      "sourcePayload": {
+        "answer": "PACELC states that IF there is a Partition (P), how does the system choose between Availability (A) and Consistency (C); ELSE (E), when the system is running normally without partitions, how does it choose between Latency (L) and Consistency (C)?",
+        "question": "What is the PACELC theorem and how does it extend the CAP theorem?"
+      },
+      "sourceDigest": "sha256:8498293bb6afda3c377b14df89fd3f2199feee8412735256f92a274ea758c75d",
+      "targetTopicId": "distributed-databases-cap",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "PACELC says Partition means Availability versus Consistency; Else means Latency versus Consistency."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-distributed:root:quiz:6fe207305f87",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-distributed.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "In 2-Phase Commit (2PC), what happens if even ONE participant votes ABORT during Phase 1?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "2PC requires unanimous approval. If any node votes ABORT, the coordinator must issue a GLOBAL_ABORT.",
+        "options": [
+          "The coordinator sends GLOBAL_COMMIT anyway",
+          "The coordinator broadcasts GLOBAL_ABORT to all nodes",
+          "The failing node is removed from cluster",
+          "The coordinator retries forever"
+        ],
+        "question": "In 2-Phase Commit (2PC), what happens if even ONE participant votes ABORT during Phase 1?"
+      },
+      "sourceDigest": "sha256:936a2b3657d1f89cc0180f942dea30abb53aefe2084da806fccddbd36ba7d0dd",
+      "targetTopicId": "distributed-databases-cap",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "The coordinator chooses global abort because commit requires unanimous yes votes."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-distributed:root:quiz:fbb40365389d",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-distributed.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "To guarantee strong consistency in a replica cluster of N=5 nodes, what is the minimum value for R + W?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Quorum requires R + W > N. For N=5, R + W must be at least 6 to guarantee an overlapping replica node.",
+        "options": [
+          "5",
+          "6",
+          "10",
+          "3"
+        ],
+        "question": "To guarantee strong consistency in a replica cluster of N=5 nodes, what is the minimum value for R + W?"
+      },
+      "sourceDigest": "sha256:8baba51eb70cbf61f95894d779a5e868a9dfb0579e4c28593dd42f1074c89b19",
+      "targetTopicId": "distributed-databases-cap",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "The minimum sum is 6 because $R + W > N$, not greater than or equal to $N$."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-er-model:root:quiz:5bb109cdc44d",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-er-model.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "What is the minimum number of relational tables required to represent a binary M:N relationship between two strong entities, each having one multivalued attribute?",
+      "sourcePayload": {
+        "correctAnswer": 3,
+        "explanation": "5 tables: 1 for Entity 1, 1 for Entity 1's multivalued attribute, 1 for Entity 2, 1 for Entity 2's multivalued attribute, and 1 junction table for the M:N relationship.",
+        "options": [
+          "2 tables",
+          "3 tables",
+          "4 tables",
+          "5 tables"
+        ],
+        "question": "What is the minimum number of relational tables required to represent a binary M:N relationship between two strong entities, each having one multivalued attribute?"
+      },
+      "sourceDigest": "sha256:36e0bf8e6638f184038c39a5ea5b2c2d579334b5a703dd6aab9f2ab5eed054e9",
+      "targetTopicId": "er-model",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "two entity relations, two multivalue relations, and one junction."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-er-model:root:quiz:f1caf26836cb",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-er-model.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "In a 1:N binary relationship between Department (1) and Doctor (N), where should the Foreign Key be placed?",
+      "sourcePayload": {
+        "correctAnswer": 1,
+        "explanation": "The foreign key is placed on the Many (N) side (Doctor table) referencing Department(dept_id). This ensures each doctor has exactly one scalar foreign key value without violating 1NF.",
+        "options": [
+          "On the 1-side (Department table)",
+          "On the N-side (Doctor table)",
+          "In a separate junction table",
+          "Both tables must contain foreign keys pointing to each other"
+        ],
+        "question": "In a 1:N binary relationship between Department (1) and Doctor (N), where should the Foreign Key be placed?"
+      },
+      "sourceDigest": "sha256:b527a1780cf5e8336e3d49e39ada557cf490ec9d57c7bce0cea972ad7ad51390",
+      "targetTopicId": "er-model",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Each many-side row associates with at most one one-side row, so one scalar foreign key represents the fact."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-fd:root:interview:85ff001c464b",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-fd.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What is a Minimal Canonical Cover (Fc) of a set of functional dependencies?",
+      "sourcePayload": {
+        "answer": "A Canonical Cover Fc is an equivalent minimal set of FDs such that: 1. Every right-hand side is a single attribute. 2. No dependency contains extraneous left-hand side attributes. 3. No dependency in Fc is redundant.",
+        "question": "What is a Minimal Canonical Cover (Fc) of a set of functional dependencies?"
+      },
+      "sourceDigest": "sha256:26fb5194b3b260ad71e1df4b8b1fe4148acda9a583b65e5bf0b982865c3dd881",
+      "targetTopicId": "functional-dependencies-keys",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/FunctionalDependencyVisualizer.jsx",
+        "note": "Functional dependencies is one of the 14 retained P3 engines; computing attribute closures interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-fd:root:interview:930fcf665c95",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-fd.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "What is the difference between a Prime Attribute and a Non-Prime Attribute?",
+      "sourcePayload": {
+        "answer": "A Prime Attribute is any attribute that is a member of AT LEAST ONE candidate key for the relation. A Non-Prime Attribute does not belong to any candidate key.",
+        "question": "What is the difference between a Prime Attribute and a Non-Prime Attribute?"
+      },
+      "sourceDigest": "sha256:2e04c3db7ba0c9e817c6184553c78172d1662f6c94f5c6897a90d9914b8560ab",
+      "targetTopicId": "functional-dependencies-keys",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/FunctionalDependencyVisualizer.jsx",
+        "note": "Functional dependencies is one of the 14 retained P3 engines; computing attribute closures interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-fd:root:quiz:50bcff24483a",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-fd.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "If attribute set X has closure (X)⁺ containing all attributes of relation R, what is X guaranteed to be?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Any attribute set whose closure covers all relation attributes is a Super Key (and a Candidate Key if it is minimal).",
+        "options": [
+          "Foreign Key",
+          "Super Key",
+          "Non-Prime Attribute",
+          "Alternate Key"
+        ],
+        "question": "If attribute set X has closure (X)⁺ containing all attributes of relation R, what is X guaranteed to be?"
+      },
+      "sourceDigest": "sha256:1e7d4cf55d98bd7e6d3e97eba8427e10d19dd3ab0512f2e4a0c4d86191429e56",
+      "targetTopicId": "functional-dependencies-keys",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/FunctionalDependencyVisualizer.jsx",
+        "note": "Functional dependencies is one of the 14 retained P3 engines; computing attribute closures interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-fd:root:quiz:db50b7731835",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-fd.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Which of the following is NOT one of Armstrong's primary axioms?",
+      "sourcePayload": {
+        "correct": 3,
+        "explanation": "The 3 fundamental Armstrong's Axioms are Reflexivity, Augmentation, and Transitivity. Composition/Union are derived secondary rules.",
+        "options": [
+          "Reflexivity",
+          "Augmentation",
+          "Transitivity",
+          "Composition"
+        ],
+        "question": "Which of the following is NOT one of Armstrong's primary axioms?"
+      },
+      "sourceDigest": "sha256:cceb0451fcb6e85c29f32f91d9c38bd29bafb09b0bf9f1110c0815c6af6e9242",
+      "targetTopicId": "functional-dependencies-keys",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/FunctionalDependencyVisualizer.jsx",
+        "note": "Functional dependencies is one of the 14 retained P3 engines; computing attribute closures interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-intro:root:quiz:20f69a21c31f",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-intro.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "In a traditional file system, two users concurrently updating an account balance leads to which anomaly?",
+      "sourcePayload": {
+        "correctAnswer": 1,
+        "explanation": "Without a centralized Lock Manager or MVCC, the second user's write overwrites the first user's update without incorporating it, causing the Lost Update anomaly.",
+        "options": [
+          "Phantom Read",
+          "Lost Update Anomaly",
+          "Dirty Read",
+          "Non-Repeatable Read"
+        ],
+        "question": "In a traditional file system, two users concurrently updating an account balance leads to which anomaly?"
+      },
+      "sourceDigest": "sha256:b8c635ecc665fcee715b5b1eda41b85f97310d83d734198e66aab5fd2a36c459",
+      "targetTopicId": "concurrency-control",
+      "disposition": "superseded",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Without coordination, two requests can both read the same old value and overwrite one another.",
+        "note": "dbms-introduction.md does not cover concurrency anomalies; the lost-update case is covered in depth in the concurrency-control lesson instead."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-intro:root:quiz:f05901b1de9b",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-intro.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "What is the primary advantage of Write-Ahead Logging (WAL) over direct in-place file system writes?",
+      "sourcePayload": {
+        "correctAnswer": 1,
+        "explanation": "WAL guarantees Durability and Atomicity by flushing sequential log changes to disk before dirty data pages in the buffer pool are written asynchronously.",
+        "options": [
+          "It eliminates the need for RAM cache memory.",
+          "It allows undo/redo crash recovery and converts random disk page writes into fast sequential log appends.",
+          "It replaces B+ Tree indexing completely.",
+          "It makes SQL queries run without query parsing."
+        ],
+        "question": "What is the primary advantage of Write-Ahead Logging (WAL) over direct in-place file system writes?"
+      },
+      "sourceDigest": "sha256:ab3604c3cfd350946145f4e973997291a4488e88d127b3240bcf7b6bc84f5152",
+      "targetTopicId": "dbms-introduction",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Write-ahead logging makes committed updates recoverable before dirty pages reach final files."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-normalization:root:interview:3228ea16a755",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-normalization.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "What are the 3 conditions for a decomposition of R into R1 and R2 to be Lossless?",
+      "sourcePayload": {
+        "answer": "A decomposition {R1, R2} is Lossless Join if and only if: 1. R1 ∪ R2 = R (all attributes preserved). 2. R1 ∩ R2 ≠ ∅ (common attributes exist). 3. (R1 ∩ R2) -> R1 OR (R1 ∩ R2) -> R2 holds in F+ (the common attribute set must be a Super Key for at least one sub-relation).",
+        "question": "What are the 3 conditions for a decomposition of R into R1 and R2 to be Lossless?"
+      },
+      "sourceDigest": "sha256:8a51eb7e0b61d79ec41f7262cf45e4fb6fb62d7e1af8ba1b88e982192a1dd6eb",
+      "targetTopicId": "database-normalization",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/NormalizationVisualizer.jsx",
+        "note": "Normalization is one of the 14 retained P3 engines; stepping through anomaly detection and decomposition interactively is the point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-normalization:root:interview:8dbd6499e19e",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-normalization.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "Why does 3NF allow X -> Y if Y is a Prime Attribute, whereas BCNF forbids it?",
+      "sourcePayload": {
+        "answer": "3NF permits Y to be a prime attribute to guarantee that every relation can be decomposed into 3NF while simultaneously preserving all functional dependencies without requiring inter-relation join validations.",
+        "question": "Why does 3NF allow X -> Y if Y is a Prime Attribute, whereas BCNF forbids it?"
+      },
+      "sourceDigest": "sha256:66e915343e7080472b8b7ebc61a8b903ecec04ddad2adad1ee0029b74380a37e",
+      "targetTopicId": "database-normalization",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/NormalizationVisualizer.jsx",
+        "note": "Normalization is one of the 14 retained P3 engines; stepping through anomaly detection and decomposition interactively is the point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-normalization:root:quiz:0021a6b37c99",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-normalization.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Which normal form guarantees both Lossless Join and Dependency Preservation in all possible relations?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "3NF is mathematically proven to always be achievable with both Lossless Join and Dependency Preservation.",
+        "options": [
+          "BCNF",
+          "3NF",
+          "4NF",
+          "5NF"
+        ],
+        "question": "Which normal form guarantees both Lossless Join and Dependency Preservation in all possible relations?"
+      },
+      "sourceDigest": "sha256:dc4287a1c8d04d36b97a02765c0dff7ffb1a9a17d5632ca1f44af24cf4ac4109",
+      "targetTopicId": "database-normalization",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/NormalizationVisualizer.jsx",
+        "note": "Normalization is one of the 14 retained P3 engines; stepping through anomaly detection and decomposition interactively is the point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-normalization:root:quiz:85025f3878b2",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-normalization.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "A relation is in 2NF if it is in 1NF and contains no:",
+      "sourcePayload": {
+        "correct": 0,
+        "explanation": "2NF forbids Partial Dependencies (non-prime attributes depending on a proper subset of a composite candidate key).",
+        "options": [
+          "Partial dependencies",
+          "Transitive dependencies",
+          "Multi-valued dependencies",
+          "Join dependencies"
+        ],
+        "question": "A relation is in 2NF if it is in 1NF and contains no:"
+      },
+      "sourceDigest": "sha256:8e8b8dfa148d8e45d8a7cc13712efd61547789edbb9fb7329c2be02551307725",
+      "targetTopicId": "database-normalization",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/NormalizationVisualizer.jsx",
+        "note": "Normalization is one of the 14 retained P3 engines; stepping through anomaly detection and decomposition interactively is the point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-query-optimization:root:interview:829a58573bfe",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-query-optimization.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What does EXPLAIN ANALYZE do that standard EXPLAIN does not?",
+      "sourcePayload": {
+        "answer": "Standard EXPLAIN only displays the estimated query plan and estimated costs from optimizer statistics. EXPLAIN ANALYZE actually executes the query on the database engine, outputting both estimated vs ACTUAL execution time and actual row counts per node.",
+        "question": "What does EXPLAIN ANALYZE do that standard EXPLAIN does not?"
+      },
+      "sourceDigest": "sha256:1b7b68959b6355dd654abcd99c43858701065ed8370a00bd985e8c610041e12e",
+      "targetTopicId": "query-optimization",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Plain `EXPLAIN` reports the estimated plan and costs without executing the query."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-query-optimization:root:interview:eaf233bd912e",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-query-optimization.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "What is Predicate Pushdown (Filter Pushdown) and why is it effective?",
+      "sourcePayload": {
+        "answer": "Predicate Pushdown moves Selection (σ) operations as close to physical table scan leaf nodes as possible. By filtering rows early, it drastically reduces the number of intermediate tuples that must be copied into memory buffers and joined.",
+        "question": "What is Predicate Pushdown (Filter Pushdown) and why is it effective?"
+      },
+      "sourceDigest": "sha256:eba4735bb7ab2e88f78783e10190cee612966372018a715687b3899a047c4f88",
+      "targetTopicId": "query-optimization",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Predicate pushdown moves a filter toward the base scan that supplies its referenced columns."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-query-optimization:root:quiz:265c78e2e50c",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-query-optimization.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "When is Sort-Merge Join typically preferred over Hash Join?",
+      "sourcePayload": {
+        "correct": 0,
+        "explanation": "If both inputs are already sorted on the join key (e.g. from clustered B+ Tree indexes), Sort-Merge Join avoids sorting and executes in linear O(M + N) time.",
+        "options": [
+          "When inputs are already sorted by the join key",
+          "When join keys are floating point numbers",
+          "When one table contains only 1 row",
+          "When there is no common attribute"
+        ],
+        "question": "When is Sort-Merge Join typically preferred over Hash Join?"
+      },
+      "sourceDigest": "sha256:f36ca91437b8ec541c5010e937454cc7fa1801127febb70e1a4a948de25b3221",
+      "targetTopicId": "query-optimization",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Sort-merge is attractive when both inputs already arrive ordered on the join key"
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-query-optimization:root:quiz:e1c60266f5ce",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-query-optimization.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "Which heuristic query optimization rule moves selection filters down closest to table scans?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Predicate Pushdown applies Selection (σ) filters immediately at the base table scan level to minimize intermediate tuple sizes.",
+        "options": [
+          "Projection Pushdown",
+          "Predicate Pushdown",
+          "Join Commutativity",
+          "Subquery Flattening"
+        ],
+        "question": "Which heuristic query optimization rule moves selection filters down closest to table scans?"
+      },
+      "sourceDigest": "sha256:f45406a5c4d1c768f9d4f86499aec344eabb5241e087c5fc034e067b02b4b468",
+      "targetTopicId": "query-optimization",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "moves a selection as close as legally possible to its table scan."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-relational-algebra:root:interview:098e46290efa",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-relational-algebra.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "Explain the Relational Algebra Division operator (R ÷ S).",
+      "sourcePayload": {
+        "answer": "Division R ÷ S finds all tuples in R that are paired with EVERY tuple in relation S. A classic SQL equivalent is 'Find students who have enrolled in ALL courses taught by Professor Smith' using correlated NOT EXISTS subqueries.",
+        "question": "Explain the Relational Algebra Division operator (R ÷ S)."
+      },
+      "sourceDigest": "sha256:ccc421aedc78ecb5207a8428f2defb94aa6b64eb9ecaf80ef7b06d0bb1efbd9c",
+      "targetTopicId": "relational-algebra-calculus",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/RelationalAlgebraVisualizer.jsx",
+        "note": "Relational algebra is one of the 14 retained P3 engines; executing operators over sample rows interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-relational-algebra:root:interview:97b4ff9799e5",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-relational-algebra.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "What is the difference between Theta Join, Equi-Join, and Natural Join?",
+      "sourcePayload": {
+        "answer": "Theta Join (⋈_θ) allows any general boolean condition (e.g. R.val > S.val). Equi-Join is a Theta Join specifically using equality comparison (=). Natural Join (⋈) is an Equi-Join that automatically equates all attributes with identical names in both relations and eliminates duplicate join columns from the result schema.",
+        "question": "What is the difference between Theta Join, Equi-Join, and Natural Join?"
+      },
+      "sourceDigest": "sha256:b7732670d2502beaf9bdf69e3aa26f2ebcea4de8bd43a9b736191d0949eca069",
+      "targetTopicId": "relational-algebra-calculus",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/RelationalAlgebraVisualizer.jsx",
+        "note": "Relational algebra is one of the 14 retained P3 engines; executing operators over sample rows interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-relational-algebra:root:quiz:4e3cacab8936",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-relational-algebra.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "What is the cardinality of the Cartesian Product of relation R (5 rows) and relation S (10 rows)?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Cartesian Product multiplies cardinalities: 5 × 10 = 50 rows.",
+        "options": [
+          "15 rows",
+          "50 rows",
+          "2 rows",
+          "0 rows"
+        ],
+        "question": "What is the cardinality of the Cartesian Product of relation R (5 rows) and relation S (10 rows)?"
+      },
+      "sourceDigest": "sha256:3c9825c77521d568d5f490a36042395e34c9247453792e8ec681cd0945dc8fec",
+      "targetTopicId": "relational-algebra-calculus",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/RelationalAlgebraVisualizer.jsx",
+        "note": "Relational algebra is one of the 14 retained P3 engines; executing operators over sample rows interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-relational-algebra:root:quiz:a4077a99407f",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-relational-algebra.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "Which relational algebra operation selects rows that satisfy a given boolean condition?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Selection (σ) acts as a horizontal filter on tuples based on a boolean predicate.",
+        "options": [
+          "Projection (π)",
+          "Selection (σ)",
+          "Cartesian Product (×)",
+          "Rename (ρ)"
+        ],
+        "question": "Which relational algebra operation selects rows that satisfy a given boolean condition?"
+      },
+      "sourceDigest": "sha256:0adfdc25103fe636681aed41745ddf6ed2f27e4a6a3779570688261212165e92",
+      "targetTopicId": "relational-algebra-calculus",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/dbms/RelationalAlgebraVisualizer.jsx",
+        "note": "Relational algebra is one of the 14 retained P3 engines; executing operators over sample rows interactively is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-storage:root:interview:d13a793ed202",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-storage.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What is an Inverted Index and where is it used?",
+      "sourcePayload": {
+        "answer": "An Inverted Index is a data structure mapping words/tokens to the list of documents and positions where they occur. It is the core storage foundation of search engines (Elasticsearch, Apache Lucene) and full-text database extensions.",
+        "question": "What is an Inverted Index and where is it used?"
+      },
+      "sourceDigest": "sha256:8896fbd2be1267fcf1b97459095bb3a75f43e712de6afafffdec8bee2639ae5a",
+      "targetTopicId": "storage-raid-indexing",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "An inverted index maps each normalized term to a postings list of documents or rows containing it."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-storage:root:interview:e2147f726b97",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-storage.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "How does RAID 5 reconstruct lost data when a single disk fails?",
+      "sourcePayload": {
+        "answer": "RAID 5 calculates parity P across data blocks using XOR: P = B1 ⊕ B2 ⊕ B3. When Disk 2 fails, its block B2 is reconstructed by XORing the surviving data blocks with the parity block: B2 = B1 ⊕ B3 ⊕ P.",
+        "question": "How does RAID 5 reconstruct lost data when a single disk fails?"
+      },
+      "sourceDigest": "sha256:9f823d9bc8bfde58e2d5be6a7590b9f04ca6caa237c301bdec957af0204e64ed",
+      "targetTopicId": "storage-raid-indexing",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "RAID 5 stores distributed parity computed as the XOR of data blocks in a stripe."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-storage:root:quiz:c5dc3bb40ea0",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-storage.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "How many disk failures can a RAID 5 array tolerate without data loss?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "RAID 5 uses single distributed parity (P), tolerating exactly 1 disk failure.",
+        "options": [
+          "0 disks",
+          "1 disk",
+          "2 disks",
+          "3 disks"
+        ],
+        "question": "How many disk failures can a RAID 5 array tolerate without data loss?"
+      },
+      "sourceDigest": "sha256:027817c3f8f475218f93ad40a0f292015dc242e12e4d052a94cf7f5bf9c4a27a",
+      "targetTopicId": "storage-raid-indexing",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "It tolerates exactly one unavailable member; another missing block removes enough information to reconstruct the stripe."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-storage:root:quiz:daa57a04a15c",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-storage.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Which index type is best suited for low-cardinality attributes in read-heavy OLAP systems?",
+      "sourcePayload": {
+        "correct": 2,
+        "explanation": "Bitmap Indexes represent low-cardinality distinct values with compact bit vectors that can be combined in CPU registers.",
+        "options": [
+          "B+ Tree Index",
+          "Hash Index",
+          "Bitmap Index",
+          "Clustered Primary Index"
+        ],
+        "question": "Which index type is best suited for low-cardinality attributes in read-heavy OLAP systems?"
+      },
+      "sourceDigest": "sha256:be0bc1e4b702f2f28dddffbc5267772016fcf2f9f910846c95cb9e1fbb1eb242",
+      "targetTopicId": "storage-raid-indexing",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Choose a bitmap representation for read-heavy analytical data when categorical predicates are combined across many rows."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-transactions-acid:root:interview:1e8b57976382",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-transactions-acid.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "Why must the log be written ahead of the data pages (WAL rule)?",
+      "sourcePayload": {
+        "answer": "Because the log is the only source of truth for recovery. If a dirty page reached disk before its log record and the system crashed, there would be neither the old image nor a redo record — making both UNDO and REDO impossible and breaking Atomicity/Durability.",
+        "question": "Why must the log be written ahead of the data pages (WAL rule)?"
+      },
+      "sourceDigest": "sha256:dae38b07b1175bf3314d2a2996f6bb0ef9440f1df2fc88067c09d0a671172fa4",
+      "targetTopicId": "transactions-acid",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Log records describing a database change MUST be flushed to non-volatile storage BEFORE the corresponding dirty data page in the buffer pool is permitted to overwrite disk storage."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-transactions-acid:root:interview:51ef3c150fa5",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-transactions-acid.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What are the three phases of ARIES and why does REDO repeat history including loser transactions?",
+      "sourcePayload": {
+        "answer": "ANALYSIS rebuilds the Dirty Page Table and winner/loser sets from the last checkpoint; REDO replays ALL operations after the checkpoint in LSN order to restore the exact crash state; UNDO then rolls back losers using idempotent CLRs. Repeating history is required because partial, non-idempotent page states cannot be undone directly without first restoring the crash-time state.",
+        "question": "What are the three phases of ARIES and why does REDO repeat history including loser transactions?"
+      },
+      "sourceDigest": "sha256:856939057f09692f2adb23bfbf7a4afb212db6a28eda4ac3fa102a0842f835e3",
+      "targetTopicId": "transactions-acid",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "At the moment of a crash, data pages on disk may contain an arbitrary mixture of older and newer changes due to background buffer page eviction."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-transactions-acid:root:interview:ff72ca61ded1",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-transactions-acid.json",
+      "sourceLocator": "/theoryData/interviewQA/2",
+      "sourceQuestion": "What is the difference between a Dirty Read and a Phantom Read?",
+      "sourcePayload": {
+        "answer": "A Dirty Read reads uncommitted values of another transaction (violates Isolation and risks cascading aborts); a Phantom Read re-executes a range predicate and sees newly inserted rows committed by another transaction — prevented only by range locks or serializable isolation.",
+        "question": "What is the difference between a Dirty Read and a Phantom Read?"
+      },
+      "sourceDigest": "sha256:bf19bd52a3e08dfb4b2eb0073861eb8b12521822a5bf987eacb36c85b7d9d672",
+      "targetTopicId": "transactions-acid",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Reading uncommitted modifications written by another concurrent transaction."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-transactions-acid:root:quiz:16f4d892e992",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-transactions-acid.json",
+      "sourceLocator": "/quizData/2",
+      "sourceQuestion": "During which ARIES phase are Compensation Log Records (CLRs) written?",
+      "sourcePayload": {
+        "correct": 2,
+        "explanation": "CLRs are emitted during the UNDO phase while rolling back loser transactions; they make repeated crash recoveries idempotent.",
+        "options": [
+          "Analysis",
+          "Redo",
+          "Undo",
+          "Checkpoint"
+        ],
+        "question": "During which ARIES phase are Compensation Log Records (CLRs) written?"
+      },
+      "sourceDigest": "sha256:c580357bbc7a1db788541ba43d4e75f9e3c45f29560e17ccdcbc448d419efa85",
+      "targetTopicId": "transactions-acid",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Compensation Log Records are redo-only log entries written during the ARIES Undo phase as the engine reverses the changes of aborted loser transactions."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-transactions-acid:root:quiz:4acd99ff6bb9",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-transactions-acid.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "According to the Write-Ahead Logging protocol, what must be true before a dirty data page is written to disk?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "WAL requires every log record affecting a page (including <commit> for durability) to be on stable storage before the page itself is flushed.",
+        "options": [
+          "The checkpoint record must be deleted",
+          "All log records describing that page's changes must already be flushed",
+          "The transaction must be aborted",
+          "The buffer pool must be empty"
+        ],
+        "question": "According to the Write-Ahead Logging protocol, what must be true before a dirty data page is written to disk?"
+      },
+      "sourceDigest": "sha256:d07fb011692848b058d287a5bbf8d7cb1920dc6cdf596f3444153188e975161b",
+      "targetTopicId": "transactions-acid",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Furthermore, the transaction's `<COMMIT>` log record must be flushed before the commit call returns success to the client application."
+      }
+    },
+    {
+      "id": "legacy-json:dbms-concepts-transactions-acid:root:quiz:e296148a8b37",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/dbms-concepts-transactions-acid.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "In which transaction state have all statements executed but their effects still live only in the buffer pool?",
+      "sourcePayload": {
+        "correct": 1,
+        "explanation": "Partially Committed means the final statement finished but updates are not yet durable — the <commit> log record has not been flushed, so a crash would still roll the work back.",
+        "options": [
+          "Active",
+          "Partially Committed",
+          "Committed",
+          "Aborted"
+        ],
+        "question": "In which transaction state have all statements executed but their effects still live only in the buffer pool?"
+      },
+      "sourceDigest": "sha256:66bb3e6ed725bea82363e5773d85be4751cc40c241ebf82035418746f59f1225",
+      "targetTopicId": "transactions-acid",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "All queries have executed in volatile memory buffers, but the `<COMMIT>` log record has not yet been physically flushed and acknowledged by non-volatile storage via `fsync`."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:g1gc:interview:edf3d2b03520",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/g1Gc/theoryData/interviewQA/0",
+      "sourceQuestion": "How does G1GC select which regions to include in a Collection Set (CSet)?",
+      "sourcePayload": {
+        "a": "During the Concurrent Marking phase, G1 calculates the liveness ratio (percentage of live vs dead objects) for all Old regions. It sorts regions by reclaimable space efficiency and selects the highest-garbage regions that can be evacuated within the -XX:MaxGCPauseMillis goal.",
+        "q": "How does G1GC select which regions to include in a Collection Set (CSet)?"
+      },
+      "sourceDigest": "sha256:4d4f6a4dce0874a2d739f7006fe86acef42a79f1a11a01d9964a21e01dcb0e88",
+      "targetTopicId": "jvm-gc",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/JvmMemoryVisualizer.jsx",
+        "note": "JVM/GC is one of the 14 retained P3 engines; watching G1 region collection cycles live is the teaching point a diagram cannot give."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:g1gc:quiz:d7a688de4e37",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/g1Gc/quizData/0",
+      "sourceQuestion": "What is the purpose of Remembered Sets (RSets) in G1GC?",
+      "sourcePayload": {
+        "answer": "Remembered Sets track cross-region references (e.g., an Old Gen region object referencing a Young Gen region object). This allows G1 to collect a Young region without having to scan the entire Old Generation heap.",
+        "difficulty": "Core Fundamental",
+        "question": "What is the purpose of Remembered Sets (RSets) in G1GC?"
+      },
+      "sourceDigest": "sha256:577b21605c75959f9e13142f00ab5118137d05934b87e70a5973b9ca4c628f43",
+      "targetTopicId": "jvm-gc",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/JvmMemoryVisualizer.jsx",
+        "note": "JVM/GC is one of the 14 retained P3 engines; watching G1 region collection cycles live is the teaching point a diagram cannot give."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:hashmap:interview:bc2d7b849f5f",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/hashMap/theoryData/interviewQA/0",
+      "sourceQuestion": "Why must the HashMap capacity always be a power of 2?",
+      "sourcePayload": {
+        "a": "When capacity n is a power of 2, the modulo operation hash % n can be calculated using fast bitwise AND: (n - 1) & hash. This distributes bits uniformly across bucket indices.",
+        "q": "Why must the HashMap capacity always be a power of 2?"
+      },
+      "sourceDigest": "sha256:78c842e2b8a7729de8170a173027f8097c749a70aafe9c68207109188d7360cc",
+      "targetTopicId": "java-hashmap-internals",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/HashMapVisualizer.jsx",
+        "note": "HashMap bucket internals is one of the 14 retained P3 engines; watching treeification and rehashing live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:hashmap:quiz:604ae73164db",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/hashMap/quizData/0",
+      "sourceQuestion": "What happens when a HashMap bucket reaches 8 elements but the total capacity is only 32?",
+      "sourcePayload": {
+        "answer": "HashMap requires BOTH bucket size >= 8 AND total capacity >= 64 (MIN_TREEIFY_CAPACITY) to treeify. If capacity is < 64, HashMap triggers an array resize/rehash instead of converting the list to a tree.",
+        "difficulty": "Core Fundamental",
+        "question": "What happens when a HashMap bucket reaches 8 elements but the total capacity is only 32?"
+      },
+      "sourceDigest": "sha256:c5b8c8f0b13014aca709c884c88e19f06912111c463de95888cdc19a4c153d9f",
+      "targetTopicId": "java-hashmap-internals",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/HashMapVisualizer.jsx",
+        "note": "HashMap bucket internals is one of the 14 retained P3 engines; watching treeification and rehashing live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:jvmmemory:interview:39158025b8a0",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/jvmMemory/theoryData/interviewQA/0",
+      "sourceQuestion": "What is the Weak Generational Hypothesis and how does JVM memory layout leverage it?",
+      "sourcePayload": {
+        "a": "The Weak Generational Hypothesis states that most objects die shortly after creation. JVM layout separates the heap into Young Gen (Eden + Survivor S0/S1) and Old Gen. Minor GC only scans Young Gen, making garbage collection fast because only a tiny fraction of live objects need copying.",
+        "q": "What is the Weak Generational Hypothesis and how does JVM memory layout leverage it?"
+      },
+      "sourceDigest": "sha256:132e80bf6e2d2469761587a1949713eddd3b8b2d3ac695224b44482d899b9388",
+      "targetTopicId": "jvm-gc",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/JvmMemoryVisualizer.jsx",
+        "note": "JVM/GC is one of the 14 retained P3 engines; watching heap generation promotion live is the teaching point a diagram cannot give."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:jvmmemory:interview:5d40ebd4cf02",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/jvmMemory/theoryData/interviewQA/1",
+      "sourceQuestion": "How does object promotion from Young Gen to Old Gen work?",
+      "sourcePayload": {
+        "a": "Each time an object survives a Minor GC, its age counter increments in the Object Header (mark word). When its age reaches -XX:MaxTenuringThreshold (default up to 15), or when survivor space memory exceeds -XX:TargetSurvivorRatio (Dynamic Tenuring Threshold), it is promoted to Old Gen.",
+        "q": "How does object promotion from Young Gen to Old Gen work?"
+      },
+      "sourceDigest": "sha256:21c43159b88ccd2cab3fa22ea6c157b8e54e603ba85a13038335851833aa751d",
+      "targetTopicId": "jvm-gc",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/JvmMemoryVisualizer.jsx",
+        "note": "JVM/GC is one of the 14 retained P3 engines; watching heap generation promotion live is the teaching point a diagram cannot give."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:jvmmemory:quiz:70d2a0ed0f20",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/jvmMemory/quizData/1",
+      "sourceQuestion": "What happens when an object is too large to fit into the Eden space during initial allocation?",
+      "sourcePayload": {
+        "answer": "If an object size exceeds the available Eden space or the Large Object Threshold, the JVM bypasses Eden and Survivor spaces completely and allocates the large object directly inside the Old Generation.",
+        "difficulty": "Core Fundamental",
+        "question": "What happens when an object is too large to fit into the Eden space during initial allocation?"
+      },
+      "sourceDigest": "sha256:7d973251f15521e094489691833252cead18f9d06f4c538dee8f8f199f373ece",
+      "targetTopicId": "jvm-gc",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/JvmMemoryVisualizer.jsx",
+        "note": "JVM/GC is one of the 14 retained P3 engines; watching heap generation promotion live is the teaching point a diagram cannot give."
+      }
+    },
+    {
+      "id": "legacy-json:java-concepts:jvmmemory:quiz:c0a0698bd332",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-concepts.json",
+      "sourceLocator": "/jvmMemory/quizData/0",
+      "sourceQuestion": "Where are local primitive variables stored versus objects created with new MyObject() in Java?",
+      "sourcePayload": {
+        "answer": "Local primitive variables (e.g., int x = 5) and object reference variables are stored on the Thread Stack Frame. The actual object instance data created with new is allocated inside Heap memory (specifically Eden space initially).",
+        "difficulty": "Core Fundamental",
+        "question": "Where are local primitive variables stored versus objects created with new MyObject() in Java?"
+      },
+      "sourceDigest": "sha256:f11fd67df0286ff5e8bc55dc834903677e5f415c1bb030d3dc7dfe782d2dbd23",
+      "targetTopicId": "jvm-gc",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/JvmMemoryVisualizer.jsx",
+        "note": "JVM/GC is one of the 14 retained P3 engines; watching heap generation promotion live is the teaching point a diagram cannot give."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-collections:root:interview:eab1b13ac239",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-collections.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "How does PriorityQueue implement a Min-Heap without using explicit tree node pointers?",
+      "sourcePayload": {
+        "a": "It uses an array representation of a complete binary tree where for an element at index k: Parent is at (k - 1) >>> 1, Left child is at 2*k + 1, and Right child is at 2*k + 2. Insertion uses siftUp() and removal of the root uses siftDown(), maintaining the heap property in O(log N) time.",
+        "q": "How does PriorityQueue implement a Min-Heap without using explicit tree node pointers?"
+      },
+      "sourceDigest": "sha256:12065362e977330742cde87a832e4f8119bdec967579dde1524083bf2b828d22",
+      "targetTopicId": "java-collections-framework",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "The invariant says each parent precedes or equals each child under the comparator."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-collections:root:interview:fac18dd56034",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-collections.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "Why does ArrayDeque outperform LinkedList for Queue and Stack use cases?",
+      "sourcePayload": {
+        "a": "1) ArrayDeque is backed by a contiguous circular array, which has excellent CPU cache locality and generates zero node allocations during push/pop. 2) LinkedList allocates a 40-byte Node object for every single element, causing memory fragmentation and GC overhead.",
+        "q": "Why does ArrayDeque outperform LinkedList for Queue and Stack use cases?"
+      },
+      "sourceDigest": "sha256:82d60773386aa88d0085ffac12572d3cc7859ab7602aea4afb6f6fe011a25b25",
+      "targetTopicId": "java-collections-framework",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "This representation avoids the per-element node allocation that makes linked structures expensive in many workloads."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-collections:root:quiz:4315b1def3a1",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-collections.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "What is the growth formula for an ArrayList when its capacity is exceeded in OpenJDK?",
+      "sourcePayload": {
+        "answer": "oldCapacity + (oldCapacity >> 1), which equals approximately 1.5x the previous capacity.",
+        "difficulty": "Core Fundamental",
+        "question": "What is the growth formula for an ArrayList when its capacity is exceeded in OpenJDK?"
+      },
+      "sourceDigest": "sha256:65d5f7548165d01252739c5e8e3432c021ab67537561951012c50ae6b8ad7c60",
+      "targetTopicId": "java-collections-framework",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Current OpenJDK implementations grow approximately with `oldCapacity + (oldCapacity >> 1)`."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-collections:root:quiz:feae435b05d8",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-collections.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Does HashSet allow duplicate elements or multiple null values?",
+      "sourcePayload": {
+        "answer": "No duplicates are allowed. HashSet permits at most ONE null value (stored at bucket 0 of the underlying HashMap).",
+        "difficulty": "Core Fundamental",
+        "question": "Does HashSet allow duplicate elements or multiple null values?"
+      },
+      "sourceDigest": "sha256:d6a702d15d857d8d7ef6b6fe72927fe5907cd3006da2d9b75a419cf3d4e43220",
+      "targetTopicId": "java-collections-framework",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "`ArrayList` and `HashSet` permit null in normal use, with a `HashSet` allowing at most one null member."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-execution:javaexecution:interview:a27b1cce5dbd",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-execution.json",
+      "sourceLocator": "/javaExecution/theoryData/interviewQA/0",
+      "sourceQuestion": "Explain the ClassLoader Parent Delegation Model in Java.",
+      "sourcePayload": {
+        "a": "When a ClassLoader receives a request to load a class, it delegates the request up to its parent ClassLoader first before attempting to load the class itself. This prevents untrusted code from overriding core Java API classes like java.lang.Object.",
+        "q": "Explain the ClassLoader Parent Delegation Model in Java."
+      },
+      "sourceDigest": "sha256:2a03e8ed6206813f228d63c568f352ef9a50b1a3ff0c7a9dc2c8ef99363c4812",
+      "targetTopicId": "java-execution-pipeline",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "A normal class loader asks its parent to load a class before searching its own locations."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-execution:javaexecution:quiz:27590b96ed98",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-execution.json",
+      "sourceLocator": "/javaExecution/quizData/0",
+      "sourceQuestion": "Which ClassLoader is responsible for loading core Java runtime classes like java.lang.String?",
+      "sourcePayload": {
+        "answer": "Bootstrap ClassLoader (written in C/C++ native code).",
+        "difficulty": "Core Fundamental",
+        "question": "Which ClassLoader is responsible for loading core Java runtime classes like java.lang.String?"
+      },
+      "sourceDigest": "sha256:232e842f2b6c198a14415d628856618d9d71960296165617a01207a069a1c9fb",
+      "targetTopicId": "java-execution-pipeline",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "The bootstrap loader provides core platform classes such as `java.lang.String` from runtime modules."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-execution:javaexecution:quiz:eabb6b8c9fc9",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-execution.json",
+      "sourceLocator": "/javaExecution/quizData/1",
+      "sourceQuestion": "What is the primary role of the JIT (Just-In-Time) Compiler in the JVM?",
+      "sourcePayload": {
+        "answer": "To compile frequently executed bytecode (hotspots) into native CPU machine code to achieve high runtime performance.",
+        "difficulty": "Core Fundamental",
+        "question": "What is the primary role of the JIT (Just-In-Time) Compiler in the JVM?"
+      },
+      "sourceDigest": "sha256:194db7bf6c9a9d546fba687f3ffcabf8f2ebc266d58c1a050037baa013b9193a",
+      "targetTopicId": "java-execution-pipeline",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "HotSpot uses tiered compilation: lower-tier compilation produces native code quickly, while higher-tier compilation spends more analysis effort on repeatedly hot methods and loops."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-functional:root:interview:0c1b152fc5fa",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-functional.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "Why must local variables referenced inside a lambda expression be final or effectively final?",
+      "sourcePayload": {
+        "a": "Because local variables reside on the Thread Stack (which is destroyed upon method return), while lambdas can outlive the enclosing method (e.g. executed asynchronously on another thread). Java captures a copy of the variable's value onto the heap; requiring invariance prevents race conditions and value inconsistency between the stack and the heap copy.",
+        "q": "Why must local variables referenced inside a lambda expression be final or effectively final?"
+      },
+      "sourceDigest": "sha256:3f9e5e346df14afd36984e3f67fcd7f4d702486169ac75f42787166ce0a43c4a",
+      "targetTopicId": "java-functional-lambdas",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "A captured local variable must be final or effectively final."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-functional:root:interview:50c15edc9598",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-functional.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "How does invokedynamic differ from traditional invokevirtual / invokespecial opcodes?",
+      "sourcePayload": {
+        "a": "Traditional opcodes resolve method dispatch based on static class symbols at compile/link time. invokedynamic decouples the call site from the target method, allowing a user-defined bootstrap method (BootstrapMethod, e.g. LambdaMetafactory) to dynamically determine and link the CallSite at runtime.",
+        "q": "How does invokedynamic differ from traditional invokevirtual / invokespecial opcodes?"
+      },
+      "sourceDigest": "sha256:1053f272770b7be51826fae3c59e9957848a36c442fb46e42c29f60f10f73ec2",
+      "targetTopicId": "java-functional-lambdas",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "`javac` usually lowers a lambda body to a synthetic method and emits an `invokedynamic` instruction at the capture site."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-functional:root:quiz:99c3014eb151",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-functional.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "Can an interface with 1 abstract method and 3 default methods be marked with @FunctionalInterface?",
+      "sourcePayload": {
+        "answer": "Yes! @FunctionalInterface requires exactly one SINGLE ABSTRACT METHOD (SAM). It can contain any number of default or static methods.",
+        "difficulty": "Core Fundamental",
+        "question": "Can an interface with 1 abstract method and 3 default methods be marked with @FunctionalInterface?"
+      },
+      "sourceDigest": "sha256:3e74f4f38465f8e3f51c479407a620c5800922100a1ff9e014efdc0c72659d6a",
+      "targetTopicId": "java-functional-lambdas",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Yes, because the SAM rule counts abstract obligations, not methods with implementations."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-functional:root:quiz:ba316169e5f6",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-functional.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Does compiling a Java class containing 5 lambda expressions produce 5 additional .class files on disk?",
+      "sourcePayload": {
+        "answer": "No. Unlike anonymous inner classes (which generate OuterClass$1.class, OuterClass$2.class, etc.), lambdas are compiled into synthetic private methods inside the same class and linked at runtime via invokedynamic.",
+        "difficulty": "Intermediate",
+        "question": "Does compiling a Java class containing 5 lambda expressions produce 5 additional .class files on disk?"
+      },
+      "sourceDigest": "sha256:f485aa6c0b82055d943b92d1ff2aad30e7e09748817a70e8ced3cd45c4183aef",
+      "targetTopicId": "java-functional-lambdas",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "A lambda does not require one extra class file per expression on disk."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-generics:root:interview:7614d59f8042",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-generics.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What is a Synthetic Bridge Method in Java Generics?",
+      "sourcePayload": {
+        "a": "When a generic class overrides a method from a parameterized superclass/interface, Type Erasure changes the superclass method signature to `method(Object)`. The compiler automatically injects a synthetic 'bridge method' with the `Object` signature in the subclass that delegates to the specialized typed method, preserving polymorphic overriding.",
+        "q": "What is a Synthetic Bridge Method in Java Generics?"
+      },
+      "sourceDigest": "sha256:710bd0c7e27a31992063c27dd713b595eea020a190daab785d389809fc8934f6",
+      "targetTopicId": "java-generics",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "A bridge method is compiler-generated when erasure would otherwise stop a specialized method from overriding an erased inherited signature."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-generics:root:interview:fe84ada92716",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-generics.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "What is the difference between `List<Object>` and `List<?>` (Unbounded Wildcard)?",
+      "sourcePayload": {
+        "a": "`List<Object>` can only accept an exact `List<Object>` (it cannot accept `List<String>`). `List<?>` is an unbounded wildcard that can hold a reference to a list of ANY type (`List<String>`, `List<Integer>`, etc.), but elements read from it are typed as `Object` and no elements (except null) can be added.",
+        "q": "What is the difference between `List<Object>` and `List<?>` (Unbounded Wildcard)?"
+      },
+      "sourceDigest": "sha256:d46d6080d6860dabc1b04897f018d4357ac239df279b522913c240df6bedba5f",
+      "targetTopicId": "java-generics",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "`List<Object>` is exactly a list declared to hold objects and accepts arbitrary reference values."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-generics:root:quiz:7e392eba747b",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-generics.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "If you have `List<? extends Number> list`, can you execute `list.add(10)`?",
+      "sourcePayload": {
+        "answer": "No! `? extends Number` represents an unknown subtype of Number (e.g. `List<Double>`). Adding an Integer (10) would violate type safety, so the compiler prohibits adding anything other than null.",
+        "difficulty": "Core Fundamental",
+        "question": "If you have `List<? extends Number> list`, can you execute `list.add(10)`?"
+      },
+      "sourceDigest": "sha256:17845025375f1724cec672ab99a2ce654222aae6036fde2d9074a54a04fa07e2",
+      "targetTopicId": "java-generics",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "The hidden type might be `Double`, `Long`, or another subtype of `Number`, not `Integer`."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-generics:root:quiz:fb2e5845480c",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-generics.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Are generic type parameters available at runtime via standard object inspection (e.g., `list.getClass()`)?",
+      "sourcePayload": {
+        "answer": "No. Due to Type Erasure, `ArrayList<String>.class` and `ArrayList<Integer>.class` are both erased to `ArrayList.class` at runtime.",
+        "difficulty": "Intermediate",
+        "question": "Are generic type parameters available at runtime via standard object inspection (e.g., `list.getClass()`)?"
+      },
+      "sourceDigest": "sha256:2d1144eb5eed2f984b1e46dbecf155686557865b6ea12fb9f5b705f00c2a1f9e",
+      "targetTopicId": "java-generics",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "`List<String>` is not reifiable because its element argument disappears from an instance's runtime class."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-memory:javamemory:interview:2137a49f3a5a",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-memory.json",
+      "sourceLocator": "/javaMemory/theoryData/interviewQA/0",
+      "sourceQuestion": "Is Java Pass-by-Value or Pass-by-Reference?",
+      "sourcePayload": {
+        "a": "Java is strictly PASS-BY-VALUE. When passing an object reference to a method, Java passes a COPY of the 64-bit reference pointer address. Modifying object fields affects the shared Heap object, but reassigning the reference inside the method does not change the caller's reference variable.",
+        "q": "Is Java Pass-by-Value or Pass-by-Reference?"
+      },
+      "sourceDigest": "sha256:f1dc07380c39e3b13164a6c43cc0acbd21ad356a04f92b3d2227e35f89b51d60",
+      "targetTopicId": "java-memory-model",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Java is always pass-by-value. Passing an object expression copies its reference value into the\ncallee's parameter, so both variables initially identify the same object."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-memory:javamemory:quiz:0deb0d64ed30",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-memory.json",
+      "sourceLocator": "/javaMemory/quizData/1",
+      "sourceQuestion": "If a method receives `User u` and executes `u = new User(\"Bob\")`, does the caller's `user` variable change?",
+      "sourcePayload": {
+        "answer": "NO! Because Java passes a copy of the reference pointer, reassigning `u` only points the local stack copy to a new object on the Heap. The caller's `user` variable still points to the original object.",
+        "difficulty": "Core Fundamental",
+        "question": "If a method receives `User u` and executes `u = new User(\"Bob\")`, does the caller's `user` variable change?"
+      },
+      "sourceDigest": "sha256:87dc0472b24db56a9beab9007d13c70c75be85d00992714541ccf78209083aab",
+      "targetTopicId": "java-memory-model",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Reassigning that parameter\ncannot redirect the caller's variable because the two variables are different storage locations."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-memory:javamemory:quiz:9e2307baeb90",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-memory.json",
+      "sourceLocator": "/javaMemory/quizData/0",
+      "sourceQuestion": "What happens to local primitive variables declared inside a method when the method finishes executing?",
+      "sourcePayload": {
+        "answer": "Their containing Stack Frame is instantly popped and deallocated from CPU stack memory without needing Garbage Collection.",
+        "difficulty": "Core Fundamental",
+        "question": "What happens to local primitive variables declared inside a method when the method finishes executing?"
+      },
+      "sourceDigest": "sha256:d22f2b671b553c73d5010829b873520b5dded1a0741ba717bcddd7943af9dd16",
+      "targetTopicId": "java-memory-model",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Their containing stack frame is popped, so those local-variable slots cease to exist immediately."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-oop:javaoop:interview:3f2d33726eff",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-oop.json",
+      "sourceLocator": "/javaOop/theoryData/interviewQA/0",
+      "sourceQuestion": "How does the JVM execute polymorphic method calls at runtime?",
+      "sourcePayload": {
+        "a": "The JVM bytecode instruction `invokevirtual` reads the object's class metadata pointer in the object header on the Heap, navigates to the class's Virtual Method Table (`vtable`) in Metaspace, and jumps to the exact method address stored at that slot index.",
+        "q": "How does the JVM execute polymorphic method calls at runtime?"
+      },
+      "sourceDigest": "sha256:f61ac43d9737e61734b0e84f81684b281df8e187f95fbd647fb5d82f363f342c",
+      "targetTopicId": "java-oop-pillars",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "When the JVM encounters an `invokevirtual` bytecode instruction:"
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-oop:javaoop:quiz:5572a6d7bb74",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-oop.json",
+      "sourceLocator": "/javaOop/quizData/0",
+      "sourceQuestion": "Can `static` or `private` methods be overridden in Java subclasses?",
+      "sourcePayload": {
+        "answer": "NO! `static` methods belong to the class and are resolved at compile-time (`invokestatic`). `private` methods are hidden from subclasses (`invokespecial`). Neither uses the `vtable`.",
+        "difficulty": "Core Fundamental",
+        "question": "Can `static` or `private` methods be overridden in Java subclasses?"
+      },
+      "sourceDigest": "sha256:07fcedad136498a7f9cd4fc83bb9fd183ccdfd97fcdd2905285735cdf9311494",
+      "targetTopicId": "java-oop-pillars",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "`private`: Not visible to subclasses; thus cannot be overridden."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-oop:javaoop:quiz:95084e9921b0",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-oop.json",
+      "sourceLocator": "/javaOop/quizData/1",
+      "sourceQuestion": "What is the key difference between Method Overloading and Method Overriding?",
+      "sourcePayload": {
+        "answer": "Overloading occurs within the SAME class with different parameter signatures resolved at COMPILE-TIME. Overriding occurs across SUBCLASSES with identical method signatures resolved at RUNTIME via the vtable.",
+        "difficulty": "Core Fundamental",
+        "question": "What is the key difference between Method Overloading and Method Overriding?"
+      },
+      "sourceDigest": "sha256:49803d9c3207f621764bfcf2fe27be4ece20d7f9d8f40147864702a8025edb89",
+      "targetTopicId": "java-oop-pillars",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Overloading chooses among methods with different parameter lists at compile time."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-static-records:root:interview:540d33559ad6",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-static-records.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What is the difference between a canonical constructor and a compact constructor in Java Records?",
+      "sourcePayload": {
+        "a": "A canonical constructor explicitly declares all record components `(id, balance)`. A compact constructor omits the parameter list entirely `public Account { ... }` and is used solely for parameter validation and normalization before implicit field assignment.",
+        "q": "What is the difference between a canonical constructor and a compact constructor in Java Records?"
+      },
+      "sourceDigest": "sha256:1db0aaf27d783d87cc616d346789528e4716fd42fb0f932ac86bfb2ed6f0ef2e",
+      "targetTopicId": "java-static-final-records",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "A canonical constructor declares the complete component parameter list and explicitly assigns the corresponding fields."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-static-records:root:interview:88e609d228e1",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-static-records.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "Why is String immutable and final in Java?",
+      "sourcePayload": {
+        "a": "1) Security (Strings are used for network sockets, class loading paths, and DB URLs; mutability would allow TOCTOU security exploits), 2) String Constant Pool caching (multiple references share the same instance), 3) Thread safety (safe to share across threads without synchronization), 4) Hash code caching (hashCode is computed once and cached).",
+        "q": "Why is String immutable and final in Java?"
+      },
+      "sourceDigest": "sha256:40111bd85c703d55819a0c02f2897ec797bb1ec545c63946d6006cbae2a9b5c9",
+      "targetTopicId": "java-static-final-records",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Immutability allows pooled strings to be shared safely, makes cached hash codes stable, and prevents security-sensitive values from changing after validation."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-static-records:root:quiz:6695ca29a4d3",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-static-records.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "Can a Java Record extend another class like `class BaseEntity`?",
+      "sourcePayload": {
+        "answer": "No. All Java Records implicitly extend `java.lang.Record` and Java does not support multiple class inheritance. Records can, however, implement multiple interfaces.",
+        "difficulty": "Core Fundamental",
+        "question": "Can a Java Record extend another class like `class BaseEntity`?"
+      },
+      "sourceDigest": "sha256:324918ced2e4c12c296f8fc21922cb754a5e5208c06dbdd60a8e8d0d4bfca0fd",
+      "targetTopicId": "java-static-final-records",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "No, every record directly extends `java.lang.Record`, and Java supports only single class inheritance."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-static-records:root:quiz:baffc487e91e",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-static-records.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "What happens if a method is declared `final` in a superclass?",
+      "sourcePayload": {
+        "answer": "Subclasses cannot override the method. This provides compile-time guarantee of algorithm integrity and enables the JIT compiler to perform method inlining devirtualization.",
+        "difficulty": "Intermediate",
+        "question": "What happens if a method is declared `final` in a superclass?"
+      },
+      "sourceDigest": "sha256:7740d4d44407d005de7368555828a23faf4a966c37a6000da0513ef4fe56dd2c",
+      "targetTopicId": "java-static-final-records",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "subclasses cannot override it"
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-streams:root:interview:c4e5b17b4d7a",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-streams.json",
+      "sourceLocator": "/theoryData/interviewQA/1",
+      "sourceQuestion": "What is the difference between `Optional.orElse()` and `Optional.orElseGet()`?",
+      "sourcePayload": {
+        "a": "`orElse(expensiveMethod())` always executes `expensiveMethod()` regardless of whether the Optional contains a value or not. `orElseGet(() -> expensiveMethod())` is lazy and executes the Supplier only when the Optional is empty.",
+        "q": "What is the difference between `Optional.orElse()` and `Optional.orElseGet()`?"
+      },
+      "sourceDigest": "sha256:4303b986604b43a646cc568f2851602d82dc61ee0295de063d76809539e37731",
+      "targetTopicId": "java-streams-optional",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Java evaluates method arguments before the call, so `orElse(expensive())` runs `expensive()` even for a present optional."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-streams:root:interview:ef5765f2b6f4",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-streams.json",
+      "sourceLocator": "/theoryData/interviewQA/0",
+      "sourceQuestion": "What is Vertical Loop Fusion in Java Streams?",
+      "sourcePayload": {
+        "a": "Instead of executing each pipeline operation (e.g. filter) horizontally across the entire dataset into intermediate buffers, Java Streams fuse operations vertically. A single element passes through filter, map, and collect before the next element is pulled, optimizing CPU L1 cache locality.",
+        "q": "What is Vertical Loop Fusion in Java Streams?"
+      },
+      "sourceDigest": "sha256:72c9d1d3b57e43c4eec24994a8a371527b108d4e2a0bd29a270e0784cd0af2bc",
+      "targetTopicId": "java-streams-optional",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "This behaviour is called vertical loop fusion."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-streams:root:quiz:b92d3a82c4f6",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-streams.json",
+      "sourceLocator": "/quizData/1",
+      "sourceQuestion": "Can a single Stream instance be operated on twice by invoking two terminal operations?",
+      "sourcePayload": {
+        "answer": "No! A Stream is a single-use pipeline. Attempting to consume it a second time throws an IllegalStateException.",
+        "difficulty": "Core Fundamental",
+        "question": "Can a single Stream instance be operated on twice by invoking two terminal operations?"
+      },
+      "sourceDigest": "sha256:af6f6572de220ac9293cbad9f4c2ab9c9dd8d53085ec3f3109b4aefd389ac999",
+      "targetTopicId": "java-streams-optional",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Attempting another terminal operation on the same instance is an error."
+      }
+    },
+    {
+      "id": "legacy-json:java-fundamentals-streams:root:quiz:ce70657da29f",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/java-fundamentals-streams.json",
+      "sourceLocator": "/quizData/0",
+      "sourceQuestion": "Do intermediate operations like `.filter()` or `.map()` execute when called without a terminal operation?",
+      "sourcePayload": {
+        "answer": "No! Intermediate operations are strictly lazy. No computation occurs until a terminal operation (like .collect(), .count(), .reduce()) is triggered.",
+        "difficulty": "Core Fundamental",
+        "question": "Do intermediate operations like `.filter()` or `.map()` execute when called without a terminal operation?"
+      },
+      "sourceDigest": "sha256:fe53cf660edb0c06088e89da03695d35ba845596b0c9db4aecd19da7d73f2b79",
+      "targetTopicId": "java-streams-optional",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Intermediate operations return a stream and are lazy; terminal operations return something else and trigger traversal."
+      }
+    },
+    {
+      "id": "legacy-json:networking-concepts:consistenthashing:interview:0ae512b29324",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/networking-concepts.json",
+      "sourceLocator": "/consistentHashing/theoryData/interviewQA/0",
+      "sourceQuestion": "Why are Virtual Nodes necessary in Consistent Hashing?",
+      "sourcePayload": {
+        "a": "Virtual Nodes map each physical server to multiple positions (e.g. 100-200 points) across the hash ring. This ensures balanced key distribution and spreads a failed node's workload evenly across ALL remaining physical servers rather than overloading just one neighbor.",
+        "q": "Why are Virtual Nodes necessary in Consistent Hashing?"
+      },
+      "sourceDigest": "sha256:7584da32fce251832d76105f0951da0d081f45d5cb09590dbdaf350d0cd9012e",
+      "targetTopicId": "distributed-databases-cap",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/networking/ConsistentHashingVisualizer.jsx",
+        "note": "Consistent hashing is one of the 14 retained P3 engines; the ring rebalance interaction is the teaching point a static diagram cannot replace."
+      }
+    },
+    {
+      "id": "legacy-json:networking-concepts:consistenthashing:quiz:eaae354e6ce6",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/networking-concepts.json",
+      "sourceLocator": "/consistentHashing/quizData/0",
+      "sourceQuestion": "If a Consistent Hash ring has 10 physical servers and 1 server fails, what percentage of keys must be remapped?",
+      "sourcePayload": {
+        "answer": "Only approximately 1/10 (10%) of the keys (the ones that belonged to the failed server) need to be remapped to remaining servers.",
+        "difficulty": "Core Fundamental",
+        "question": "If a Consistent Hash ring has 10 physical servers and 1 server fails, what percentage of keys must be remapped?"
+      },
+      "sourceDigest": "sha256:efa4e1af4c5d6437612b4e9e9f9aaa677a5ffa1cf511984f623a6497f4d76494",
+      "targetTopicId": "distributed-databases-cap",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/networking/ConsistentHashingVisualizer.jsx",
+        "note": "Consistent hashing is one of the 14 retained P3 engines; the ring rebalance interaction is the teaching point a static diagram cannot replace."
+      }
+    },
+    {
+      "id": "legacy-json:networking-concepts:tcpcongestion:interview:a290ffe8a970",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/networking-concepts.json",
+      "sourceLocator": "/tcpCongestion/theoryData/interviewQA/0",
+      "sourceQuestion": "What is the difference between TCP Flow Control and TCP Congestion Control?",
+      "sourcePayload": {
+        "a": "Flow Control prevents the sender from overwhelming the RECEIVER's buffer (regulated by `rwnd` advertised in TCP headers). Congestion Control prevents senders from overwhelming the NETWORK (regulated by `cwnd` estimated via packet loss/delay).",
+        "q": "What is the difference between TCP Flow Control and TCP Congestion Control?"
+      },
+      "sourceDigest": "sha256:c2a4f3a60a39d34118e1f875398fab85eb78618f8bfd682c2ac7a1a593e01022",
+      "targetTopicId": "tcp-congestion",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/networking/TcpCongestionVisualizer.jsx",
+        "note": "TCP congestion control is one of the 14 retained P3 engines; watching cwnd evolve through phases live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:networking-concepts:tcpcongestion:quiz:880b2b89884c",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/networking-concepts.json",
+      "sourceLocator": "/tcpCongestion/quizData/0",
+      "sourceQuestion": "In TCP Slow Start, if cwnd = 1 MSS initially, how many MSS packets are sent in the 4th Round Trip Time (RTT)?",
+      "sourcePayload": {
+        "answer": "In Slow Start, cwnd doubles every RTT (1 -> 2 -> 4 -> 8). In the 4th RTT, cwnd = 8 MSS packets.",
+        "difficulty": "Core Fundamental",
+        "question": "In TCP Slow Start, if cwnd = 1 MSS initially, how many MSS packets are sent in the 4th Round Trip Time (RTT)?"
+      },
+      "sourceDigest": "sha256:1089093ee434fa69ea8f411989fe9599c3376b7293ca4a80195c24cdfba7faf7",
+      "targetTopicId": "tcp-congestion",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/networking/TcpCongestionVisualizer.jsx",
+        "note": "TCP congestion control is one of the 14 retained P3 engines; watching cwnd evolve through phases live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:os-concepts:virtualmemory:interview:5588a858c0e1",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/os-concepts.json",
+      "sourceLocator": "/virtualMemory/theoryData/interviewQA/0",
+      "sourceQuestion": "What happens mechanically during a Page Fault?",
+      "sourcePayload": {
+        "a": "1. MMU detects valid bit = 0 in page table entry.\n2. CPU generates Interrupt 14 (Page Fault Exception) and saves instruction pointer.\n3. OS Kernel Page Fault Handler runs, locates page on disk/swap space.\n4. OS reads page from disk into an available physical frame, updates Page Table valid bit = 1, and re-executes faulting instruction.",
+        "q": "What happens mechanically during a Page Fault?"
+      },
+      "sourceDigest": "sha256:66e16983b4937e2c99edefeff1db1815ac6f268df69478e7d588a0444e0b4490",
+      "targetTopicId": "memory-management",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/os/VirtualMemoryVisualizer.jsx",
+        "note": "Virtual memory is one of the 14 retained P3 engines; stepping through page faults and replacement live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:os-concepts:virtualmemory:quiz:9345f6bb0fe1",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/os-concepts.json",
+      "sourceLocator": "/virtualMemory/quizData/0",
+      "sourceQuestion": "If a system uses 4KB page size (12-bit offset) and a virtual address is 0x2004, what is the Virtual Page Number (VPN) and Offset?",
+      "sourcePayload": {
+        "answer": "Offset = 0x2004 & 0xFFF = 0x004 (decimal 4). Virtual Page Number = 0x2004 >> 12 = 0x2 (Virtual Page #2).",
+        "difficulty": "Core Fundamental",
+        "question": "If a system uses 4KB page size (12-bit offset) and a virtual address is 0x2004, what is the Virtual Page Number (VPN) and Offset?"
+      },
+      "sourceDigest": "sha256:7178b62b25bc3e1875ca46fed5fe5fc45d067b0457ad4bae2a65030ea5782755",
+      "targetTopicId": "memory-management",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/os/VirtualMemoryVisualizer.jsx",
+        "note": "Virtual memory is one of the 14 retained P3 engines; stepping through page faults and replacement live is the teaching point."
+      }
+    },
+    {
+      "id": "legacy-json:spring-jpa-concepts:connectionpool:interview:b033aad920dc",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/spring-jpa-concepts.json",
+      "sourceLocator": "/connectionPool/theoryData/interviewQA/0",
+      "sourceQuestion": "Why is HikariCP significantly faster than legacy connection pools like C3P0 or DBCP?",
+      "sourcePayload": {
+        "a": "HikariCP uses bytecode optimization, FastList (custom ArrayList replacement without range-checks), ConcurrentBag lock-free borrowing using ThreadLocal thread-level connection caching, and eliminates synchronized overhead.",
+        "q": "Why is HikariCP significantly faster than legacy connection pools like C3P0 or DBCP?"
+      },
+      "sourceDigest": "sha256:e33db555021d40dfabe1999059b5b8cdd9b565cb2c4795ed9b4111bdd7bbe895",
+      "targetTopicId": "spring-testing-production",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/ConnectionPoolVisualizer.jsx",
+        "note": "Connection pooling is one of the 14 retained P3 engines; the pool exhaustion/wait-queue interaction is the teaching point, not static text."
+      }
+    },
+    {
+      "id": "legacy-json:spring-jpa-concepts:connectionpool:quiz:7cb99bb5c45e",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/spring-jpa-concepts.json",
+      "sourceLocator": "/connectionPool/quizData/0",
+      "sourceQuestion": "What happens when all connections in a HikariCP pool are in use and a new request thread arrives?",
+      "sourcePayload": {
+        "answer": "The new thread enters a FIFO waiting queue and blocks until an active connection is returned or until `connectionTimeout` (default 30s) expires, throwing `SQLTransientConnectionException`.",
+        "difficulty": "Core Fundamental",
+        "question": "What happens when all connections in a HikariCP pool are in use and a new request thread arrives?"
+      },
+      "sourceDigest": "sha256:b8fff26993655b640bddfc40634d0b3527e1f0c98a1c67c85dd9c8ffb90d6bab",
+      "targetTopicId": "spring-testing-production",
+      "disposition": "retained",
+      "evidence": {
+        "type": "source-retained",
+        "owner": "frontend/src/components/visualizers/java/ConnectionPoolVisualizer.jsx",
+        "note": "Connection pooling is one of the 14 retained P3 engines; the pool exhaustion/wait-queue interaction is the teaching point, not static text."
+      }
+    },
+    {
+      "id": "legacy-json:spring-jpa-concepts:jpaentity:interview:fa5331384630",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/spring-jpa-concepts.json",
+      "sourceLocator": "/jpaEntity/theoryData/interviewQA/0",
+      "sourceQuestion": "How does Hibernate Automatic Dirty Checking work?",
+      "sourcePayload": {
+        "a": "When an entity is loaded into the Persistence Context (Managed state), Hibernate takes a baseline snapshot of its state. Upon transaction commit/flush, Hibernate compares the current state to the snapshot and generates SQL UPDATE statements for modified attributes.",
+        "q": "How does Hibernate Automatic Dirty Checking work?"
+      },
+      "sourceDigest": "sha256:225d76d7fa38b4750ee7673b130bc5ed29ee7ad8d178a35dd0b92127b8db1c37",
+      "targetTopicId": "jpa-hibernate-lifecycle",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "Hibernate observes managed entity state and compares it with a loaded snapshot when the persistence context flushes."
+      }
+    },
+    {
+      "id": "legacy-json:spring-jpa-concepts:jpaentity:quiz:a1282f88eeef",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/spring-jpa-concepts.json",
+      "sourceLocator": "/jpaEntity/quizData/0",
+      "sourceQuestion": "What is the difference between `em.persist(entity)` and `em.merge(entity)`?",
+      "sourcePayload": {
+        "answer": "`em.persist()` transitions a NEW (Transient) entity instance into MANAGED state. `em.merge()` takes a DETACHED entity, copies its state onto a managed instance in the persistence context, and returns the managed instance.",
+        "difficulty": "Core Fundamental",
+        "question": "What is the difference between `em.persist(entity)` and `em.merge(entity)`?"
+      },
+      "sourceDigest": "sha256:5602419e16f723aa7f470e32889dcfc3ae08466ee7c33ff8d95f2e684dd0b186",
+      "targetTopicId": "jpa-hibernate-lifecycle",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "`merge(detached)` copies state from the supplied object into a managed instance."
+      }
+    },
+    {
+      "id": "legacy-json:spring-jpa-concepts:springbean:interview:aec8a031fd17",
+      "kind": "interview",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/spring-jpa-concepts.json",
+      "sourceLocator": "/springBean/theoryData/interviewQA/0",
+      "sourceQuestion": "At which stage of the Spring Bean lifecycle is AOP proxying created?",
+      "sourcePayload": {
+        "a": "AOP proxying (CGLIB/JDK dynamic proxy) is created at Stage 7 during `BeanPostProcessor.postProcessAfterInitialization()`. The container wraps the raw instance with a proxy that intercepts annotated methods.",
+        "q": "At which stage of the Spring Bean lifecycle is AOP proxying created?"
+      },
+      "sourceDigest": "sha256:aa05087ad5e1ffe6ee3339fe807969a8262de3300f21b9544bdde61972e5d25b",
+      "targetTopicId": "spring-bean-lifecycle",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "This wrapping normally occurs in a post-processor after initialization."
+      }
+    },
+    {
+      "id": "legacy-json:spring-jpa-concepts:springbean:quiz:fbf8716f738e",
+      "kind": "quiz",
+      "sourceType": "json",
+      "sourceFile": "frontend/src/data/spring-jpa-concepts.json",
+      "sourceLocator": "/springBean/quizData/0",
+      "sourceQuestion": "Why does calling a `@Transactional` method from within the same class using `this.method()` fail to run in a transaction?",
+      "sourcePayload": {
+        "answer": "Spring's `@Transactional` works via AOP proxies created during bean initialization. Calling `this.method()` invokes the target instance directly, completely bypassing the Spring proxy wrapper that manages the database transaction boundaries.",
+        "difficulty": "Core Fundamental",
+        "question": "Why does calling a `@Transactional` method from within the same class using `this.method()` fail to run in a transaction?"
+      },
+      "sourceDigest": "sha256:60c8aa67b782e04defe7763a5071f1865efd240a55da3f5a75cf70deef0f6590",
+      "targetTopicId": "spring-bean-lifecycle",
+      "disposition": "migrated",
+      "evidence": {
+        "type": "lesson-content",
+        "contains": "A call from another bean enters that proxy, but a call on `this` directly invokes the target method."
+      }
+    }
+  ]
+}

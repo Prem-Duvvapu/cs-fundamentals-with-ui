@@ -88,6 +88,8 @@ Build on it.
 
 Apply it.
 
+### Interview Questions
+
 **Q1. What should you check first?** \`[easy]\`
 
 Check the observable symptoms, identify the responsible subsystem, and validate the fix against a realistic failure case.`
@@ -103,6 +105,35 @@ Check the observable symptoms, identify the responsible subsystem, and validate 
     const beginnerHeading = screen.getByRole('heading', { name: /^beginner level$/i })
     expect(beginnerHeading).toHaveAttribute('id', 'beginner-level')
     expect(beginnerHeading.querySelector('.tier-badge--beginner')).toBeInTheDocument()
+  }, 15000)
+
+  it('renders answer Markdown without leaking the following section', async () => {
+    const md = `## 🔴 Expert Level
+
+### Interview Questions
+
+**Q1. How should the answer be presented?** \`[medium]\`
+
+Use **structured reasoning**, \`inline code\`, and a [primary source](https://example.com).
+
+### Further Reading
+
+- This must stay outside the answer.`
+    global.fetch.mockResolvedValueOnce(new Response(md))
+
+    render(<TopicViewer topicId="process-management" />)
+
+    const reveal = await screen.findByRole('button', { name: /reveal answer/i }, { timeout: 15000 })
+    expect(reveal).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(reveal)
+
+    expect(reveal).toHaveAttribute('aria-expanded', 'true')
+    const answer = document.getElementById(reveal.getAttribute('aria-controls'))
+    await waitFor(() => expect(answer).toHaveTextContent('structured reasoning'))
+    expect(answer.querySelector('strong')).toHaveTextContent('structured reasoning')
+    expect(answer.querySelector('code')).toHaveTextContent('inline code')
+    expect(answer.querySelector('a')).toHaveAttribute('href', 'https://example.com')
+    expect(answer).not.toHaveTextContent('This must stay outside the answer')
   }, 15000)
 
   it('provides labelled reader controls, a table of contents toggle, and a continue action', async () => {

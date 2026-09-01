@@ -177,11 +177,16 @@ existing lesson and rerunning the manifest validator.
 
 ### Phase G — Product discovery and release
 
-1. Add cross-topic search using titles, summaries, headings, and coverage tags.
-2. Add category Interview Mode sourced from validated Q&A sections.
-3. Complete simulator triage only after migrating JSON questions.
+1. Add cross-topic search using titles, summaries, headings, and coverage tags. — ✅ backend done
+   (`DiscoveryController`/`DiscoveryService`), frontend `/search` route not started.
+2. Add category Interview Mode sourced from validated Q&A sections. — ✅ backend endpoint done,
+   frontend `/interview/:category` route not started; topic-level `InterviewDeck` already reads
+   validated Markdown via the section-aware parser.
+3. Complete simulator triage only after migrating JSON questions. — ✅ migration gate passes
+   (109/109 ledger items resolved); the 17 engine conversions/deletions themselves have not started.
 4. Run frontend unit/integration tests, backend tests, production build, full content validation,
-   accessibility checks, route checks, and documentation synchronization.
+   accessibility checks, route checks, and documentation synchronization. — ongoing; backend and
+   content-validator suites are green, frontend suite green as of the last full run.
 
 ### P3 audit checkpoint — simulation triage
 
@@ -191,23 +196,39 @@ existing lesson and rerunning the manifest validator.
   functional dependencies, HashMap internals, JVM/GC, normalization, relational algebra, TCP
   congestion, virtual memory and virtual threads.
 - Convert the remaining 17 fixed step-through engines to lesson Mermaid diagrams/tables before
-  removing their JSX, tests or data dependencies.
+  removing their JSX, tests or data dependencies. **Not started** — the migration gate below is a
+  prerequisite for this step, not the step itself.
 - Migration gate: verify all 49 JSON interview questions, 56 JSON quizzes and 4 inline quizzes
   (109 items total) are represented or intentionally superseded in Markdown before deletion.
+  **Done.** `content/SIMULATION_QUESTION_MIGRATION.json` resolves all 109 items — 42 `retained`
+  (owned by one of the 14 kept engines, so no lesson migration needed), 66 `migrated` (a literal
+  quote from the already-authored P4 lesson content is recorded as evidence), and 1 `superseded`
+  (the lost-update quiz question originally mapped to `dbms-introduction`, which does not cover
+  concurrency anomalies, was retargeted to `concurrency-control`, which does).
+  `node scripts/audit-simulation-questions.mjs` passes with 0 pending.
 - Replace category hubs with a topic-to-lazy-visualizer registry and hide Simulation for topics
-  without an exact visualizer. Current fallbacks can show the wrong simulation for practical SQL,
-  Java HashMap/concurrency, Spring production testing and ML fundamentals.
+  without an exact visualizer. **Done** — `topicVisualizerRegistry.jsx` maps each topic id to its
+  own lazy visualizer (or omits it), and `TopicPage.jsx` hides the Simulation tab entirely when a
+  topic has no registry entry, fixing the SQL/HashMap/concurrency/production-testing/ML-fundamentals
+  wrong-fallback cases called out above.
 
 ### P5 audit checkpoint — search and Interview Mode
 
 - Build one immutable backend discovery index from `TopicService` plus validated Markdown; do not
-  add another 63-topic registry or load the entire curriculum into the browser.
+  add another 63-topic registry or load the entire curriculum into the browser. **Done** —
+  `DiscoveryService` builds its index once at construction from `TopicService` + `ContentService`.
 - Add stateless `GET /api/v1/search` and `GET /api/v1/interview/questions` endpoints, followed by
-  dedicated `/search` and `/interview/:category` routes.
+  dedicated `/search` and `/interview/:category` routes. **Endpoints done** (with controller and
+  service test coverage); the dedicated frontend routes/pages are **not started**.
 - Replace the loose frontend Q&A regex with a section-aware Markdown parser. The current parser
   lets the final answer absorb `### Further Reading` and renders answer Markdown as plain text.
+  **Done** — `frontend/src/utils/interviewQuestions.js` mirrors `DiscoveryService`'s Java parser
+  and `TopicViewer.jsx`'s `InterviewDeck` renders answers through `MarkdownRenderer`.
 - Reuse one extracted InterviewDeck for topic and category practice, with dataset reset, difficulty
-  filtering, source links, accessible reveal state and responsive controls.
+  filtering, source links, accessible reveal state and responsive controls. **Partially done** —
+  `InterviewDeck` has accessible reveal state (`aria-expanded`/`aria-controls`) and resets on topic
+  change, but it is still defined inline in `TopicViewer.jsx`, not yet extracted into a shared
+  component a category Interview Mode page could reuse.
 
 ## Question targets
 

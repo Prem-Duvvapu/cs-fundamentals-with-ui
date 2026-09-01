@@ -110,6 +110,29 @@ describe('TopicPage Component', () => {
   })
 
   it.each([
+    'network-security',
+    'sql-querying',
+    'java-reflection-exceptions',
+    'spring-boot-internals',
+    'spring-rest-api-design',
+    'spring-security',
+    'spring-caching-async',
+    'ml-fundamentals'
+  ])('hides simulation controls when %s has no exact visualizer', topicId => {
+    render(
+      <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
+        <Routes>
+          <Route path="/topic/:topicId" element={<TopicPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByRole('tab', { name: /simulation/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tablist', { name: /topic view/i })).not.toBeInTheDocument()
+    expect(screen.getByTestId('topic-viewer')).toHaveTextContent(topicId)
+  })
+
+  it.each([
     ['sql-querying', 'Practical SQL, Joins, CTEs & Window Functions'],
     ['spring-boot-internals', 'Spring Boot Internals, Auto-configuration & Profiles'],
     ['spring-rest-api-design', 'Spring REST API Design, Validation & Error Contracts'],

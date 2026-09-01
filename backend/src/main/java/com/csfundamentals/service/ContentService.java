@@ -33,6 +33,17 @@ public class ContentService {
         return loadContent(category, topicId);
     }
 
+    public String getCoverageManifest() {
+        if (contentRootDir == null) return "{}";
+        try {
+            Path manifest = contentRootDir.resolve("COVERAGE_MANIFEST.json").normalize();
+            if (!manifest.startsWith(contentRootDir) || !Files.isRegularFile(manifest)) return "{}";
+            return Files.readString(manifest);
+        } catch (IOException e) {
+            return "{}";
+        }
+    }
+
     private String loadContent(String category, String topicId) {
         try {
             Path file = findFile(category, topicId);

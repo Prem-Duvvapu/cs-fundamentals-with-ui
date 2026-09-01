@@ -165,9 +165,9 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 | **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
 | **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ✅ **Done** |
 | **P2** | Reading experience — compact topic chrome, responsive TOC, tier nav, interview deck | ✅ **Done** |
-| **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ☐ Not started |
+| **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | 🟡 **In progress — migration gate passes (109/109), registry done, engine conversions not started** |
 | **P4** | Content authoring, 63 topics in priority waves | ✅ **Done — 63/63 lessons and 83/83 manifest entries pass** |
-| **P5** | Cross-topic search + per-category Interview Mode | ☐ Not started |
+| **P5** | Cross-topic search + per-category Interview Mode | 🟡 **In progress — backend endpoints + tests done, frontend `/search` and `/interview/:category` routes not started** |
 | **P6** | Verify, doc sync, ship | ☐ Not started |
 
 ### What P0 delivered (already on this branch)
@@ -181,11 +181,34 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 - Topic pages own one semantic H1, collapse to a one-line desktop toolbar while scrolling, leave
   the toolbar in document flow on mobile, and default the TOC closed below 1024px.
 
+### What P3/P5 delivered so far (this branch, uncommitted)
+- `backend/.../controller/DiscoveryController.java` + `service/DiscoveryService.java` — stateless
+  `GET /api/v1/search` and `GET /api/v1/interview/questions`, backed by one immutable index built
+  from `TopicService` + `ContentService` at startup (no second topic registry, no whole-curriculum
+  frontend load). Both have JUnit coverage (`DiscoveryControllerTest`, `DiscoveryServiceTest`).
+- `frontend/src/utils/interviewQuestions.js` — section-aware Markdown Q&A parser (mirrors the Java
+  parser); `TopicViewer.jsx`'s `InterviewDeck` now uses it and renders answers through
+  `MarkdownRenderer` instead of plain text, fixing the old regex's `### Further Reading` leak.
+- `frontend/src/components/visualizers/topicVisualizerRegistry.jsx` — topic id → lazy visualizer
+  map; `TopicPage.jsx` hides the Simulation tab for any topic without an entry, replacing the old
+  `renderVisualizer()` switch that could show the wrong hub sub-tab for SQL, HashMap/concurrency,
+  Spring production testing, and ML fundamentals.
+- `scripts/audit-simulation-questions.mjs` + `content/SIMULATION_QUESTION_MIGRATION.json` — the P3
+  migration gate. Extracts every legacy JSON/inline interview and quiz question, and requires each
+  to be resolved as `retained` (still owned by one of the 14 kept engines), `migrated` (a literal
+  quote from it is verified present in the target lesson), or `superseded` (replaced by stronger
+  lesson coverage, with a rationale) before that source can be deleted. Currently 109/109 resolved,
+  gate passes (`node scripts/audit-simulation-questions.mjs`).
+
 ### Current implementation priorities
 
-1. **Complete P3.** Triage simulations only after migrating useful interview questions and theory
-   from `frontend/src/data/*.json` into their lessons.
-2. **Complete P5.** Add cross-topic search and per-category Interview Mode.
+1. **Complete P3.** The migration gate is satisfied — convert the 17 non-retained engines' JSX to
+   lesson Mermaid diagrams/tables and delete their JSX, tests, and `frontend/src/data/*.json`
+   sources one engine at a time, re-running `node scripts/audit-simulation-questions.mjs` after
+   each deletion (it fails if a deleted source's ledger item is not already resolved).
+2. **Complete P5.** Backend search/interview endpoints exist; build the `/search` and
+   `/interview/:category` frontend routes/pages and extract `InterviewDeck` out of
+   `TopicViewer.jsx` into a shared component both the topic page and the category page can use.
 3. **Complete P6.** Run the full responsive/accessibility audit, verification suite and doc sync;
    do not claim the curriculum is complete while validation reports failures.
 
