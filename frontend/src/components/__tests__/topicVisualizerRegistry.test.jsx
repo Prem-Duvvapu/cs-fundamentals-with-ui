@@ -23,7 +23,6 @@ const EXPECTED_SUPPORTED_IDS = [
   'ip-subnetting',
   'java-hashmap-internals',
   'java-multithreading-concurrency',
-  'jpa-hibernate-lifecycle',
   'jvm-gc',
   'llm-parameters',
   'memory-management',
@@ -38,8 +37,6 @@ const EXPECTED_SUPPORTED_IDS = [
   'recommendation-systems',
   'relational-algebra-calculus',
   'routing-algorithms',
-  'spring-batch-lifecycle',
-  'spring-bean-lifecycle',
   'spring-mvc-lifecycle',
   'spring-testing-production',
   'synchronization',
@@ -72,7 +69,10 @@ const UNSUPPORTED_REGISTERED_IDS = [
   'java-memory-model',
   'java-oop-pillars',
   'java-static-final-records',
-  'java-streams-optional'
+  'java-streams-optional',
+  'spring-bean-lifecycle',
+  'jpa-hibernate-lifecycle',
+  'spring-batch-lifecycle'
 ]
 
 describe('topic visualizer registry', () => {

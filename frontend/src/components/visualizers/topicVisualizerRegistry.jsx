@@ -58,10 +58,7 @@ const registry = Object.freeze({
   'jvm-gc': hub(JavaSpringVisualizer, 'jvm-gc'),
   'java-hashmap-internals': direct(HashMapVisualizer),
   'java-multithreading-concurrency': direct(VirtualThreadsVisualizer),
-  'spring-bean-lifecycle': hub(JavaSpringVisualizer, 'spring-bean-lifecycle'),
   'spring-mvc-lifecycle': hub(JavaSpringVisualizer, 'spring-mvc-lifecycle'),
-  'jpa-hibernate-lifecycle': hub(JavaSpringVisualizer, 'jpa-hibernate-lifecycle'),
-  'spring-batch-lifecycle': hub(JavaSpringVisualizer, 'spring-batch-lifecycle'),
   'quartz-scheduler': hub(JavaSpringVisualizer, 'quartz-scheduler'),
   'spring-testing-production': direct(ConnectionPoolVisualizer),
 

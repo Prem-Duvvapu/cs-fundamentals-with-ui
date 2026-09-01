@@ -133,7 +133,10 @@ describe('TopicPage Component', () => {
     'java-functional-lambdas',
     'java-generics',
     'java-collections-framework',
-    'java-streams-optional'
+    'java-streams-optional',
+    'spring-bean-lifecycle',
+    'jpa-hibernate-lifecycle',
+    'spring-batch-lifecycle'
   ])('hides simulation controls when %s has no exact visualizer', topicId => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
@@ -171,7 +174,10 @@ describe('TopicPage Component', () => {
     ['java-functional-lambdas', 'Interfaces, Functional Interfaces & Lambda Expressions'],
     ['java-generics', 'Generics, Wildcards (PECS) & Type Erasure'],
     ['java-collections-framework', 'Collections Framework: List, Set, Queue & PriorityQueue'],
-    ['java-streams-optional', 'Java Streams API Lazy Pipeline & Optional']
+    ['java-streams-optional', 'Java Streams API Lazy Pipeline & Optional'],
+    ['spring-bean-lifecycle', 'Spring IoC Container & Bean Lifecycle'],
+    ['jpa-hibernate-lifecycle', 'JPA / Hibernate Entity Lifecycle & N+1 Solver'],
+    ['spring-batch-lifecycle', 'Spring Batch Execution Architecture & Chunk Engine']
   ])('renders the registered topic title for %s', (topicId, title) => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
