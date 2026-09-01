@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { getTopicCategory } from '../utils/topicCategories'
 import { parseInterviewQuestions } from '../utils/interviewQuestions'
+import InterviewDeck from './shared/InterviewDeck'
 
 // react-markdown + KaTeX + highlight.js are ~600KB and are only needed once
 // a topic's content is actually being read, so they get their own chunk
@@ -35,57 +36,6 @@ function cleanSectionTitle(title) {
 
 function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
-function InterviewDeck({ questions }) {
-  const [index, setIndex] = useState(0)
-  const [revealed, setRevealed] = useState(false)
-
-  useEffect(() => {
-    setIndex(0)
-    setRevealed(false)
-  }, [questions])
-
-  if (questions.length === 0) return null
-  const safeIndex = Math.min(index, questions.length - 1)
-  const current = questions[safeIndex]
-  const answerId = `interview-answer-${current.id}`
-  const move = (nextIndex) => {
-    setIndex(nextIndex)
-    setRevealed(false)
-  }
-
-  return (
-    <section className="interview-deck" aria-labelledby="interview-practice-title">
-      <div className="interview-deck-heading">
-        <div>
-          <p className="study-eyebrow">Interview practice</p>
-          <h2 id="interview-practice-title">Test your recall</h2>
-        </div>
-        <span>{safeIndex + 1} / {questions.length}</span>
-      </div>
-      <p className="interview-question"><strong>{current.question}</strong> <code>[{current.difficulty}]</code></p>
-      {revealed && (
-        <div id={answerId} className="interview-answer">
-          <Suspense fallback={<p>Loading answer…</p>}>
-            <MarkdownRenderer content={current.answerMarkdown} />
-          </Suspense>
-        </div>
-      )}
-      <div className="interview-deck-actions">
-        <button
-          type="button"
-          aria-expanded={revealed}
-          aria-controls={answerId}
-          onClick={() => setRevealed(value => !value)}
-        >
-          {revealed ? 'Hide answer' : 'Reveal answer'}
-        </button>
-        <button type="button" onClick={() => move(Math.max(0, safeIndex - 1))} disabled={safeIndex === 0}>Previous</button>
-        <button type="button" onClick={() => move(Math.min(questions.length - 1, safeIndex + 1))} disabled={safeIndex === questions.length - 1}>Next</button>
-      </div>
-    </section>
-  )
 }
 
 export default function TopicViewer({ topicId, category }) {
@@ -263,7 +213,7 @@ export default function TopicViewer({ topicId, category }) {
             <MarkdownRenderer content={content} />
           </Suspense>
         </div>
-        <InterviewDeck questions={questions} />
+        <InterviewDeck key={topicId} questions={questions} />
       </div>
     </div>
   )

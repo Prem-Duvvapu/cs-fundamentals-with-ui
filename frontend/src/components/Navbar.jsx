@@ -38,15 +38,35 @@ export default function Navbar() {
           <span className="logo-glyph" aria-hidden="true">◆</span>
           <span className="logo-text">CS Fundamentals</span>
         </Link>
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${nextTheme} theme`}
-          title={`Switch to ${nextTheme} theme`}
-        >
-          <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
-        </button>
+        <div className="navbar-actions">
+          <Link
+            to="/search"
+            className={`navbar-icon-link ${pathname === '/search' ? 'active' : ''}`}
+            aria-current={pathname === '/search' ? 'page' : undefined}
+            aria-label="Search"
+          >
+            <span aria-hidden="true">🔍</span>
+            <span aria-hidden="true">Search</span>
+          </Link>
+          <Link
+            to="/interview/all"
+            className={`navbar-icon-link ${pathname.startsWith('/interview') ? 'active' : ''}`}
+            aria-current={pathname.startsWith('/interview') ? 'page' : undefined}
+            aria-label="Interview Mode"
+          >
+            <span aria-hidden="true">🎯</span>
+            <span aria-hidden="true">Interview Mode</span>
+          </Link>
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${nextTheme} theme`}
+            title={`Switch to ${nextTheme} theme`}
+          >
+            <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
+          </button>
+        </div>
       </div>
 
       <ul className="nav-links u-scroll-x" aria-label="Curriculum categories">

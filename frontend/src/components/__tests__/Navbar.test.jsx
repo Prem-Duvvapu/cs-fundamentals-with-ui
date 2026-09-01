@@ -40,6 +40,21 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: /OS/ })).not.toHaveAttribute('aria-current')
   })
 
+  it('links to search and a default interview category, marking whichever is active', () => {
+    renderNavbar('/search')
+
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute('href', '/search')
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Interview Mode' })).toHaveAttribute('href', '/interview/all')
+    expect(screen.getByRole('link', { name: 'Interview Mode' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('marks Interview Mode active for any /interview/:category route', () => {
+    renderNavbar('/interview/dbms')
+
+    expect(screen.getByRole('link', { name: 'Interview Mode' })).toHaveAttribute('aria-current', 'page')
+  })
+
   it('uses the system preference when no theme has been saved', () => {
     window.matchMedia = vi.fn().mockReturnValue({
       matches: true,

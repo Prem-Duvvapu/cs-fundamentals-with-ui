@@ -167,7 +167,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 | **P2** | Reading experience — compact topic chrome, responsive TOC, tier nav, interview deck | ✅ **Done** |
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ✅ **Done — 18 non-retained components removed; dead App.css and 3 orphaned hub sub-tabs still to clean up** |
 | **P4** | Content authoring, 63 topics in priority waves | ✅ **Done — 63/63 lessons and 83/83 manifest entries pass** |
-| **P5** | Cross-topic search + per-category Interview Mode | 🟡 **In progress — backend endpoints + tests done, frontend `/search` and `/interview/:category` routes not started** |
+| **P5** | Cross-topic search + per-category Interview Mode | ✅ **Done — `/search` and `/interview/:category` routes live, linked from the navbar** |
 | **P6** | Verify, doc sync, ship | ☐ Not started |
 
 ### What P0 delivered (already on this branch)
@@ -209,6 +209,20 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
   java-collections-framework, java-streams-optional), and spring-batch-lifecycle plus the inline
   (never engine-backed) spring-bean-lifecycle/jpa-hibernate-lifecycle step-throughs.
   `DbmsVisualizer.jsx` shrank from 12 sub-tabs to 5; `JavaSpringVisualizer.jsx` from ~17 to 6.
+- `frontend/src/components/shared/InterviewDeck.jsx` — the step-through deck extracted out of
+  `TopicViewer.jsx`, taking a flat `questions` array plus an optional `renderMeta(question)` slot
+  for per-question context. `TopicViewer.jsx` uses it with no `renderMeta` (every question already
+  shares the page's topic); `InterviewPage.jsx` passes a `renderMeta` that links back to the
+  question's source topic, since a category deck spans many topics.
+- `frontend/src/pages/SearchPage.jsx` (`/search`) — debounced (300ms) search box plus category
+  filter chips against `GET /api/v1/search`, syncing `q`/`category` into the URL via
+  `useSearchParams` so results are shareable/bookmarkable. Results render as the same `.topic-row`
+  cards `HomePage.jsx` uses.
+- `frontend/src/pages/InterviewPage.jsx` (`/interview/:category`, `:category` may be `all` to omit
+  the server-side category filter) — category tabs + difficulty filter chips trigger a fresh fetch
+  from offset 0; a "Load N more" button pages through `GET /api/v1/interview/questions`'s
+  offset/limit/total contract; a shuffle button reorders whatever's already loaded client-side.
+  Both routes are linked from `Navbar.jsx`.
 
 ### Current implementation priorities
 
@@ -217,10 +231,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
    several classes may still be shared with retained components) and re-wiring or removing the 3
    orphaned JavaSpringVisualizer sub-tabs (hashmap/virtual-threads/hikari-pool — reachable only by
    manual click, since their topics route directly to standalone components now).
-2. **Complete P5.** Backend search/interview endpoints exist; build the `/search` and
-   `/interview/:category` frontend routes/pages and extract `InterviewDeck` out of
-   `TopicViewer.jsx` into a shared component both the topic page and the category page can use.
-3. **Complete P6.** Run the full responsive/accessibility audit, verification suite and doc sync;
+2. **Complete P6.** Run the full responsive/accessibility audit, verification suite and doc sync;
    do not claim the curriculum is complete while validation reports failures.
 
 ### Rules for content work (P4)

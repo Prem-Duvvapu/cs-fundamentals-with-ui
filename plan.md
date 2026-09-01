@@ -177,11 +177,10 @@ existing lesson and rerunning the manifest validator.
 
 ### Phase G — Product discovery and release
 
-1. Add cross-topic search using titles, summaries, headings, and coverage tags. — ✅ backend done
-   (`DiscoveryController`/`DiscoveryService`), frontend `/search` route not started.
-2. Add category Interview Mode sourced from validated Q&A sections. — ✅ backend endpoint done,
-   frontend `/interview/:category` route not started; topic-level `InterviewDeck` already reads
-   validated Markdown via the section-aware parser.
+1. Add cross-topic search using titles, summaries, headings, and coverage tags. — ✅ done —
+   `DiscoveryController`/`DiscoveryService` plus `SearchPage.jsx` at `/search`.
+2. Add category Interview Mode sourced from validated Q&A sections. — ✅ done — `InterviewPage.jsx`
+   at `/interview/:category`, reusing the same `InterviewDeck` the topic page uses.
 3. Complete simulator triage only after migrating JSON questions. — ✅ migration gate passes
    (109/109 ledger items resolved); the 17 engine conversions/deletions are done (see checkpoint
    below) — 18 non-retained visualizer components, engines, and JSON files removed in 4 commits.
@@ -236,17 +235,23 @@ existing lesson and rerunning the manifest validator.
   add another 63-topic registry or load the entire curriculum into the browser. **Done** —
   `DiscoveryService` builds its index once at construction from `TopicService` + `ContentService`.
 - Add stateless `GET /api/v1/search` and `GET /api/v1/interview/questions` endpoints, followed by
-  dedicated `/search` and `/interview/:category` routes. **Endpoints done** (with controller and
-  service test coverage); the dedicated frontend routes/pages are **not started**.
+  dedicated `/search` and `/interview/:category` routes. **Done** — `SearchPage.jsx` (`/search`)
+  and `InterviewPage.jsx` (`/interview/:category`, `:category` may be `all`), both linked from
+  `Navbar.jsx`, with controller/service/component test coverage throughout.
 - Replace the loose frontend Q&A regex with a section-aware Markdown parser. The current parser
   lets the final answer absorb `### Further Reading` and renders answer Markdown as plain text.
   **Done** — `frontend/src/utils/interviewQuestions.js` mirrors `DiscoveryService`'s Java parser
   and `TopicViewer.jsx`'s `InterviewDeck` renders answers through `MarkdownRenderer`.
 - Reuse one extracted InterviewDeck for topic and category practice, with dataset reset, difficulty
-  filtering, source links, accessible reveal state and responsive controls. **Partially done** —
-  `InterviewDeck` has accessible reveal state (`aria-expanded`/`aria-controls`) and resets on topic
-  change, but it is still defined inline in `TopicViewer.jsx`, not yet extracted into a shared
-  component a category Interview Mode page could reuse.
+  filtering, source links, accessible reveal state and responsive controls. **Done** —
+  `components/shared/InterviewDeck.jsx` takes a flat `questions` array plus an optional
+  `renderMeta(question)` slot; `TopicViewer.jsx` uses it with no `renderMeta` (one topic per deck),
+  `InterviewPage.jsx` passes a `renderMeta` linking each question back to its source topic.
+  `InterviewPage.jsx` adds server-side category + difficulty filters (refetch from offset 0 on
+  change), offset/limit "Load more" pagination against the endpoint's total count, and a
+  client-side shuffle over whatever's currently loaded — "dataset reset" per this checkpoint's
+  wording, rather than a second dataset entirely. Accessible reveal state and responsive controls
+  carried over unchanged from the pre-existing topic-page deck.
 
 ## Question targets
 

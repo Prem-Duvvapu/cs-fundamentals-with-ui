@@ -153,6 +153,14 @@ The home route complements the reader with a category-first roadmap. It presents
 summaries and counts, then ordered topic rows with level badges and direct Study links; filters
 remain semantic buttons so keyboard users receive the same orientation as pointer users.
 
+`/search` and `/interview/:category` (P5) reuse the same roadmap visual language —
+`SearchPage.jsx` debounces a query against `GET /api/v1/search` and lists results as topic rows;
+`InterviewPage.jsx` paginates `GET /api/v1/interview/questions` (offset/limit "Load more", server-side
+category + difficulty filters, client-side shuffle) through a shared `components/shared/InterviewDeck.jsx`
+— the same accessible step-through deck `TopicViewer.jsx` uses for its per-topic practice section,
+extracted so both call sites stay in sync. `category = 'all'` omits the server-side category filter
+rather than paging through a second client-side registry. Both routes are linked from the navbar.
+
 The token system in `frontend/src/App.css` provides dark and light palettes, five category accents,
 semantic state colours, reading typography, spacing and motion. The saved theme follows the system
 preference initially; Mermaid diagrams and syntax highlighting react to theme changes without a reload.
@@ -171,10 +179,10 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 - `GET /api/v1/search?q=&category=&limit=` — Cross-topic search over title, headings, coverage-manifest
   tags, summary and body, ranked and returning a matched heading + excerpt per hit
-  (`DiscoveryController`/`DiscoveryService`, P5). No dedicated frontend route yet.
+  (`DiscoveryController`/`DiscoveryService`, P5). Frontend: `SearchPage.jsx` at `/search`.
 - `GET /api/v1/interview/questions?category=&difficulty=&offset=&limit=` — Paginated interview Q&A
   parsed directly from each lesson's `### Interview Questions` section, answers returned as
-  Markdown. No dedicated frontend route yet.
+  Markdown. Frontend: `InterviewPage.jsx` at `/interview/:category` (`:category` may be `all`).
 
 ---
 
