@@ -123,7 +123,9 @@ describe('TopicPage Component', () => {
     'er-model',
     'query-optimization',
     'storage-raid-indexing',
-    'transactions-acid'
+    'transactions-acid',
+    'io-systems',
+    'design-patterns-solid'
   ])('hides simulation controls when %s has no exact visualizer', topicId => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
@@ -151,7 +153,9 @@ describe('TopicPage Component', () => {
     ['er-model', 'ER Diagram Modeling & Relational Mapping'],
     ['query-optimization', 'Query Processing & Cost-Based Optimizer'],
     ['storage-raid-indexing', 'File Organization, RAID Storage & Advanced Indexing'],
-    ['transactions-acid', 'Transactions, ACID States & Crash Recovery']
+    ['transactions-acid', 'Transactions, ACID States & Crash Recovery'],
+    ['io-systems', 'I/O Systems & Kernel Architecture'],
+    ['design-patterns-solid', 'SOLID Principles & Design Patterns']
   ])('renders the registered topic title for %s', (topicId, title) => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>

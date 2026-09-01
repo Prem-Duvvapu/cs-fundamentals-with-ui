@@ -10,7 +10,6 @@ const DbmsVisualizer = lazy(() => import('./DbmsVisualizer'))
 const AiMlVisualizer = lazy(() => import('./AiMlVisualizer'))
 const JavaSpringVisualizer = lazy(() => import('./JavaSpringVisualizer'))
 const FileSystemVisualizer = lazy(() => import('./os/FileSystemVisualizer'))
-const IoSystemsVisualizer = lazy(() => import('./os/IoSystemsVisualizer'))
 const DiskSchedulingVisualizer = lazy(() => import('./os/DiskSchedulingVisualizer'))
 const HashMapVisualizer = lazy(() => import('./java/HashMapVisualizer'))
 const VirtualThreadsVisualizer = lazy(() => import('./java/VirtualThreadsVisualizer'))
@@ -32,7 +31,6 @@ const registry = Object.freeze({
   synchronization: direct(SynchronizationVisualizer),
   deadlocks: direct(DeadlockVisualizer),
   'file-systems': direct(FileSystemVisualizer),
-  'io-systems': direct(IoSystemsVisualizer),
   'disk-scheduling': direct(DiskSchedulingVisualizer),
 
   'network-fundamentals': hub(NetworkingVisualizer, 'network-fundamentals'),
@@ -73,7 +71,6 @@ const registry = Object.freeze({
   'jpa-hibernate-lifecycle': hub(JavaSpringVisualizer, 'jpa-hibernate-lifecycle'),
   'spring-batch-lifecycle': hub(JavaSpringVisualizer, 'spring-batch-lifecycle'),
   'quartz-scheduler': hub(JavaSpringVisualizer, 'quartz-scheduler'),
-  'design-patterns-solid': hub(JavaSpringVisualizer, 'design-patterns-solid'),
   'spring-testing-production': direct(ConnectionPoolVisualizer),
 
   'embeddings-vector-db': hub(AiMlVisualizer, 'embeddings-vector-db'),

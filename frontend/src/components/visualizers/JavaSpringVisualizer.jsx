@@ -12,7 +12,6 @@ import JavaFunctionalLambdasVisualizer from './java/JavaFunctionalLambdasVisuali
 import JavaGenericsVisualizer from './java/JavaGenericsVisualizer'
 import JavaCollectionsVisualizer from './java/JavaCollectionsVisualizer'
 import JavaStreamsOptionalVisualizer from './java/JavaStreamsOptionalVisualizer'
-import DesignPatternsVisualizer from './java/DesignPatternsVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -27,7 +26,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       case 'java-generics': return 'generics'
       case 'java-collections-framework': return 'collections'
       case 'java-streams-optional': return 'streams-optional'
-      case 'design-patterns-solid': return 'design-patterns'
       case 'jvm-gc': return 'jvm'
       case 'spring-bean-lifecycle': return 'bean'
       case 'spring-mvc-lifecycle': return 'mvc'
@@ -170,12 +168,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             🌊 Streams & Optional
           </button>
           <button
-            onClick={() => setActiveTab('design-patterns')}
-            className={`main-tab-btn ${activeTab === 'design-patterns' ? 'active-tab' : ''}`}
-          >
-            🎨 SOLID & Design Patterns
-          </button>
-          <button
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
           >
@@ -270,11 +262,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       {/* MODE 0.96: STREAMS API & OPTIONAL */}
       {activeTab === 'streams-optional' && (
         <JavaStreamsOptionalVisualizer />
-      )}
-
-      {/* MODE 0.98: SOLID PRINCIPLES & DESIGN PATTERNS */}
-      {activeTab === 'design-patterns' && (
-        <DesignPatternsVisualizer />
       )}
 
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}

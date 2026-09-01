@@ -14,14 +14,12 @@ const EXPECTED_SUPPORTED_IDS = [
   'database-normalization',
   'dbms-indexing',
   'deadlocks',
-  'design-patterns-solid',
   'disk-scheduling',
   'distributed-databases-cap',
   'embeddings-vector-db',
   'feature-stores',
   'file-systems',
   'functional-dependencies-keys',
-  'io-systems',
   'ip-subnetting',
   'java-collections-framework',
   'java-execution-pipeline',
@@ -72,7 +70,9 @@ const UNSUPPORTED_REGISTERED_IDS = [
   'er-model',
   'query-optimization',
   'storage-raid-indexing',
-  'transactions-acid'
+  'transactions-acid',
+  'io-systems',
+  'design-patterns-solid'
 ]
 
 describe('topic visualizer registry', () => {
