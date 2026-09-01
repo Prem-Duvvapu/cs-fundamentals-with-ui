@@ -125,7 +125,15 @@ describe('TopicPage Component', () => {
     'storage-raid-indexing',
     'transactions-acid',
     'io-systems',
-    'design-patterns-solid'
+    'design-patterns-solid',
+    'java-execution-pipeline',
+    'java-memory-model',
+    'java-oop-pillars',
+    'java-static-final-records',
+    'java-functional-lambdas',
+    'java-generics',
+    'java-collections-framework',
+    'java-streams-optional'
   ])('hides simulation controls when %s has no exact visualizer', topicId => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>
@@ -155,7 +163,15 @@ describe('TopicPage Component', () => {
     ['storage-raid-indexing', 'File Organization, RAID Storage & Advanced Indexing'],
     ['transactions-acid', 'Transactions, ACID States & Crash Recovery'],
     ['io-systems', 'I/O Systems & Kernel Architecture'],
-    ['design-patterns-solid', 'SOLID Principles & Design Patterns']
+    ['design-patterns-solid', 'SOLID Principles & Design Patterns'],
+    ['java-execution-pipeline', 'Java Execution Pipeline & JDK/JRE/JVM Architecture'],
+    ['java-memory-model', 'Java Memory Model: Primitives, References, Stack & Heap'],
+    ['java-oop-pillars', 'OOP Pillars & Dynamic Method Dispatch (vtable)'],
+    ['java-static-final-records', 'Static, Final, Immutability & Java Records'],
+    ['java-functional-lambdas', 'Interfaces, Functional Interfaces & Lambda Expressions'],
+    ['java-generics', 'Generics, Wildcards (PECS) & Type Erasure'],
+    ['java-collections-framework', 'Collections Framework: List, Set, Queue & PriorityQueue'],
+    ['java-streams-optional', 'Java Streams API Lazy Pipeline & Optional']
   ])('renders the registered topic title for %s', (topicId, title) => {
     render(
       <MemoryRouter initialEntries={[`/topic/${topicId}`]}>

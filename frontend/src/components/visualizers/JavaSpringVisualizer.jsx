@@ -4,35 +4,18 @@ import HashMapVisualizer from './java/HashMapVisualizer'
 import VirtualThreadsVisualizer from './java/VirtualThreadsVisualizer'
 import ConnectionPoolVisualizer from './java/ConnectionPoolVisualizer'
 import SpringBatchVisualizer from './java/SpringBatchVisualizer'
-import JavaExecutionPipelineVisualizer from './java/JavaExecutionPipelineVisualizer'
-import JavaMemoryModelVisualizer from './java/JavaMemoryModelVisualizer'
-import JavaOopVisualizer from './java/JavaOopVisualizer'
-import JavaStaticRecordsVisualizer from './java/JavaStaticRecordsVisualizer'
-import JavaFunctionalLambdasVisualizer from './java/JavaFunctionalLambdasVisualizer'
-import JavaGenericsVisualizer from './java/JavaGenericsVisualizer'
-import JavaCollectionsVisualizer from './java/JavaCollectionsVisualizer'
-import JavaStreamsOptionalVisualizer from './java/JavaStreamsOptionalVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
   const getInitialTab = () => {
     switch (defaultTopicId) {
-      case 'java-execution-pipeline': return 'pipeline'
-      case 'java-memory-model': return 'memory-model'
-      case 'java-oop-pillars':
-      case 'java-oop-vtable': return 'oop-vtable'
-      case 'java-static-final-records': return 'static-records'
-      case 'java-functional-lambdas': return 'functional-lambdas'
-      case 'java-generics': return 'generics'
-      case 'java-collections-framework': return 'collections'
-      case 'java-streams-optional': return 'streams-optional'
       case 'jvm-gc': return 'jvm'
       case 'spring-bean-lifecycle': return 'bean'
       case 'spring-mvc-lifecycle': return 'mvc'
       case 'jpa-hibernate-lifecycle': return 'jpa'
       case 'spring-batch-lifecycle': return 'batch'
       case 'quartz-scheduler': return 'quartz'
-      default: return 'pipeline'
+      default: return 'jvm'
     }
   }
 
@@ -120,54 +103,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
         {/* SUB-TABS NAVIGATION */}
         <div className="main-tab-switcher hub-subnav is-centered">
           <button
-            onClick={() => setActiveTab('pipeline')}
-            className={`main-tab-btn ${activeTab === 'pipeline' ? 'active-tab' : ''}`}
-          >
-            ⚙️ Execution Pipeline
-          </button>
-          <button
-            onClick={() => setActiveTab('memory-model')}
-            className={`main-tab-btn ${activeTab === 'memory-model' ? 'active-tab' : ''}`}
-          >
-            💾 Memory Model (Stack vs Heap)
-          </button>
-          <button
-            onClick={() => setActiveTab('oop-vtable')}
-            className={`main-tab-btn ${activeTab === 'oop-vtable' ? 'active-tab' : ''}`}
-          >
-            🐕 OOP & vtable Dispatch
-          </button>
-          <button
-            onClick={() => setActiveTab('static-records')}
-            className={`main-tab-btn ${activeTab === 'static-records' ? 'active-tab' : ''}`}
-          >
-            🔒 Static, Final & Records
-          </button>
-          <button
-            onClick={() => setActiveTab('functional-lambdas')}
-            className={`main-tab-btn ${activeTab === 'functional-lambdas' ? 'active-tab' : ''}`}
-          >
-            ⚡ Lambdas & invokedynamic
-          </button>
-          <button
-            onClick={() => setActiveTab('generics')}
-            className={`main-tab-btn ${activeTab === 'generics' ? 'active-tab' : ''}`}
-          >
-            🧬 Generics & PECS
-          </button>
-          <button
-            onClick={() => setActiveTab('collections')}
-            className={`main-tab-btn ${activeTab === 'collections' ? 'active-tab' : ''}`}
-          >
-            📚 Collections & Heap
-          </button>
-          <button
-            onClick={() => setActiveTab('streams-optional')}
-            className={`main-tab-btn ${activeTab === 'streams-optional' ? 'active-tab' : ''}`}
-          >
-            🌊 Streams & Optional
-          </button>
-          <button
             onClick={() => setActiveTab('jvm')}
             className={`main-tab-btn ${activeTab === 'jvm' ? 'active-tab' : ''}`}
           >
@@ -223,46 +158,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
           </button>
         </div>
       </div>
-
-      {/* MODE 0: JAVA EXECUTION PIPELINE */}
-      {activeTab === 'pipeline' && (
-        <JavaExecutionPipelineVisualizer />
-      )}
-
-      {/* MODE 0.5: JAVA MEMORY MODEL (STACK VS HEAP) */}
-      {activeTab === 'memory-model' && (
-        <JavaMemoryModelVisualizer />
-      )}
-
-      {/* MODE 0.75: JAVA OOP & DYNAMIC METHOD DISPATCH (VTABLE) */}
-      {activeTab === 'oop-vtable' && (
-        <JavaOopVisualizer />
-      )}
-
-      {/* MODE 0.85: STATIC, FINAL, IMMUTABILITY & JAVA RECORDS */}
-      {activeTab === 'static-records' && (
-        <JavaStaticRecordsVisualizer />
-      )}
-
-      {/* MODE 0.90: FUNCTIONAL INTERFACES & LAMBDAS */}
-      {activeTab === 'functional-lambdas' && (
-        <JavaFunctionalLambdasVisualizer />
-      )}
-
-      {/* MODE 0.92: GENERICS & PECS */}
-      {activeTab === 'generics' && (
-        <JavaGenericsVisualizer />
-      )}
-
-      {/* MODE 0.94: COLLECTIONS FRAMEWORK & PRIORITYQUEUE */}
-      {activeTab === 'collections' && (
-        <JavaCollectionsVisualizer />
-      )}
-
-      {/* MODE 0.96: STREAMS API & OPTIONAL */}
-      {activeTab === 'streams-optional' && (
-        <JavaStreamsOptionalVisualizer />
-      )}
 
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
       {activeTab === 'jvm' && (

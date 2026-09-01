@@ -55,16 +55,8 @@ const registry = Object.freeze({
   // an interactive simulation (see P3 audit checkpoint in plan.md).
   'distributed-databases-cap': hub(NetworkingVisualizer, 'distributed-databases-cap'),
 
-  'java-execution-pipeline': hub(JavaSpringVisualizer, 'java-execution-pipeline'),
-  'java-memory-model': hub(JavaSpringVisualizer, 'java-memory-model'),
-  'java-oop-pillars': hub(JavaSpringVisualizer, 'java-oop-pillars'),
-  'java-static-final-records': hub(JavaSpringVisualizer, 'java-static-final-records'),
   'jvm-gc': hub(JavaSpringVisualizer, 'jvm-gc'),
-  'java-functional-lambdas': hub(JavaSpringVisualizer, 'java-functional-lambdas'),
-  'java-generics': hub(JavaSpringVisualizer, 'java-generics'),
-  'java-collections-framework': hub(JavaSpringVisualizer, 'java-collections-framework'),
   'java-hashmap-internals': direct(HashMapVisualizer),
-  'java-streams-optional': hub(JavaSpringVisualizer, 'java-streams-optional'),
   'java-multithreading-concurrency': direct(VirtualThreadsVisualizer),
   'spring-bean-lifecycle': hub(JavaSpringVisualizer, 'spring-bean-lifecycle'),
   'spring-mvc-lifecycle': hub(JavaSpringVisualizer, 'spring-mvc-lifecycle'),

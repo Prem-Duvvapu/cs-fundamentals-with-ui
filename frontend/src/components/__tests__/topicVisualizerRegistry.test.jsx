@@ -21,16 +21,8 @@ const EXPECTED_SUPPORTED_IDS = [
   'file-systems',
   'functional-dependencies-keys',
   'ip-subnetting',
-  'java-collections-framework',
-  'java-execution-pipeline',
-  'java-functional-lambdas',
-  'java-generics',
   'java-hashmap-internals',
-  'java-memory-model',
   'java-multithreading-concurrency',
-  'java-oop-pillars',
-  'java-static-final-records',
-  'java-streams-optional',
   'jpa-hibernate-lifecycle',
   'jvm-gc',
   'llm-parameters',
@@ -72,7 +64,15 @@ const UNSUPPORTED_REGISTERED_IDS = [
   'storage-raid-indexing',
   'transactions-acid',
   'io-systems',
-  'design-patterns-solid'
+  'design-patterns-solid',
+  'java-collections-framework',
+  'java-execution-pipeline',
+  'java-functional-lambdas',
+  'java-generics',
+  'java-memory-model',
+  'java-oop-pillars',
+  'java-static-final-records',
+  'java-streams-optional'
 ]
 
 describe('topic visualizer registry', () => {
