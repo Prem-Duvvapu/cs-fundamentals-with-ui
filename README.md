@@ -117,12 +117,15 @@ All 63 lessons satisfy the authoring contract and coverage manifest: 28,683 curr
 The current priority is to turn the existing topic library into a dependable, content-first
 study product. The implementation sequence is:
 
-1. Keep content routes, validation and CI reliable.
+1. Keep content routes, validation and CI reliable. — done.
 2. Make Study the default topic view and add a table of contents, tier navigation, reading
-   progress and an interview-practice deck.
+   progress and an interview-practice deck. — done.
 3. Retain only high-value simulations; migrate any retained theory and questions before a
-   simulator is removed.
-4. Add cross-topic search and category interview mode.
+   simulator is removed. — done; 18 non-retained simulators removed after a migration gate
+   verified their questions live on in the lesson content.
+4. Add cross-topic search and category interview mode. — done: `/search` and
+   `/interview/:category`, backed by `GET /api/v1/search` and
+   `GET /api/v1/interview/questions`.
 5. Complete the responsive/accessibility audit and full release verification.
 
 The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).

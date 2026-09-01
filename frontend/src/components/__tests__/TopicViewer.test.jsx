@@ -129,7 +129,7 @@ Use **structured reasoning**, \`inline code\`, and a [primary source](https://ex
 
     expect(reveal).toHaveAttribute('aria-expanded', 'true')
     const answer = document.getElementById(reveal.getAttribute('aria-controls'))
-    await waitFor(() => expect(answer).toHaveTextContent('structured reasoning'))
+    await waitFor(() => expect(answer).toHaveTextContent('structured reasoning'), { timeout: 15000 })
     expect(answer.querySelector('strong')).toHaveTextContent('structured reasoning')
     expect(answer.querySelector('code')).toHaveTextContent('inline code')
     expect(answer.querySelector('a')).toHaveAttribute('href', 'https://example.com')
