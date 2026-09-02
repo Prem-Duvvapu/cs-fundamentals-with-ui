@@ -185,8 +185,21 @@ existing lesson and rerunning the manifest validator.
    (109/109 ledger items resolved); the 17 engine conversions/deletions are done (see checkpoint
    below) — 18 non-retained visualizer components, engines, and JSON files removed in 4 commits.
 4. Run frontend unit/integration tests, backend tests, production build, full content validation,
-   accessibility checks, route checks, and documentation synchronization. — ongoing; backend and
-   content-validator suites are green, frontend suite green as of the last full run.
+   accessibility checks, route checks, and documentation synchronization. — **mostly done, one
+   gap below.** Verified 2026-09-02: backend 42/42 (`mvn test`), frontend 412/412 across 28 files
+   (`npm test --prefix frontend`), production build clean, content validator 63/63, migration
+   gate 0 pending. Route checks done as a live smoke test against a real running backend + Vite
+   dev server (not just mocked component tests): `GET /api/v1/search` and
+   `GET /api/v1/interview/questions` verified against the real 63-topic index (883 total
+   questions, matching the count below; ranking, category filter, and offset pagination all
+   correct), `/search`, `/interview/all`, `/interview/dbms`, and `/topic/dbms-introduction` all
+   return 200 from the dev server. **Gap:** accessibility checks (Lighthouse/axe) need a real
+   browser, which this environment does not have — not run. **Also found, not yet fixed:**
+   `GET /api/v1/content/{category}/{topicId}` returns HTTP 200 with the body
+   `Content not found for: <id>` for an unregistered topic id instead of a 404; `TopicViewer.jsx`
+   only checks `res.ok`, so an invalid topic id silently renders that string as page content
+   instead of the "Content not available yet." fallback. Pre-existing (not a P3/P5 regression),
+   unrelated to this pass's scope — flagged here rather than fixed inline.
 
 ### P3 audit checkpoint — simulation triage
 
