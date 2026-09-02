@@ -252,10 +252,16 @@ existing lesson and rerunning the manifest validator.
   combinations on classes whose *base* name is still alive elsewhere, e.g. `.header-pill` is used
   by several retained visualizers but never with the `.is-idle-fallback` modifier that only
   TransactionsAcidVisualizer used) and 5 now-empty component-name comment headers. Verified with a
-  production build (CSS still parses) and the full frontend suite. One unrelated dead CSS block
-  was found and deliberately left alone: `.state-pill`/`.state-pill--*` (BEM-modifier style, ~App.css
-  line 2278) has zero JSX references but predates and is unrelated to the P3 removals — flagged in
-  AGENTS.md as a separate, out-of-scope finding rather than folded into this pass.
+  production build (CSS still parses) and the full frontend suite.
+
+  A separate, unrelated dead CSS block was found along the way — `.state-pill`/`.state-pill--*`
+  (BEM-modifier style, ~App.css line 2278), zero JSX references anywhere, predating the P3
+  removals. Its neighbors in the same "Shared visualizer primitives" comment block
+  (`.panel`/`.panel--*`, `.metric-tile`/`.metric-tile__*`, `.legend-row`, `.field-grid`) are all
+  alive and back their matching `components/shared/*.jsx` component 1:1 by name — `.state-pill`
+  was clearly scaffolded the same way for `StatePill.jsx`, but that component actually renders
+  `u-pill`/`u-pill-<tone>` classes, leaving `.state-pill`/`.state-pill--*` fully orphaned. Removed
+  2026-09-02, verified with a production build and the full frontend suite (both green).
 - Migration gate: verify all 49 JSON interview questions, 56 JSON quizzes and 4 inline quizzes
   (109 items total) are represented or intentionally superseded in Markdown before deletion.
   **Done.** `content/SIMULATION_QUESTION_MIGRATION.json` resolves all 109 items — 42 `retained`

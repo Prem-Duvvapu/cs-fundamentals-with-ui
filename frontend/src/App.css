@@ -2275,12 +2275,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { box-shadow: va
 .panel { background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-md); }
 .panel--deep { background: var(--bg-code); }
 .panel--raised { background: var(--bg-raised); border-color: var(--border-default); }
-.state-pill { align-items: center; border: var(--stroke-hair) solid; border-radius: var(--radius-full); display: inline-flex; font-size: var(--ui-2xs); font-weight: 600; gap: var(--space-1); padding: var(--space-1) var(--space-2); text-transform: uppercase; }
-.state-pill--success { background: var(--state-success-tint); border-color: var(--state-success-border); color: var(--state-success); }
-.state-pill--warning { background: var(--state-warning-tint); border-color: var(--state-warning-border); color: var(--state-warning); }
-.state-pill--danger { background: var(--state-danger-tint); border-color: var(--state-danger-border); color: var(--state-danger); }
-.state-pill--info { background: var(--state-info-tint); border-color: var(--state-info-border); color: var(--state-info); }
-.state-pill--idle { background: var(--state-idle-tint); border-color: var(--state-idle-border); color: var(--state-idle); }
 .metric-tile { background: var(--bg-raised); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-sm); padding: var(--space-3); }
 .metric-tile__label { color: var(--text-muted); display: block; font-size: var(--ui-xs); }
 .metric-tile__value { color: var(--text-primary); display: block; font-size: var(--ui-md); font-weight: 600; }
