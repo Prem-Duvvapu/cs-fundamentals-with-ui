@@ -239,11 +239,10 @@ the frontend was already correct; only the backend was lying about its status co
 
 The P3 cleanup (dead App.css rules from the 18 removed components; 3 orphaned
 JavaSpringVisualizer sub-tabs) is done — see the P3 audit checkpoint in `plan.md` for the method
-and the exact classes/lines removed. One unrelated pre-existing dead-CSS block was found along the
-way and deliberately left alone (out of scope for this pass): `.state-pill`/`.state-pill--*`
-(`App.css` ~line 2278, BEM-modifier style) has zero JSX references anywhere — it predates and is
-unrelated to the P3 removals, likely orphaned by an earlier unrelated refactor of the shared
-`StatePill.jsx` component (which now renders `u-pill`/`u-pill-<tone>` instead).
+and the exact classes/lines removed. A separate, unrelated dead-CSS block found along the way —
+`.state-pill`/`.state-pill--*` (BEM-modifier style), zero JSX references, predating the P3
+removals and likely orphaned by an earlier refactor of the shared `StatePill.jsx` component (which
+renders `u-pill`/`u-pill-<tone>` instead) — is also removed now (2026-09-02).
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
