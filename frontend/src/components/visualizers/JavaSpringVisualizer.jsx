@@ -1,8 +1,5 @@
 import React, { useState } from 'react'
 import JvmMemoryVisualizer from './java/JvmMemoryVisualizer'
-import HashMapVisualizer from './java/HashMapVisualizer'
-import VirtualThreadsVisualizer from './java/VirtualThreadsVisualizer'
-import ConnectionPoolVisualizer from './java/ConnectionPoolVisualizer'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -43,7 +40,7 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       <div className="viz-header">
         <div className="viz-title-group">
           <h2>☕ Java, Spring Boot & JPA Runtime Engine</h2>
-          <p>Explore JVM Memory & Threads, HashMap internals, Virtual Threads, Connection Pools, Spring MVC Pipeline & Quartz.</p>
+          <p>Explore JVM Memory & Threads, Spring MVC Pipeline & Quartz.</p>
         </div>
 
         {/* SUB-TABS NAVIGATION */}
@@ -55,28 +52,10 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             🧠 JVM Heap & GC
           </button>
           <button
-            onClick={() => setActiveTab('hashmap')}
-            className={`main-tab-btn ${activeTab === 'hashmap' ? 'active-tab' : ''}`}
-          >
-            🔑 HashMap & Bucket Internals
-          </button>
-          <button
-            onClick={() => setActiveTab('virtual-threads')}
-            className={`main-tab-btn ${activeTab === 'virtual-threads' ? 'active-tab' : ''}`}
-          >
-            🌀 Virtual Threads (Loom)
-          </button>
-          <button
             onClick={() => setActiveTab('mvc')}
             className={`main-tab-btn ${activeTab === 'mvc' ? 'active-tab' : ''}`}
           >
             🌐 Spring MVC Request Flow
-          </button>
-          <button
-            onClick={() => setActiveTab('hikari-pool')}
-            className={`main-tab-btn ${activeTab === 'hikari-pool' ? 'active-tab' : ''}`}
-          >
-            🔌 HikariCP Connection Pool
           </button>
           <button
             onClick={() => setActiveTab('quartz')}
@@ -90,21 +69,6 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       {/* MODE 1: JVM MEMORY & HEAP GENERATIONS */}
       {activeTab === 'jvm' && (
         <JvmMemoryVisualizer />
-      )}
-
-      {/* MODE 2: HASHMAP & BUCKET INTERNALS */}
-      {activeTab === 'hashmap' && (
-        <HashMapVisualizer />
-      )}
-
-      {/* MODE 3: VIRTUAL THREADS (LOOM) */}
-      {activeTab === 'virtual-threads' && (
-        <VirtualThreadsVisualizer />
-      )}
-
-      {/* MODE 4: HIKARICP CONNECTION POOL */}
-      {activeTab === 'hikari-pool' && (
-        <ConnectionPoolVisualizer />
       )}
 
       {/* MODE 3: SPRING MVC REQUEST LIFECYCLE */}

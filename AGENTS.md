@@ -165,7 +165,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 | **P0** | Replace the Markdown pipeline (GFM + KaTeX + Mermaid) | ✅ **Done** |
 | **P1** | `CONTENT_SPEC.md` + `scripts/validate-content.mjs` + CI | ✅ **Done** |
 | **P2** | Reading experience — compact topic chrome, responsive TOC, tier nav, interview deck | ✅ **Done** |
-| **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ✅ **Done — 18 non-retained components removed; dead App.css and 3 orphaned hub sub-tabs still to clean up** |
+| **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ✅ **Done — 18 non-retained components removed, their dead App.css rules pruned, and the 3 orphaned hub sub-tabs removed** |
 | **P4** | Content authoring, 63 topics in priority waves | ✅ **Done — 63/63 lessons and 83/83 manifest entries pass** |
 | **P5** | Cross-topic search + per-category Interview Mode | ✅ **Done — `/search` and `/interview/:category` routes live, linked from the navbar** |
 | **P6** | Verify, doc sync, ship | 🟡 **Verification suite + doc sync done; accessibility audit needs a real browser (not available here)** |
@@ -226,12 +226,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 
 ### Current implementation priorities
 
-1. **Finish P3 cleanup (optional, low priority).** The 18-component removal itself is done; what's
-   left is pruning the dead App.css rules those components owned (needs a per-class usage check —
-   several classes may still be shared with retained components) and re-wiring or removing the 3
-   orphaned JavaSpringVisualizer sub-tabs (hashmap/virtual-threads/hikari-pool — reachable only by
-   manual click, since their topics route directly to standalone components now).
-2. **Finish P6.** Verification suite (backend 47/47, frontend 412/412, build, content validator,
+1. **Finish P6.** Verification suite (backend 47/47, frontend 412/412+, build, content validator,
    migration gate) and doc sync are done as of 2026-09-02 — see `plan.md`'s Phase G item 4 for the
    full verification log. What's left: the responsive/accessibility audit needs a real browser
    (Lighthouse/axe), which this environment doesn't have.
@@ -241,6 +236,14 @@ surfaced is fixed: `ContentService.exists(category, topicId)` and `ContentContro
 a real 404 for an unregistered id (and 500 if `loadContent` hits an I/O error), so
 `TopicViewer.jsx`'s existing `res.ok` check works as designed. No frontend change was needed —
 the frontend was already correct; only the backend was lying about its status code.
+
+The P3 cleanup (dead App.css rules from the 18 removed components; 3 orphaned
+JavaSpringVisualizer sub-tabs) is done — see the P3 audit checkpoint in `plan.md` for the method
+and the exact classes/lines removed. One unrelated pre-existing dead-CSS block was found along the
+way and deliberately left alone (out of scope for this pass): `.state-pill`/`.state-pill--*`
+(`App.css` ~line 2278, BEM-modifier style) has zero JSX references anywhere — it predates and is
+unrelated to the P3 removals, likely orphaned by an earlier unrelated refactor of the shared
+`StatePill.jsx` component (which now renders `u-pill`/`u-pill-<tone>` instead).
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.

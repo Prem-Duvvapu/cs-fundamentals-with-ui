@@ -230,11 +230,32 @@ existing lesson and rerunning the manifest validator.
   Bean/JPA step-throughs that were never engine-backed. distributed-databases-cap kept a
   Simulation tab by retargeting to the retained ConsistentHashingVisualizer (previously wired to
   no topic at all — a pre-existing gap fixed as part of this pass). DbmsVisualizer shrank from
-  12 sub-tabs to 5; JavaSpringVisualizer from ~17 to 6. **Deferred, not done:** pruning the dead
-  App.css rules these components owned, and the pre-existing orphaning of the
-  hashmap/virtual-threads/hikari-pool sub-tabs inside JavaSpringVisualizer (their topics route
-  directly to standalone components now, bypassing the hub, so those 3 tabs are reachable only
-  by manual click from a different topic's Simulation view — not introduced by this pass).
+  12 sub-tabs to 5; JavaSpringVisualizer from ~17 to 6.
+
+  **Cleanup done 2026-09-02.** The 3 orphaned JavaSpringVisualizer sub-tabs
+  (hashmap/virtual-threads/hikari-pool — reachable only by manual click, since their topics route
+  directly to standalone components) were removed; the hub now serves exactly the 3 topics that
+  route to it (jvm-gc, spring-mvc-lifecycle, quartz-scheduler).
+
+  The dead App.css rules these 18 components owned were pruned: every class selector was checked
+  automatically (a script extracted each `.class` token from the affected region, then searched
+  all current `frontend/src/**/*.{jsx,js}` for a literal reference — matching a "shared vocabulary"
+  comment in App.css that already documented several of these classes as reused across both
+  removed AND retained files), spot-checked by hand against representative kept components
+  (ConcurrencyControlVisualizer, FunctionalDependencyVisualizer, NormalizationVisualizer,
+  RelationalAlgebraVisualizer, DiskSchedulingVisualizer, FileSystemVisualizer) to confirm no false
+  positives, then the confirmed-dead rules removed by leftmost-selector-class matching (so a
+  compound selector like `.raid-block-row .parity` was removed as one unit once `raid-block-row`,
+  its outer/dead wrapper class, was confirmed dead — not by deleting on the inner class alone,
+  which could have wrongly matched a same-named class nested under a still-alive parent). 154 CSS
+  declaration lines removed plus 4 more found dead by direct manual check afterward (modifier
+  combinations on classes whose *base* name is still alive elsewhere, e.g. `.header-pill` is used
+  by several retained visualizers but never with the `.is-idle-fallback` modifier that only
+  TransactionsAcidVisualizer used) and 5 now-empty component-name comment headers. Verified with a
+  production build (CSS still parses) and the full frontend suite. One unrelated dead CSS block
+  was found and deliberately left alone: `.state-pill`/`.state-pill--*` (BEM-modifier style, ~App.css
+  line 2278) has zero JSX references but predates and is unrelated to the P3 removals — flagged in
+  AGENTS.md as a separate, out-of-scope finding rather than folded into this pass.
 - Migration gate: verify all 49 JSON interview questions, 56 JSON quizzes and 4 inline quizzes
   (109 items total) are represented or intentionally superseded in Markdown before deletion.
   **Done.** `content/SIMULATION_QUESTION_MIGRATION.json` resolves all 109 items — 42 `retained`

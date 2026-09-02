@@ -27,4 +27,15 @@ describe('JavaSpringVisualizer Component Hub', () => {
     expect(container).toBeDefined()
     expect(screen.getByText(/Quartz Scheduler Execution & Misfire Engine/i)).toBeDefined()
   })
+
+  it('does not offer sub-tabs for topics that route directly to their own component', () => {
+    // java-hashmap-internals, java-multithreading-concurrency, and spring-testing-production
+    // each resolve straight to HashMapVisualizer/VirtualThreadsVisualizer/ConnectionPoolVisualizer
+    // via topicVisualizerRegistry.jsx, so duplicating them here as manual-click-only sub-tabs was
+    // dead UI reachable from no topic id.
+    render(<JavaSpringVisualizer />)
+    expect(screen.queryByRole('button', { name: /hashmap/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /virtual threads/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /hikaricp/i })).not.toBeInTheDocument()
+  })
 })
