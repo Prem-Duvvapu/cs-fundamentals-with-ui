@@ -33,6 +33,11 @@ public class ContentService {
         return loadContent(category, topicId);
     }
 
+    public boolean exists(String category, String topicId) {
+        if (contentRootDir == null) return false;
+        return findFile(category, topicId) != null;
+    }
+
     public String getCoverageManifest() {
         if (contentRootDir == null) return "{}";
         try {

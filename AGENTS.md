@@ -231,14 +231,16 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
    several classes may still be shared with retained components) and re-wiring or removing the 3
    orphaned JavaSpringVisualizer sub-tabs (hashmap/virtual-threads/hikari-pool — reachable only by
    manual click, since their topics route directly to standalone components now).
-2. **Finish P6.** Verification suite (backend 42/42, frontend 412/412, build, content validator,
+2. **Finish P6.** Verification suite (backend 47/47, frontend 412/412, build, content validator,
    migration gate) and doc sync are done as of 2026-09-02 — see `plan.md`'s Phase G item 4 for the
    full verification log. What's left: the responsive/accessibility audit needs a real browser
-   (Lighthouse/axe), which this environment doesn't have; and a pre-existing bug the live route
-   check surfaced — `GET /api/v1/content/{category}/{topicId}` returns HTTP 200 (not 404) with
-   body `Content not found for: <id>` for an unregistered id, so `TopicViewer.jsx`'s `res.ok`
-   check never fires and the raw error string renders as page content. Not a P3/P5 regression;
-   flagged, not yet fixed.
+   (Lighthouse/axe), which this environment doesn't have.
+
+The `GET /api/v1/content/{category}/{topicId}` 200-instead-of-404 bug the live route check
+surfaced is fixed: `ContentService.exists(category, topicId)` and `ContentController` now return
+a real 404 for an unregistered id (and 500 if `loadContent` hits an I/O error), so
+`TopicViewer.jsx`'s existing `res.ok` check works as designed. No frontend change was needed —
+the frontend was already correct; only the backend was lying about its status code.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
