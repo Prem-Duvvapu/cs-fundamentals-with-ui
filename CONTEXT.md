@@ -86,15 +86,21 @@ via the retained `ConsistentHashingVisualizer` (see Networking, below), not this
 - **Concurrency Control & 2PL (`ConcurrencyControlVisualizer.jsx`)**: Conflict serializability, Strict 2PL locks, Timestamp Ordering, Thomas Write Rule, and deadlock wait-for graphs.
 
 ### ☕ Java & Spring Ecosystem (`JavaSpringVisualizer.jsx`)
-6 sub-tabs after the same P3 triage; the 8 core-Java topics (execution pipeline, memory model, OOP
+3 sub-tabs after the same P3 triage; the 8 core-Java topics (execution pipeline, memory model, OOP
 pillars, static/final/records, functional/lambdas, generics, collections, streams/Optional) and
-Spring Batch/Bean/JPA read Study only now.
+Spring Batch/Bean/JPA read Study only now. HashMap internals, Virtual Threads, and HikariCP were
+also removed from this hub — they route directly to their own standalone component via
+`topicVisualizerRegistry.jsx` (`java-hashmap-internals`, `java-multithreading-concurrency`,
+`spring-testing-production`), so keeping them here too was a duplicate tab reachable by no topic
+id, only manual click.
 - **JVM Heap & GC (`JvmMemoryVisualizer.jsx`)**: Young/Old Gen allocations, G1GC/ZGC collectors, and Virtual Threads.
-- **HashMap & Bucket Internals (`HashMapVisualizer.jsx`)**: reachable directly at `java-hashmap-internals`, not through this hub; the hub still carries a duplicate tab, reachable only by manual click.
-- **Virtual Threads / Loom (`VirtualThreadsVisualizer.jsx`)**: reachable directly at `java-multithreading-concurrency`; same manual-click-only duplicate tab in this hub.
 - **Spring MVC Flow**: DispatcherServlet request pipeline and security filter chain execution (inline step-through, never engine-backed).
-- **HikariCP Connection Pool (`ConnectionPoolVisualizer.jsx`)**: reachable directly at `spring-testing-production`; same manual-click-only duplicate tab in this hub.
 - **Quartz Scheduler & Cluster**: misfire policy and `JobStoreTX` cluster locking (inline step-through, never engine-backed).
+
+### ☕ Java & Spring — direct-mounted (bypass the hub, like OS topics)
+- **HashMap & Bucket Internals (`java/HashMapVisualizer.jsx`)** at `java-hashmap-internals`: bucket chaining, treeification, and resize.
+- **Virtual Threads / Loom (`java/VirtualThreadsVisualizer.jsx`)** at `java-multithreading-concurrency`: mount/unmount onto carrier threads.
+- **HikariCP Connection Pool (`java/ConnectionPoolVisualizer.jsx`)** at `spring-testing-production`: pool exhaustion and wait-queue behaviour.
 
 ---
 
