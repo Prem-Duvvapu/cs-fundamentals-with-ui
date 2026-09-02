@@ -168,7 +168,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ✅ **Done — 18 non-retained components removed; dead App.css and 3 orphaned hub sub-tabs still to clean up** |
 | **P4** | Content authoring, 63 topics in priority waves | ✅ **Done — 63/63 lessons and 83/83 manifest entries pass** |
 | **P5** | Cross-topic search + per-category Interview Mode | ✅ **Done — `/search` and `/interview/:category` routes live, linked from the navbar** |
-| **P6** | Verify, doc sync, ship | ☐ Not started |
+| **P6** | Verify, doc sync, ship | 🟡 **Verification suite + doc sync done; accessibility audit needs a real browser (not available here)** |
 
 ### What P0 delivered (already on this branch)
 - `frontend/src/components/markdown/MarkdownRenderer.jsx` — full GFM + math + highlighting
@@ -231,8 +231,14 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
    several classes may still be shared with retained components) and re-wiring or removing the 3
    orphaned JavaSpringVisualizer sub-tabs (hashmap/virtual-threads/hikari-pool — reachable only by
    manual click, since their topics route directly to standalone components now).
-2. **Complete P6.** Run the full responsive/accessibility audit, verification suite and doc sync;
-   do not claim the curriculum is complete while validation reports failures.
+2. **Finish P6.** Verification suite (backend 42/42, frontend 412/412, build, content validator,
+   migration gate) and doc sync are done as of 2026-09-02 — see `plan.md`'s Phase G item 4 for the
+   full verification log. What's left: the responsive/accessibility audit needs a real browser
+   (Lighthouse/axe), which this environment doesn't have; and a pre-existing bug the live route
+   check surfaced — `GET /api/v1/content/{category}/{topicId}` returns HTTP 200 (not 404) with
+   body `Content not found for: <id>` for an unregistered id, so `TopicViewer.jsx`'s `res.ok`
+   check never fires and the raw error string renders as page content. Not a P3/P5 regression;
+   flagged, not yet fixed.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
