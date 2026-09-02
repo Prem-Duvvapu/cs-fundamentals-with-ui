@@ -1,6 +1,7 @@
 package com.csfundamentals.controller;
 
 import com.csfundamentals.service.ContentService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,7 +15,15 @@ public class ContentController {
     }
 
     @GetMapping("/{category}/{topicId}")
-    public String getContent(@PathVariable String category, @PathVariable String topicId) {
-        return contentService.getContent(category, topicId);
+    public ResponseEntity<String> getContent(@PathVariable String category, @PathVariable String topicId) {
+        if (!contentService.exists(category, topicId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String content = contentService.getContent(category, topicId);
+        if (content.startsWith("Error loading content")) {
+            return ResponseEntity.internalServerError().body(content);
+        }
+        return ResponseEntity.ok(content);
     }
 }

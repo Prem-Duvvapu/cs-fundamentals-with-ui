@@ -53,6 +53,16 @@ describe('TopicViewer', () => {
     })
   })
 
+  it('shows fallback when the backend returns 404 for an unregistered topic id', async () => {
+    global.fetch.mockResolvedValueOnce(new Response('', { status: 404 }))
+
+    render(<TopicViewer topicId="not-a-real-topic" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Content not available yet.')).toBeInTheDocument()
+    })
+  })
+
   it('fetches from the correct API endpoint', async () => {
     global.fetch.mockResolvedValueOnce(new Response(''))
     render(<TopicViewer topicId="cpu-scheduling" />)

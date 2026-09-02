@@ -194,12 +194,19 @@ existing lesson and rerunning the manifest validator.
    questions, matching the count below; ranking, category filter, and offset pagination all
    correct), `/search`, `/interview/all`, `/interview/dbms`, and `/topic/dbms-introduction` all
    return 200 from the dev server. **Gap:** accessibility checks (Lighthouse/axe) need a real
-   browser, which this environment does not have — not run. **Also found, not yet fixed:**
-   `GET /api/v1/content/{category}/{topicId}` returns HTTP 200 with the body
-   `Content not found for: <id>` for an unregistered topic id instead of a 404; `TopicViewer.jsx`
-   only checks `res.ok`, so an invalid topic id silently renders that string as page content
-   instead of the "Content not available yet." fallback. Pre-existing (not a P3/P5 regression),
-   unrelated to this pass's scope — flagged here rather than fixed inline.
+   browser, which this environment does not have — not run.
+
+   **Fixed 2026-09-02:** `GET /api/v1/content/{category}/{topicId}` previously returned HTTP 200
+   with the body `Content not found for: <id>` for an unregistered topic id instead of a 404,
+   which `TopicViewer.jsx`'s `res.ok` check couldn't detect. `ContentService.exists(category,
+   topicId)` now backs a proper `ResponseEntity` in `ContentController` — 404 when the topic
+   isn't found, 500 if `loadContent` hits an I/O error, 200 otherwise. Verified against a real
+   running backend (`GET /api/v1/content/dbms/not-a-real-topic` → 404,
+   `GET /api/v1/content/networking/dbms-introduction` → 404 for a valid id/wrong category,
+   `GET /api/v1/content/dbms/dbms-introduction` → 200), plus new backend tests
+   (`ContentServiceTest`, `ContentControllerTest`) and a frontend test confirming
+   `TopicViewer.jsx` already rendered "Content not available yet." correctly once the backend
+   told the truth — no frontend change was needed.
 
 ### P3 audit checkpoint — simulation triage
 

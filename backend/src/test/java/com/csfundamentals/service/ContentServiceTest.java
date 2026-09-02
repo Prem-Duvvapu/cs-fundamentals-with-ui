@@ -112,6 +112,27 @@ class ContentServiceTest {
     }
 
     @Test
+    void exists_shouldReturnTrue_whenTopicExists() {
+        assertTrue(service.exists("os", "process-management"));
+    }
+
+    @Test
+    void exists_shouldReturnFalse_whenTopicDoesNotExist() {
+        assertFalse(service.exists("os", "non-existent-topic"));
+    }
+
+    @Test
+    void exists_shouldReturnFalse_whenCategoryIsIncorrect() {
+        assertFalse(service.exists("networking", "process-management"));
+    }
+
+    @Test
+    void exists_shouldReturnFalse_forNullOrBlankTopicId() {
+        assertFalse(service.exists("os", null));
+        assertFalse(service.exists("os", ""));
+    }
+
+    @Test
     void getCoverageManifest_shouldExposeTheValidatedDiscoveryTags() {
         String manifest = service.getCoverageManifest();
 
