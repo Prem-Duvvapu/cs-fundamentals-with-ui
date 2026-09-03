@@ -32,10 +32,12 @@ Reverse `.claude/references/topic-registry.md`:
 1. `content/<category>/NN-<topic-id>.md` — delete (or keep, if unlisting)
 2. `TopicService.java` — remove the `new Topic(...)` line
 3. `TopicServiceTest.java` — **decrement** the category count assertion and drop the `contains` line
-4. `TopicPage.jsx` — remove the `titleMap` entry, the `case`, and the now-unused `lazy(...)` import
-5. `TopicViewer.jsx` — remove the `CATEGORY_MAP` entry
+4. `TopicPage.jsx` — remove the `titleMap` entry; and, if present, the entry (and now-unused
+   import) in `topicVisualizerRegistry.jsx`
+5. `frontend/src/utils/topicCategories.js` — remove the `TOPIC_CATEGORY_MAP` entry
 6. `HomePage.jsx` — remove the object from the fallback array
-7. Category hub — remove the `getInitialTab()` case, the sub-tab button, the render branch, and the import
+7. Category hub — only if the registry entry (point 4) was `hub(...)`: remove the
+   `getInitialTab()` case, the sub-tab button, the render branch, and the import
 
 If the removed topic was a hub's `default:` sub-tab, repoint the default at a surviving tab.
 

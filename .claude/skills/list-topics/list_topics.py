@@ -2,7 +2,9 @@
 """Inventory of curriculum topics per category, plus a registration audit.
 
 Reads TopicService.java (the source of truth for what exists) and cross-references the
-other six registration points. Usage:
+other five hard-required registration points, plus an informational check of whether the
+topic has a topicVisualizerRegistry.jsx entry (optional — a topic with none is Study-only
+by design). Usage:
 
     python3 .claude/skills/list-topics/list_topics.py [category] [--summaries] [--audit]
 
@@ -71,10 +73,12 @@ def resolve_content(files, category, topic_id):
 
 def audit(topics, files):
     topic_page = read('frontend/src/pages/TopicPage.jsx')
-    viewer = read('frontend/src/components/TopicViewer.jsx')
+    registry = read('frontend/src/components/visualizers/topicVisualizerRegistry.jsx')
+    categories = read('frontend/src/utils/topicCategories.js')
     home = read('frontend/src/pages/HomePage.jsx')
     tests = read('backend/src/test/java/com/csfundamentals/service/TopicServiceTest.java')
     problems = []
+    no_visualizer = []
 
     for t in topics:
         tid, cat = t['id'], t['category']
@@ -83,10 +87,10 @@ def audit(topics, files):
             miss.append('content file')
         if f"'{tid}':" not in topic_page:
             miss.append('TopicPage titleMap')
-        if f"case '{tid}'" not in topic_page:
-            miss.append('TopicPage switch case')
-        if f"'{tid}':" not in viewer:
-            miss.append('TopicViewer CATEGORY_MAP')
+        if f"'{tid}'" not in registry:
+            no_visualizer.append(tid)
+        if f"'{tid}':" not in categories and f"{tid}:" not in categories:
+            miss.append('topicCategories TOPIC_CATEGORY_MAP')
         if f"'{tid}'" not in home:
             miss.append('HomePage fallback')
         if f'"{tid}"' not in tests:
@@ -105,7 +109,7 @@ def audit(topics, files):
         actual = sum(1 for t in topics if t['category'] == ALIASES.get(var, var))
         if actual and actual != expected:
             problems.append(f"  {var:34} test asserts {expected} topics, TopicService has {actual}")
-    return problems
+    return problems, no_visualizer
 
 
 def main():
@@ -139,10 +143,13 @@ def main():
         print(f"Content files on disk: {sum(len(v) for v in files.values())}")
 
     if do_audit:
-        problems = audit(topics, files)
+        problems, no_visualizer = audit(topics, files)
         print('\nRegistration audit')
         print('-' * 78)
-        print('\n'.join(problems) if problems else '  All registered topics are wired at all 7 points.')
+        print('\n'.join(problems) if problems else '  All registered topics are wired at all 6 hard-required points.')
+        if no_visualizer:
+            print('\nNo topicVisualizerRegistry.jsx entry (Study only, no Simulation tab — may be intentional):')
+            print('\n'.join(f'  {tid}' for tid in no_visualizer))
     return 0
 
 

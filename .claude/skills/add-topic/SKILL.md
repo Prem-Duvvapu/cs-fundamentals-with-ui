@@ -66,9 +66,11 @@ Add a render smoke test to `frontend/src/components/__tests__/` matching the exi
 
 ## 6. Register it — all 7 points
 
-Work `.claude/references/topic-registry.md` top to bottom. For `dbms`/`networking`/`java-spring`/`aiml`
-that includes the category hub (`getInitialTab()` case + sub-tab button + render branch); for `os`,
-lazy-import the visualizer directly in `TopicPage.jsx`.
+Work `.claude/references/topic-registry.md` top to bottom. Point 4's `topicVisualizerRegistry.jsx`
+entry is `hub(SomeCategoryVisualizer, topicId)` if the visualizer lives inside a category hub
+(most `dbms`/`networking`/`java-spring`/`aiml` topics), or `direct(Component)` if it mounts
+standalone (all `os` topics, plus a few `java-spring` topics pulled out of that hub). Only a
+`hub(...)` entry needs point 7 (the hub's `getInitialTab()` case + sub-tab button + render branch).
 
 Bump the category count assertion in `TopicServiceTest.java` — it will fail otherwise.
 

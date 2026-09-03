@@ -53,7 +53,7 @@ A topic id is a string duplicated across many files. Adding or renaming one mean
    exact-match visualizer, an entry in `frontend/src/components/visualizers/topicVisualizerRegistry.jsx`
    (a topic with no registry entry correctly has no Simulation tab at all — Study only — rather
    than falling back to the wrong hub sub-tab)
-5. `frontend/src/components/TopicViewer.jsx` — `CATEGORY_MAP`, which maps topicId → category for the content fetch
+5. `frontend/src/utils/topicCategories.js` — `TOPIC_CATEGORY_MAP` entry (`'<id>': '<category>'`), consumed via `getTopicCategory()` by `TopicViewer.jsx` (content-fetch category), `TopicPage.jsx`, `SearchPage.jsx`, and `InterviewPage.jsx`
 6. `frontend/src/pages/HomePage.jsx` — a hardcoded duplicate of the whole topic list used as the offline fallback when `/api/v1/topics` fails
 7. the category hub's `getInitialTab()` switch (see below) — only if the topic's registry entry is `hub(SomeCategoryVisualizer, topicId)`; not needed for a `direct(...)` entry or a topic with no registry entry at all
 

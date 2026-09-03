@@ -79,17 +79,20 @@ Tailwind-looking class names (`bg-slate-900/90`, `grid-cols-4`, `space-y-6`) res
 
 ## Known drift (do not copy; fix when touching these files)
 
-Roughly the same 13-16 modules — the DBMS suite plus `DesignPatterns`, `DiskScheduling`,
-`FileSystem`, `IoSystems` — share three defects from one authoring era:
+6 files share two defects from one authoring era — the DBMS suite (`ConcurrencyControl`,
+`Normalization`, `FunctionalDependency`, `RelationalAlgebra`) plus two OS visualizers
+(`DiskScheduling`, `FileSystem`):
 
-1. `onPlayPause={...}` passed to `SimulationControlBar` (expects `onTogglePlay`) — 13 files, dead play button.
-2. `state={{...}}` passed to `StateInspector` (expects `data`) — 16 files, inspector renders nothing.
-3. Tailwind class names with no Tailwind — 13 files, unstyled panels.
+1. `onPlayPause={...}` passed to `SimulationControlBar` (expects `onTogglePlay`) — dead play button.
+2. `state={{...}}` passed to `StateInspector` (expects `data`) — inspector renders nothing.
+
+The Tailwind-with-no-Tailwind defect that used to also affect these 6 (plus several other,
+since-removed modules) was fixed by the Phase 6 UI-revamp rewrite — see `UI_REVAMP_PLAN.md` —
+and no longer applies anywhere in the codebase.
 
 Check with:
 
 ```bash
 grep -rln "onPlayPause" frontend/src/components/visualizers
 grep -rn -A2 "<StateInspector" frontend/src/components/visualizers | grep "state={{"
-grep -rlE 'className="[^"]*(bg-slate-|grid-cols-|space-y-)' frontend/src/components
 ```
