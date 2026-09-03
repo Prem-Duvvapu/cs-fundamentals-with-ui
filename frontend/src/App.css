@@ -1676,7 +1676,8 @@ body {
 .topic-content > .mermaid-block,
 .topic-content > .table-scroll,
 .topic-content > pre,
-.topic-content > .topic-embed { grid-column: wide; }
+.topic-content > .topic-embed,
+.topic-content > .scroll-hint-caption { grid-column: wide; }
 
 .topic-content h1 {
   color: var(--text-primary);
@@ -1719,6 +1720,7 @@ body {
 .topic-content h2 + p { font-size: var(--prose-lg); line-height: var(--prose-lg-lh); }
 
 .topic-content pre {
+  --scroll-fade-bg: var(--bg-code);
   background: var(--bg-code);
   border: var(--stroke-hair) solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -1765,7 +1767,7 @@ body {
 .hljs-emphasis { font-style: italic; }
 .hljs-strong { font-weight: 600; }
 
-.topic-content .table-scroll { border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-md); margin-block: var(--space-5); max-width: var(--measure-wide); overflow-x: auto; overscroll-behavior-x: contain; }
+.topic-content .table-scroll { --scroll-fade-bg: var(--bg-page); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-md); margin-block: var(--space-5); max-width: var(--measure-wide); overflow-x: auto; overscroll-behavior-x: contain; }
 .topic-content table {
   border-collapse: collapse;
   font-size: var(--prose-sm);

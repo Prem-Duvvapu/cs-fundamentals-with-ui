@@ -252,7 +252,10 @@ All 63 topics are registered at all integration points, so content work requires
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS and AI/ML
 - **Verified** — 28,683 curriculum lines, 277 Mermaid diagrams and 883 interview Q&As
-- **Gate** — `node scripts/validate-content.mjs` passes all 63 lessons and 83 manifest entries
+- **Gate** — `node scripts/validate-content.mjs` passes all 63 lessons and 83 manifest entries;
+  it also parses every Mermaid diagram with the real `mermaid` package (not mocked, unlike the
+  Vitest suites), so a diagram with a genuine syntax error fails the gate instead of shipping to
+  the error fallback in `MermaidBlock.jsx`
 
 `content/dbms/06-transactions-acid.md` is the full-contract **exemplar** every later unit matches.
 

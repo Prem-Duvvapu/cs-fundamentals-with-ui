@@ -112,10 +112,13 @@ export default function MermaidBlock({ code }) {
   }
 
   return (
-    <div
-      className="mermaid-block"
-      ref={containerRef}
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    <>
+      <div
+        className="mermaid-block u-scroll-x-hint"
+        ref={containerRef}
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+      <p className="scroll-hint-caption">Scroll to see the full diagram →</p>
+    </>
   )
 }

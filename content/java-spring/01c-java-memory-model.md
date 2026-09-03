@@ -159,8 +159,8 @@ sequenceDiagram
     M->>H: "read points 10"
     M->>H: "write points 15"
     M->>M: "replace local reference"
-    M-->>C: "return; callee frame popped"
-    Note over C,H: "caller still refers to Order 42, now with 15 points"
+    M-->>C: "return, callee frame popped"
+    Note over C,H: caller still refers to Order 42, now with 15 points
 ```
 
 An object's conceptual layout includes an object header, instance fields, and alignment padding.
