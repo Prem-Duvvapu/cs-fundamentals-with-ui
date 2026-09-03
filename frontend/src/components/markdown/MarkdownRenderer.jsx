@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
@@ -52,6 +53,11 @@ export function headingId(children) {
  * see content/CONTENT_SPEC.md for what topic authors may rely on here.
  */
 export default function MarkdownRenderer({ content }) {
+  // A lesson can render several tables; each needs a distinct accessible name
+  // so assistive tech doesn't announce identical "Scrollable table" regions.
+  const tableCountRef = useRef(0)
+  tableCountRef.current = 0
+
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
@@ -92,8 +98,9 @@ export default function MarkdownRenderer({ content }) {
           return <pre>{children}</pre>
         },
         table({ children, ...props }) {
+          tableCountRef.current += 1
           return (
-            <div className="table-scroll" tabIndex="0" role="region" aria-label="Scrollable table">
+            <div className="table-scroll" tabIndex="0" role="region" aria-label={`Scrollable table ${tableCountRef.current}`}>
               <table {...props}>{children}</table>
             </div>
           )

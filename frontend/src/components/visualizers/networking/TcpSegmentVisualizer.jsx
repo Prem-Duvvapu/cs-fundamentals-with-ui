@@ -20,7 +20,7 @@ export default function TcpSegmentVisualizer() {
     <div className="viz-card" style={{ border: '1px solid var(--border-subtle)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
-          <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
+          <h3 style={{ margin: 0, color: 'var(--cat-os-base)' }}>
             📋 {protocol === 'tcp' ? 'TCP Segment Header Inspector (20–60 Bytes)' : 'UDP Datagram Header Inspector (8 Bytes Fixed)'}
           </h3>
           <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>

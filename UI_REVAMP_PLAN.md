@@ -79,11 +79,37 @@ the Phase 6 rewrite, so scrolling itself never broke — only the *hint* was mis
 selectors are removed; `.gantt-wrapper`/`.gantt-chart` (still real) keep the mobile-gated
 treatment.
 
-Still pending in Phase 7: no Lighthouse/axe pass has been run (no browser in this environment);
-the tier-3 substitution list remains unapproved (owner decision #6 — none needed yet, since
-nothing has failed reflow or tier-2 scroll). Phase 8 (delete the legacy token shim once nothing
-references it, delete the ~36 dead CSS classes, sync `AGENTS.md:171`) has not started. The
-canonical contributor-facing rules live in `docs/DESIGN_SYSTEM.md`.
+**Phase 7 closed 2026-09-03.** An axe-core (via Playwright) pass ran against 5 routes (`/`,
+`/topic/:id` for both a hub topic and a direct-visualizer OS topic, `/search`,
+`/interview/all`) in both themes — this environment does have a pre-installed Chromium, contrary
+to the note above. 28 violations across the 10 checks, all fixed, re-verified at 0: two structural
+bugs (`HomePage`/`SearchPage`/`InterviewPage` each nested a second `<main>` landmark inside
+`App.jsx`'s; every Markdown table shared one non-unique `aria-label`), one Mermaid theming gap
+(dark-mode edge labels stayed white-on-white because Mermaid's own injected stylesheet overrides
+the `edgeLabelBackground` theme variable — needs an `!important` App.css rule, not just the theme
+variable), and one token-contrast fix (`--text-muted` family in light theme, `#6b7688` → `#5f6a7c`,
+still the same "muted slate" hue). The tier-3 substitution list stays unapproved (owner decision
+#6) — still moot, nothing has failed reflow or tier-2 scroll.
+
+**Phase 8 closed 2026-09-03.** The legacy token shim was still referenced 77 times (25 uses of
+`--border-color` alone, plus direct `--accent-purple` refs in 5 networking visualizer JSX files)
+— every reference was mechanically substituted to its canonical token (a pure value alias, so no
+rendered color changed) before the shim was deleted. ~90 dead CSS classes were removed: the
+pre-Phase-3 HomePage generation (`.home-header`, `.card-grid`, `.card`, `.category-page`,
+`.roadmap-index-selector`, …), the pre-Phase-6 B+Tree/handshake/transactions-ACID visualizer
+generation (`.btree-container`, `.handshake-diagram`, `.tx-box`, …), two more BEM-scaffolded
+orphan pairs matching the `.state-pill` pattern below (`.panel`/`.panel--*` and
+`.metric-tile__label`/`.metric-tile__value`, both superseded by the `u-panel`/`metric-tile-label`
+classes their components actually render), and a `u-pad`/`u-caption`/`u-mono`/… utility-class
+family that was never adopted. `AGENTS.md` is synced (see "Current implementation priorities").
+The canonical contributor-facing rules live in `docs/DESIGN_SYSTEM.md`.
+
+A pre-existing, unrelated bug turned up while screenshot-verifying the Phase 8 cleanup: 16 spots
+in App.css hardcode `background: #0f172a` instead of a theme token, most visibly
+`.select-input`/`.num-input`/`.text-input` (line ~606) — every `<select>`/number/text control
+across every visualizer renders as a near-black box with unreadable text in the light theme. Not
+introduced by Phase 6/7/8 (confirmed via `git diff` — untouched), not caught by axe (a known
+limitation with native form-control contrast), and not yet scheduled.
 
 **§3.5 addendum — `SchedulingVisualizer.jsx`'s process-color palette.** `DEFAULT_PROCESSES`
 and the dynamic-add `colors` array need up to 9 mutually distinguishable hues for concurrent
@@ -1998,13 +2024,19 @@ option explicitly, the plan's recommendation is authoritative:
 - [ ] Zero raw hex in any `.jsx` (excluding the verified non-color literals).
 - [ ] `style={{` count ≤160, all computed.
 - [ ] Both themes ship, persist, and follow the system preference on first visit.
-- [ ] Mermaid, highlight.js, and KaTeX all follow the active theme.
+- [x] Mermaid, highlight.js, and KaTeX all follow the active theme. Verified 2026-09-03 via axe
+      (0 color-contrast violations across 5 routes × 2 themes, including Mermaid-diagram pages);
+      the dark-mode edge-label white-background bug found in that pass is fixed.
 - [ ] JetBrains Mono actually loads; zero layout shift from font swap.
 - [ ] Every category-, state-, and tier-coded element carries a non-color signal.
-- [ ] All body text ≥4.5:1 in both themes; long-form prose ≥7:1.
+- [ ] All body text ≥4.5:1 in both themes (verified 2026-09-03 via axe, 0 violations); long-form
+      prose ≥7:1 not separately checked — axe's default rule tests the 4.5:1 AA threshold.
 - [ ] Zero horizontal page scroll at 320px on every route.
-- [ ] All 38 test files pass; none were deleted; new tests cover the new semantics.
-- [ ] Backend suite untouched and green (this revamp touches no Java).
+- [ ] All 38 test files pass; none were deleted; new tests cover the new semantics. (Stale count —
+      P3's simulator triage deleted 18 components' test files since this line was written; the
+      current suite is 28 files / 414 tests, all passing.)
+- [x] Backend suite untouched and green (this revamp touches no Java). Verified 2026-09-03: 47/47,
+      and this session's changes were frontend-only.
 - [ ] Bundle main chunk ≤ the Phase 1 baseline.
 - [ ] `AGENTS.md`, `CONTEXT.md`, `CLAUDE.md`, and `README.md` all describe the real styling
       architecture.

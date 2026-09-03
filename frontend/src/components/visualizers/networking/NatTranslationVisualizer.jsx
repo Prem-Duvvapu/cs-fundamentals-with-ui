@@ -82,7 +82,7 @@ export default function NatTranslationVisualizer() {
   return (
     <div className="viz-card" style={{ border: '1px solid var(--border-subtle)' }}>
       <div style={{ marginBottom: '1.25rem' }}>
-        <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
+        <h3 style={{ margin: 0, color: 'var(--cat-os-base)' }}>
           🔄 NAT (Network Address Translation / NAPT) Simulator
         </h3>
         <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>

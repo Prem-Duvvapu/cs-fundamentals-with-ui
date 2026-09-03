@@ -216,7 +216,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main aria-live="polite">
+      <div aria-live="polite">
         <section className="category-overview" aria-labelledby="roadmap-summary">
           <h2 id="roadmap-summary">
             {selectedCategory === 'all' ? 'Recommended sequence' : CATEGORY_DETAILS[selectedCategory].label}
@@ -285,7 +285,7 @@ export default function HomePage() {
             </ol>
           </section>
         ))}
-      </main>
+      </div>
     </div>
   )
 }
