@@ -168,7 +168,7 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 | **P3** | Simulation triage — keep ~14 engines, convert ~17 to Mermaid diagrams | ✅ **Done — 18 non-retained components removed, their dead App.css rules pruned, and the 3 orphaned hub sub-tabs removed** |
 | **P4** | Content authoring, 63 topics in priority waves | ✅ **Done — 63/63 lessons and 83/83 manifest entries pass** |
 | **P5** | Cross-topic search + per-category Interview Mode | ✅ **Done — `/search` and `/interview/:category` routes live, linked from the navbar** |
-| **P6** | Verify, doc sync, ship | 🟡 **Verification suite + doc sync done; accessibility audit needs a real browser (not available here)** |
+| **P6** | Verify, doc sync, ship | ✅ **Done — verification suite, doc sync, and the accessibility audit (axe via Playwright + pre-installed Chromium) all pass with 0 violations** |
 
 ### What P0 delivered (already on this branch)
 - `frontend/src/components/markdown/MarkdownRenderer.jsx` — full GFM + math + highlighting
@@ -226,10 +226,53 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 
 ### Current implementation priorities
 
-1. **Finish P6.** Verification suite (backend 47/47, frontend 412/412+, build, content validator,
-   migration gate) and doc sync are done as of 2026-09-02 — see `plan.md`'s Phase G item 4 for the
-   full verification log. What's left: the responsive/accessibility audit needs a real browser
-   (Lighthouse/axe), which this environment doesn't have.
+P6 is complete, including the accessibility audit UI_REVAMP_PLAN.md Phase 7 previously listed as
+blocked. This environment does have a browser (Chromium via Playwright, pre-installed): axe-core
+was run against 5 routes (`/`, `/topic/:id` for a hub topic and a direct-visualizer OS topic,
+`/search`, `/interview/all`) in both themes — 10 checks, 28 violations found and fixed, 0
+remaining. Fixes: `HomePage.jsx`/`SearchPage.jsx`/`InterviewPage.jsx` each nested a second
+`<main aria-live="polite">` inside `App.jsx`'s `<main className="main-content">` (landmark
+violations) — changed to `<div aria-live="polite">`, the live-region behavior doesn't require a
+landmark role. Mermaid edge labels were unreadable in dark mode (contrast 1.29) because Mermaid's
+own injected `<style>` hardcodes a white `.edgeLabel` background that the `edgeLabelBackground`
+theme variable doesn't reliably override — fixed with an `!important` CSS rule in `App.css`.
+`--text-muted`/`--state-idle`/`--syn-comment` in the light theme (`#6b7688`) failed 4.5:1 against
+several backgrounds — darkened to `#5f6a7c`. Every Markdown table rendered the same
+`aria-label="Scrollable table"`, so a lesson with several tables produced duplicate-landmark
+findings — `MarkdownRenderer.jsx`'s `table()` renderer now numbers them per document.
+
+UI_REVAMP_PLAN.md Phase 8 (delete the legacy CSS token shim, delete the dead CSS classes, sync
+`AGENTS.md`) is also done. The shim (`--bg-dark`, `--bg-card`, `--border-color`,
+`--accent-{purple,blue,green,amber,red,pink}`, `--font-main`) still had 77 live references (25 in
+App.css alone for `--border-color`, plus 5 direct `--accent-purple` refs in networking visualizer
+JSX) — every reference was mechanically substituted to its canonical token
+(`--border-color`→`--border-default`, `--accent-purple`→`--cat-os-base`, etc., a pure value alias
+so the substitution changes no rendered color) before the shim itself was deleted. Roughly 90 dead
+CSS classes were removed — largely two whole superseded UI generations left in place after their
+JSX moved on: the pre-Phase-3 HomePage (`.home-header`, `.card-grid`, `.card`, `.badge.beginner`,
+`.roadmap-index-selector`, `.ordered-topic-row`, `.topic-title`, `.category-page`, …) and the
+pre-Phase-6 B+Tree/TCP-handshake/transactions-ACID visualizers (`.btree-container`, `.leaf-node`,
+`.handshake-diagram`, `.host-column`, `.tx-box`, …), plus a few standalone strays
+(`.panel`/`.panel--*` and `.metric-tile__label/value`, both BEM-scaffolded duplicates of the real
+`u-panel`/`metric-tile-label` classes their components actually render — the same pattern as the
+`.state-pill` finding below; a `u-pad`/`u-caption`/`u-mono`/… utility-class family that was never
+adopted). Compound selectors sharing a rule with a still-live class (e.g.
+`.roadmap-index-selector, .roadmap-selector, .category-selector { … }`) were trimmed to just the
+live sibling, not deleted outright. Verified via a script comparing every class token parsed out
+of App.css's own selectors against a whole-source scan of `frontend/src/**/*.{jsx,js,css}`, with
+manual review of every hit for template-literal class construction (`` `u-pill-${tone}` ``,
+`` `tier-badge--${tier}` ``) and runtime-injected classes (`hljs-*`, KaTeX's `mord`/`mop`/…) that a
+literal-string scan can't see — both false-positive categories were excluded from the delete list.
+414/414 frontend tests, 47/47 backend tests, and a production build all stayed green throughout.
+
+**New finding, not yet fixed:** the light theme has a separate, pre-existing bug — 16 spots in
+`App.css` hardcode `background: #0f172a` (a literal dark-navy, not a token) instead of a theme
+token, most visibly `.select-input`/`.num-input`/`.text-input` (`App.css:606`), which renders as a
+near-black box with unreadable text in light mode on every `<select>`/number/text input across
+every visualizer (confirmed via screenshot on `dbms-indexing`'s B+Tree controls). This predates
+the current session — `git diff` shows none of these `#0f172a` occurrences were touched by the P6
+work above — and axe's contrast check didn't catch it (a known limitation with native form-control
+rendering). This is UI_REVAMP_PLAN.md §3.5-style stray-hex work, not yet scheduled.
 
 The `GET /api/v1/content/{category}/{topicId}` 200-instead-of-404 bug the live route check
 surfaced is fixed: `ContentService.exists(category, topicId)` and `ContentController` now return

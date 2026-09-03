@@ -20,8 +20,8 @@ Do not add hypothetical risks, credentials, personal data, or raw logs containin
 | [RCA-2026-08-30-01](#rca-2026-08-30-01--startsh-failed-with-bashr) | `/usr/bin/env: ‘bash\r’: No such file or directory` | Local launcher | Resolved | `c792a5a` |
 | [RCA-2026-08-30-02](#rca-2026-08-30-02--topic-header-consumed-the-reading-viewport) | Topic chrome occupied much of the viewport | Reader UI | Resolved | `4dea181`, merged by `923da21` |
 | [RCA-2026-08-31-01](#rca-2026-08-31-01--route-tests-failed-during-parallel-content-rewrites) | Registered topic temporarily reported missing | Agent workflow | Resolved | Avoid multi-call delete/recreate edits |
-| [RCA-2026-08-31-02](#rca-2026-08-31-02--final-interview-answer-absorbs-further-reading) | Final answer includes Further Reading | Interview deck | Open | Planned for P5 parser work |
-| [RCA-2026-08-31-03](#rca-2026-08-31-03--unsupported-topics-show-an-unrelated-simulation) | Topic opens the wrong simulator | Simulation routing | Open | Planned for P3 registry work |
+| [RCA-2026-08-31-02](#rca-2026-08-31-02--final-interview-answer-absorbs-further-reading) | Final answer includes Further Reading | Interview deck | Resolved | `d2d81ff` |
+| [RCA-2026-08-31-03](#rca-2026-08-31-03--unsupported-topics-show-an-unrelated-simulation) | Topic opens the wrong simulator | Simulation routing | Resolved | `d2d81ff`, `1f0c6e5` |
 
 ---
 
@@ -136,7 +136,7 @@ intermediate state. The same risk existed for other lessons undergoing delete-th
 
 ## RCA-2026-08-31-02 — Final interview answer absorbs Further Reading
 
-**Status:** Open; fix before category Interview Mode
+**Status:** Resolved
 **Affected area:** `TopicViewer.jsx`, interview-question parsing and rendering
 **Observed symptom:** The last interview answer can contain the lesson's `### Further Reading`
 heading and links, and answer Markdown is displayed as plain paragraph text.
@@ -154,13 +154,16 @@ question or end of file. It does not first enter the exact `### Interview Questi
 at the next H3, so the final answer naturally runs through `### Further Reading`. `InterviewDeck`
 then places the captured Markdown inside a plain `<p>`.
 
-### Planned resolution and verification
+### Resolution and verification
 
-- Replace the loose regex with a fence-aware, section-aware parser over the validated authoring
-  format; stop at the next H3 and preserve answer Markdown.
-- Extract a reusable deck and render answers through the safe shared Markdown renderer.
-- Add tests for CRLF, Q-like text in code fences, final-answer boundaries, Markdown answers, stable
-  IDs, dataset changes and the real 63-file corpus.
+- Replaced the loose regex with `frontend/src/utils/interviewQuestions.js`, a fence-aware,
+  section-aware parser mirroring `DiscoveryService`'s Java parser; it enters the exact
+  `### Interview Questions` section and stops at the next H3, so the final answer no longer runs
+  through `### Further Reading`.
+- Extracted `components/shared/InterviewDeck.jsx`, shared by the per-topic deck and category
+  Interview Mode, rendering answers through `MarkdownRenderer` instead of a plain `<p>`.
+- Landed in `d2d81ff` (P3/P5 discovery API, visualizer registry, and simulation-question
+  migration gate) with matching test coverage across the 63-file corpus.
 
 ### Prevention
 
@@ -171,7 +174,7 @@ then places the captured Markdown inside a plain `<p>`.
 
 ## RCA-2026-08-31-03 — Unsupported topics show an unrelated simulation
 
-**Status:** Open; address during P3 simulator triage
+**Status:** Resolved
 **Affected area:** `TopicPage` visualizer routing and category visualizer hubs
 **Observed symptom:** Some topics open a category hub that silently selects its first or fallback
 simulation instead of showing an exact topic-specific experience.
@@ -188,13 +191,19 @@ The UI therefore implies that a relevant simulation exists when it does not.
 for their original modes but are not a complete topic-ID mapping, and there is no explicit
 unsupported state controlling whether the Simulation tab should appear.
 
-### Planned resolution and verification
+### Resolution and verification
 
-- Replace broad category switches with a topic-ID-to-lazy-visualizer registry.
-- Move reusable simulations such as consistent hashing to their correct curriculum owner.
-- Hide the Simulation tab when no exact entry exists instead of choosing a fallback.
-- Add a parameterised route test covering all 63 topic IDs and asserting the exact visualizer or
-  an intentionally absent Simulation tab.
+- Replaced the broad category switches with `components/visualizers/topicVisualizerRegistry.jsx`,
+  a topic-ID-to-lazy-visualizer registry: `direct(Component)` for a standalone visualizer,
+  `hub(CategoryVisualizer, topicId)` for a hub sub-tab, and no entry at all for a topic with no
+  exact-match visualizer.
+- Consistent hashing was rewired to `distributed-databases-cap`, its correct curriculum owner
+  (previously wired to no topic).
+- `TopicPage.jsx` now hides the Simulation tab entirely when the registry has no entry for the
+  topic, instead of falling back to a hub's default sub-tab.
+- Landed in `d2d81ff` plus the P3 simulator-triage commits (`8682b87`, `74e3825`, `81cbd9d`,
+  `1f0c6e5`), which also removed the 18 non-retained visualizers whose fallback this bug used to
+  expose.
 
 ### Prevention
 

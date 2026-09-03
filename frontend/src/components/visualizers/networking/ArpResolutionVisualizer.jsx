@@ -63,7 +63,7 @@ export default function ArpResolutionVisualizer() {
   return (
     <div className="viz-card" style={{ border: '1px solid var(--border-subtle)' }}>
       <div style={{ marginBottom: '1.25rem' }}>
-        <h3 style={{ margin: 0, color: 'var(--accent-purple)' }}>
+        <h3 style={{ margin: 0, color: 'var(--cat-os-base)' }}>
           🔍 ARP (Address Resolution Protocol) Simulation
         </h3>
         <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>

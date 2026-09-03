@@ -96,7 +96,7 @@ export default function SearchPage() {
         </nav>
       </header>
 
-      <main aria-live="polite">
+      <div aria-live="polite">
         {!trimmedQuery ? (
           <p className="category-overview">Start typing to search across the curriculum.</p>
         ) : loading ? (
@@ -133,7 +133,7 @@ export default function SearchPage() {
             </ol>
           </section>
         )}
-      </main>
+      </div>
     </div>
   )
 }

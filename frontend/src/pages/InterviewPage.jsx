@@ -152,7 +152,7 @@ export default function InterviewPage() {
         </div>
       </header>
 
-      <main aria-live="polite">
+      <div aria-live="polite">
         {loading ? (
           <p className="category-overview" role="status">Loading interview questions…</p>
         ) : error ? (
@@ -196,7 +196,7 @@ export default function InterviewPage() {
             )}
           </>
         )}
-      </main>
+      </div>
     </div>
   )
 }
