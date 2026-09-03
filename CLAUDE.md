@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Full-stack interactive CS-fundamentals learning platform: a Spring Boot 3.2 / Java 17 REST backend that serves 3-tier Markdown curriculum content from `content/`, and a React 18 / Vite SPA that renders per-topic **interactive simulators** (all simulation logic except four legacy endpoints runs client-side).
+Full-stack interactive CS-fundamentals learning platform: a Spring Boot 3.2 / Java 17 REST backend that serves 3-tier Markdown curriculum content from `content/`, and a React 18 / Vite SPA built reading-first, with per-topic **interactive simulators** where they materially teach a mechanism (all simulation logic except four legacy endpoints runs client-side), plus cross-topic search and per-category Interview Mode over the same validated lesson content.
 
 `AGENTS.md` (agent context + curriculum roadmap) and `CONTEXT.md` (architecture + visualizer inventory) are the project's own docs — they overlap with this file and are kept in sync by the rule below.
 
@@ -49,20 +49,25 @@ A topic id is a string duplicated across many files. Adding or renaming one mean
 1. `content/<category>/NN-<slug>.md` — the Markdown itself
 2. `backend/src/main/java/com/csfundamentals/service/TopicService.java` — hardcoded `List.of(new Topic(...))`, the source of `/api/v1/topics`
 3. `backend/src/test/.../TopicServiceTest.java` — asserts **exact per-category topic counts** (e.g. 12 for dbms), so it fails until updated
-4. `frontend/src/pages/TopicPage.jsx` — `titleMap` entry **and** a `case` in the `renderVisualizer()` switch
+4. `frontend/src/pages/TopicPage.jsx` — a `titleMap` entry; **and**, only if the topic has an
+   exact-match visualizer, an entry in `frontend/src/components/visualizers/topicVisualizerRegistry.jsx`
+   (a topic with no registry entry correctly has no Simulation tab at all — Study only — rather
+   than falling back to the wrong hub sub-tab)
 5. `frontend/src/components/TopicViewer.jsx` — `CATEGORY_MAP`, which maps topicId → category for the content fetch
 6. `frontend/src/pages/HomePage.jsx` — a hardcoded duplicate of the whole topic list used as the offline fallback when `/api/v1/topics` fails
-7. the category hub's `getInitialTab()` switch (see below)
+7. the category hub's `getInitialTab()` switch (see below) — only if the topic's registry entry is `hub(SomeCategoryVisualizer, topicId)`; not needed for a `direct(...)` entry or a topic with no registry entry at all
 
 ### Frontend visualizer layering
-- `TopicPage.jsx` — single route `/topic/:topicId`; two tabs (Simulation / Theory); every visualizer is `React.lazy` + `Suspense`.
-- **Category hubs** (`visualizers/DbmsVisualizer.jsx`, `NetworkingVisualizer.jsx`, `JavaSpringVisualizer.jsx`, `AiMlVisualizer.jsx`) take `defaultTopicId`, map it to a sub-tab in `getInitialTab()`, and render the per-topic visualizer from `visualizers/<category>/`. OS topics bypass the hub and mount their visualizer directly.
+- `TopicPage.jsx` — single route `/topic/:topicId`; two tabs (Simulation / Theory), the Simulation tab hidden entirely when `topicVisualizerRegistry.jsx` has no entry for the topic; every visualizer is `React.lazy` + `Suspense`.
+- `topicVisualizerRegistry.jsx` is the single source of truth for topic → visualizer routing: `direct(Component)` mounts a standalone visualizer directly (all OS topics, plus a few kept engines that used to sit inside a hub — `java-hashmap-internals`, `java-multithreading-concurrency`, `spring-testing-production`); `hub(CategoryVisualizer, topicId)` mounts a category hub with that topic id as `defaultTopicId`.
+- **Category hubs** (`visualizers/DbmsVisualizer.jsx`, `NetworkingVisualizer.jsx`, `JavaSpringVisualizer.jsx`, `AiMlVisualizer.jsx`) take `defaultTopicId`, map it to a sub-tab in `getInitialTab()`, and render the per-topic visualizer from `visualizers/<category>/`. Not every topic in a hub's category is necessarily routed through it — only the ones the registry maps there.
+- `/search` (`SearchPage.jsx`) and `/interview/:category` (`InterviewPage.jsx`, `:category` may be `all`) — read-only views over `GET /api/v1/search` and `GET /api/v1/interview/questions`; no topic-registration entries needed since they're not per-topic routes. Both share `components/shared/InterviewDeck.jsx` with the per-topic interview deck in `TopicViewer.jsx`.
 - `components/shared/ConceptModuleShell.jsx` — standard wrapper giving a module its header, mental-model banner, and Simulation / Deep-Dive Theory / Quiz tabs. Its `theoryData` + `quizData` come from a JSON file in `src/data/` (`dbms-concepts-*.json`, `java-fundamentals-*.json`, …), keeping prose out of JSX.
 - `utils/simulationEngines/*.js` — framework-free step-generating engines (usually a class with `generateSteps()` / `stepIndex`, or exported pure functions plus a `*_SCENARIOS` map). **This is where algorithm logic belongs**; components stay presentational, and each engine has a matching Vitest suite in `utils/__tests__/`. Prefer adding an engine here over computing in a component or calling the backend.
 - `hooks/useStepThrough.js`, `hooks/useSimulationTimer.js` — shared play/pause/step machinery.
 
 ### Backend surface
-Deliberately thin: `TopicController` (`/api/v1/topics`, `/topics/category/{category}`), `ContentController` (`/api/v1/content/{category}/{topicId}`), and `SimulationController` (`/api/v1/simulation/{cpu-scheduling,page-replacement,subnet-calculator,bankers-algorithm}` — the only server-side simulations; everything newer is client-side). No database, no persistence; `CorsConfig` opens CORS for the Vite dev server.
+Deliberately thin: `TopicController` (`/api/v1/topics`, `/topics/category/{category}`), `ContentController` (`/api/v1/content/{category}/{topicId}` — a real 404 for an unregistered topic id, 500 on an I/O error reading its file, 200 with the Markdown otherwise), `DiscoveryController` (`/api/v1/search`, `/api/v1/interview/questions` — both stateless reads over one immutable index `DiscoveryService` builds from `TopicService` + `ContentService` at startup, no second topic registry), and `SimulationController` (`/api/v1/simulation/{cpu-scheduling,page-replacement,subnet-calculator,bankers-algorithm}` — the only server-side simulations; everything newer is client-side). No database, no persistence; `CorsConfig` opens CORS for the Vite dev server.
 
 ## Skills
 

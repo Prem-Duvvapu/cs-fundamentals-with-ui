@@ -3,6 +3,16 @@
 **Audience:** the coding agent (Codex) implementing this. **Author:** design lead.
 **Status:** approved by the owner on 2026-08-30. Implementation may proceed through all phases.
 
+**Post-revamp update (2026-09-03):** a later, unrelated initiative (P3 simulation-content
+cleanup) removed 17 of the visualizer files this document describes token-migrating, after
+verifying every legacy interview/quiz question each one covered was retained or migrated
+elsewhere (`content/SIMULATION_QUESTION_MIGRATION.json`): `dbms/{DbmsArchitecture,
+TransactionsAcid,DbmsIntro,DistributedDb,ErModel,QueryOptimizer,StorageIndexing}Visualizer`,
+`java/DesignPatternsVisualizer`, `os/IoSystemsVisualizer`, and the 8 `java/Java{Generics,
+ExecutionPipeline,StaticRecords,MemoryModel,Oop,FunctionalLambdas,Collections,
+StreamsOptional}Visualizer` files. Everything below remains an accurate historical record of
+the Phase 1–7 token-migration work for the files that remain.
+
 **Implementation snapshot (2026-08-30):** phases 1–5 are implemented, including dual themes,
 the responsive navigation and curriculum roadmap, the accessible topic reader, live Mermaid
 retheming, and shared simulator primitives. Phase 6 token migration is complete for all five
