@@ -12,6 +12,21 @@ function loadMermaid() {
   return mermaidPromise
 }
 
+// mermaid.initialize()/render() mutate module-level state inside the library itself, so firing
+// them from several MermaidBlock instances at once (any topic with more than one diagram, which
+// mounts them all in the same tick) races: one call's initialize() can stomp the config another
+// call's render() is mid-way through reading, and the observed failure mode is a render() promise
+// that never settles — the diagram sits on "Rendering diagram…" forever. Routing every instance's
+// work through one FIFO queue makes them behave as if written with sequential awaits, at the cost
+// of diagrams appearing one after another instead of simultaneously (imperceptible in practice).
+let renderQueue = Promise.resolve()
+
+function queueMermaidTask(task) {
+  const scheduled = renderQueue.then(task, task)
+  renderQueue = scheduled.catch(() => {})
+  return scheduled
+}
+
 function mermaidConfiguration(element) {
   const styles = getComputedStyle(element || document.documentElement)
   const css = (name) => styles.getPropertyValue(name).trim()
@@ -77,13 +92,13 @@ export default function MermaidBlock({ code }) {
     setSvg(null)
     setError(null)
 
-    loadMermaid()
-      .then((mermaid) => {
-        if (cancelled) return null
-        mermaid.initialize(mermaidConfiguration(containerRef.current))
-        const id = `mermaid-diagram-${diagramCounter++}`
-        return mermaid.render(id, code)
-      })
+    queueMermaidTask(async () => {
+      const mermaid = await loadMermaid()
+      if (cancelled) return null
+      mermaid.initialize(mermaidConfiguration(containerRef.current))
+      const id = `mermaid-diagram-${diagramCounter++}`
+      return mermaid.render(id, code)
+    })
       .then((result) => {
         if (cancelled || !result) return
         setSvg(result.svg)
