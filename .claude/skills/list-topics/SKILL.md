@@ -31,11 +31,13 @@ the topic is registered but no Markdown resolves for it.
 `ContentService` does it (strip a leading `\d+[a-z]?-`, then exact stem, then `startsWith`
 prefix), so `05-feature-stores-mlops.md` correctly resolves for topic id `feature-stores`.
 
-`--audit` cross-references the other six registration points from
-`.claude/references/topic-registry.md` (TopicPage `titleMap` + switch case, TopicViewer
-`CATEGORY_MAP`, HomePage fallback array, TopicServiceTest assertions, content file) and reports
-any topic missing one, any content file no topic resolves to, and any per-category count
-assertion that no longer matches `TopicService`.
+`--audit` cross-references the other five hard-required registration points from
+`.claude/references/topic-registry.md` (TopicPage `titleMap`, `topicCategories.js`
+`TOPIC_CATEGORY_MAP`, HomePage fallback array, TopicServiceTest assertions, content file) and
+reports any topic missing one, any content file no topic resolves to, and any per-category count
+assertion that no longer matches `TopicService`. It also lists, separately and non-fatally, any
+topic with no `topicVisualizerRegistry.jsx` entry — that's the optional 7th point (no Simulation
+tab, Study only), not a defect.
 
 ## Presenting the result
 
