@@ -95,14 +95,22 @@ export default function MarkdownRenderer({ content }) {
           if (/language-mermaid/.test(childClassName)) {
             return children
           }
-          return <pre>{children}</pre>
+          return (
+            <>
+              <pre className="u-scroll-x-hint">{children}</pre>
+              <p className="scroll-hint-caption">Scroll to see the full snippet →</p>
+            </>
+          )
         },
         table({ children, ...props }) {
           tableCountRef.current += 1
           return (
-            <div className="table-scroll" tabIndex="0" role="region" aria-label={`Scrollable table ${tableCountRef.current}`}>
-              <table {...props}>{children}</table>
-            </div>
+            <>
+              <div className="table-scroll u-scroll-x-hint" tabIndex="0" role="region" aria-label={`Scrollable table ${tableCountRef.current}`}>
+                <table {...props}>{children}</table>
+              </div>
+              <p className="scroll-hint-caption">Scroll to see the full table →</p>
+            </>
           )
         },
         code({ className, children, ...rest }) {

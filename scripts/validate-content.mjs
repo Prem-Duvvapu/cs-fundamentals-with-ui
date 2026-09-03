@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { createRequire } from 'node:module'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -185,6 +186,44 @@ function validateMermaidBlock(blockContent) {
   return { valid: true }
 }
 
+// `validateMermaidBlock` above only checks the declared diagram type, not the diagram's actual
+// grammar — a well-formed-looking block can still fail to parse in the browser (this caught a
+// real `Note over X,Y: "quoted text"` bug in content/java-spring/01c-java-memory-model.md that
+// every unit test missed because they all mock the `mermaid` package). This loads the real
+// mermaid package from frontend/node_modules — via createRequire since `scripts/` has no
+// node_modules of its own — and actually parses each block, the same check MermaidBlock.jsx's
+// render path depends on.
+let mermaidInstance = null
+
+async function loadMermaid() {
+  if (mermaidInstance) return mermaidInstance
+  const req = createRequire(path.resolve(REPO_ROOT, 'frontend/package.json'))
+  const { JSDOM } = (await import(pathToFileURL(req.resolve('jsdom')).href))
+  const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
+  if (!globalThis.window) globalThis.window = dom.window
+  if (!globalThis.document) globalThis.document = dom.window.document
+  if (!globalThis.navigator) globalThis.navigator = dom.window.navigator
+  const mermaidModule = await import(pathToFileURL(req.resolve('mermaid')).href)
+  mermaidInstance = mermaidModule.default
+  mermaidInstance.initialize({ startOnLoad: false, securityLevel: 'strict' })
+  return mermaidInstance
+}
+
+async function validateMermaidSyntax(mermaidBlocks) {
+  if (mermaidBlocks.length === 0) return []
+  const mermaid = await loadMermaid()
+  const errors = []
+  for (let i = 0; i < mermaidBlocks.length; i++) {
+    try {
+      await mermaid.parse(mermaidBlocks[i].code)
+    } catch (err) {
+      const reason = (err?.message || String(err)).split('\n')[0]
+      errors.push(`Mermaid diagram #${i + 1} fails to parse: ${reason}`)
+    }
+  }
+  return errors
+}
+
 function checkHtmlOutsideCode(source) {
   // Strip code fences
   const withoutFences = source.replace(/```[\s\S]*?```/g, '')
@@ -202,7 +241,7 @@ function checkHtmlOutsideCode(source) {
   return matches
 }
 
-export function validateFile(filePath) {
+export async function validateFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8')
   const lines = content.split('\n')
   const relPath = path.relative(REPO_ROOT, filePath).replace(/\\/g, '/')
@@ -258,6 +297,10 @@ export function validateFile(filePath) {
       errors.push(`Mermaid diagram #${idx + 1}: ${val.reason}`)
     }
   })
+
+  // Actually parse each diagram with the real mermaid package — catches grammar errors
+  // (e.g. a quoted Note label) that a type-keyword check can't.
+  errors.push(...await validateMermaidSyntax(mermaidBlocks))
 
   // Check at least one diagram per tier if all headings present
   if (beginnerIdx !== -1 && intermediateIdx !== -1 && expertIdx !== -1) {
@@ -332,7 +375,7 @@ function generateReport(results) {
   console.log(`\nReport written to content-gap-report.md`)
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2)
   const isReportFlag = args.includes('--report')
   const specificFiles = args.filter(a => !a.startsWith('--'))
@@ -388,7 +431,7 @@ function main() {
   const results = []
 
   for (const file of filesToValidate) {
-    const result = validateFile(file)
+    const result = await validateFile(file)
     results.push(result)
 
     if (!result.isValid) {
@@ -416,5 +459,8 @@ function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
+  main().catch(error => {
+    console.error(error)
+    process.exit(1)
+  })
 }
