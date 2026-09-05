@@ -1709,13 +1709,17 @@ body {
   background-color: var(--bg-surface) !important;
   color: var(--text-prose) !important;
 }
-/* Node/edge labels are also HTML (foreignObject <span>/<div>), and mermaid never resets its own
+/* Node/edge labels are HTML (foreignObject <span>/<div>), and mermaid never resets its own
    box-sizing — it sizes a label's box assuming content-box (padding added on top of the measured
-   text), so this project's global `* { box-sizing: border-box }` reset (near the top of this
-   file) makes that same box too narrow and clips longer labels. The text is still in the DOM
-   (hence copy-paste getting the full label back); only the visual box is wrong. content-box only
-   has an effect on the foreignObject's HTML descendants — a no-op for the plain SVG shapes. */
-.topic-content .mermaid-block svg * {
+   text). This project's global `* { box-sizing: border-box }` reset (near the top of this file)
+   makes that same box too narrow and clips longer labels, missing text still fully present in the
+   DOM (hence copy-paste getting the full label back).
+   This MUST be unscoped, not `.mermaid-block foreignObject *`: mermaid computes layout —
+   including baking each node's final pixel width straight into the generated SVG's numbers —
+   inside a temporary, invisible sandbox it appends directly to document.body, entirely outside
+   `.mermaid-block`, and only pastes the *already-finalized* markup in afterward. Anything scoped
+   under `.mermaid-block` runs too late to affect that measurement; only a global rule reaches it. */
+foreignObject, foreignObject * {
   box-sizing: content-box;
 }
 
