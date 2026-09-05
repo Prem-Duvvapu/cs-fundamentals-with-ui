@@ -183,8 +183,8 @@ Round Robin greatly improves P3's first response: it starts at time 4 instead of
 ```mermaid
 gantt
     title Round Robin schedule, quantum 2 ms
-    dateFormat X
-    axisFormat %L
+    dateFormat x
+    axisFormat %L ms
     section CPU
     P1 :p1a, 0, 2
     P2 :p2a, 2, 4
