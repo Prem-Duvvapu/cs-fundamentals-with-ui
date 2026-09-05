@@ -287,6 +287,38 @@ and the exact classes/lines removed. A separate, unrelated dead-CSS block found 
 removals and likely orphaned by an earlier refactor of the shared `StatePill.jsx` component (which
 renders `u-pill`/`u-pill-<tone>` instead) — is also removed now (2026-09-02).
 
+### Mermaid diagram rendering (2026-09-05)
+
+User reports of diagrams stuck on "Rendering diagram…", clipped label text (full text present in
+the DOM, so copy-paste got it all — a visual-only cut), and a "Unsupported color format" crash led
+to four real, separately-verified bugs in `MermaidBlock.jsx`'s live client-side rendering (each
+confirmed with a live Playwright inspection, not guessed): (1) `mermaid.initialize()`/`render()`
+share module-level state inside the library, so several diagrams mounting in the same React tick
+raced and could hang forever — fixed with a module-level FIFO queue plus a 12s per-task timeout so
+one stuck render can't wedge the rest of the page; (2) the theme-color lookup had no fallback for
+an empty `getComputedStyle()` result, which throws rather than degrading — every color now has a
+literal fallback; (3) `--font-body` is a self-hosted webfont, so a diagram rendered before it loads
+measures against the fallback font then repaints with the real one — now waits on
+`document.fonts.ready`; (4) the actual clipping cause: mermaid's own width estimate for an
+htmlLabels node runs 15-25% narrower than the label's real rendered width (measured directly:
+declared `foreignObject` width vs. the label's real `scrollWidth`, live page, correct font
+confirmed loaded) — `App.css` now sets `overflow: visible` on `foreignObject` as the fix. Also
+found and fixed along the way: `content/os/03-cpu-scheduling.md`'s gantt chart used
+`dateFormat X` (Unix seconds) with values authored as milliseconds, so `axisFormat %L` (the
+sub-second remainder) showed "000" at every tick — `dateFormat x` (Unix milliseconds) is correct.
+
+Given how much of that required a real browser to even see, `scripts/render-diagrams.mjs` now
+exists to render every diagram once per theme at **build time** instead of in the reader's browser
+— it fixes the width bug at the source (measures and corrects each label's real geometry before
+writing the SVG, rather than relying on CSS to paper over it), plus removes the loading state, the
+render queue, and ~700KB of runtime cost for readers entirely. Output goes to
+`frontend/public/diagrams/<hash>-{dark,light}.svg` (`frontend/src/utils/diagramHash.js` is the
+shared hash; `frontend/src/generated/diagramManifest.json` maps hash → dimensions/source).
+**`MermaidBlock.jsx`/`MarkdownRenderer.jsx` have not been changed to consume this yet** — the
+pipeline is verified and committed, but the reader still renders live client-side (with the four
+fixes above) until that wiring lands. Playwright is a new frontend devDependency for this script
+only; it is not wired into CI yet either.
+
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
 All 63 topics are registered at all integration points, so content work requires
