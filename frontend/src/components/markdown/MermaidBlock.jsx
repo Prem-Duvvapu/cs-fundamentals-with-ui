@@ -65,7 +65,11 @@ function mermaidConfiguration(element) {
       noteBkgColor: css('--state-warning-tint'),
       noteBorderColor: css('--state-warning'),
       noteTextColor: css('--text-prose')
-    }
+    },
+    // A touch more breathing room than mermaid's default node/actor padding, now that the
+    // box-sizing fix (App.css) makes that padding actually render instead of getting clipped.
+    flowchart: { padding: 16, htmlLabels: true },
+    sequence: { actorMargin: 60, messageMargin: 40, boxMargin: 12 }
   }
 }
 

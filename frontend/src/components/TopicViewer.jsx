@@ -176,9 +176,11 @@ export default function TopicViewer({ topicId, category }) {
       </aside>
       <div className="study-main">
         <section className="reader-orientation" aria-labelledby="reader-orientation-title">
-          <p className="study-eyebrow">Study guide</p>
-          <h2 id="reader-orientation-title">Read in three passes</h2>
-          <p>Start with the mental model, build the mechanism, then use the expert section to test trade-offs and interview reasoning.</p>
+          <div className="reader-orientation-copy">
+            <p className="study-eyebrow">Study guide</p>
+            <h2 id="reader-orientation-title">Read in three passes</h2>
+            <p>Start with the mental model, build the mechanism, then use the expert section to test trade-offs and interview reasoning.</p>
+          </div>
           {currentSection && (
             <button
               type="button"
