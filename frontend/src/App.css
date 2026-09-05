@@ -1709,6 +1709,15 @@ body {
   background-color: var(--bg-surface) !important;
   color: var(--text-prose) !important;
 }
+/* Node/edge labels are also HTML (foreignObject <span>/<div>), and mermaid never resets its own
+   box-sizing — it sizes a label's box assuming content-box (padding added on top of the measured
+   text), so this project's global `* { box-sizing: border-box }` reset (near the top of this
+   file) makes that same box too narrow and clips longer labels. The text is still in the DOM
+   (hence copy-paste getting the full label back); only the visual box is wrong. content-box only
+   has an effect on the foreignObject's HTML descendants — a no-op for the plain SVG shapes. */
+.topic-content .mermaid-block svg * {
+  box-sizing: content-box;
+}
 
 .tier-badge { align-items: center; border: var(--stroke-hair) solid; border-radius: var(--radius-full); display: inline-flex; font-family: var(--font-body); font-size: var(--ui-2xs); font-weight: 600; gap: var(--space-1); letter-spacing: var(--tracking-wide); margin-right: var(--space-3); padding: var(--space-1) var(--space-3); text-transform: uppercase; vertical-align: .25em; }
 .tier-badge--beginner { background: var(--tier-beginner-tint); border-color: var(--tier-beginner-border); color: var(--tier-beginner); }
@@ -1989,7 +1998,11 @@ body {
 }
 .topic-page-header--compact .topic-breadcrumb { display: none; }
 .topic-page-header--compact .topic-page-title {
-  font-size: var(--ui-md);
+  /* Shrinks to fit the long curriculum titles first, rather than relying on the ellipsis below —
+     that made every long title (e.g. "Java Execution Pipeline & JDK/JRE/JVM Architecture") clip
+     as soon as the compact header engaged, even though the full text stayed selectable in the
+     DOM. This clamp only lowers the *minimum*; short titles are unaffected. */
+  font-size: clamp(var(--ui-xs), 1.6vw, var(--ui-md));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2013,6 +2026,28 @@ body {
 .reading-progress-track span { background: var(--cat-base); transition: width var(--dur-fast) var(--ease-standard); }
 .tier-navigation button { background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-default); color: var(--text-secondary); }
 .tier-navigation button:hover { background: var(--cat-tint); border-color: var(--cat-border); color: var(--cat-base); }
+/* Never had base styling before — it rendered as bare browser-default <h2>/<p> margins, which is
+   what made this card read as an oversized empty box eating the reader's vertical space. A single
+   compact row (copy left, action right) carries the same "read in three passes" orientation in a
+   fraction of the height. */
+.reader-orientation {
+  align-items: center;
+  background: var(--bg-surface);
+  border: var(--stroke-hair) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+.reader-orientation-copy { min-width: 0; }
+.reader-orientation .study-eyebrow { margin: 0 0 var(--space-1); }
+.reader-orientation h2 { color: var(--text-primary); font-family: var(--font-heading); font-size: var(--ui-md); font-weight: 600; margin: 0; }
+.reader-orientation p { color: var(--text-secondary); font-size: var(--ui-sm); line-height: var(--ui-sm-lh); margin: var(--space-1) 0 0; max-width: 42rem; }
+.continue-reading { background: var(--cat-base); border: 0; border-radius: var(--radius-sm); color: var(--text-inverse); flex-shrink: 0; font-weight: 600; min-height: 2.25rem; padding: var(--space-2) var(--space-4); white-space: nowrap; }
+.continue-reading:hover { background: var(--cat-hover); }
 .interview-deck { background: var(--bg-surface); border-color: var(--border-subtle); box-shadow: var(--elev-1); }
 .interview-answer { background: var(--bg-code); border-left-color: var(--cat-base); color: var(--text-prose); }
 .interview-deck-actions button { background: var(--cat-base); color: var(--text-inverse); }
