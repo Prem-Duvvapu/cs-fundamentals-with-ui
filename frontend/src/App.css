@@ -1709,18 +1709,20 @@ body {
   background-color: var(--bg-surface) !important;
   color: var(--text-prose) !important;
 }
-/* Node/edge labels are HTML (foreignObject <span>/<div>), and mermaid never resets its own
-   box-sizing — it sizes a label's box assuming content-box (padding added on top of the measured
-   text). This project's global `* { box-sizing: border-box }` reset (near the top of this file)
-   makes that same box too narrow and clips longer labels, missing text still fully present in the
-   DOM (hence copy-paste getting the full label back).
-   This MUST be unscoped, not `.mermaid-block foreignObject *`: mermaid computes layout —
-   including baking each node's final pixel width straight into the generated SVG's numbers —
-   inside a temporary, invisible sandbox it appends directly to document.body, entirely outside
-   `.mermaid-block`, and only pastes the *already-finalized* markup in afterward. Anything scoped
-   under `.mermaid-block` runs too late to affect that measurement; only a global rule reaches it. */
-foreignObject, foreignObject * {
-  box-sizing: content-box;
+/* Node/edge label text was getting visually clipped inside its own box. Verified with a live
+   Playwright inspection of this exact page/font/content (not a jsdom guess): mermaid's own
+   internal width estimate for an htmlLabels node is measurably narrower — by 15-25%, scaling with
+   label length, so it isn't padding/box-sizing/font-loading — than the real rendered width of
+   that same label's content (compared its declared foreignObject `width` attribute against the
+   label div's actual `scrollWidth` with the real font confirmed already loaded via
+   `document.fonts.check`). Whatever produces that estimate inside mermaid, the fix that doesn't
+   depend on correcting it is to stop clipping at the (possibly wrong) box boundary at all —
+   foreignObject content is clipped to its declared box by default; `overflow: visible` lets a
+   label spill past a too-narrow box instead of truncating, confirmed fixing every label on this
+   page. The label div is centered (`text-align: center`), so the rare overflow spills evenly on
+   both sides rather than only trailing off one edge. */
+foreignObject, foreignObject > div {
+  overflow: visible;
 }
 
 .tier-badge { align-items: center; border: var(--stroke-hair) solid; border-radius: var(--radius-full); display: inline-flex; font-family: var(--font-body); font-size: var(--ui-2xs); font-weight: 600; gap: var(--space-1); letter-spacing: var(--tracking-wide); margin-right: var(--space-3); padding: var(--space-1) var(--space-3); text-transform: uppercase; vertical-align: .25em; }
