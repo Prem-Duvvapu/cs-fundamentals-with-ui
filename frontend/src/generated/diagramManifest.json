@@ -1,0 +1,1688 @@
+{
+  "10421416": {
+    "source": "content/aiml/03-model-serving.md",
+    "width": 751,
+    "height": 486,
+    "widened": 0
+  },
+  "24159367": {
+    "source": "content/dbms/02-er-model.md",
+    "width": 1191,
+    "height": 193,
+    "widened": 16
+  },
+  "31144325": {
+    "source": "content/java-spring/01b-java-execution-pipeline.md",
+    "width": 550,
+    "height": 399,
+    "widened": 9
+  },
+  "48140757": {
+    "source": "content/os/03-cpu-scheduling.md",
+    "width": 421,
+    "height": 420,
+    "widened": 12
+  },
+  "54041605": {
+    "source": "content/dbms/02-er-model.md",
+    "width": 473,
+    "height": 542,
+    "widened": 31
+  },
+  "69189595": {
+    "source": "content/aiml/01-embeddings-vector-db.md",
+    "width": 978,
+    "height": 354,
+    "widened": 4
+  },
+  "9257d04b": {
+    "source": "content/CONTENT_SPEC.md",
+    "width": 394,
+    "height": 526,
+    "widened": 13
+  },
+  "4be95349": {
+    "source": "content/CONTENT_SPEC.md",
+    "width": 553,
+    "height": 376,
+    "widened": 0
+  },
+  "0e02bb66": {
+    "source": "content/CONTENT_SPEC.md",
+    "width": 1602,
+    "height": 69,
+    "widened": 15
+  },
+  "d5de6c69": {
+    "source": "content/CONTENT_SPEC.md",
+    "width": 375,
+    "height": 461,
+    "widened": 7
+  },
+  "420cfd27": {
+    "source": "content/aiml/01-embeddings-vector-db.md",
+    "width": 350,
+    "height": 824,
+    "widened": 10
+  },
+  "8df19fd5": {
+    "source": "content/aiml/01-embeddings-vector-db.md",
+    "width": 978,
+    "height": 270,
+    "widened": 4
+  },
+  "18d535e3": {
+    "source": "content/aiml/01-embeddings-vector-db.md",
+    "width": 2220,
+    "height": 172,
+    "widened": 19
+  },
+  "3ac2ed7c": {
+    "source": "content/aiml/01-embeddings-vector-db.md",
+    "width": 1606,
+    "height": 160,
+    "widened": 10
+  },
+  "9754b8f0": {
+    "source": "content/aiml/01-embeddings-vector-db.md",
+    "width": 910,
+    "height": 1743,
+    "widened": 24
+  },
+  "f72044a3": {
+    "source": "content/aiml/02-rag-architecture.md",
+    "width": 1606,
+    "height": 90,
+    "widened": 11
+  },
+  "6d444001": {
+    "source": "content/aiml/02-rag-architecture.md",
+    "width": 2629,
+    "height": 329,
+    "widened": 21
+  },
+  "236fccb6": {
+    "source": "content/aiml/02-rag-architecture.md",
+    "width": 1425,
+    "height": 192,
+    "widened": 17
+  },
+  "252e59f2": {
+    "source": "content/aiml/02-rag-architecture.md",
+    "width": 535,
+    "height": 397,
+    "widened": 13
+  },
+  "11979e22": {
+    "source": "content/aiml/03-model-serving.md",
+    "width": 1693,
+    "height": 90,
+    "widened": 11
+  },
+  "a28a923f": {
+    "source": "content/aiml/03-model-serving.md",
+    "width": 413,
+    "height": 399,
+    "widened": 11
+  },
+  "180b3d36": {
+    "source": "content/aiml/03-model-serving.md",
+    "width": 712,
+    "height": 224,
+    "widened": 9
+  },
+  "35f92e8a": {
+    "source": "content/aiml/03-model-serving.md",
+    "width": 728,
+    "height": 285,
+    "widened": 13
+  },
+  "471145c6": {
+    "source": "content/aiml/04-llm-parameters.md",
+    "width": 1757,
+    "height": 69,
+    "widened": 17
+  },
+  "fd9dc8c1": {
+    "source": "content/aiml/04-llm-parameters.md",
+    "width": 1067,
+    "height": 765,
+    "widened": 0
+  },
+  "e5bdc572": {
+    "source": "content/aiml/04-llm-parameters.md",
+    "width": 819,
+    "height": 900,
+    "widened": 19
+  },
+  "2d686c2c": {
+    "source": "content/aiml/04-llm-parameters.md",
+    "width": 990,
+    "height": 613,
+    "widened": 21
+  },
+  "9050f855": {
+    "source": "content/aiml/05-feature-stores.md",
+    "width": 1680,
+    "height": 269,
+    "widened": 21
+  },
+  "ff80c0c1": {
+    "source": "content/aiml/05-feature-stores.md",
+    "width": 1641,
+    "height": 736,
+    "widened": 0
+  },
+  "4fbbbf41": {
+    "source": "content/aiml/05-feature-stores.md",
+    "width": 650,
+    "height": 786,
+    "widened": 22
+  },
+  "d42b9877": {
+    "source": "content/aiml/05-feature-stores.md",
+    "width": 907,
+    "height": 966,
+    "widened": 18
+  },
+  "d73480e1": {
+    "source": "content/aiml/06-recommendation-systems.md",
+    "width": 1726,
+    "height": 172,
+    "widened": 13
+  },
+  "ad7c5b64": {
+    "source": "content/aiml/06-recommendation-systems.md",
+    "width": 632,
+    "height": 523,
+    "widened": 14
+  },
+  "ad0d5e12": {
+    "source": "content/aiml/06-recommendation-systems.md",
+    "width": 1224,
+    "height": 193,
+    "widened": 15
+  },
+  "7c6fcaa1": {
+    "source": "content/aiml/06-recommendation-systems.md",
+    "width": 1300,
+    "height": 575,
+    "widened": 0
+  },
+  "577f5c97": {
+    "source": "content/aiml/06-recommendation-systems.md",
+    "width": 515,
+    "height": 1270,
+    "widened": 19
+  },
+  "a1d9ede4": {
+    "source": "content/aiml/06-recommendation-systems.md",
+    "width": 1250,
+    "height": 331,
+    "widened": 14
+  },
+  "9f13e451": {
+    "source": "content/aiml/07-ml-fundamentals.md",
+    "width": 715,
+    "height": 378,
+    "widened": 13
+  },
+  "28a85260": {
+    "source": "content/aiml/07-ml-fundamentals.md",
+    "width": 1160,
+    "height": 378,
+    "widened": 15
+  },
+  "796db801": {
+    "source": "content/aiml/07-ml-fundamentals.md",
+    "width": 1431,
+    "height": 207,
+    "widened": 15
+  },
+  "b449e485": {
+    "source": "content/aiml/07-ml-fundamentals.md",
+    "width": 1280,
+    "height": 234,
+    "widened": 11
+  },
+  "49683c2f": {
+    "source": "content/aiml/07-ml-fundamentals.md",
+    "width": 1448,
+    "height": 214,
+    "widened": 10
+  },
+  "6051499d": {
+    "source": "content/aiml/07-ml-fundamentals.md",
+    "width": 1477,
+    "height": 104,
+    "widened": 12
+  },
+  "5761ff7a": {
+    "source": "content/aiml/07-ml-fundamentals.md",
+    "width": 2177,
+    "height": 339,
+    "widened": 18
+  },
+  "670c004c": {
+    "source": "content/dbms/00-dbms-introduction.md",
+    "width": 1337,
+    "height": 207,
+    "widened": 14
+  },
+  "1f6229ce": {
+    "source": "content/dbms/00-dbms-introduction.md",
+    "width": 2011,
+    "height": 172,
+    "widened": 18
+  },
+  "f23e2bae": {
+    "source": "content/dbms/00-dbms-introduction.md",
+    "width": 364,
+    "height": 523,
+    "widened": 10
+  },
+  "b0537699": {
+    "source": "content/dbms/00-dbms-introduction.md",
+    "width": 952,
+    "height": 1515,
+    "widened": 19
+  },
+  "4e465a21": {
+    "source": "content/dbms/00-dbms-introduction.md",
+    "width": 1631,
+    "height": 193,
+    "widened": 18
+  },
+  "923213a6": {
+    "source": "content/dbms/00-dbms-introduction.md",
+    "width": 350,
+    "height": 968,
+    "widened": 12
+  },
+  "d86e2474": {
+    "source": "content/dbms/00-dbms-introduction.md",
+    "width": 770,
+    "height": 420,
+    "widened": 11
+  },
+  "a70f2ee8": {
+    "source": "content/dbms/01-dbms-architecture.md",
+    "width": 622,
+    "height": 626,
+    "widened": 16
+  },
+  "ba06d2f4": {
+    "source": "content/dbms/01-dbms-architecture.md",
+    "width": 350,
+    "height": 989,
+    "widened": 12
+  },
+  "2e143bb8": {
+    "source": "content/dbms/01-dbms-architecture.md",
+    "width": 908,
+    "height": 464,
+    "widened": 9
+  },
+  "4a44fac2": {
+    "source": "content/dbms/01-dbms-architecture.md",
+    "width": 1441,
+    "height": 635,
+    "widened": 0
+  },
+  "79ffc197": {
+    "source": "content/dbms/01-dbms-architecture.md",
+    "width": 216,
+    "height": 850,
+    "widened": 15
+  },
+  "0bf03b6b": {
+    "source": "content/dbms/02-er-model.md",
+    "width": 1702,
+    "height": 90,
+    "widened": 11
+  },
+  "53a365f1": {
+    "source": "content/dbms/02-er-model.md",
+    "width": 721,
+    "height": 357,
+    "widened": 14
+  },
+  "b8f712be": {
+    "source": "content/dbms/02-er-model.md",
+    "width": 1396,
+    "height": 338,
+    "widened": 15
+  },
+  "fb50e46f": {
+    "source": "content/dbms/03-relational-algebra-calculus.md",
+    "width": 530,
+    "height": 502,
+    "widened": 11
+  },
+  "ae6e0b5f": {
+    "source": "content/dbms/03-relational-algebra-calculus.md",
+    "width": 1218,
+    "height": 441,
+    "widened": 13
+  },
+  "14428dff": {
+    "source": "content/dbms/03-relational-algebra-calculus.md",
+    "width": 1559,
+    "height": 69,
+    "widened": 13
+  },
+  "dc14698f": {
+    "source": "content/dbms/03-relational-algebra-calculus.md",
+    "width": 1807,
+    "height": 234,
+    "widened": 15
+  },
+  "8424d5f2": {
+    "source": "content/dbms/03-relational-algebra-calculus.md",
+    "width": 280,
+    "height": 647,
+    "widened": 11
+  },
+  "366fc337": {
+    "source": "content/dbms/04-functional-dependencies-keys.md",
+    "width": 710,
+    "height": 462,
+    "widened": 13
+  },
+  "b1d550fb": {
+    "source": "content/dbms/04-functional-dependencies-keys.md",
+    "width": 1088,
+    "height": 275,
+    "widened": 17
+  },
+  "479ff06d": {
+    "source": "content/dbms/04-functional-dependencies-keys.md",
+    "width": 280,
+    "height": 895,
+    "widened": 15
+  },
+  "9b3f5c0f": {
+    "source": "content/dbms/04b-database-normalization.md",
+    "width": 908,
+    "height": 338,
+    "widened": 11
+  },
+  "bd4f3f1b": {
+    "source": "content/dbms/04b-database-normalization.md",
+    "width": 1726,
+    "height": 90,
+    "widened": 11
+  },
+  "da008dd2": {
+    "source": "content/dbms/04b-database-normalization.md",
+    "width": 575,
+    "height": 578,
+    "widened": 43
+  },
+  "e0a187a8": {
+    "source": "content/dbms/04b-database-normalization.md",
+    "width": 594,
+    "height": 910,
+    "widened": 14
+  },
+  "5af67ab4": {
+    "source": "content/dbms/05-dbms-indexing.md",
+    "width": 1519,
+    "height": 183,
+    "widened": 11
+  },
+  "02580d2d": {
+    "source": "content/dbms/05-dbms-indexing.md",
+    "width": 399,
+    "height": 584,
+    "widened": 16
+  },
+  "36f76327": {
+    "source": "content/dbms/05-dbms-indexing.md",
+    "width": 1702,
+    "height": 220,
+    "widened": 14
+  },
+  "597047f3": {
+    "source": "content/dbms/05-dbms-indexing.md",
+    "width": 280,
+    "height": 977,
+    "widened": 17
+  },
+  "7ef6eee6": {
+    "source": "content/dbms/05c-storage-raid-indexing.md",
+    "width": 1571,
+    "height": 69,
+    "widened": 13
+  },
+  "99d0bf44": {
+    "source": "content/dbms/05c-storage-raid-indexing.md",
+    "width": 227,
+    "height": 930,
+    "widened": 11
+  },
+  "3e274a3f": {
+    "source": "content/dbms/05c-storage-raid-indexing.md",
+    "width": 1370,
+    "height": 217,
+    "widened": 16
+  },
+  "873328ea": {
+    "source": "content/dbms/05c-storage-raid-indexing.md",
+    "width": 876,
+    "height": 1244,
+    "widened": 18
+  },
+  "e210098f": {
+    "source": "content/dbms/06-transactions-acid.md",
+    "width": 523,
+    "height": 578,
+    "widened": 13
+  },
+  "127d88db": {
+    "source": "content/dbms/06-transactions-acid.md",
+    "width": 978,
+    "height": 788,
+    "widened": 10
+  },
+  "bf8bff9b": {
+    "source": "content/dbms/06-transactions-acid.md",
+    "width": 879,
+    "height": 562,
+    "widened": 16
+  },
+  "f8f4df99": {
+    "source": "content/dbms/06-transactions-acid.md",
+    "width": 1362,
+    "height": 291,
+    "widened": 6
+  },
+  "02ecb116": {
+    "source": "content/dbms/06-transactions-acid.md",
+    "width": 1274,
+    "height": 820,
+    "widened": 0
+  },
+  "81b0d98a": {
+    "source": "content/dbms/07-concurrency-control.md",
+    "width": 811,
+    "height": 476,
+    "widened": 0
+  },
+  "fa26753c": {
+    "source": "content/dbms/07-concurrency-control.md",
+    "width": 669,
+    "height": 441,
+    "widened": 16
+  },
+  "39317f04": {
+    "source": "content/dbms/07-concurrency-control.md",
+    "width": 1119,
+    "height": 69,
+    "widened": 7
+  },
+  "c79483f7": {
+    "source": "content/dbms/07-concurrency-control.md",
+    "width": 638,
+    "height": 513,
+    "widened": 13
+  },
+  "a5b8dda4": {
+    "source": "content/dbms/07-concurrency-control.md",
+    "width": 477,
+    "height": 78,
+    "widened": 4
+  },
+  "9947b1d6": {
+    "source": "content/dbms/07-concurrency-control.md",
+    "width": 1244,
+    "height": 255,
+    "widened": 11
+  },
+  "dfd489b1": {
+    "source": "content/dbms/07-concurrency-control.md",
+    "width": 1489,
+    "height": 115,
+    "widened": 11
+  },
+  "5d78d2fb": {
+    "source": "content/dbms/08-query-optimization.md",
+    "width": 2524,
+    "height": 90,
+    "widened": 17
+  },
+  "0c68a0cc": {
+    "source": "content/dbms/08-query-optimization.md",
+    "width": 515,
+    "height": 378,
+    "widened": 11
+  },
+  "14fdad3b": {
+    "source": "content/dbms/08-query-optimization.md",
+    "width": 465,
+    "height": 544,
+    "widened": 15
+  },
+  "8aa399ad": {
+    "source": "content/dbms/08-query-optimization.md",
+    "width": 594,
+    "height": 1055,
+    "widened": 18
+  },
+  "8708a525": {
+    "source": "content/dbms/09-distributed-databases-cap.md",
+    "width": 1242,
+    "height": 172,
+    "widened": 14
+  },
+  "184210e8": {
+    "source": "content/dbms/09-distributed-databases-cap.md",
+    "width": 1019,
+    "height": 616,
+    "widened": 0
+  },
+  "9251f962": {
+    "source": "content/dbms/09-distributed-databases-cap.md",
+    "width": 577,
+    "height": 481,
+    "widened": 13
+  },
+  "3a7c36dc": {
+    "source": "content/dbms/09-distributed-databases-cap.md",
+    "width": 797,
+    "height": 815,
+    "widened": 0
+  },
+  "c6eb11c3": {
+    "source": "content/dbms/09-distributed-databases-cap.md",
+    "width": 594,
+    "height": 683,
+    "widened": 11
+  },
+  "98f52b9c": {
+    "source": "content/dbms/09-distributed-databases-cap.md",
+    "width": 1556,
+    "height": 505,
+    "widened": 0
+  },
+  "a8f842f2": {
+    "source": "content/dbms/12-sql-querying.md",
+    "width": 1618,
+    "height": 69,
+    "widened": 15
+  },
+  "9e756fc1": {
+    "source": "content/dbms/12-sql-querying.md",
+    "width": 500,
+    "height": 462,
+    "widened": 12
+  },
+  "a3524192": {
+    "source": "content/dbms/12-sql-querying.md",
+    "width": 511,
+    "height": 620,
+    "widened": 12
+  },
+  "e38ff4ea": {
+    "source": "content/dbms/12-sql-querying.md",
+    "width": 1899,
+    "height": 275,
+    "widened": 21
+  },
+  "5fe6ea16": {
+    "source": "content/java-spring/01-jvm-gc.md",
+    "width": 1523,
+    "height": 193,
+    "widened": 11
+  },
+  "28ada03b": {
+    "source": "content/java-spring/01-jvm-gc.md",
+    "width": 826,
+    "height": 224,
+    "widened": 10
+  },
+  "575fee79": {
+    "source": "content/java-spring/01-jvm-gc.md",
+    "width": 819,
+    "height": 397,
+    "widened": 16
+  },
+  "5b5b7042": {
+    "source": "content/java-spring/01-jvm-gc.md",
+    "width": 1423,
+    "height": 183,
+    "widened": 11
+  },
+  "4993a6a9": {
+    "source": "content/java-spring/01-jvm-gc.md",
+    "width": 853,
+    "height": 475,
+    "widened": 0
+  },
+  "72d74f92": {
+    "source": "content/java-spring/01-jvm-gc.md",
+    "width": 830,
+    "height": 301,
+    "widened": 14
+  },
+  "b4b7599b": {
+    "source": "content/java-spring/01b-java-execution-pipeline.md",
+    "width": 1472,
+    "height": 69,
+    "widened": 11
+  },
+  "6299edab": {
+    "source": "content/java-spring/01b-java-execution-pipeline.md",
+    "width": 216,
+    "height": 570,
+    "widened": 10
+  },
+  "1c4cee79": {
+    "source": "content/java-spring/01b-java-execution-pipeline.md",
+    "width": 523,
+    "height": 584,
+    "widened": 11
+  },
+  "49332bdd": {
+    "source": "content/java-spring/01b-java-execution-pipeline.md",
+    "width": 1746,
+    "height": 90,
+    "widened": 13
+  },
+  "c9d6e318": {
+    "source": "content/java-spring/01c-java-memory-model.md",
+    "width": 801,
+    "height": 263,
+    "widened": 8
+  },
+  "501dc490": {
+    "source": "content/java-spring/01c-java-memory-model.md",
+    "width": 854,
+    "height": 506,
+    "widened": 0
+  },
+  "82a4dfbd": {
+    "source": "content/java-spring/01c-java-memory-model.md",
+    "width": 412,
+    "height": 462,
+    "widened": 10
+  },
+  "ac4f6df1": {
+    "source": "content/java-spring/01c-java-memory-model.md",
+    "width": 894,
+    "height": 485,
+    "widened": 0
+  },
+  "121628e8": {
+    "source": "content/java-spring/01d-java-oop-pillars.md",
+    "width": 1222,
+    "height": 90,
+    "widened": 7
+  },
+  "cc4fcac4": {
+    "source": "content/java-spring/01d-java-oop-pillars.md",
+    "width": 320,
+    "height": 440,
+    "widened": 9
+  },
+  "c355048a": {
+    "source": "content/java-spring/01d-java-oop-pillars.md",
+    "width": 280,
+    "height": 502,
+    "widened": 9
+  },
+  "33f10160": {
+    "source": "content/java-spring/01d-java-oop-pillars.md",
+    "width": 1087,
+    "height": 90,
+    "widened": 7
+  },
+  "dae556f0": {
+    "source": "content/java-spring/01e-java-static-final-records.md",
+    "width": 280,
+    "height": 916,
+    "widened": 15
+  },
+  "b7feac80": {
+    "source": "content/java-spring/01e-java-static-final-records.md",
+    "width": 849,
+    "height": 556,
+    "widened": 0
+  },
+  "326677d1": {
+    "source": "content/java-spring/01e-java-static-final-records.md",
+    "width": 1136,
+    "height": 307,
+    "widened": 14
+  },
+  "605841ab": {
+    "source": "content/java-spring/01f-java-functional-lambdas.md",
+    "width": 526,
+    "height": 521,
+    "widened": 14
+  },
+  "78d5c4c4": {
+    "source": "content/java-spring/01f-java-functional-lambdas.md",
+    "width": 1288,
+    "height": 180,
+    "widened": 13
+  },
+  "20b22fe7": {
+    "source": "content/java-spring/01f-java-functional-lambdas.md",
+    "width": 1504,
+    "height": 525,
+    "widened": 0
+  },
+  "0bf81258": {
+    "source": "content/java-spring/01g-java-generics.md",
+    "width": 758,
+    "height": 172,
+    "widened": 10
+  },
+  "277e9a54": {
+    "source": "content/java-spring/01g-java-generics.md",
+    "width": 598,
+    "height": 499,
+    "widened": 13
+  },
+  "1d2e3897": {
+    "source": "content/java-spring/01g-java-generics.md",
+    "width": 832,
+    "height": 326,
+    "widened": 0
+  },
+  "ce1c4c46": {
+    "source": "content/java-spring/01g-java-generics.md",
+    "width": 1369,
+    "height": 90,
+    "widened": 9
+  },
+  "0cab64be": {
+    "source": "content/java-spring/01h-java-collections-framework.md",
+    "width": 880,
+    "height": 621,
+    "widened": 21
+  },
+  "b65c7716": {
+    "source": "content/java-spring/01h-java-collections-framework.md",
+    "width": 1191,
+    "height": 259,
+    "widened": 12
+  },
+  "5d82bb79": {
+    "source": "content/java-spring/01h-java-collections-framework.md",
+    "width": 991,
+    "height": 125,
+    "widened": 10
+  },
+  "34f7a214": {
+    "source": "content/java-spring/01h-java-collections-framework.md",
+    "width": 384,
+    "height": 441,
+    "widened": 11
+  },
+  "0027a135": {
+    "source": "content/java-spring/01i-java-streams-optional.md",
+    "width": 1128,
+    "height": 69,
+    "widened": 9
+  },
+  "da51f1ba": {
+    "source": "content/java-spring/01i-java-streams-optional.md",
+    "width": 934,
+    "height": 475,
+    "widened": 0
+  },
+  "0fc9f3ed": {
+    "source": "content/java-spring/01i-java-streams-optional.md",
+    "width": 1251,
+    "height": 69,
+    "widened": 11
+  },
+  "47a58de8": {
+    "source": "content/java-spring/01i-java-streams-optional.md",
+    "width": 451,
+    "height": 481,
+    "widened": 15
+  },
+  "b71aeffe": {
+    "source": "content/java-spring/01j-java-hashmap-internals.md",
+    "width": 1467,
+    "height": 69,
+    "widened": 13
+  },
+  "37a684f5": {
+    "source": "content/java-spring/01j-java-hashmap-internals.md",
+    "width": 860,
+    "height": 205,
+    "widened": 11
+  },
+  "7298e68f": {
+    "source": "content/java-spring/01j-java-hashmap-internals.md",
+    "width": 695,
+    "height": 426,
+    "widened": 13
+  },
+  "c3e4d673": {
+    "source": "content/java-spring/01k-java-reflection-exceptions.md",
+    "width": 424,
+    "height": 584,
+    "widened": 11
+  },
+  "76c75279": {
+    "source": "content/java-spring/01k-java-reflection-exceptions.md",
+    "width": 546,
+    "height": 565,
+    "widened": 0
+  },
+  "2e70f2f6": {
+    "source": "content/java-spring/01k-java-reflection-exceptions.md",
+    "width": 455,
+    "height": 484,
+    "widened": 15
+  },
+  "b7414fb1": {
+    "source": "content/java-spring/01l-java-multithreading-concurrency.md",
+    "width": 670,
+    "height": 426,
+    "widened": 0
+  },
+  "7ee5f451": {
+    "source": "content/java-spring/01l-java-multithreading-concurrency.md",
+    "width": 807,
+    "height": 333,
+    "widened": 15
+  },
+  "afabd899": {
+    "source": "content/java-spring/01l-java-multithreading-concurrency.md",
+    "width": 722,
+    "height": 486,
+    "widened": 0
+  },
+  "e1ded5af": {
+    "source": "content/java-spring/01l-java-multithreading-concurrency.md",
+    "width": 688,
+    "height": 1015,
+    "widened": 15
+  },
+  "784acc7a": {
+    "source": "content/java-spring/01m-design-patterns-solid.md",
+    "width": 1456,
+    "height": 90,
+    "widened": 9
+  },
+  "605798a5": {
+    "source": "content/java-spring/01m-design-patterns-solid.md",
+    "width": 713,
+    "height": 275,
+    "widened": 9
+  },
+  "7891087f": {
+    "source": "content/java-spring/01m-design-patterns-solid.md",
+    "width": 941,
+    "height": 275,
+    "widened": 13
+  },
+  "a680a965": {
+    "source": "content/java-spring/01m-design-patterns-solid.md",
+    "width": 716,
+    "height": 342,
+    "widened": 11
+  },
+  "c8ab2c53": {
+    "source": "content/java-spring/02-spring-bean-lifecycle.md",
+    "width": 1563,
+    "height": 90,
+    "widened": 11
+  },
+  "7a66ef90": {
+    "source": "content/java-spring/02-spring-bean-lifecycle.md",
+    "width": 932,
+    "height": 576,
+    "widened": 0
+  },
+  "13dc9f78": {
+    "source": "content/java-spring/02-spring-bean-lifecycle.md",
+    "width": 1055,
+    "height": 735,
+    "widened": 0
+  },
+  "23fce291": {
+    "source": "content/java-spring/02-spring-bean-lifecycle.md",
+    "width": 548,
+    "height": 399,
+    "widened": 10
+  },
+  "2ef2e3c3": {
+    "source": "content/java-spring/03-spring-mvc-lifecycle.md",
+    "width": 1371,
+    "height": 104,
+    "widened": 12
+  },
+  "00107f14": {
+    "source": "content/java-spring/03-spring-mvc-lifecycle.md",
+    "width": 1390,
+    "height": 655,
+    "widened": 0
+  },
+  "aa299881": {
+    "source": "content/java-spring/03-spring-mvc-lifecycle.md",
+    "width": 672,
+    "height": 1003,
+    "widened": 17
+  },
+  "bb1476ae": {
+    "source": "content/java-spring/04-jpa-hibernate-lifecycle.md",
+    "width": 1252,
+    "height": 172,
+    "widened": 11
+  },
+  "9517dcd8": {
+    "source": "content/java-spring/04-jpa-hibernate-lifecycle.md",
+    "width": 544,
+    "height": 460,
+    "widened": 11
+  },
+  "1d84ad81": {
+    "source": "content/java-spring/04-jpa-hibernate-lifecycle.md",
+    "width": 988,
+    "height": 575,
+    "widened": 0
+  },
+  "d81e7188": {
+    "source": "content/java-spring/04-jpa-hibernate-lifecycle.md",
+    "width": 806,
+    "height": 275,
+    "widened": 13
+  },
+  "d9d88220": {
+    "source": "content/java-spring/05-spring-batch-lifecycle.md",
+    "width": 1419,
+    "height": 69,
+    "widened": 11
+  },
+  "a52e3ad2": {
+    "source": "content/java-spring/05-spring-batch-lifecycle.md",
+    "width": 883,
+    "height": 516,
+    "widened": 0
+  },
+  "99373f08": {
+    "source": "content/java-spring/05-spring-batch-lifecycle.md",
+    "width": 1782,
+    "height": 237,
+    "widened": 16
+  },
+  "15a57bcc": {
+    "source": "content/java-spring/05-spring-batch-lifecycle.md",
+    "width": 490,
+    "height": 526,
+    "widened": 15
+  },
+  "e11c339a": {
+    "source": "content/java-spring/06-quartz-scheduler.md",
+    "width": 1331,
+    "height": 69,
+    "widened": 11
+  },
+  "14ca7ab3": {
+    "source": "content/java-spring/06-quartz-scheduler.md",
+    "width": 1110,
+    "height": 475,
+    "widened": 0
+  },
+  "fe4a435b": {
+    "source": "content/java-spring/06-quartz-scheduler.md",
+    "width": 727,
+    "height": 1092,
+    "widened": 20
+  },
+  "f566ffe2": {
+    "source": "content/java-spring/06-quartz-scheduler.md",
+    "width": 1088,
+    "height": 320,
+    "widened": 14
+  },
+  "c5faebc8": {
+    "source": "content/java-spring/07-spring-boot-internals.md",
+    "width": 1708,
+    "height": 69,
+    "widened": 13
+  },
+  "5bb99606": {
+    "source": "content/java-spring/07-spring-boot-internals.md",
+    "width": 1598,
+    "height": 555,
+    "widened": 0
+  },
+  "71e9b32e": {
+    "source": "content/java-spring/07-spring-boot-internals.md",
+    "width": 856,
+    "height": 1251,
+    "widened": 17
+  },
+  "9115878d": {
+    "source": "content/java-spring/08-spring-rest-api-design.md",
+    "width": 1733,
+    "height": 115,
+    "widened": 12
+  },
+  "d51d7d8d": {
+    "source": "content/java-spring/08-spring-rest-api-design.md",
+    "width": 1859,
+    "height": 775,
+    "widened": 0
+  },
+  "921d3ef6": {
+    "source": "content/java-spring/08-spring-rest-api-design.md",
+    "width": 768,
+    "height": 760,
+    "widened": 16
+  },
+  "5dea6dbb": {
+    "source": "content/java-spring/08-spring-rest-api-design.md",
+    "width": 1360,
+    "height": 938,
+    "widened": 17
+  },
+  "4a445a52": {
+    "source": "content/java-spring/09-spring-security.md",
+    "width": 2124,
+    "height": 90,
+    "widened": 17
+  },
+  "38bcacb8": {
+    "source": "content/java-spring/09-spring-security.md",
+    "width": 1538,
+    "height": 625,
+    "widened": 0
+  },
+  "b809346f": {
+    "source": "content/java-spring/09-spring-security.md",
+    "width": 847,
+    "height": 1014,
+    "widened": 15
+  },
+  "37d068ee": {
+    "source": "content/java-spring/09-spring-security.md",
+    "width": 1499,
+    "height": 605,
+    "widened": 0
+  },
+  "61898ded": {
+    "source": "content/java-spring/09-spring-security.md",
+    "width": 1388,
+    "height": 195,
+    "widened": 11
+  },
+  "fb131696": {
+    "source": "content/java-spring/09-spring-security.md",
+    "width": 1081,
+    "height": 586,
+    "widened": 0
+  },
+  "8412d84b": {
+    "source": "content/java-spring/10-spring-caching-async.md",
+    "width": 1496,
+    "height": 434,
+    "widened": 18
+  },
+  "eab2f804": {
+    "source": "content/java-spring/10-spring-caching-async.md",
+    "width": 1191,
+    "height": 835,
+    "widened": 0
+  },
+  "a22348e8": {
+    "source": "content/java-spring/10-spring-caching-async.md",
+    "width": 991,
+    "height": 526,
+    "widened": 0
+  },
+  "3bfe9c12": {
+    "source": "content/java-spring/11-spring-testing-production.md",
+    "width": 350,
+    "height": 523,
+    "widened": 10
+  },
+  "5fa02f16": {
+    "source": "content/java-spring/11-spring-testing-production.md",
+    "width": 804,
+    "height": 497,
+    "widened": 14
+  },
+  "dea675ac": {
+    "source": "content/java-spring/11-spring-testing-production.md",
+    "width": 1365,
+    "height": 525,
+    "widened": 0
+  },
+  "06f61494": {
+    "source": "content/java-spring/11-spring-testing-production.md",
+    "width": 216,
+    "height": 742,
+    "widened": 13
+  },
+  "dc83df00": {
+    "source": "content/java-spring/11-spring-testing-production.md",
+    "width": 1303,
+    "height": 605,
+    "widened": 0
+  },
+  "0994fcab": {
+    "source": "content/java-spring/11-spring-testing-production.md",
+    "width": 2831,
+    "height": 90,
+    "widened": 19
+  },
+  "e44143cd": {
+    "source": "content/networking/00-network-fundamentals.md",
+    "width": 673,
+    "height": 172,
+    "widened": 9
+  },
+  "a5022c54": {
+    "source": "content/networking/00-network-fundamentals.md",
+    "width": 608,
+    "height": 275,
+    "widened": 13
+  },
+  "b0793393": {
+    "source": "content/networking/00-network-fundamentals.md",
+    "width": 1104,
+    "height": 206,
+    "widened": 10
+  },
+  "5cb705f8": {
+    "source": "content/networking/00b-physical-layer-media.md",
+    "width": 1615,
+    "height": 90,
+    "widened": 11
+  },
+  "24bdaf98": {
+    "source": "content/networking/00b-physical-layer-media.md",
+    "width": 280,
+    "height": 605,
+    "widened": 11
+  },
+  "231e4d30": {
+    "source": "content/networking/00b-physical-layer-media.md",
+    "width": 1122,
+    "height": 204,
+    "widened": 9
+  },
+  "a0300a00": {
+    "source": "content/networking/00b-physical-layer-media.md",
+    "width": 1139,
+    "height": 475,
+    "widened": 0
+  },
+  "03a2cc41": {
+    "source": "content/networking/00b-physical-layer-media.md",
+    "width": 271,
+    "height": 687,
+    "widened": 13
+  },
+  "642e3192": {
+    "source": "content/networking/01-osi-model.md",
+    "width": 280,
+    "height": 729,
+    "widened": 13
+  },
+  "2d5cf997": {
+    "source": "content/networking/01-osi-model.md",
+    "width": 1229,
+    "height": 565,
+    "widened": 0
+  },
+  "e1c2cf9a": {
+    "source": "content/networking/01-osi-model.md",
+    "width": 1173,
+    "height": 253,
+    "widened": 16
+  },
+  "e843e064": {
+    "source": "content/networking/01-osi-model.md",
+    "width": 252,
+    "height": 893,
+    "widened": 17
+  },
+  "b8aac746": {
+    "source": "content/networking/02-data-link-layer.md",
+    "width": 1093,
+    "height": 69,
+    "widened": 9
+  },
+  "ac51c91c": {
+    "source": "content/networking/02-data-link-layer.md",
+    "width": 406,
+    "height": 739,
+    "widened": 13
+  },
+  "7b5d3a4d": {
+    "source": "content/networking/02-data-link-layer.md",
+    "width": 558,
+    "height": 475,
+    "widened": 0
+  },
+  "b98dcc28": {
+    "source": "content/networking/02-data-link-layer.md",
+    "width": 877,
+    "height": 1093,
+    "widened": 15
+  },
+  "9aec513b": {
+    "source": "content/networking/03-ip-subnetting.md",
+    "width": 1336,
+    "height": 214,
+    "widened": 11
+  },
+  "5b5cb097": {
+    "source": "content/networking/03-ip-subnetting.md",
+    "width": 477,
+    "height": 420,
+    "widened": 9
+  },
+  "5d75fdb0": {
+    "source": "content/networking/03-ip-subnetting.md",
+    "width": 453,
+    "height": 388,
+    "widened": 11
+  },
+  "09f88080": {
+    "source": "content/networking/03-ip-subnetting.md",
+    "width": 537,
+    "height": 375,
+    "widened": 0
+  },
+  "46b785f3": {
+    "source": "content/networking/03-ip-subnetting.md",
+    "width": 1201,
+    "height": 193,
+    "widened": 12
+  },
+  "caa3808a": {
+    "source": "content/networking/04-routing-algorithms.md",
+    "width": 1347,
+    "height": 193,
+    "widened": 11
+  },
+  "219acea0": {
+    "source": "content/networking/04-routing-algorithms.md",
+    "width": 270,
+    "height": 584,
+    "widened": 11
+  },
+  "d6a1d58c": {
+    "source": "content/networking/04-routing-algorithms.md",
+    "width": 804,
+    "height": 426,
+    "widened": 0
+  },
+  "b6a0be91": {
+    "source": "content/networking/04-routing-algorithms.md",
+    "width": 1560,
+    "height": 90,
+    "widened": 11
+  },
+  "6944ed33": {
+    "source": "content/networking/04-routing-algorithms.md",
+    "width": 256,
+    "height": 687,
+    "widened": 13
+  },
+  "7fdb7673": {
+    "source": "content/networking/05-tcp-ip.md",
+    "width": 875,
+    "height": 185,
+    "widened": 10
+  },
+  "5a2360da": {
+    "source": "content/networking/05-tcp-ip.md",
+    "width": 519,
+    "height": 376,
+    "widened": 0
+  },
+  "0fa9e112": {
+    "source": "content/networking/05-tcp-ip.md",
+    "width": 348,
+    "height": 549,
+    "widened": 16
+  },
+  "ee1d9400": {
+    "source": "content/networking/05b-transport-layer-protocols.md",
+    "width": 1213,
+    "height": 69,
+    "widened": 9
+  },
+  "a525c9ee": {
+    "source": "content/networking/05b-transport-layer-protocols.md",
+    "width": 608,
+    "height": 376,
+    "widened": 0
+  },
+  "e9d148a1": {
+    "source": "content/networking/05b-transport-layer-protocols.md",
+    "width": 504,
+    "height": 475,
+    "widened": 0
+  },
+  "12f55f78": {
+    "source": "content/networking/05b-transport-layer-protocols.md",
+    "width": 777,
+    "height": 420,
+    "widened": 11
+  },
+  "e87be385": {
+    "source": "content/networking/06-tcp-congestion.md",
+    "width": 1160,
+    "height": 207,
+    "widened": 13
+  },
+  "9964e355": {
+    "source": "content/networking/06-tcp-congestion.md",
+    "width": 604,
+    "height": 485,
+    "widened": 0
+  },
+  "bbe04b65": {
+    "source": "content/networking/06-tcp-congestion.md",
+    "width": 1917,
+    "height": 90,
+    "widened": 15
+  },
+  "80b01de6": {
+    "source": "content/networking/06-tcp-congestion.md",
+    "width": 332,
+    "height": 441,
+    "widened": 10
+  },
+  "37472c4e": {
+    "source": "content/networking/07-application-layer.md",
+    "width": 1318,
+    "height": 575,
+    "widened": 0
+  },
+  "35a2a4f9": {
+    "source": "content/networking/07-application-layer.md",
+    "width": 749,
+    "height": 626,
+    "widened": 0
+  },
+  "f61a67ac": {
+    "source": "content/networking/07-application-layer.md",
+    "width": 903,
+    "height": 1198,
+    "widened": 21
+  },
+  "2764cf05": {
+    "source": "content/networking/07-application-layer.md",
+    "width": 586,
+    "height": 720,
+    "widened": 17
+  },
+  "c0b2e4d5": {
+    "source": "content/networking/08-network-security.md",
+    "width": 974,
+    "height": 378,
+    "widened": 16
+  },
+  "0d70788e": {
+    "source": "content/networking/08-network-security.md",
+    "width": 734,
+    "height": 545,
+    "widened": 0
+  },
+  "c8d35de3": {
+    "source": "content/networking/08-network-security.md",
+    "width": 651,
+    "height": 556,
+    "widened": 0
+  },
+  "2d5f12c1": {
+    "source": "content/networking/08-network-security.md",
+    "width": 1544,
+    "height": 240,
+    "widened": 14
+  },
+  "8fbf7af4": {
+    "source": "content/networking/08-network-security.md",
+    "width": 908,
+    "height": 586,
+    "widened": 13
+  },
+  "1ac45012": {
+    "source": "content/networking/09-network-performance-qos.md",
+    "width": 1293,
+    "height": 193,
+    "widened": 11
+  },
+  "da6536a3": {
+    "source": "content/networking/09-network-performance-qos.md",
+    "width": 831,
+    "height": 598,
+    "widened": 13
+  },
+  "56e78589": {
+    "source": "content/networking/09-network-performance-qos.md",
+    "width": 754,
+    "height": 535,
+    "widened": 0
+  },
+  "7012af30": {
+    "source": "content/networking/09-network-performance-qos.md",
+    "width": 1149,
+    "height": 275,
+    "widened": 12
+  },
+  "fa8baa3c": {
+    "source": "content/networking/09-network-performance-qos.md",
+    "width": 594,
+    "height": 399,
+    "widened": 10
+  },
+  "f06e2c32": {
+    "source": "content/os/01-process-management.md",
+    "width": 508,
+    "height": 731,
+    "widened": 14
+  },
+  "14d1c8ac": {
+    "source": "content/os/01-process-management.md",
+    "width": 1079,
+    "height": 275,
+    "widened": 11
+  },
+  "89699bbc": {
+    "source": "content/os/01-process-management.md",
+    "width": 370,
+    "height": 505,
+    "widened": 13
+  },
+  "61f3819d": {
+    "source": "content/os/01-process-management.md",
+    "width": 804,
+    "height": 506,
+    "widened": 0
+  },
+  "465edab5": {
+    "source": "content/os/01-process-management.md",
+    "width": 578,
+    "height": 399,
+    "widened": 10
+  },
+  "5bf84605": {
+    "source": "content/os/02-memory-management.md",
+    "width": 1169,
+    "height": 290,
+    "widened": 11
+  },
+  "7d6f7294": {
+    "source": "content/os/02-memory-management.md",
+    "width": 1404,
+    "height": 90,
+    "widened": 11
+  },
+  "e40a2f68": {
+    "source": "content/os/02-memory-management.md",
+    "width": 222,
+    "height": 687,
+    "widened": 13
+  },
+  "dd961abc": {
+    "source": "content/os/02-memory-management.md",
+    "width": 575,
+    "height": 1232,
+    "widened": 19
+  },
+  "afbbb7b7": {
+    "source": "content/os/03-cpu-scheduling.md",
+    "width": 972,
+    "height": 177,
+    "widened": 11
+  },
+  "2996dcfd": {
+    "source": "content/os/03-cpu-scheduling.md",
+    "width": 981,
+    "height": 475,
+    "widened": 0
+  },
+  "603fe712": {
+    "source": "content/os/03-cpu-scheduling.md",
+    "width": 1600,
+    "height": 244,
+    "widened": 0
+  },
+  "4a11d091": {
+    "source": "content/os/03-cpu-scheduling.md",
+    "width": 686,
+    "height": 566,
+    "widened": 0
+  },
+  "46e73772": {
+    "source": "content/os/04-synchronization.md",
+    "width": 680,
+    "height": 426,
+    "widened": 0
+  },
+  "ac41df0e": {
+    "source": "content/os/04-synchronization.md",
+    "width": 491,
+    "height": 418,
+    "widened": 10
+  },
+  "b21e2f21": {
+    "source": "content/os/04-synchronization.md",
+    "width": 594,
+    "height": 275,
+    "widened": 11
+  },
+  "afc2f754": {
+    "source": "content/os/04-synchronization.md",
+    "width": 764,
+    "height": 595,
+    "widened": 0
+  },
+  "677e5a95": {
+    "source": "content/os/05-deadlocks.md",
+    "width": 1214,
+    "height": 126,
+    "widened": 8
+  },
+  "e7475b35": {
+    "source": "content/os/05-deadlocks.md",
+    "width": 747,
+    "height": 104,
+    "widened": 8
+  },
+  "898db993": {
+    "source": "content/os/05-deadlocks.md",
+    "width": 796,
+    "height": 1251,
+    "widened": 17
+  },
+  "172bd295": {
+    "source": "content/os/05-deadlocks.md",
+    "width": 770,
+    "height": 475,
+    "widened": 0
+  },
+  "305f7588": {
+    "source": "content/os/06-file-systems.md",
+    "width": 1007,
+    "height": 172,
+    "widened": 11
+  },
+  "9f61b779": {
+    "source": "content/os/06-file-systems.md",
+    "width": 608,
+    "height": 502,
+    "widened": 16
+  },
+  "13e3f573": {
+    "source": "content/os/06-file-systems.md",
+    "width": 1741,
+    "height": 125,
+    "widened": 12
+  },
+  "5db2e154": {
+    "source": "content/os/06-file-systems.md",
+    "width": 1370,
+    "height": 475,
+    "widened": 0
+  },
+  "852faf60": {
+    "source": "content/os/07-io-systems.md",
+    "width": 1245,
+    "height": 69,
+    "widened": 14
+  },
+  "e2176fa9": {
+    "source": "content/os/07-io-systems.md",
+    "width": 342,
+    "height": 505,
+    "widened": 10
+  },
+  "cbeb35de": {
+    "source": "content/os/07-io-systems.md",
+    "width": 1049,
+    "height": 475,
+    "widened": 0
+  },
+  "a79cdca9": {
+    "source": "content/os/07-io-systems.md",
+    "width": 1308,
+    "height": 172,
+    "widened": 11
+  },
+  "73c08705": {
+    "source": "content/os/07-io-systems.md",
+    "width": 203,
+    "height": 613,
+    "widened": 11
+  },
+  "0b388811": {
+    "source": "content/os/08-disk-scheduling.md",
+    "width": 1106,
+    "height": 69,
+    "widened": 9
+  },
+  "e6b12284": {
+    "source": "content/os/08-disk-scheduling.md",
+    "width": 586,
+    "height": 523,
+    "widened": 10
+  },
+  "48cfb17f": {
+    "source": "content/os/08-disk-scheduling.md",
+    "width": 1430,
+    "height": 69,
+    "widened": 19
+  },
+  "8188ee20": {
+    "source": "content/os/08-disk-scheduling.md",
+    "width": 808,
+    "height": 475,
+    "widened": 0
+  }
+}
