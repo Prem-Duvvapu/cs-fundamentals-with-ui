@@ -19,7 +19,7 @@ export default defineConfig({
     // require() resolution under the jsdom test environment.
     server: {
       deps: {
-        inline: ['react-markdown', 'remark-gfm', 'remark-math', 'rehype-katex', 'rehype-highlight', 'mermaid']
+        inline: ['react-markdown', 'remark-gfm', 'remark-math', 'rehype-katex', 'rehype-highlight']
       }
     }
   }

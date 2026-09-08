@@ -1,81 +1,53 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import MermaidBlock from '../markdown/MermaidBlock'
 
-const mermaidMock = vi.hoisted(() => ({
-  initialize: vi.fn(),
-  render: vi.fn().mockResolvedValue({ svg: '<svg aria-label="Rendered flow"></svg>' })
+vi.mock('../../generated/diagramManifest.json', () => ({
+  default: {
+    '0aeb077d': { source: 'content/example.md', width: 640, height: 320 },
+    '7d828d65': { source: 'content/example.md', width: 480, height: 240 }
+  }
 }))
 
-vi.mock('mermaid', () => ({ default: mermaidMock }))
-
 beforeEach(() => {
-  mermaidMock.initialize.mockClear()
-  mermaidMock.render.mockClear()
+  document.documentElement.dataset.theme = 'dark'
 })
 
-it('reinitializes and rerenders mounted diagrams when the theme changes', async () => {
+it('uses the pre-rendered dark asset with intrinsic dimensions and accessible text', () => {
+  const { container } = render(<MermaidBlock code="flowchart LR; A-->B" />)
+
+  const image = screen.getByRole('img', { name: /flowchart for the surrounding lesson/i })
+  expect(image).toHaveAttribute('src', '/diagrams/0aeb077d-dark.svg')
+  expect(image).toHaveAttribute('width', '640')
+  expect(image).toHaveAttribute('height', '320')
+  expect(image).toHaveAttribute('loading', 'lazy')
+  expect(container.querySelector('.mermaid-block')).toHaveAttribute('data-diagram-hash', '0aeb077d')
+  expect(screen.queryByText(/rendering diagram/i)).not.toBeInTheDocument()
+})
+
+it('switches to the matching static asset when the application theme changes', () => {
   render(<MermaidBlock code="flowchart LR; A-->B" />)
 
-  await waitFor(() => expect(mermaidMock.render).toHaveBeenCalledTimes(1))
-  await act(async () => {
+  act(() => {
+    document.documentElement.dataset.theme = 'light'
     window.dispatchEvent(new CustomEvent('cs-fundamentals:theme-change', { detail: { theme: 'light' } }))
   })
 
-  await waitFor(() => expect(mermaidMock.render).toHaveBeenCalledTimes(2))
-  expect(mermaidMock.initialize).toHaveBeenCalledTimes(2)
-  await waitFor(() => expect(screen.queryByText(/rendering diagram/i)).not.toBeInTheDocument())
+  expect(screen.getByRole('img')).toHaveAttribute('src', '/diagrams/0aeb077d-light.svg')
 })
 
-it('serializes concurrent diagrams instead of racing mermaid.render', async () => {
-  // Regression test: a topic with several diagrams mounts them all in the same tick, and
-  // mermaid.initialize()/render() share module-level state inside the library — firing them
-  // unserialized let one diagram's initialize() stomp state another's in-flight render() was
-  // reading, and the observed symptom was a diagram stuck forever on "Rendering diagram…".
-  const releases = []
-  mermaidMock.render.mockImplementation((id) =>
-    new Promise((resolve) => {
-      releases.push(() => resolve({ svg: `<svg data-testid="${id}"></svg>` }))
-    })
-  )
+it('shows the source immediately when the generated manifest has no matching diagram', () => {
+  render(<MermaidBlock code="stateDiagram-v2\n  Missing --> Asset" />)
 
-  render(
-    <>
-      <MermaidBlock code="flowchart LR; A-->B" />
-      <MermaidBlock code="flowchart LR; C-->D" />
-    </>
-  )
-
-  await waitFor(() => expect(mermaidMock.render).toHaveBeenCalledTimes(1))
-  // The second diagram must not call render() while the first is still in flight.
-  expect(mermaidMock.render).toHaveBeenCalledTimes(1)
-
-  await act(async () => releases[0]())
-  await waitFor(() => expect(mermaidMock.render).toHaveBeenCalledTimes(2))
-
-  await act(async () => releases[1]())
-  await waitFor(() => expect(screen.queryByText(/rendering diagram/i)).not.toBeInTheDocument())
+  expect(screen.getByRole('figure', { name: /diagram unavailable/i })).toHaveTextContent(/pre-rendered diagram is unavailable/i)
+  expect(screen.getByText(/Missing --> Asset/)).toBeInTheDocument()
+  expect(screen.queryByRole('img')).not.toBeInTheDocument()
 })
 
-it('uses live CSS properties for Mermaid theme variables', async () => {
-  const getComputedStyleSpy = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
-    getPropertyValue: vi.fn((name) => ({
-      '--bg-raised': '#raised',
-      '--text-primary': '#primary',
-      '--cat-base': '#category'
-    })[name] || '')
-  })
+it('shows the source when a generated image fails to load', () => {
+  render(<MermaidBlock code="flowchart LR; C-->D" />)
 
-  render(<MermaidBlock code="flowchart LR; A-->B" />)
+  fireEvent.error(screen.getByRole('img'))
 
-  await waitFor(() => expect(mermaidMock.initialize).toHaveBeenCalled())
-  expect(mermaidMock.initialize).toHaveBeenLastCalledWith(expect.objectContaining({
-    theme: 'base',
-    fontFamily: 'var(--font-body)',
-    themeVariables: expect.objectContaining({
-      primaryColor: '#raised',
-      primaryTextColor: '#primary',
-      primaryBorderColor: '#category'
-    })
-  }))
-  getComputedStyleSpy.mockRestore()
+  expect(screen.getByRole('figure', { name: /diagram unavailable/i })).toHaveTextContent(/asset could not be loaded/i)
+  expect(screen.getByText('flowchart LR; C-->D')).toBeInTheDocument()
 })
