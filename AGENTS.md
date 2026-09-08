@@ -265,14 +265,10 @@ manual review of every hit for template-literal class construction (`` `u-pill-$
 literal-string scan can't see — both false-positive categories were excluded from the delete list.
 414/414 frontend tests, 47/47 backend tests, and a production build all stayed green throughout.
 
-**New finding, not yet fixed:** the light theme has a separate, pre-existing bug — 16 spots in
-`App.css` hardcode `background: #0f172a` (a literal dark-navy, not a token) instead of a theme
-token, most visibly `.select-input`/`.num-input`/`.text-input` (`App.css:606`), which renders as a
-near-black box with unreadable text in light mode on every `<select>`/number/text input across
-every visualizer (confirmed via screenshot on `dbms-indexing`'s B+Tree controls). This predates
-the current session — `git diff` shows none of these `#0f172a` occurrences were touched by the P6
-work above — and axe's contrast check didn't catch it (a known limitation with native form-control
-rendering). This is UI_REVAMP_PLAN.md §3.5-style stray-hex work, not yet scheduled.
+**Light-theme follow-up fixed 2026-09-08:** all 16 component backgrounds that still hardcoded
+`#0f172a` now use semantic `--bg-inset`/`--bg-raised` tokens, including the shared select, number,
+and text inputs. The CPU status gradient also uses category/inset tokens. A focused CSS regression
+test prevents the dark literal from returning to themed component backgrounds.
 
 The `GET /api/v1/content/{category}/{topicId}` 200-instead-of-404 bug the live route check
 surfaced is fixed: `ContentService.exists(category, topicId)` and `ContentController` now return
@@ -287,37 +283,27 @@ and the exact classes/lines removed. A separate, unrelated dead-CSS block found 
 removals and likely orphaned by an earlier refactor of the shared `StatePill.jsx` component (which
 renders `u-pill`/`u-pill-<tone>` instead) — is also removed now (2026-09-02).
 
-### Mermaid diagram rendering (2026-09-05)
+### Mermaid diagram rendering (completed 2026-09-08)
 
-User reports of diagrams stuck on "Rendering diagram…", clipped label text (full text present in
-the DOM, so copy-paste got it all — a visual-only cut), and a "Unsupported color format" crash led
-to four real, separately-verified bugs in `MermaidBlock.jsx`'s live client-side rendering (each
-confirmed with a live Playwright inspection, not guessed): (1) `mermaid.initialize()`/`render()`
-share module-level state inside the library, so several diagrams mounting in the same React tick
-raced and could hang forever — fixed with a module-level FIFO queue plus a 12s per-task timeout so
-one stuck render can't wedge the rest of the page; (2) the theme-color lookup had no fallback for
-an empty `getComputedStyle()` result, which throws rather than degrading — every color now has a
-literal fallback; (3) `--font-body` is a self-hosted webfont, so a diagram rendered before it loads
-measures against the fallback font then repaints with the real one — now waits on
-`document.fonts.ready`; (4) the actual clipping cause: mermaid's own width estimate for an
-htmlLabels node runs 15-25% narrower than the label's real rendered width (measured directly:
-declared `foreignObject` width vs. the label's real `scrollWidth`, live page, correct font
-confirmed loaded) — `App.css` now sets `overflow: visible` on `foreignObject` as the fix. Also
-found and fixed along the way: `content/os/03-cpu-scheduling.md`'s gantt chart used
+Live client rendering previously exposed a shared-state race, indefinite loading, font-measurement
+race, empty-color crash, and clipped HTML labels. Browser measurements established that Mermaid's
+label widths could be 15–25% too narrow. Those runtime workarounds have now been retired because
+the build-time renderer serializes the work, waits for the real font, supplies resolved theme
+colors, and corrects each SVG's geometry once before publication. Also found and fixed along the
+way: `content/os/03-cpu-scheduling.md`'s gantt chart used
 `dateFormat X` (Unix seconds) with values authored as milliseconds, so `axisFormat %L` (the
 sub-second remainder) showed "000" at every tick — `dateFormat x` (Unix milliseconds) is correct.
 
-Given how much of that required a real browser to even see, `scripts/render-diagrams.mjs` now
-exists to render every diagram once per theme at **build time** instead of in the reader's browser
-— it fixes the width bug at the source (measures and corrects each label's real geometry before
-writing the SVG, rather than relying on CSS to paper over it), plus removes the loading state, the
-render queue, and ~700KB of runtime cost for readers entirely. Output goes to
-`frontend/public/diagrams/<hash>-{dark,light}.svg` (`frontend/src/utils/diagramHash.js` is the
-shared hash; `frontend/src/generated/diagramManifest.json` maps hash → dimensions/source).
-**`MermaidBlock.jsx`/`MarkdownRenderer.jsx` have not been changed to consume this yet** — the
-pipeline is verified and committed, but the reader still renders live client-side (with the four
-fixes above) until that wiring lands. Playwright is a new frontend devDependency for this script
-only; it is not wired into CI yet either.
+`scripts/render-diagrams.mjs` now renders every diagram once per theme at build time and fixes the
+width bug at the source by measuring and correcting label geometry before writing the SVG. Output
+goes to `frontend/public/diagrams/<hash>-{dark,light}.svg`; the shared hash lives in
+`frontend/src/utils/diagramHash.js`, and `frontend/src/generated/diagramManifest.json` records
+dimensions and source. `MermaidBlock.jsx` consumes those assets, changes image on theme events,
+supplies intrinsic sizing and descriptive alternative text, and shows raw source if an asset is
+missing or fails to load. Mermaid and Playwright are development-only dependencies; no Mermaid
+code ships on the reader path. `npm run diagrams:check --prefix frontend` validates 281 manifest
+entries and 562 theme assets deterministically, is enforced by `prebuild`, and runs in CI alongside
+the content and simulator-question migration gates.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
