@@ -3,6 +3,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
 import InterviewDeck from '../shared/InterviewDeck'
 
+// The real Markdown pipeline is exercised exhaustively by
+// TopicViewer.markdown.test.jsx. Keep this deck-level suite focused on reveal,
+// navigation and accessibility behavior without waiting for a lazy dynamic import.
+vi.mock('../markdown/MarkdownRenderer', () => ({
+  default: ({ content }) => <div data-testid="markdown-content">{content}</div>
+}))
+
 const QUESTIONS = [
   { id: 'q1', question: 'Q1. What is a page fault?', difficulty: 'easy', answerMarkdown: 'A **trap** into the kernel.' },
   { id: 'q2', question: 'Q2. What is thrashing?', difficulty: 'hard', answerMarkdown: 'Excessive paging activity.' }
@@ -38,10 +45,10 @@ describe('InterviewDeck', () => {
     expect(reveal).toHaveAttribute('aria-expanded', 'true')
 
     const answer = document.getElementById(reveal.getAttribute('aria-controls'))
-    await waitFor(() => expect(answer).toHaveTextContent('trap'), { timeout: 15000 })
-    expect(answer.querySelector('strong')).toHaveTextContent('trap')
+    await waitFor(() => expect(answer).toHaveTextContent('trap'))
+    expect(answer.querySelector('[data-testid="markdown-content"]')).toHaveTextContent('A **trap** into the kernel.')
     expect(screen.getByRole('button', { name: /hide answer/i })).toBeInTheDocument()
-  }, 15000)
+  })
 
   it('steps forward, resets reveal state, and disables Next on the last card', () => {
     render(<InterviewDeck questions={QUESTIONS} />)
