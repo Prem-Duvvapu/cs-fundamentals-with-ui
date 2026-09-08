@@ -130,14 +130,20 @@ components/markdown/MarkdownRenderer.jsx
         │  + rehype-highlight   fenced-code syntax highlighting
         │
         └──► ```mermaid fences ──► components/markdown/MermaidBlock.jsx
-                                   lazy import('mermaid'), themed centrally
-                                   from App.css tokens, falls back to raw
-                                   source if a diagram fails to parse
+                                   hashes source and selects a generated
+                                   dark/light SVG; falls back to raw source
+                                   when an asset is missing or cannot load
 ```
 
-MermaidBlock.jsx still renders client-side today (this is the live path). Real bugs found and fixed there this session, each verified with a live Playwright inspection rather than assumption: mermaid.initialize()/render() share module-level state inside the library, so several diagrams on one page (mounted in the same React tick) raced and could hang forever on "Rendering diagram…" — fixed with a module-level FIFO queue (`queueMermaidTask`) with a 12s per-task timeout so one stuck render can't wedge every diagram on the page; `mermaidConfiguration()`'s theme-color lookup had no fallback, so any environment where a CSS custom property resolves empty (confirmed happening in every test in this repo, since none import App.css) throws "Unsupported color format" and the diagram never renders at all — every color now has a literal dark-theme-default fallback; `--font-body` is a self-hosted webfont, so a diagram rendered before it loads gets measured against the fallback font then repainted with the real one, an `document.fonts.ready` wait now guards against it. The actual clipping bug reported by users — full label text present in the DOM but visually cut off — turned out to be none of the above: mermaid's own width estimate for an htmlLabels node runs 15-25% narrower than the label's real rendered width, confirmed by comparing the declared `foreignObject` width against its content's real `scrollWidth` on a live page. `App.css` now sets `overflow: visible` on `foreignObject` so a too-narrow box doesn't truncate its content.
-
-A separate, not-yet-wired-in pipeline now exists to render diagrams at build time instead: `scripts/render-diagrams.mjs` renders every diagram once per theme via a real headless browser (Playwright), and — the actual fix for the width bug above, applied at the source rather than papered over with CSS — measures each label's true width in that real browser and corrects the SVG's numbers directly before writing it to `frontend/public/diagrams/<hash>-{dark,light}.svg` (`frontend/src/utils/diagramHash.js` is the shared FNV-1a hash; `frontend/src/generated/diagramManifest.json` maps each hash to its dimensions and source file). `--check` verifies every diagram is current (for CI). **MermaidBlock.jsx and MarkdownRenderer.jsx have not been changed to consume this yet** — the pipeline produces verified-correct static assets, but the reader still renders live client-side until that wiring lands.
+Mermaid is a build-time authoring dependency, not a reader dependency. `scripts/render-diagrams.mjs`
+renders every unique fence in both themes through Playwright, measures and corrects Mermaid's
+under-sized HTML label boxes, and writes `frontend/public/diagrams/<hash>-{dark,light}.svg`.
+`frontend/src/utils/diagramHash.js` supplies the shared stable hash and
+`frontend/src/generated/diagramManifest.json` records source and intrinsic dimensions.
+`MermaidBlock.jsx` selects the active-theme asset, lazy-loads it as an image, and switches assets
+on theme changes. This removes the former runtime render queue, font-measurement race, loading
+state, and Mermaid payload. `npm run diagrams:check --prefix frontend` performs a deterministic
+structural check of all manifest entries and both assets; `prebuild` and CI enforce it.
 
 **Authoring contract:** `content/CONTENT_SPEC.md` defines depth targets, required diagrams,
 interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
@@ -210,6 +216,10 @@ npm run build --prefix frontend
 
 # Check curriculum structure and quality gates
 node scripts/validate-content.mjs
+
+# Check generated Mermaid assets and migrated simulator questions
+npm run diagrams:check --prefix frontend
+node scripts/audit-simulation-questions.mjs --check
 
 # Test validator and coverage-manifest behavior
 node --test scripts/validate-content.test.mjs

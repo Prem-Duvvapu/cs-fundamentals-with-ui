@@ -70,7 +70,7 @@ describe('TopicPage Component', () => {
     expect(header).not.toHaveClass('topic-page-header--compact')
   })
 
-  it('should switch between simulation and theory tabs', () => {
+  it('should switch between simulation and theory tabs', async () => {
     render(
       <MemoryRouter initialEntries={['/topic/relational-algebra-calculus']}>
         <Routes>
@@ -86,6 +86,7 @@ describe('TopicPage Component', () => {
     fireEvent.click(simBtn)
     expect(simBtn.className).toContain('active-tab')
     expect(simBtn).toHaveAttribute('aria-selected', 'true')
+    expect(await screen.findByText('DBMS simulation')).toBeInTheDocument()
   })
 
   it('supports arrow-key navigation between the topic tabs', () => {

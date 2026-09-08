@@ -103,7 +103,8 @@ All 63 lessons satisfy the authoring contract and coverage manifest: 28,683 curr
 
 - **Backend**: Java 17, Spring Boot 3.2.0, Maven
 - **Frontend**: React 18, Vite, React Router v6, and token-driven vanilla CSS
-- **Content rendering**: react-markdown + remark-gfm, KaTeX math, Mermaid diagrams, syntax highlighting
+- **Content rendering**: react-markdown + remark-gfm, KaTeX math, syntax highlighting, and
+  pre-rendered dark/light Mermaid SVGs (no Mermaid runtime on the reader path)
 - **Testing**: Vitest, React Testing Library, JUnit 5, Spring Boot Test
 - **Containerization**: Docker, Docker Compose, Nginx Reverse Proxy
 - **System Documentation**: See [CONTEXT.md](CONTEXT.md) and [AGENTS.md](AGENTS.md)
@@ -126,7 +127,9 @@ study product. The implementation sequence is:
 4. Add cross-topic search and category interview mode. — done: `/search` and
    `/interview/:category`, backed by `GET /api/v1/search` and
    `GET /api/v1/interview/questions`.
-5. Complete the responsive/accessibility audit and full release verification.
+5. Complete the responsive/accessibility audit and full release verification. — done; the
+   checked routes pass axe in both themes, and CI enforces content, diagram-asset, migrated-question,
+   frontend, backend, and production-build gates.
 
 The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).
 The expanded [SDE-2 coverage plan](plan.md) is the acceptance checklist for OS, Networking,
@@ -168,6 +171,12 @@ cd backend && mvn test
 
 # Validate every curriculum file against the authoring contract
 node scripts/validate-content.mjs
+
+# Verify every Mermaid source has current dark/light SVG assets
+npm run diagrams:check --prefix frontend
+
+# Verify legacy simulator questions remain accounted for
+node scripts/audit-simulation-questions.mjs --check
 
 # Test the validator and coverage-manifest rules
 node --test scripts/validate-content.test.mjs

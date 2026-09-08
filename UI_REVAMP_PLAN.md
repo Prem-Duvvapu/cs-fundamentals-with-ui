@@ -104,12 +104,11 @@ classes their components actually render), and a `u-pad`/`u-caption`/`u-mono`/�
 family that was never adopted. `AGENTS.md` is synced (see "Current implementation priorities").
 The canonical contributor-facing rules live in `docs/DESIGN_SYSTEM.md`.
 
-A pre-existing, unrelated bug turned up while screenshot-verifying the Phase 8 cleanup: 16 spots
-in App.css hardcode `background: #0f172a` instead of a theme token, most visibly
-`.select-input`/`.num-input`/`.text-input` (line ~606) — every `<select>`/number/text control
-across every visualizer renders as a near-black box with unreadable text in the light theme. Not
-introduced by Phase 6/7/8 (confirmed via `git diff` — untouched), not caught by axe (a known
-limitation with native form-control contrast), and not yet scheduled.
+**Release follow-up completed 2026-09-08.** The 16 component backgrounds that still hardcoded
+`#0f172a`, including `.select-input`/`.num-input`/`.text-input`, now use semantic theme tokens and
+have a CSS regression test. Mermaid fences now consume pre-rendered dark/light SVGs instead of
+loading Mermaid in the reader; deterministic manifest/asset checks run before production builds.
+Mermaid remains a development dependency only for regenerating the 281 diagrams.
 
 **§3.5 addendum — `SchedulingVisualizer.jsx`'s process-color palette.** `DEFAULT_PROCESSES`
 and the dynamic-add `colors` array need up to 9 mutually distinguishable hues for concurrent
@@ -2023,7 +2022,7 @@ option explicitly, the plan's recommendation is authoritative:
 - [ ] Zero raw hex outside the `:root` / `[data-theme]` blocks in `App.css`.
 - [ ] Zero raw hex in any `.jsx` (excluding the verified non-color literals).
 - [ ] `style={{` count ≤160, all computed.
-- [ ] Both themes ship, persist, and follow the system preference on first visit.
+- [x] Both themes ship, persist, and follow the system preference on first visit.
 - [x] Mermaid, highlight.js, and KaTeX all follow the active theme. Verified 2026-09-03 via axe
       (0 color-contrast violations across 5 routes × 2 themes, including Mermaid-diagram pages);
       the dark-mode edge-label white-background bug found in that pass is fixed.
@@ -2038,9 +2037,9 @@ option explicitly, the plan's recommendation is authoritative:
 - [x] Backend suite untouched and green (this revamp touches no Java). Verified 2026-09-03: 47/47,
       and this session's changes were frontend-only.
 - [ ] Bundle main chunk ≤ the Phase 1 baseline.
-- [ ] `AGENTS.md`, `CONTEXT.md`, `CLAUDE.md`, and `README.md` all describe the real styling
+- [x] `AGENTS.md`, `CONTEXT.md`, `CLAUDE.md`, and `README.md` all describe the real styling
       architecture.
-- [ ] `docs/DESIGN_SYSTEM.md` exists and is the reference future agents read.
+- [x] `docs/DESIGN_SYSTEM.md` exists and is the reference future agents read.
 
 ---
 

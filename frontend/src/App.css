@@ -604,7 +604,7 @@ body {
 }
 
 .select-input, .num-input, .text-input {
-  background: #0f172a;
+  background: var(--bg-inset);
   border: 1px solid var(--border-default);
   color: var(--text-primary);
   padding: 0.55rem 0.9rem;
@@ -686,7 +686,7 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 1.5rem;
-  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--cat-os-tint) 0%, var(--bg-inset) 100%);
   border-color: rgba(139, 92, 246, 0.3);
 }
 
@@ -780,7 +780,7 @@ body {
 .gantt-chart {
   display: flex;
   height: 48px;
-  background: #0f172a;
+  background: var(--bg-inset);
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--border-default);
@@ -857,7 +857,7 @@ body {
 }
 
 .viz-table th {
-  background: #0f172a;
+  background: var(--bg-raised);
   color: var(--cat-os-base);
   font-weight: 700;
 }
@@ -871,7 +871,7 @@ body {
   gap: 1.5rem;
   margin-top: 1.25rem;
   padding: 0.9rem;
-  background: #0f172a;
+  background: var(--bg-inset);
   border-radius: 10px;
   border: 1px solid var(--border-default);
   flex-wrap: wrap;
@@ -914,7 +914,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #0f172a;
+  background: var(--bg-inset);
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
   border-left: 4px solid;
@@ -949,7 +949,7 @@ body {
   min-width: 110px;
   padding: 1.2rem 0.5rem;
   border-radius: 12px;
-  background: #0f172a;
+  background: var(--bg-inset);
   border: 2px solid var(--border-default);
   text-align: center;
   cursor: pointer;
@@ -994,7 +994,7 @@ body {
 }
 
 .pcb-item {
-  background: #0f172a;
+  background: var(--bg-inset);
   padding: 0.6rem;
   border-radius: 8px;
   display: flex;
@@ -1314,7 +1314,7 @@ body {
 .stream-badge {
   min-width: 44px;
   height: 48px;
-  background: #0f172a;
+  background: var(--bg-inset);
   border: 1px solid var(--border-default);
   border-radius: 8px;
   display: flex;
@@ -1341,7 +1341,7 @@ body {
 
 .frame-box {
   flex: 1;
-  background: #0f172a;
+  background: var(--bg-inset);
   border: 1px solid var(--border-default);
   border-radius: 10px;
   overflow: hidden;
@@ -1372,7 +1372,7 @@ body {
 
 .stat-pill {
   flex: 1;
-  background: #0f172a;
+  background: var(--bg-inset);
   padding: 0.6rem;
   border-radius: 8px;
   display: flex;
@@ -1393,7 +1393,7 @@ body {
 }
 
 .mmu-box {
-  background: #0f172a;
+  background: var(--bg-inset);
   padding: 0.75rem;
   border-radius: 8px;
   display: flex;
@@ -1414,14 +1414,14 @@ body {
 
 .queue-box {
   flex: 1;
-  background: #0f172a;
+  background: var(--bg-inset);
   padding: 1rem;
   border-radius: 10px;
 }
 
 .critical-section-box {
   flex: 1.5;
-  background: #0f172a;
+  background: var(--bg-inset);
   border: 2px dashed var(--border-default);
   padding: 1.25rem;
   border-radius: 10px;
@@ -1442,7 +1442,7 @@ body {
 
 .sem-pill {
   flex: 1;
-  background: #0f172a;
+  background: var(--bg-inset);
   padding: 0.5rem;
   border-radius: 6px;
   display: flex;
@@ -1457,7 +1457,7 @@ body {
 
 .buffer-slot {
   flex: 1;
-  background: #0f172a;
+  background: var(--bg-inset);
   border: 1px solid var(--border-default);
   padding: 0.75rem 0.2rem;
   border-radius: 8px;
@@ -1685,45 +1685,14 @@ body {
   background: var(--bg-surface);
   border: var(--stroke-hair) solid var(--border-subtle);
   border-radius: var(--radius-md);
-  margin-block: var(--space-6);
+  margin: var(--space-6) 0;
   overflow-x: auto;
   padding: var(--space-5);
   text-align: center;
 }
-.topic-content .mermaid-block svg { height: auto; max-width: 100%; }
-.topic-content .mermaid-block-loading {
-  display: grid;
-  min-height: 8rem;
-  place-items: center;
-  color: var(--text-muted);
-  font-size: var(--ui-sm);
-}
+.topic-content .mermaid-diagram { display: block; height: auto; margin-inline: auto; max-width: none; }
 .topic-content .mermaid-block-error { background: var(--state-danger-tint); border-color: var(--state-danger-border); text-align: left; }
 .topic-content .mermaid-error-message { color: var(--state-danger); font-size: var(--ui-sm); margin-bottom: var(--space-3); }
-/* Mermaid renders edge labels as HTML in a foreignObject with its own injected
-   <style>; that stylesheet hardcodes a white label background regardless of the
-   edgeLabelBackground theme variable, which fails contrast against dark-theme text. */
-.topic-content .mermaid-block .edgeLabel,
-.topic-content .mermaid-block .edgeLabel p,
-.topic-content .mermaid-block .labelBkg {
-  background-color: var(--bg-surface) !important;
-  color: var(--text-prose) !important;
-}
-/* Node/edge label text was getting visually clipped inside its own box. Verified with a live
-   Playwright inspection of this exact page/font/content (not a jsdom guess): mermaid's own
-   internal width estimate for an htmlLabels node is measurably narrower — by 15-25%, scaling with
-   label length, so it isn't padding/box-sizing/font-loading — than the real rendered width of
-   that same label's content (compared its declared foreignObject `width` attribute against the
-   label div's actual `scrollWidth` with the real font confirmed already loaded via
-   `document.fonts.check`). Whatever produces that estimate inside mermaid, the fix that doesn't
-   depend on correcting it is to stop clipping at the (possibly wrong) box boundary at all —
-   foreignObject content is clipped to its declared box by default; `overflow: visible` lets a
-   label spill past a too-narrow box instead of truncating, confirmed fixing every label on this
-   page. The label div is centered (`text-align: center`), so the rare overflow spills evenly on
-   both sides rather than only trailing off one edge. */
-foreignObject, foreignObject > div {
-  overflow: visible;
-}
 
 .tier-badge { align-items: center; border: var(--stroke-hair) solid; border-radius: var(--radius-full); display: inline-flex; font-family: var(--font-body); font-size: var(--ui-2xs); font-weight: 600; gap: var(--space-1); letter-spacing: var(--tracking-wide); margin-right: var(--space-3); padding: var(--space-1) var(--space-3); text-transform: uppercase; vertical-align: .25em; }
 .tier-badge--beginner { background: var(--tier-beginner-tint); border-color: var(--tier-beginner-border); color: var(--tier-beginner); }

@@ -185,16 +185,18 @@ existing lesson and rerunning the manifest validator.
    (109/109 ledger items resolved); the 17 engine conversions/deletions are done (see checkpoint
    below) — 18 non-retained visualizer components, engines, and JSON files removed in 4 commits.
 4. Run frontend unit/integration tests, backend tests, production build, full content validation,
-   accessibility checks, route checks, and documentation synchronization. — **mostly done, one
-   gap below.** Verified 2026-09-02: backend 42/42 (`mvn test`), frontend 412/412 across 28 files
+   accessibility checks, route checks, and documentation synchronization. — ✅ **done.** Verified
+   2026-09-02: backend 42/42 (`mvn test`), frontend 412/412 across 28 files
    (`npm test --prefix frontend`), production build clean, content validator 63/63, migration
    gate 0 pending. Route checks done as a live smoke test against a real running backend + Vite
    dev server (not just mocked component tests): `GET /api/v1/search` and
    `GET /api/v1/interview/questions` verified against the real 63-topic index (883 total
    questions, matching the count below; ranking, category filter, and offset pagination all
    correct), `/search`, `/interview/all`, `/interview/dbms`, and `/topic/dbms-introduction` all
-   return 200 from the dev server. **Gap:** accessibility checks (Lighthouse/axe) need a real
-   browser, which this environment does not have — not run.
+   return 200 from the dev server. Follow-up on 2026-09-03 ran axe-core through Playwright Chromium
+   over five representative routes in both themes: 28 findings were fixed and all 10 route/theme
+   checks passed with zero remaining violations. On 2026-09-08 the reader moved to pre-rendered
+   theme SVGs and CI gained deterministic diagram-asset and simulator-question migration gates.
 
    **Fixed 2026-09-02:** `GET /api/v1/content/{category}/{topicId}` previously returned HTTP 200
    with the body `Content not found for: <id>` for an unregistered topic id instead of a 404,

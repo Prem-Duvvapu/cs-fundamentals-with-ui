@@ -12,14 +12,9 @@
  * SVG as literal values; the page shows the matching one via CSS.
  *
  * Usage: node scripts/render-diagrams.mjs [--check]
- *   --check  verify every diagram already has up-to-date output; exits non-zero otherwise
- *            (for CI, so a content edit without a re-render can't ship stale diagrams)
- *
- * Known limitation: a small number of diagrams (classDiagram/erDiagram inheritance connectors,
- * observed so far) get very slightly different bezier control points for an edge curve between
- * separate runs of identical input — the diagram is visually equivalent either way, but it means
- * `--check` can occasionally flag one of those as stale with no real content change. This traces
- * to mermaid/dagre's own edge-routing, not this script; re-running resolves it.
+ *   --check  quickly verify content hashes, manifest metadata, both theme assets and orphaned
+ *            files without launching a browser. This structural check is deterministic; Mermaid
+ *            can produce slightly different edge curves between otherwise identical renders.
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -63,6 +58,72 @@ function collectDiagrams() {
     }
   }
   return [...seen.values()]
+}
+
+function checkGeneratedAssets(diagrams) {
+  const issues = []
+  let manifest
+
+  try {
+    manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf-8'))
+  } catch (error) {
+    console.error(`\n❌ Diagram manifest is missing or invalid: ${error.message}`)
+    return 1
+  }
+
+  const expectedHashes = new Set(diagrams.map(diagram => diagram.hash))
+  const expectedFiles = new Set()
+
+  for (const diagram of diagrams) {
+    const metadata = manifest[diagram.hash]
+    if (!metadata) {
+      issues.push(`missing manifest entry ${diagram.hash} (${diagram.source})`)
+      continue
+    }
+    if (metadata.source !== diagram.source) {
+      issues.push(`manifest source mismatch for ${diagram.hash}: expected ${diagram.source}`)
+    }
+    if (!Number.isFinite(metadata.width) || metadata.width <= 0 || !Number.isFinite(metadata.height) || metadata.height <= 0) {
+      issues.push(`invalid dimensions for ${diagram.hash}`)
+    }
+
+    for (const theme of THEMES) {
+      const filename = `${diagram.hash}-${theme}.svg`
+      const assetPath = path.join(OUT_DIR, filename)
+      expectedFiles.add(filename)
+      if (!fs.existsSync(assetPath)) {
+        issues.push(`missing ${filename}`)
+        continue
+      }
+      const header = fs.readFileSync(assetPath, 'utf-8').slice(0, 2048)
+      if (!/^<svg\b/.test(header) || !/\bviewBox="[^"]+"/.test(header)) {
+        issues.push(`invalid SVG asset ${filename}`)
+      }
+    }
+  }
+
+  for (const hash of Object.keys(manifest)) {
+    if (!expectedHashes.has(hash)) issues.push(`orphaned manifest entry ${hash}`)
+  }
+
+  if (!fs.existsSync(OUT_DIR)) {
+    issues.push(`missing output directory ${path.relative(REPO_ROOT, OUT_DIR)}`)
+  } else {
+    for (const filename of fs.readdirSync(OUT_DIR)) {
+      if (!expectedFiles.has(filename)) issues.push(`orphaned diagram asset ${filename}`)
+    }
+  }
+
+  if (issues.length > 0) {
+    console.error(`\n❌ Generated diagrams are out of date (${issues.length} issue(s)):`)
+    issues.slice(0, 25).forEach(issue => console.error(`   - ${issue}`))
+    if (issues.length > 25) console.error(`   - …and ${issues.length - 25} more`)
+    console.error('   Run: npm run diagrams:render --prefix frontend')
+    return 1
+  }
+
+  console.log(`\n✅ ${diagrams.length} manifest entries and ${expectedFiles.size} theme assets are present and current.`)
+  return 0
 }
 
 /** The :root / [data-theme="light"] token blocks, so the rendered SVG uses the real palette. */
@@ -135,6 +196,8 @@ function pageHtml() {
 async function renderAll({ checkOnly }) {
   const diagrams = collectDiagrams()
   console.log(`Found ${diagrams.length} unique diagrams in content/.`)
+
+  if (checkOnly) return checkGeneratedAssets(diagrams)
 
   const tokens = readThemeTokens()
   // playwright's entry is CJS, so the namespace object puts its exports under .default here.
@@ -234,7 +297,7 @@ async function renderAll({ checkOnly }) {
       const existing = fs.existsSync(outFile) ? fs.readFileSync(outFile, 'utf-8') : null
       if (existing !== result.svg) {
         stale++
-        if (!checkOnly) fs.writeFileSync(outFile, result.svg, 'utf-8')
+        fs.writeFileSync(outFile, result.svg, 'utf-8')
       }
 
       if (theme === 'dark') {
@@ -250,7 +313,7 @@ async function renderAll({ checkOnly }) {
 
   const manifestJson = JSON.stringify(manifest, null, 2) + '\n'
   const manifestChanged = !fs.existsSync(MANIFEST_PATH) || fs.readFileSync(MANIFEST_PATH, 'utf-8') !== manifestJson
-  if (!checkOnly && manifestChanged) fs.writeFileSync(MANIFEST_PATH, manifestJson, 'utf-8')
+  if (manifestChanged) fs.writeFileSync(MANIFEST_PATH, manifestJson, 'utf-8')
 
   // A content edit changes a diagram's hash, orphaning its old *-dark.svg/*-light.svg pair (a
   // renamed hash, not an overwrite) — sweep them so public/diagrams never accumulates dead assets.
@@ -260,7 +323,7 @@ async function renderAll({ checkOnly }) {
     const match = /^([0-9a-f]{8})-(dark|light)\.svg$/.exec(file)
     if (!match || !validHashes.has(match[1])) {
       orphaned++
-      if (!checkOnly) fs.rmSync(path.join(OUT_DIR, file))
+      fs.rmSync(path.join(OUT_DIR, file))
     }
   }
 
@@ -271,15 +334,6 @@ async function renderAll({ checkOnly }) {
   }
 
   const totalWidened = Object.values(manifest).reduce((sum, m) => sum + (m.widened || 0), 0)
-  if (checkOnly) {
-    if (stale > 0 || manifestChanged || orphaned > 0) {
-      console.error(`\n❌ ${stale} diagram file(s) out of date, ${orphaned} orphaned. Run: node scripts/render-diagrams.mjs`)
-      return 1
-    }
-    console.log(`\n✅ All ${diagrams.length} diagrams are up to date.`)
-    return 0
-  }
-
   console.log(`\n✅ Rendered ${diagrams.length} diagrams x ${THEMES.length} themes -> ${path.relative(REPO_ROOT, OUT_DIR)}`)
   console.log(`   ${stale} file(s) written, ${orphaned} orphaned file(s) removed; widened ${totalWidened} label box(es) that mermaid had sized too narrow.`)
   return 0

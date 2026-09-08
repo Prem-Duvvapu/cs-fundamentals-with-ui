@@ -18,6 +18,7 @@ jobs:
       - run: npm test --prefix frontend
       - run: npm run build --prefix frontend
       - run: node scripts/validate-content.mjs
+      - run: node scripts/audit-simulation-questions.mjs --check
 
   backend:
     runs-on: ubuntu-latest

@@ -10,13 +10,6 @@ import MarkdownRenderer from '../markdown/MarkdownRenderer'
 // had for the 28 files using $...$ math and the AI/ML files using >
 // blockquotes.
 
-vi.mock('mermaid', () => ({
-  default: {
-    initialize: vi.fn(),
-    render: vi.fn().mockResolvedValue({ svg: '<svg data-testid="mock-mermaid"></svg>' })
-  }
-}))
-
 // Vitest runs with cwd = frontend/; content/ is its sibling at the repo root.
 const CONTENT_DIR = path.resolve(process.cwd(), '../content')
 
