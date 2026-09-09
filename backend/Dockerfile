@@ -7,7 +7,7 @@ COPY backend/src ./src
 RUN mvn package -DskipTests
 
 # Stage 2: Minimal Runtime image
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 COPY content ./content
