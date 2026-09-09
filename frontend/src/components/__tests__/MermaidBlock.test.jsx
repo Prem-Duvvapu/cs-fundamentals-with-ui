@@ -21,6 +21,9 @@ it('uses the pre-rendered dark asset with intrinsic dimensions and accessible te
   expect(image).toHaveAttribute('height', '320')
   expect(image).toHaveAttribute('loading', 'lazy')
   expect(container.querySelector('.mermaid-block')).toHaveAttribute('data-diagram-hash', '0aeb077d')
+  expect(container.querySelector('.mermaid-block')).toHaveAttribute('tabindex', '0')
+  expect(screen.getByRole('link', { name: /open full-size diagram/i })).toHaveAttribute('href', '/diagrams/0aeb077d-dark.svg')
+  expect(screen.getByText(/read diagram as text/i)).toBeInTheDocument()
   expect(screen.queryByText(/rendering diagram/i)).not.toBeInTheDocument()
 })
 

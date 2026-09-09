@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useNavigate } from 'react-router-dom'
 import SearchPage from '../SearchPage'
 
 const SEARCH_RESPONSE = {
@@ -34,6 +34,16 @@ function renderPage(initialEntry = '/search') {
     <MemoryRouter initialEntries={[initialEntry]}>
       <SearchPage />
     </MemoryRouter>
+  )
+}
+
+function HistoryHarness() {
+  const navigate = useNavigate()
+  return (
+    <>
+      <button type="button" onClick={() => navigate('/search?q=network&category=networking')}>Open saved search</button>
+      <SearchPage />
+    </>
   )
 }
 
@@ -93,5 +103,40 @@ describe('SearchPage', () => {
 
     expect(screen.getByRole('searchbox')).toHaveValue('window functions')
     expect(screen.getByRole('button', { name: 'DB' })).toHaveClass('active')
+  })
+
+  it('ignores a superseded response that finishes after the current query', async () => {
+    let resolveOld
+    let resolveNew
+    global.fetch
+      .mockReturnValueOnce(new Promise(resolve => { resolveOld = resolve }))
+      .mockReturnValueOnce(new Promise(resolve => { resolveNew = resolve }))
+    renderPage()
+
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'old' } })
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1), { timeout: 5000 })
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'new' } })
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2), { timeout: 5000 })
+
+    resolveNew(new Response(JSON.stringify({ ...SEARCH_RESPONSE, query: 'new', results: [{ ...SEARCH_RESPONSE.results[0], title: 'Current result' }] })))
+    expect(await screen.findByText('Current result')).toBeInTheDocument()
+    resolveOld(new Response(JSON.stringify({ ...SEARCH_RESPONSE, query: 'old', results: [{ ...SEARCH_RESPONSE.results[0], title: 'Stale result' }] })))
+    await Promise.resolve()
+
+    expect(screen.queryByText('Stale result')).not.toBeInTheDocument()
+    expect(global.fetch.mock.calls[0][1].signal.aborted).toBe(true)
+  })
+
+  it('updates visible controls when navigation changes the search URL', async () => {
+    global.fetch.mockResolvedValue(new Response(JSON.stringify(SEARCH_RESPONSE)))
+    render(
+      <MemoryRouter initialEntries={['/search?q=java&category=java-spring']}>
+        <HistoryHarness />
+      </MemoryRouter>
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /open saved search/i }))
+    await waitFor(() => expect(screen.getByRole('searchbox')).toHaveValue('network'))
+    expect(screen.getByRole('button', { name: 'NET' })).toHaveClass('active')
   })
 })

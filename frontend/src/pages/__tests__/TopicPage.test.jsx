@@ -190,4 +190,18 @@ describe('TopicPage Component', () => {
 
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
   })
+
+  it('shows recovery actions instead of inventing metadata for an unknown topic', () => {
+    render(
+      <MemoryRouter initialEntries={['/topic/not-a-real-topic']}>
+        <Routes>
+          <Route path="/topic/:topicId" element={<TopicPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByRole('heading', { name: /topic not found/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /browse all topics/i })).toHaveAttribute('href', '/')
+    expect(screen.queryByTestId('topic-viewer')).not.toBeInTheDocument()
+  })
 })

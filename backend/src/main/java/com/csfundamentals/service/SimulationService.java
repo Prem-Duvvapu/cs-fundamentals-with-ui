@@ -8,14 +8,21 @@ import java.util.*;
 @Service
 public class SimulationService {
 
+    static final int MAX_PROCESSES = 100;
+    static final int MAX_TIMELINE_UNITS = 10_000;
+    static final int MAX_PAGE_REFERENCES = 10_000;
+    static final int MAX_FRAMES = 256;
+    static final int MAX_BANKER_PROCESSES = 100;
+    static final int MAX_BANKER_RESOURCES = 100;
+
+    private static final Set<String> SCHEDULING_ALGORITHMS = Set.of("FCFS", "SJF", "SRTF", "PRIORITY", "RR");
+    private static final Set<String> PAGE_ALGORITHMS = Set.of("FIFO", "LRU", "OPTIMAL");
+
     // --- 1. CPU SCHEDULING COMPUTATION ---
     public SchedulingResponse computeScheduling(SchedulingRequest request) {
-        if (request.processes() == null || request.processes().isEmpty()) {
-            return new SchedulingResponse(Collections.emptyList(), Collections.emptyList());
-        }
-
-        String algo = request.algorithm() == null ? "FCFS" : request.algorithm();
-        int timeQuantum = Math.max(1, request.timeQuantum());
+        validateSchedulingRequest(request);
+        String algo = request.algorithm().trim().toUpperCase(Locale.ROOT);
+        int timeQuantum = request.timeQuantum();
 
         class ProcState {
             String id;
@@ -44,7 +51,7 @@ public class SimulationService {
         int completed = 0;
         int n = procs.size();
 
-        if ("FCFS".equalsIgnoreCase(algo)) {
+        if ("FCFS".equals(algo)) {
             List<ProcState> sorted = new ArrayList<>(procs);
             sorted.sort(Comparator.comparingInt(p -> p.arrivalTime));
 
@@ -65,7 +72,7 @@ public class SimulationService {
                 p.turnaroundTime = p.completionTime - p.arrivalTime;
                 p.waitingTime = p.turnaroundTime - p.burstTime;
             }
-        } else if ("SJF".equalsIgnoreCase(algo)) {
+        } else if ("SJF".equals(algo)) {
             boolean[] isDone = new boolean[n];
             while (completed < n) {
                 List<ProcState> available = new ArrayList<>();
@@ -95,7 +102,7 @@ public class SimulationService {
                 isDone[pIdx] = true;
                 completed++;
             }
-        } else if ("SRTF".equalsIgnoreCase(algo)) {
+        } else if ("SRTF".equals(algo)) {
             while (completed < n) {
                 List<ProcState> available = new ArrayList<>();
                 for (ProcState p : procs) {
@@ -123,7 +130,7 @@ public class SimulationService {
                     completed++;
                 }
             }
-        } else if ("Priority".equalsIgnoreCase(algo)) {
+        } else if ("PRIORITY".equals(algo)) {
             boolean[] isDone = new boolean[n];
             while (completed < n) {
                 List<ProcState> available = new ArrayList<>();
@@ -153,7 +160,7 @@ public class SimulationService {
                 isDone[pIdx] = true;
                 completed++;
             }
-        } else if ("RR".equalsIgnoreCase(algo)) {
+        } else if ("RR".equals(algo)) {
             Queue<ProcState> queue = new LinkedList<>();
             boolean[] inQueue = new boolean[n];
 
@@ -223,12 +230,9 @@ public class SimulationService {
 
     // --- 2. PAGE REPLACEMENT COMPUTATION ---
     public PageReplacementResponse computePageReplacement(PageReplacementRequest request) {
-        if (request.stream() == null || request.stream().isEmpty()) {
-            return new PageReplacementResponse(Collections.emptyList());
-        }
-
-        int numFrames = Math.max(1, request.numFrames());
-        String algo = request.algorithm() == null ? "LRU" : request.algorithm();
+        validatePageReplacementRequest(request);
+        int numFrames = request.numFrames();
+        String algo = request.algorithm().trim().toUpperCase(Locale.ROOT);
         List<Integer> stream = request.stream();
 
         List<PageReplacementResponse.StepDetail> stepHistory = new ArrayList<>();
@@ -295,9 +299,15 @@ public class SimulationService {
 
     // --- 3. CIDR SUBNET COMPUTATION ---
     public SubnetResponse computeSubnet(SubnetRequest request) {
+        if (request == null || request.ipAddress() == null || request.ipAddress().isBlank()) {
+            throw new IllegalArgumentException("ipAddress is required");
+        }
+        if (request.cidr() < 0 || request.cidr() > 32) {
+            throw new IllegalArgumentException("cidr must be between 0 and 32");
+        }
         try {
             String[] parts = request.ipAddress().split("\\.");
-            if (parts.length != 4) return new SubnetResponse(false, "", "", "", "", "", 0, 0);
+            if (parts.length != 4) throw new IllegalArgumentException("ipAddress must contain four octets");
 
             int p0 = Integer.parseInt(parts[0]);
             int p1 = Integer.parseInt(parts[1]);
@@ -305,10 +315,10 @@ public class SimulationService {
             int p3 = Integer.parseInt(parts[3]);
 
             if (p0 < 0 || p0 > 255 || p1 < 0 || p1 > 255 || p2 < 0 || p2 > 255 || p3 < 0 || p3 > 255) {
-                return new SubnetResponse(false, "", "", "", "", "", 0, 0);
+                throw new IllegalArgumentException("ipAddress octets must be between 0 and 255");
             }
 
-            int cidr = Math.max(0, Math.min(32, request.cidr()));
+            int cidr = request.cidr();
             long ipNum = ((long) p0 << 24) | (p1 << 16) | (p2 << 8) | p3;
             long maskNum = cidr == 0 ? 0L : (0xFFFFFFFFL << (32 - cidr)) & 0xFFFFFFFFL;
             long netNum = ipNum & maskNum;
@@ -319,27 +329,27 @@ public class SimulationService {
 
             long totalHosts = (long) Math.pow(2, 32 - cidr);
             long usableHosts = totalHosts > 2 ? totalHosts - 2 : totalHosts;
+            long firstHost = cidr >= 31 ? netNum : netNum + 1;
+            long lastHost = cidr >= 31 ? bcastNum : bcastNum - 1;
 
             return new SubnetResponse(
                 true,
                 numToIp.apply(netNum),
                 numToIp.apply(bcastNum),
                 numToIp.apply(maskNum),
-                numToIp.apply(netNum + 1),
-                numToIp.apply(bcastNum - 1),
+                numToIp.apply(firstHost),
+                numToIp.apply(lastHost),
                 totalHosts,
                 usableHosts
             );
-        } catch (Exception e) {
-            return new SubnetResponse(false, "", "", "", "", "", 0, 0);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("ipAddress octets must be decimal integers", e);
         }
     }
 
     // --- 4. BANKER'S SAFETY ALGORITHM COMPUTATION ---
     public BankersResponse computeBankersAlgorithm(BankersRequest request) {
-        if (request.allocation() == null || request.max() == null || request.available() == null) {
-            return new BankersResponse(false, Collections.emptyList(), new int[0]);
-        }
+        validateBankersRequest(request);
 
         int numProcesses = request.allocation().length;
         int numResources = request.available().length;
@@ -383,5 +393,90 @@ public class SimulationService {
         }
 
         return new BankersResponse(count == numProcesses, safeSequence, work);
+    }
+
+    private void validateSchedulingRequest(SchedulingRequest request) {
+        if (request == null || request.processes() == null || request.processes().isEmpty()) {
+            throw new IllegalArgumentException("processes must contain at least one process");
+        }
+        if (request.processes().size() > MAX_PROCESSES) {
+            throw new IllegalArgumentException("processes must not exceed " + MAX_PROCESSES);
+        }
+        if (request.algorithm() == null || !SCHEDULING_ALGORITHMS.contains(request.algorithm().trim().toUpperCase(Locale.ROOT))) {
+            throw new IllegalArgumentException("unsupported scheduling algorithm");
+        }
+        if (request.timeQuantum() <= 0 || request.timeQuantum() > MAX_TIMELINE_UNITS) {
+            throw new IllegalArgumentException("timeQuantum must be between 1 and " + MAX_TIMELINE_UNITS);
+        }
+
+        Set<String> ids = new HashSet<>();
+        long totalBurst = 0;
+        int latestArrival = 0;
+        for (SchedulingRequest.ProcessInput process : request.processes()) {
+            if (process == null) throw new IllegalArgumentException("process entries must not be null");
+            if (process.id() == null || process.id().isBlank()) throw new IllegalArgumentException("process id is required");
+            if (!ids.add(process.id())) throw new IllegalArgumentException("process ids must be unique");
+            if (process.arrivalTime() < 0) throw new IllegalArgumentException("arrivalTime must not be negative");
+            if (process.burstTime() <= 0) throw new IllegalArgumentException("burstTime must be positive");
+            totalBurst += process.burstTime();
+            latestArrival = Math.max(latestArrival, process.arrivalTime());
+        }
+        if (totalBurst + latestArrival > MAX_TIMELINE_UNITS) {
+            throw new IllegalArgumentException("simulation timeline exceeds " + MAX_TIMELINE_UNITS + " units");
+        }
+    }
+
+    private void validatePageReplacementRequest(PageReplacementRequest request) {
+        if (request == null || request.stream() == null || request.stream().isEmpty()) {
+            throw new IllegalArgumentException("stream must contain at least one page reference");
+        }
+        if (request.stream().size() > MAX_PAGE_REFERENCES) {
+            throw new IllegalArgumentException("stream must not exceed " + MAX_PAGE_REFERENCES + " entries");
+        }
+        if (request.stream().stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("stream entries must not be null");
+        }
+        if (request.stream().stream().anyMatch(page -> page < 0)) {
+            throw new IllegalArgumentException("page references must not be negative");
+        }
+        if (request.numFrames() <= 0 || request.numFrames() > MAX_FRAMES) {
+            throw new IllegalArgumentException("numFrames must be between 1 and " + MAX_FRAMES);
+        }
+        if (request.algorithm() == null || !PAGE_ALGORITHMS.contains(request.algorithm().trim().toUpperCase(Locale.ROOT))) {
+            throw new IllegalArgumentException("unsupported page replacement algorithm");
+        }
+    }
+
+    private void validateBankersRequest(BankersRequest request) {
+        if (request == null || request.allocation() == null || request.max() == null || request.available() == null) {
+            throw new IllegalArgumentException("allocation, max, and available are required");
+        }
+        int processes = request.allocation().length;
+        int resources = request.available().length;
+        if (processes == 0 || processes > MAX_BANKER_PROCESSES) {
+            throw new IllegalArgumentException("allocation must contain between 1 and " + MAX_BANKER_PROCESSES + " processes");
+        }
+        if (resources == 0 || resources > MAX_BANKER_RESOURCES) {
+            throw new IllegalArgumentException("available must contain between 1 and " + MAX_BANKER_RESOURCES + " resources");
+        }
+        if (request.max().length != processes) {
+            throw new IllegalArgumentException("allocation and max must have the same process count");
+        }
+        for (int i = 0; i < processes; i++) {
+            if (request.allocation()[i] == null || request.max()[i] == null
+                    || request.allocation()[i].length != resources || request.max()[i].length != resources) {
+                throw new IllegalArgumentException("every allocation and max row must match available resource count");
+            }
+            for (int j = 0; j < resources; j++) {
+                int allocation = request.allocation()[i][j];
+                int maximum = request.max()[i][j];
+                if (allocation < 0 || maximum < 0 || request.available()[j] < 0) {
+                    throw new IllegalArgumentException("resource counts must not be negative");
+                }
+                if (allocation > maximum) {
+                    throw new IllegalArgumentException("allocation must not exceed max");
+                }
+            }
+        }
     }
 }

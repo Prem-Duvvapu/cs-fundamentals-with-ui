@@ -226,6 +226,17 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 
 ### Current implementation priorities
 
+**2026-09-09 audit remediation:** the findings in `PROJECT_AUDIT.md` are being resolved as tested
+release fixes. The frontend Docker build now uses the repository root context; generated diagrams
+are XML-serialized, font-embedded, input-fingerprinted, browser-decoded, and atomically published.
+Simulation endpoints reject malformed or unbounded work with HTTP 400, `/31` and `/32` subnet host
+ranges are explicit, and content is resolved through an exact registered-topic index that fails
+fast when incomplete. Frontend reads cancel superseded requests, TOC observation begins after lazy
+Markdown headings mount, mobile overflow is locally contained, and failed routes provide recovery
+actions. Dependency automation is enabled, with the frontend on Vite 8/Vitest 4/React Router 7 and
+the backend on the Java 17-compatible Spring Boot 3.5 line. Four proven-unused shared files listed
+in the audit were removed.
+
 P6 is complete, including the accessibility audit UI_REVAMP_PLAN.md Phase 7 previously listed as
 blocked. This environment does have a browser (Chromium via Playwright, pre-installed): axe-core
 was run against 5 routes (`/`, `/topic/:id` for a hub topic and a direct-visualizer OS topic,
@@ -271,10 +282,10 @@ and text inputs. The CPU status gradient also uses category/inset tokens. A focu
 test prevents the dark literal from returning to themed component backgrounds.
 
 The `GET /api/v1/content/{category}/{topicId}` 200-instead-of-404 bug the live route check
-surfaced is fixed: `ContentService.exists(category, topicId)` and `ContentController` now return
-a real 404 for an unregistered id (and 500 if `loadContent` hits an I/O error), so
-`TopicViewer.jsx`'s existing `res.ok` check works as designed. No frontend change was needed —
-the frontend was already correct; only the backend was lying about its status code.
+surfaced is fixed. The follow-up audit also removed the unsafe filename-prefix fallback:
+`ContentService` builds an exact category/topic-to-file index, throws typed missing/read failures,
+and refuses startup when the registered curriculum is incomplete. `ContentController` translates
+those failures to 404/500 without matching error strings.
 
 The P3 cleanup (dead App.css rules from the 18 removed components; 3 orphaned
 JavaSpringVisualizer sub-tabs) is done — see the P3 audit checkpoint in `plan.md` for the method
@@ -294,16 +305,15 @@ way: `content/os/03-cpu-scheduling.md`'s gantt chart used
 `dateFormat X` (Unix seconds) with values authored as milliseconds, so `axisFormat %L` (the
 sub-second remainder) showed "000" at every tick — `dateFormat x` (Unix milliseconds) is correct.
 
-`scripts/render-diagrams.mjs` now renders every diagram once per theme at build time and fixes the
-width bug at the source by measuring and correcting label geometry before writing the SVG. Output
-goes to `frontend/public/diagrams/<hash>-{dark,light}.svg`; the shared hash lives in
-`frontend/src/utils/diagramHash.js`, and `frontend/src/generated/diagramManifest.json` records
-dimensions and source. `MermaidBlock.jsx` consumes those assets, changes image on theme events,
-supplies intrinsic sizing and descriptive alternative text, and shows raw source if an asset is
-missing or fails to load. Mermaid and Playwright are development-only dependencies; no Mermaid
-code ships on the reader path. `npm run diagrams:check --prefix frontend` validates 281 manifest
-entries and 562 theme assets deterministically, is enforced by `prebuild`, and runs in CI alongside
-the content and simulator-question migration gates.
+`scripts/render-diagrams.mjs` renders every diagram once per theme, corrects label geometry,
+XML-serializes the SVG, embeds the measured font, and browser-decodes every result before replacing
+the prior complete asset set. Output goes to `frontend/public/diagrams/<hash>-{dark,light}.svg`;
+the shared hash lives in `frontend/src/utils/diagramHash.js`, and the manifest records dimensions,
+source, and a rendering-input fingerprint. `MermaidBlock.jsx` selects the theme asset, supplies
+intrinsic sizing and a label-derived description, exposes diagram source as a text alternative,
+and provides a keyboard-accessible full-size link. Mermaid and Playwright remain development-only.
+`npm run diagrams:check --prefix frontend` validates 281 manifest entries, fingerprints, and XML;
+`npm run diagrams:decode --prefix frontend` verifies all 562 assets through Chromium in CI.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.

@@ -36,7 +36,6 @@ state into `useState`, since the engine mutates internally and won't trigger re-
 | `ConceptModuleShell` | `title`, `subtitle`, `mentalModel`, `simulationComponent` **or** `children`, `theoryData`, `quizData`, `defaultTab` (`'simulation'`) |
 | `SimulationControlBar` | `isPlaying`, **`onTogglePlay`**, `onStepForward`, `onStepBackward`, `onReset`, `currentTime`, `maxTime`, `speed`, `onSpeedChange`, `onSeek` |
 | `StateInspector` | **`data`** (object; renders `null` when empty), `title`, `highlightKey` |
-| `StepThroughController` | `currentStep`, `totalSteps`, `onNext`, `onPrev`, `onReset`, `onSelectStep`, `stepTitles` |
 | `CodePanel` | `code`, `activeLine`, `title` |
 | `QuizCard` | `question`, **`answer`**, `codeSnippet`, `difficulty` |
 

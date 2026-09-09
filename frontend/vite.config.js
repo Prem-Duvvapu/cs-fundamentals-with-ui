@@ -12,6 +12,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    pool: 'threads',
+    maxWorkers: 2,
     setupFiles: './src/setupTests.js',
     testTimeout: 15000,
     // react-markdown and its remark/rehype plugin chain are ESM-only;

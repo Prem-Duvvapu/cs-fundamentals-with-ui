@@ -102,11 +102,9 @@ class SimulationServiceTest {
     }
 
     @Test
-    void testComputeSchedulingEmpty() {
+    void testComputeSchedulingRejectsEmptyInput() {
         var req = new SchedulingRequest(List.of(), "FCFS", 2);
-        var res = service.computeScheduling(req);
-        assertTrue(res.gantt().isEmpty());
-        assertTrue(res.processMetrics().isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> service.computeScheduling(req));
     }
 
     @Test
@@ -125,13 +123,23 @@ class SimulationServiceTest {
     @Test
     void testComputeSubnetEdgeCases() {
         var invalidReq = new SubnetRequest("999.999.999.999", 24);
-        var invalidRes = service.computeSubnet(invalidReq);
-        assertFalse(invalidRes.valid());
+        assertThrows(IllegalArgumentException.class, () -> service.computeSubnet(invalidReq));
 
         var hostReq = new SubnetRequest("10.0.0.1", 32);
         var hostRes = service.computeSubnet(hostReq);
         assertTrue(hostRes.valid());
         assertEquals("255.255.255.255", hostRes.subnetMask());
+        assertEquals("10.0.0.1", hostRes.firstHost());
+        assertEquals("10.0.0.1", hostRes.lastHost());
+        assertEquals(1, hostRes.totalHosts());
+        assertEquals(1, hostRes.usableHosts());
+
+        var pointToPoint = service.computeSubnet(new SubnetRequest("192.168.1.10", 31));
+        assertEquals("192.168.1.10", pointToPoint.firstHost());
+        assertEquals("192.168.1.11", pointToPoint.lastHost());
+        assertEquals(2, pointToPoint.usableHosts());
+
+        assertThrows(IllegalArgumentException.class, () -> service.computeSubnet(new SubnetRequest("10.0.0.1", 33)));
     }
 
     @Test
@@ -150,5 +158,46 @@ class SimulationServiceTest {
         var res = service.computeBankersAlgorithm(req);
 
         assertFalse(res.isSafe(), "Zero available resources should result in unsafe state");
+    }
+
+    @Test
+    void schedulingRejectsNonTerminatingAndUnboundedInputs() {
+        var zeroBurst = new SchedulingRequest(
+            List.of(new SchedulingRequest.ProcessInput("P1", 0, 0, 1, "#fff")), "SRTF", 2);
+        assertThrows(IllegalArgumentException.class, () -> service.computeScheduling(zeroBurst));
+
+        var duplicateIds = new SchedulingRequest(List.of(
+            new SchedulingRequest.ProcessInput("P1", 0, 2, 1, "#fff"),
+            new SchedulingRequest.ProcessInput("P1", 1, 2, 1, "#000")
+        ), "FCFS", 2);
+        assertThrows(IllegalArgumentException.class, () -> service.computeScheduling(duplicateIds));
+
+        var unsupported = new SchedulingRequest(
+            List.of(new SchedulingRequest.ProcessInput("P1", 0, 2, 1, "#fff")), "UNKNOWN", 2);
+        assertThrows(IllegalArgumentException.class, () -> service.computeScheduling(unsupported));
+
+        var excessiveTimeline = new SchedulingRequest(
+            List.of(new SchedulingRequest.ProcessInput("P1", 10_000, 1, 1, "#fff")), "FCFS", 2);
+        assertThrows(IllegalArgumentException.class, () -> service.computeScheduling(excessiveTimeline));
+    }
+
+    @Test
+    void pageReplacementRejectsInvalidDimensionsAndValues() {
+        assertThrows(IllegalArgumentException.class, () -> service.computePageReplacement(
+            new PageReplacementRequest(List.of(1, 2), 0, "LRU")));
+        assertThrows(IllegalArgumentException.class, () -> service.computePageReplacement(
+            new PageReplacementRequest(List.of(1, -2), 3, "LRU")));
+        assertThrows(IllegalArgumentException.class, () -> service.computePageReplacement(
+            new PageReplacementRequest(List.of(1, 2), 3, "CLOCK")));
+    }
+
+    @Test
+    void bankersAlgorithmRejectsMalformedOrImpossibleMatrices() {
+        assertThrows(IllegalArgumentException.class, () -> service.computeBankersAlgorithm(
+            new BankersRequest(new int[][]{{1, 2}}, new int[][]{{3}}, new int[]{2, 2})));
+        assertThrows(IllegalArgumentException.class, () -> service.computeBankersAlgorithm(
+            new BankersRequest(new int[][]{{2}}, new int[][]{{1}}, new int[]{1})));
+        assertThrows(IllegalArgumentException.class, () -> service.computeBankersAlgorithm(
+            new BankersRequest(new int[][]{{0}}, new int[][]{{1}}, new int[]{-1})));
     }
 }

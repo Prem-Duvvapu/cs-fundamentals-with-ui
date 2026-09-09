@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+.vscode
+.claude
+**/node_modules
+**/dist
+**/target
+*.log
+PROJECT_AUDIT.md
+RCA.md
+UI_REVAMP_PLAN.md
+plan.md
+docs

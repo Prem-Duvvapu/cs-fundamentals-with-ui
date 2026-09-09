@@ -1,6 +1,8 @@
 package com.csfundamentals.controller;
 
 import com.csfundamentals.service.ContentService;
+import com.csfundamentals.service.ContentNotFoundException;
+import com.csfundamentals.service.ContentReadException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,14 +18,12 @@ public class ContentController {
 
     @GetMapping("/{category}/{topicId}")
     public ResponseEntity<String> getContent(@PathVariable String category, @PathVariable String topicId) {
-        if (!contentService.exists(category, topicId)) {
+        try {
+            return ResponseEntity.ok(contentService.getContent(category, topicId));
+        } catch (ContentNotFoundException exception) {
             return ResponseEntity.notFound().build();
+        } catch (ContentReadException exception) {
+            return ResponseEntity.internalServerError().body("Unable to load curriculum content");
         }
-
-        String content = contentService.getContent(category, topicId);
-        if (content.startsWith("Error loading content")) {
-            return ResponseEntity.internalServerError().body(content);
-        }
-        return ResponseEntity.ok(content);
     }
 }
