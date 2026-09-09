@@ -7,8 +7,8 @@ import TopicViewer from '../TopicViewer'
 // Keeping that boundary synchronous avoids filesystem-dependent dynamic-import
 // timeouts on WSL/OneDrive and makes these interaction tests deterministic.
 vi.mock('../markdown/MarkdownRenderer', () => ({
-  default: ({ content }) => (
-    <div>
+  default: ({ content, onReady }) => (
+    <div ref={element => element && onReady?.()}>
       <div data-testid="markdown-content">{content}</div>
       {[...content.matchAll(/^## (?!#)(.+)$/gm)].map(([, title]) => (
         <span
@@ -66,7 +66,8 @@ describe('TopicViewer', () => {
     render(<TopicViewer topicId="unknown" />)
 
     await waitFor(() => {
-      expect(screen.getByText('Content not available yet.')).toBeInTheDocument()
+      expect(screen.getByText(/couldn't load this lesson/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
     })
   })
 
@@ -76,7 +77,7 @@ describe('TopicViewer', () => {
     render(<TopicViewer topicId="not-a-real-topic" />)
 
     await waitFor(() => {
-      expect(screen.getByText('Content not available yet.')).toBeInTheDocument()
+      expect(screen.getByText(/topic not found/i)).toBeInTheDocument()
     })
   })
 
@@ -85,7 +86,7 @@ describe('TopicViewer', () => {
     render(<TopicViewer topicId="cpu-scheduling" />)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/v1/content/os/cpu-scheduling')
+      expect(global.fetch).toHaveBeenCalledWith('/api/v1/content/os/cpu-scheduling', expect.objectContaining({ signal: expect.any(AbortSignal) }))
     })
   })
 
@@ -235,6 +236,21 @@ Apply it.`
     expect(screen.getByRole('button', { name: /hide table of contents/i })).toHaveAttribute('aria-expanded', 'true')
   })
 
+  it('observes sections only after the lazy reader reports that headings are mounted', async () => {
+    const observe = vi.fn()
+    const disconnect = vi.fn()
+    global.IntersectionObserver = vi.fn(() => ({ observe, disconnect }))
+    global.fetch.mockResolvedValueOnce(new Response('## 🟢 Beginner Level\n\nBegin here.\n\n## 🟡 Intermediate Level\n\nContinue.'))
+
+    const { unmount } = render(<TopicViewer topicId="process-management" />)
+
+    await waitFor(() => expect(observe).toHaveBeenCalledTimes(2))
+    expect(observe.mock.calls.map(([element]) => element.id)).toEqual(['beginner-level', 'intermediate-level'])
+    unmount()
+    expect(disconnect).toHaveBeenCalled()
+    delete global.IntersectionObserver
+  })
+
   it.each([
     ['sql-querying', 'dbms'],
     ['spring-boot-internals', 'java-spring'],
@@ -248,7 +264,26 @@ Apply it.`
     render(<TopicViewer topicId={topicId} />)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(`/api/v1/content/${category}/${topicId}`)
+      expect(global.fetch).toHaveBeenCalledWith(`/api/v1/content/${category}/${topicId}`, expect.objectContaining({ signal: expect.any(AbortSignal) }))
     })
+  })
+
+  it('does not show a stale lesson after rapid topic navigation', async () => {
+    let resolveOld
+    let resolveNew
+    global.fetch
+      .mockReturnValueOnce(new Promise(resolve => { resolveOld = resolve }))
+      .mockReturnValueOnce(new Promise(resolve => { resolveNew = resolve }))
+
+    const { rerender } = render(<TopicViewer topicId="process-management" />)
+    rerender(<TopicViewer topicId="memory-management" />)
+
+    resolveNew(new Response('## New lesson'))
+    await waitFor(() => expect(screen.getByTestId('markdown-content')).toHaveTextContent('New lesson'))
+    resolveOld(new Response('## Old lesson'))
+
+    await act(async () => Promise.resolve())
+    expect(screen.getByTestId('markdown-content')).not.toHaveTextContent('Old lesson')
+    expect(global.fetch.mock.calls[0][1].signal.aborted).toBe(true)
   })
 })

@@ -15,6 +15,9 @@ Start both Frontend and Backend locally in a single command:
 git clone https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui.git
 cd cs-fundamentals-with-ui
 
+# Install the frontend dependencies once after cloning
+npm ci --prefix frontend
+
 # Launch Spring Boot and Vite with one command
 ./start.sh
 ```
@@ -57,30 +60,19 @@ docker compose up --build
 - **🛣️ Distance Vector Routing (Bellman-Ford)**: Step-by-step multi-router routing vector exchange and convergence rounds.
 
 ### 🗄️ Database Management Systems (DBMS)
-- **📁 File System vs DBMS Simulator**: Interactive anomaly simulator for data redundancy, multi-user Lost Update race conditions, mid-flight power outage ARIES crash recovery, and B+ Tree index seek vs linear file scan.
-- **📐 ER Model & Relational Mapping Simulator**: Interactive ER diagram blueprint builder (strong/weak entities, composite, multivalued, derived attributes), cardinality mapping (1:1, 1:N, M:N, recursive), and real-time SQL DDL table synthesis.
 - **🧮 Relational Algebra, Calculus & Joins Simulator**: Animated Selection ($\sigma$), Projection ($\pi$), Equi-Join ($\bowtie$), Left Outer Join ($\$), and Tuple Relational Calculus (TRC) translation.
 - **🗝️ Keys, Functional Dependencies & (X)⁺ Closures**: Attribute Closure solver, Armstrong's Axioms inference, Candidate Key detection, and Minimal Canonical Cover ($F_c$).
 - **📊 Database Normalization (1NF–BCNF)**: Step-by-step anomaly detection (Insertion, Deletion, Update) and lossless join decomposition simulator.
 - **🌲 B+ Tree Indexing & Storage Engine**: Complete binary/multi-way B+ Tree search, dynamic node splits, and leaf range scans.
-- **💾 RAID Storage & Advanced Indexing**: RAID 0/1/5/6/10 disk failure parity reconstruction, Bitmap Indexing bitwise operations, and Inverted Index search postings lists.
 - **🔒 Concurrency Control & 2PL**: Conflict serializability, Strict 2PL locking, Timestamp Ordering, Thomas Write Rule, and deadlock wait-for graphs.
-- **⚡ Cost-Based Query Optimizer (CBO)**: Relational query tree generation, Predicate/Projection pushdown heuristics, and join algorithm cost evaluation (Nested Loop vs Hash vs Sort-Merge).
-- **🌐 Distributed DBMS, 2PC & CAP**: 2-Phase Commit (2PC) coordinator/participant state machine, CAP Theorem network partition simulator, and Quorum consensus ($R+W>N$).
 
 ### ☕ Java & Spring Ecosystem
-- **⚙️ Java Execution Pipeline**: Step conveyor belt from `javac` compilation to ClassLoader parent delegation, Bytecode Verifier, and JIT native assembly.
-- **💾 Java Memory Model (Stack vs. Heap)**: Thread call stack frames, object reference pointers, and 100% Pass-by-Value mechanics.
-- **🐕 OOP Pillars & Dynamic Method Dispatch**: Polymorphic instantiation and JVM `vtable` virtual method resolution.
-- **🔒 Static, Final, Immutability & Java Records**: Metaspace static allocation, defensive copying, and Java 14+ Record value semantics.
-- **⚡ Functional Interfaces & Lambdas**: SAM contracts, method references, and JVM `invokedynamic` with `LambdaMetafactory`.
-- **🧬 Generics, Wildcards & Type Erasure**: Invariance, Producer Extends Consumer Super (PECS), and synthetic bridge methods.
-- **📚 Collections Framework & PriorityQueue Heap**: ArrayList 1.5x dynamic growth, LinkedList nodes, and Binary Min-Heap sift operations.
-- **🌊 Java Streams API & Optional**: Lazy intermediate pipeline chaining, vertical loop fusion, and NPE-safe `Optional` chaining.
 - **🧠 JVM Heap & GC**: Young/Old Gen allocations, G1GC/ZGC collectors, and Project Loom Virtual Threads.
-- **🌱 Spring Bean & MVC Lifecycle**: 9-step IoC bean container lifecycle and DispatcherServlet security filter chain execution.
-- **🗄️ JPA / Hibernate States & N+1 Solver**: Entity states (Transient, Managed, Detached, Removed) and JOIN FETCH optimization.
-- **📦 Spring Batch & Quartz Scheduler**: Chunk-oriented ItemReader/Processor/Writer and clustered JobStoreTX scheduling.
+- **🗂 HashMap Internals**: Bucket selection, collision chains, treeification, resize, and mutable-key failure modes.
+- **🧵 Virtual Threads**: Virtual-thread mount/unmount behavior over carrier threads.
+- **🌐 Spring MVC Flow**: DispatcherServlet request routing and security-filter execution.
+- **🗄 Connection Pooling**: HikariCP exhaustion and wait-queue behavior.
+- **⏱ Quartz Scheduler**: Trigger, misfire, and clustered `JobStoreTX` behavior.
 
 ---
 
@@ -101,8 +93,8 @@ All 63 lessons satisfy the authoring contract and coverage manifest: 28,683 curr
 
 ## 🛠 Tech Stack & Architecture
 
-- **Backend**: Java 17, Spring Boot 3.2.0, Maven
-- **Frontend**: React 18, Vite, React Router v6, and token-driven vanilla CSS
+- **Backend**: Java 17, Spring Boot 3.5, Maven
+- **Frontend**: React 18, Vite 8, React Router 7, and token-driven vanilla CSS
 - **Content rendering**: react-markdown + remark-gfm, KaTeX math, syntax highlighting, and
   pre-rendered dark/light Mermaid SVGs (no Mermaid runtime on the reader path)
 - **Testing**: Vitest, React Testing Library, JUnit 5, Spring Boot Test
@@ -127,9 +119,9 @@ study product. The implementation sequence is:
 4. Add cross-topic search and category interview mode. — done: `/search` and
    `/interview/:category`, backed by `GET /api/v1/search` and
    `GET /api/v1/interview/questions`.
-5. Complete the responsive/accessibility audit and full release verification. — done; the
-   checked routes pass axe in both themes, and CI enforces content, diagram-asset, migrated-question,
-   frontend, backend, and production-build gates.
+5. Complete responsive/accessibility and release verification. — the original phase is complete;
+   the 2026-09-09 follow-up audit and its remediation evidence are tracked in
+   [PROJECT_AUDIT.md](PROJECT_AUDIT.md).
 
 The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).
 The expanded [SDE-2 coverage plan](plan.md) is the acceptance checklist for OS, Networking,
@@ -179,5 +171,8 @@ npm run diagrams:check --prefix frontend
 node scripts/audit-simulation-questions.mjs --check
 
 # Test the validator and coverage-manifest rules
-node --test scripts/validate-content.test.mjs
+node --test scripts/validate-content.test.mjs scripts/audit-simulation-questions.test.mjs
+
+# Validate the launcher without starting either application
+bash scripts/test-start.sh
 ```

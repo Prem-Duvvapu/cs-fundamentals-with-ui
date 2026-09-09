@@ -18,6 +18,7 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 
@@ -27,11 +28,41 @@ const CONTENT_DIR = path.resolve(REPO_ROOT, 'content')
 const OUT_DIR = path.resolve(REPO_ROOT, 'frontend/public/diagrams')
 const MANIFEST_PATH = path.resolve(REPO_ROOT, 'frontend/src/generated/diagramManifest.json')
 const APP_CSS = path.resolve(REPO_ROOT, 'frontend/src/App.css')
+const FONT_PATH = path.resolve(REPO_ROOT, 'frontend/public/fonts/ibm-plex-sans-var-latin.woff2')
+const PACKAGE_LOCK_PATH = path.resolve(REPO_ROOT, 'frontend/package-lock.json')
 
 const require = createRequire(path.resolve(REPO_ROOT, 'frontend/package.json'))
+const { SaxesParser } = require('saxes')
 const { diagramHash } = await import(pathToFileURL(path.resolve(REPO_ROOT, 'frontend/src/utils/diagramHash.js')).href)
 
 const THEMES = ['dark', 'light']
+
+function rendererFingerprint() {
+  const inputs = [fileURLToPath(import.meta.url), APP_CSS, FONT_PATH, PACKAGE_LOCK_PATH]
+  const hash = createHash('sha256')
+  for (const input of inputs) {
+    hash.update(path.relative(REPO_ROOT, input))
+    hash.update('\0')
+    hash.update(fs.readFileSync(input))
+    hash.update('\0')
+  }
+  return hash.digest('hex').slice(0, 16)
+}
+
+function validateSvgXml(svg, filename) {
+  if (!/^<svg\b/.test(svg) || !/\bviewBox="[^"]+"/.test(svg)) {
+    return `invalid SVG header or viewBox in ${filename}`
+  }
+  let parseError = null
+  const parser = new SaxesParser({ xmlns: true })
+  parser.onerror = error => { parseError = error }
+  try {
+    parser.write(svg).close()
+  } catch (error) {
+    parseError = error
+  }
+  return parseError ? `invalid SVG XML in ${filename}: ${parseError.message}` : null
+}
 
 function findContentFiles(dir) {
   const out = []
@@ -71,6 +102,7 @@ function checkGeneratedAssets(diagrams) {
     return 1
   }
 
+  const fingerprint = rendererFingerprint()
   const expectedHashes = new Set(diagrams.map(diagram => diagram.hash))
   const expectedFiles = new Set()
 
@@ -86,6 +118,9 @@ function checkGeneratedAssets(diagrams) {
     if (!Number.isFinite(metadata.width) || metadata.width <= 0 || !Number.isFinite(metadata.height) || metadata.height <= 0) {
       issues.push(`invalid dimensions for ${diagram.hash}`)
     }
+    if (metadata.renderFingerprint !== fingerprint) {
+      issues.push(`stale renderer fingerprint for ${diagram.hash}`)
+    }
 
     for (const theme of THEMES) {
       const filename = `${diagram.hash}-${theme}.svg`
@@ -95,10 +130,8 @@ function checkGeneratedAssets(diagrams) {
         issues.push(`missing ${filename}`)
         continue
       }
-      const header = fs.readFileSync(assetPath, 'utf-8').slice(0, 2048)
-      if (!/^<svg\b/.test(header) || !/\bviewBox="[^"]+"/.test(header)) {
-        issues.push(`invalid SVG asset ${filename}`)
-      }
+      const issue = validateSvgXml(fs.readFileSync(assetPath, 'utf-8'), filename)
+      if (issue) issues.push(issue)
     }
   }
 
@@ -184,42 +217,96 @@ function themeVariables(tokens) {
 
 const mermaidPath = require.resolve('mermaid/dist/mermaid.min.js')
 
-function pageHtml() {
+function pageHtml(fontData) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
-  /* Match the app's own body font so label metrics are measured against the real thing. */
+  @font-face {
+    font-family: 'IBM Plex Sans';
+    src: url(data:font/woff2;base64,${fontData}) format('woff2');
+    font-style: normal;
+    font-weight: 100 700;
+    font-display: block;
+  }
   body { margin: 0; font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; }
 </style>
 </head><body><div id="host"></div></body></html>`
+}
+
+async function decodeGeneratedAssets(diagrams) {
+  const playwright = await import(pathToFileURL(require.resolve('playwright')).href)
+  const { chromium } = playwright.default ?? playwright
+  const browser = await chromium.launch()
+  const page = await browser.newPage()
+  const failures = []
+  try {
+    for (const diagram of diagrams) {
+      for (const theme of THEMES) {
+        const filename = `${diagram.hash}-${theme}.svg`
+        const svg = fs.readFileSync(path.join(OUT_DIR, filename), 'utf-8')
+        const decoded = await page.evaluate(async source => {
+          const image = new Image()
+          const objectUrl = URL.createObjectURL(new Blob([source], { type: 'image/svg+xml' }))
+          image.src = objectUrl
+          try {
+            await image.decode()
+            return image.naturalWidth > 0 && image.naturalHeight > 0
+          } catch {
+            return false
+          } finally {
+            URL.revokeObjectURL(objectUrl)
+          }
+        }, svg)
+        if (!decoded) failures.push(filename)
+      }
+    }
+  } finally {
+    await browser.close()
+  }
+  if (failures.length > 0) {
+    console.error(`\n❌ ${failures.length} generated diagram asset(s) could not be decoded:`)
+    failures.slice(0, 25).forEach(filename => console.error(`   - ${filename}`))
+    return 1
+  }
+  console.log(`\n✅ Browser decoded all ${diagrams.length * THEMES.length} generated diagram assets.`)
+  return 0
 }
 
 async function renderAll({ checkOnly }) {
   const diagrams = collectDiagrams()
   console.log(`Found ${diagrams.length} unique diagrams in content/.`)
 
-  if (checkOnly) return checkGeneratedAssets(diagrams)
+  if (checkOnly) {
+    const checkResult = checkGeneratedAssets(diagrams)
+    if (checkResult !== 0 || !process.argv.includes('--decode')) return checkResult
+    return decodeGeneratedAssets(diagrams)
+  }
 
   const tokens = readThemeTokens()
+  const fingerprint = rendererFingerprint()
+  const fontData = fs.readFileSync(FONT_PATH).toString('base64')
   // playwright's entry is CJS, so the namespace object puts its exports under .default here.
   const playwright = await import(pathToFileURL(require.resolve('playwright')).href)
   const { chromium } = playwright.default ?? playwright
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1600, height: 1200 } })
-  await page.setContent(pageHtml())
+  await page.setContent(pageHtml(fontData))
+  await page.evaluate(() => document.fonts.ready)
   await page.addScriptTag({ path: mermaidPath })
 
-  fs.mkdirSync(OUT_DIR, { recursive: true })
+  fs.mkdirSync(path.dirname(OUT_DIR), { recursive: true })
   fs.mkdirSync(path.dirname(MANIFEST_PATH), { recursive: true })
+  const stageDir = fs.mkdtempSync(path.join(path.dirname(OUT_DIR), '.diagrams-stage-'))
 
   const manifest = {}
   const failures = []
   let stale = 0
 
   for (const diagram of diagrams) {
-    manifest[diagram.hash] = { source: diagram.source }
+    manifest[diagram.hash] = { source: diagram.source, renderFingerprint: fingerprint }
     for (const theme of THEMES) {
-      const outFile = path.join(OUT_DIR, `${diagram.hash}-${theme}.svg`)
-      const result = await page.evaluate(async ({ code, vars, id }) => {
+      const filename = `${diagram.hash}-${theme}.svg`
+      const outFile = path.join(stageDir, filename)
+      const result = await page.evaluate(async ({ code, vars, id, embeddedFont }) => {
         const mermaid = window.mermaid
         mermaid.initialize({
           startOnLoad: false,
@@ -275,10 +362,23 @@ async function renderAll({ checkOnly }) {
           // on top of every node, edge and cluster background — regardless of layout spacing.
           svgEl.querySelectorAll('.cluster-label').forEach(label => svgEl.appendChild(label))
 
+          const fontStyle = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+          fontStyle.textContent = `@font-face{font-family:'IBM Plex Sans';src:url(data:font/woff2;base64,${embeddedFont}) format('woff2');font-style:normal;font-weight:100 700}svg{font-family:'IBM Plex Sans','Segoe UI',sans-serif}`
+          svgEl.insertBefore(fontStyle, svgEl.firstChild)
+
           const box = svgEl.getBBox()
+          const serialized = new XMLSerializer().serializeToString(svgEl)
+          const image = new Image()
+          const objectUrl = URL.createObjectURL(new Blob([serialized], { type: 'image/svg+xml' }))
+          image.src = objectUrl
+          try {
+            await image.decode()
+          } finally {
+            URL.revokeObjectURL(objectUrl)
+          }
           return {
             ok: true,
-            svg: host.innerHTML,
+            svg: serialized,
             width: Math.ceil(box.width + box.x * 2) || Math.ceil(box.width),
             height: Math.ceil(box.height),
             viewBox: svgEl.getAttribute('viewBox'),
@@ -287,18 +387,24 @@ async function renderAll({ checkOnly }) {
         } catch (error) {
           return { ok: false, error: error?.message || String(error) }
         }
-      }, { code: diagram.code, vars: themeVariables(tokens[theme]), id: `d${diagram.hash}${theme}` })
+      }, { code: diagram.code, vars: themeVariables(tokens[theme]), id: `d${diagram.hash}${theme}`, embeddedFont: fontData })
 
       if (!result.ok) {
         failures.push(`${diagram.source} [${diagram.hash} ${theme}]: ${result.error}`)
         continue
       }
 
-      const existing = fs.existsSync(outFile) ? fs.readFileSync(outFile, 'utf-8') : null
+      const publishedFile = path.join(OUT_DIR, filename)
+      const existing = fs.existsSync(publishedFile) ? fs.readFileSync(publishedFile, 'utf-8') : null
       if (existing !== result.svg) {
         stale++
-        fs.writeFileSync(outFile, result.svg, 'utf-8')
       }
+      const xmlIssue = validateSvgXml(result.svg, filename)
+      if (xmlIssue) {
+        failures.push(`${diagram.source} [${diagram.hash} ${theme}]: ${xmlIssue}`)
+        continue
+      }
+      fs.writeFileSync(outFile, result.svg, 'utf-8')
 
       if (theme === 'dark') {
         const vb = (result.viewBox || '').split(/\s+/).map(Number)
@@ -311,31 +417,36 @@ async function renderAll({ checkOnly }) {
 
   await browser.close()
 
-  const manifestJson = JSON.stringify(manifest, null, 2) + '\n'
-  const manifestChanged = !fs.existsSync(MANIFEST_PATH) || fs.readFileSync(MANIFEST_PATH, 'utf-8') !== manifestJson
-  if (manifestChanged) fs.writeFileSync(MANIFEST_PATH, manifestJson, 'utf-8')
-
-  // A content edit changes a diagram's hash, orphaning its old *-dark.svg/*-light.svg pair (a
-  // renamed hash, not an overwrite) — sweep them so public/diagrams never accumulates dead assets.
-  const validHashes = new Set(Object.keys(manifest))
-  let orphaned = 0
-  for (const file of fs.readdirSync(OUT_DIR)) {
-    const match = /^([0-9a-f]{8})-(dark|light)\.svg$/.exec(file)
-    if (!match || !validHashes.has(match[1])) {
-      orphaned++
-      fs.rmSync(path.join(OUT_DIR, file))
-    }
-  }
-
   if (failures.length > 0) {
+    fs.rmSync(stageDir, { recursive: true, force: true })
     console.error(`\n❌ ${failures.length} diagram(s) failed to render:`)
     failures.forEach(f => console.error(`   - ${f}`))
     return 1
   }
 
+  const manifestJson = JSON.stringify(manifest, null, 2) + '\n'
+  const manifestChanged = !fs.existsSync(MANIFEST_PATH) || fs.readFileSync(MANIFEST_PATH, 'utf-8') !== manifestJson
+  const backupDir = `${OUT_DIR}.backup-${process.pid}`
+  const oldManifest = fs.existsSync(MANIFEST_PATH) ? fs.readFileSync(MANIFEST_PATH) : null
+  try {
+    if (fs.existsSync(OUT_DIR)) fs.renameSync(OUT_DIR, backupDir)
+    fs.renameSync(stageDir, OUT_DIR)
+    const manifestTemp = `${MANIFEST_PATH}.tmp-${process.pid}`
+    fs.writeFileSync(manifestTemp, manifestJson, 'utf-8')
+    fs.renameSync(manifestTemp, MANIFEST_PATH)
+    fs.rmSync(backupDir, { recursive: true, force: true })
+  } catch (error) {
+    if (fs.existsSync(OUT_DIR) && fs.existsSync(backupDir)) fs.rmSync(OUT_DIR, { recursive: true, force: true })
+    if (fs.existsSync(backupDir)) fs.renameSync(backupDir, OUT_DIR)
+    if (oldManifest) fs.writeFileSync(MANIFEST_PATH, oldManifest)
+    else fs.rmSync(MANIFEST_PATH, { force: true })
+    fs.rmSync(stageDir, { recursive: true, force: true })
+    throw error
+  }
+
   const totalWidened = Object.values(manifest).reduce((sum, m) => sum + (m.widened || 0), 0)
   console.log(`\n✅ Rendered ${diagrams.length} diagrams x ${THEMES.length} themes -> ${path.relative(REPO_ROOT, OUT_DIR)}`)
-  console.log(`   ${stale} file(s) written, ${orphaned} orphaned file(s) removed; widened ${totalWidened} label box(es) that mermaid had sized too narrow.`)
+  console.log(`   ${stale} file(s) changed; atomically published a complete asset set and widened ${totalWidened} label box(es) that mermaid had sized too narrow.`)
   return 0
 }
 

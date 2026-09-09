@@ -114,5 +114,50 @@ describe('InterviewPage', () => {
     global.fetch.mockRejectedValue(new Error('network error'))
     renderPage('/interview/dbms')
     expect(await screen.findByText(/couldn't load interview questions/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+  })
+
+  it('does not append a stale page after the difficulty changes', async () => {
+    let resolveLoadMore
+    global.fetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        category: 'dbms', difficulty: null, total: 2, offset: 0, limit: 50, questions: [makeQuestion(1)]
+      })))
+      .mockReturnValueOnce(new Promise(resolve => { resolveLoadMore = resolve }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        category: 'dbms', difficulty: 'hard', total: 1, offset: 0, limit: 50,
+        questions: [makeQuestion(3, { difficulty: 'hard' })]
+      })))
+
+    renderPage('/interview/dbms')
+    await screen.findByText('1 / 1')
+    fireEvent.click(screen.getByRole('button', { name: /load 1 more/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hard' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(3))
+    expect(await screen.findByText(/Question number 3\?/)).toBeInTheDocument()
+
+    resolveLoadMore(new Response(JSON.stringify({
+      category: 'dbms', difficulty: null, total: 2, offset: 1, limit: 50, questions: [makeQuestion(2)]
+    })))
+    await Promise.resolve()
+
+    expect(screen.queryByText(/Question number 2\?/)).not.toBeInTheDocument()
+    expect(global.fetch.mock.calls[1][1].signal.aborted).toBe(true)
+  })
+
+  it('keeps the current deck and offers retry when loading more fails', async () => {
+    global.fetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        category: 'dbms', difficulty: null, total: 2, offset: 0, limit: 50, questions: [makeQuestion(1)]
+      })))
+      .mockRejectedValueOnce(new Error('network error'))
+
+    renderPage('/interview/dbms')
+    await screen.findByText('1 / 1')
+    fireEvent.click(screen.getByRole('button', { name: /load 1 more/i }))
+
+    expect(await screen.findByRole('button', { name: /retry loading more/i })).toBeInTheDocument()
+    expect(screen.getByText(/current deck is unchanged/i)).toBeInTheDocument()
+    expect(screen.getByText(/Question number 1\?/)).toBeInTheDocument()
   })
 })

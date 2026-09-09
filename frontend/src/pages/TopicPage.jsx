@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import TopicViewer from '../components/TopicViewer'
 import { hasTopicVisualizer, TopicVisualizer } from '../components/visualizers/topicVisualizerRegistry'
 import { CATEGORY_METADATA, getTopicCategory } from '../utils/topicCategories'
+import { TOPIC_CATEGORY_MAP } from '../utils/topicCategories'
+import NotFoundPage from './NotFoundPage'
 
 export default function TopicPage() {
   const { topicId } = useParams()
@@ -82,6 +84,7 @@ export default function TopicPage() {
   const canSimulate = hasTopicVisualizer(topicId)
   const tabs = canSimulate ? ['theory', 'simulator'] : ['theory']
   const selectedTab = canSimulate ? activeTab : 'theory'
+  const isKnownTopic = Object.hasOwn(TOPIC_CATEGORY_MAP, topicId)
 
   useEffect(() => {
     const updateHeader = () => setCompactHeader(window.scrollY > 120)
@@ -110,6 +113,10 @@ export default function TopicPage() {
     if (nextIndex === undefined) return
     event.preventDefault()
     selectTab(tabs[nextIndex], true)
+  }
+
+  if (!isKnownTopic) {
+    return <NotFoundPage title="Topic not found" message="This topic is not part of the current curriculum." />
   }
 
   return (

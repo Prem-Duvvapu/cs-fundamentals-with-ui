@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchSearch } from '../utils/api'
 import { CATEGORY_METADATA } from '../utils/topicCategories'
@@ -6,21 +6,44 @@ import { CATEGORY_METADATA } from '../utils/topicCategories'
 const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml']
 const SEARCH_DEBOUNCE_MS = 300
 
+function categoryFromParams(searchParams) {
+  const value = searchParams.get('category') || 'all'
+  return value === 'all' || CATEGORY_ORDER.includes(value) ? value : 'all'
+}
+
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(() => searchParams.get('q') || '')
-  const [category, setCategory] = useState(() => searchParams.get('category') || 'all')
+  const [category, setCategory] = useState(() => categoryFromParams(searchParams))
   const [results, setResults] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+  const paramsKey = searchParams.toString()
+  const lastWrittenParams = useRef(paramsKey)
+
+  useEffect(() => {
+    if (paramsKey === lastWrittenParams.current) return
+    const urlQuery = searchParams.get('q') || ''
+    const urlCategory = categoryFromParams(searchParams)
+    setQuery(current => current === urlQuery ? current : urlQuery)
+    setCategory(current => current === urlCategory ? current : urlCategory)
+  }, [paramsKey, searchParams])
 
   useEffect(() => {
     const trimmed = query.trim()
-    const nextParams = {}
-    if (trimmed) nextParams.q = trimmed
-    if (category !== 'all') nextParams.category = category
-    setSearchParams(nextParams, { replace: true })
+    const urlQuery = searchParams.get('q') || ''
+    const urlCategory = categoryFromParams(searchParams)
+    if (paramsKey !== lastWrittenParams.current && (query !== urlQuery || category !== urlCategory)) {
+      return undefined
+    }
+
+    const nextParams = new URLSearchParams()
+    if (trimmed) nextParams.set('q', trimmed)
+    if (category !== 'all') nextParams.set('category', category)
+    const nextParamsKey = nextParams.toString()
+    lastWrittenParams.current = nextParamsKey
+    if (nextParamsKey !== paramsKey) setSearchParams(nextParams, { replace: true })
 
     if (!trimmed) {
       setResults([])
@@ -30,24 +53,34 @@ export default function SearchPage() {
       return undefined
     }
 
+    const controller = new AbortController()
     setLoading(true)
+    setError(false)
     const timer = setTimeout(() => {
-      fetchSearch({ q: trimmed, category: category === 'all' ? null : category, limit: 20 })
+      fetchSearch(
+        { q: trimmed, category: category === 'all' ? null : category, limit: 20 },
+        { signal: controller.signal }
+      )
         .then(data => {
+          if (controller.signal.aborted) return
           setResults(data.results)
           setTotal(data.total)
           setLoading(false)
           setError(false)
         })
-        .catch(() => {
+        .catch(error => {
+          if (error?.name === 'AbortError') return
           setError(true)
           setLoading(false)
         })
     }, SEARCH_DEBOUNCE_MS)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, category])
+  }, [query, category, paramsKey, searchParams, setSearchParams])
 
   const trimmedQuery = query.trim()
 

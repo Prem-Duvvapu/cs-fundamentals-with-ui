@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
 import { getTopicCategory } from '../utils/topicCategories'
 import { parseInterviewQuestions } from '../utils/interviewQuestions'
 import InterviewDeck from './shared/InterviewDeck'
@@ -40,11 +40,15 @@ function scrollToSection(id) {
 
 export default function TopicViewer({ topicId, category }) {
   const [content, setContent] = useState('')
-  const [notFound, setNotFound] = useState(false)
+  const [loadError, setLoadError] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [rendererReady, setRendererReady] = useState(false)
+  const [retryNonce, setRetryNonce] = useState(0)
   const [activeSection, setActiveSection] = useState('')
   const [readingProgress, setReadingProgress] = useState(0)
   const [tocExpanded, setTocExpanded] = useState(prefersExpandedToc)
+  const articleRef = useRef(null)
+  const handleRendererReady = useCallback(() => setRendererReady(true), [])
 
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return undefined
@@ -69,29 +73,39 @@ export default function TopicViewer({ topicId, category }) {
 
   useEffect(() => {
     setLoading(true)
-    setNotFound(false)
+    setLoadError(null)
+    setContent('')
+    setRendererReady(false)
     setActiveSection('')
     setReadingProgress(0)
     const cat = category || getTopicCategory(topicId)
 
-    fetch(`/api/v1/content/${cat}/${topicId}`)
+    const controller = new AbortController()
+    fetch(`/api/v1/content/${cat}/${topicId}`, { signal: controller.signal })
       .then(res => {
-        if (!res.ok) throw new Error('Not found')
+        if (!res.ok) {
+          const error = new Error(res.status === 404 ? 'not-found' : 'request-failed')
+          error.status = res.status
+          throw error
+        }
         return res.text()
       })
       .then(text => {
+        if (controller.signal.aborted) return
         setContent(text)
         setActiveSection(getSections(text)[0]?.id || '')
         setLoading(false)
       })
-      .catch(() => {
-        setNotFound(true)
+      .catch(error => {
+        if (controller.signal.aborted || error?.name === 'AbortError') return
+        setLoadError(error?.status === 404 ? 'not-found' : 'request-failed')
         setLoading(false)
       })
-  }, [topicId, category])
+    return () => controller.abort()
+  }, [topicId, category, retryNonce])
 
   useEffect(() => {
-    if (!content || typeof IntersectionObserver === 'undefined') return undefined
+    if (!content || !rendererReady || typeof IntersectionObserver === 'undefined') return undefined
     const sectionIds = getSections(content).map(section => section.id)
     const observer = new IntersectionObserver(
       entries => {
@@ -105,17 +119,25 @@ export default function TopicViewer({ topicId, category }) {
       if (element) observer.observe(element)
     })
     return () => observer.disconnect()
-  }, [content])
+  }, [content, rendererReady])
 
   useEffect(() => {
     const updateProgress = () => {
-      const documentHeight = document.documentElement.scrollHeight - window.innerHeight
-      setReadingProgress(documentHeight > 0 ? Math.min(100, Math.round((window.scrollY / documentHeight) * 100)) : 0)
+      const article = articleRef.current
+      if (!article) return
+      const articleTop = article.getBoundingClientRect().top + window.scrollY
+      const readableDistance = Math.max(1, article.scrollHeight - window.innerHeight)
+      const progress = ((window.scrollY - articleTop) / readableDistance) * 100
+      setReadingProgress(Math.max(0, Math.min(100, Math.round(progress))))
     }
     updateProgress()
     window.addEventListener('scroll', updateProgress, { passive: true })
-    return () => window.removeEventListener('scroll', updateProgress)
-  }, [content])
+    window.addEventListener('resize', updateProgress)
+    return () => {
+      window.removeEventListener('scroll', updateProgress)
+      window.removeEventListener('resize', updateProgress)
+    }
+  }, [content, rendererReady])
 
   const questions = useMemo(() => parseInterviewQuestions(content, topicId), [content, topicId])
 
@@ -128,7 +150,19 @@ export default function TopicViewer({ topicId, category }) {
     )
   }
 
-  if (notFound) return <div className="topic-content"><p>Content not available yet.</p></div>
+  if (loadError === 'not-found') {
+    return <div className="reader-error" role="status"><h2>Topic not found</h2><p>This lesson is not registered in the curriculum.</p></div>
+  }
+
+  if (loadError) {
+    return (
+      <div className="reader-error" role="alert">
+        <h2>Couldn't load this lesson</h2>
+        <p>Check the backend connection and try again.</p>
+        <button type="button" className="roadmap-empty-action" onClick={() => setRetryNonce(value => value + 1)}>Retry</button>
+      </div>
+    )
+  }
 
   const sections = getSections(content)
   const currentSection = sections.find(section => section.id === activeSection) || sections[0]
@@ -205,16 +239,16 @@ export default function TopicViewer({ topicId, category }) {
             </button>
           ))}
         </nav>
-        <div className="topic-content">
+        <article className="topic-content" ref={articleRef}>
           <Suspense fallback={(
             <div className="reader-loading reader-loading--renderer" role="status">
               <p>Preparing reader…</p>
               <span /><span /><span />
             </div>
           )}>
-            <MarkdownRenderer content={content} />
+            <MarkdownRenderer content={content} onReady={handleRendererReady} />
           </Suspense>
-        </div>
+        </article>
         <InterviewDeck key={topicId} questions={questions} />
       </div>
     </div>

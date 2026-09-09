@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
@@ -52,11 +52,15 @@ export function headingId(children) {
  * content/. Replaces the previous 68-line regex renderer in TopicViewer —
  * see content/CONTENT_SPEC.md for what topic authors may rely on here.
  */
-export default function MarkdownRenderer({ content }) {
+export default function MarkdownRenderer({ content, onReady }) {
   // A lesson can render several tables; each needs a distinct accessible name
   // so assistive tech doesn't announce identical "Scrollable table" regions.
   const tableCountRef = useRef(0)
   tableCountRef.current = 0
+
+  useLayoutEffect(() => {
+    onReady?.()
+  }, [content, onReady])
 
   return (
     <ReactMarkdown

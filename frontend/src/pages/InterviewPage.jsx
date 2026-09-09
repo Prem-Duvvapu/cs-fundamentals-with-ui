@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { fetchInterviewQuestions } from '../utils/api'
 import { CATEGORY_METADATA } from '../utils/topicCategories'
@@ -23,52 +23,73 @@ export default function InterviewPage() {
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [loadMoreError, setLoadMoreError] = useState(false)
   const [error, setError] = useState(false)
   const [shuffleNonce, setShuffleNonce] = useState(0)
+  const [retryNonce, setRetryNonce] = useState(0)
+  const loadMoreControllerRef = useRef(null)
+  const requestScope = `${categoryParam}:${difficulty}`
+  const requestScopeRef = useRef(requestScope)
+  requestScopeRef.current = requestScope
+
+  useEffect(() => () => loadMoreControllerRef.current?.abort(), [])
 
   useEffect(() => {
     if (!isKnownCategory) return undefined
-    let cancelled = false
+    const controller = new AbortController()
+    loadMoreControllerRef.current?.abort()
     setLoading(true)
     setError(false)
+    setLoadMoreError(false)
+    setLoadingMore(false)
 
     fetchInterviewQuestions({
       category: apiCategory,
       difficulty: difficulty === 'all' ? null : difficulty,
       offset: 0,
       limit: PAGE_SIZE
-    })
+    }, { signal: controller.signal })
       .then(data => {
-        if (cancelled) return
+        if (controller.signal.aborted) return
         setQuestions(data.questions)
         setTotal(data.total)
         setOffset(data.questions.length)
         setLoading(false)
       })
-      .catch(() => {
-        if (cancelled) return
+      .catch(error => {
+        if (controller.signal.aborted || error?.name === 'AbortError') return
         setError(true)
         setLoading(false)
       })
 
-    return () => { cancelled = true }
-  }, [apiCategory, difficulty, isKnownCategory])
+    return () => controller.abort()
+  }, [apiCategory, difficulty, isKnownCategory, retryNonce])
 
   const loadMore = useCallback(() => {
+    loadMoreControllerRef.current?.abort()
+    const controller = new AbortController()
+    loadMoreControllerRef.current = controller
+    const capturedScope = requestScope
     setLoadingMore(true)
+    setLoadMoreError(false)
     fetchInterviewQuestions({
       category: apiCategory,
       difficulty: difficulty === 'all' ? null : difficulty,
       offset,
       limit: PAGE_SIZE
-    })
+    }, { signal: controller.signal })
       .then(data => {
+        if (controller.signal.aborted || requestScopeRef.current !== capturedScope) return
         setQuestions(prev => [...prev, ...data.questions])
-        setOffset(offset + data.questions.length)
+        setOffset(previous => previous + data.questions.length)
         setLoadingMore(false)
       })
-      .catch(() => setLoadingMore(false))
-  }, [apiCategory, difficulty, offset])
+      .catch(error => {
+        if (controller.signal.aborted || error?.name === 'AbortError' || requestScopeRef.current !== capturedScope) return
+        setLoadMoreError(true)
+        setLoadingMore(false)
+      })
+  }, [apiCategory, difficulty, offset, requestScope])
 
   const shuffle = useCallback(() => {
     setQuestions(prev => {
@@ -159,6 +180,7 @@ export default function InterviewPage() {
           <section className="roadmap-empty-state" role="alert">
             <h2>Couldn't load interview questions</h2>
             <p>The interview API may be unavailable. Try again in a moment.</p>
+            <button type="button" className="roadmap-empty-action" onClick={() => setRetryNonce(value => value + 1)}>Retry</button>
           </section>
         ) : questions.length === 0 ? (
           <section className="roadmap-empty-state" role="status">
@@ -185,14 +207,17 @@ export default function InterviewPage() {
               )}
             />
             {offset < total && (
-              <button
-                type="button"
-                className="btn btn-secondary interview-load-more"
-                onClick={loadMore}
-                disabled={loadingMore}
-              >
-                {loadingMore ? 'Loading…' : `Load ${Math.min(PAGE_SIZE, total - offset)} more`}
-              </button>
+              <div className="interview-pagination">
+                {loadMoreError && <p role="alert">Couldn't load more questions. Your current deck is unchanged.</p>}
+                <button
+                  type="button"
+                  className="btn btn-secondary interview-load-more"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? 'Loading…' : loadMoreError ? 'Retry loading more' : `Load ${Math.min(PAGE_SIZE, total - offset)} more`}
+                </button>
+              </div>
             )}
           </>
         )}

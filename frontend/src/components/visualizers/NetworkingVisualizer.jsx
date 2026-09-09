@@ -6,6 +6,7 @@ import TrafficShapingVisualizer from './networking/TrafficShapingVisualizer'
 import DhcpDoraVisualizer from './networking/DhcpDoraVisualizer'
 import ArpResolutionVisualizer from './networking/ArpResolutionVisualizer'
 import NatTranslationVisualizer from './networking/NatTranslationVisualizer'
+import { calculateIpv4Subnet } from '../../utils/subnet'
 import DistanceVectorVisualizer from './networking/DistanceVectorVisualizer'
 import { networkTopologies } from '../../utils/networkTopologyData'
 import { computeWaveform } from '../../utils/encodingWaveform'
@@ -104,38 +105,8 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
   const [cidr, setCidr] = useState(24)
   const [sub, setSub] = useState({ valid: true })
 
-  const calcSubnet = (ipVal, cidrVal) => {
-    try {
-      const parts = (ipVal || '').split('.').map(Number)
-      if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) {
-        return { valid: false }
-      }
-      const ipNum = (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]
-      const maskNum = cidrVal === 0 ? 0 : (~0 << (32 - cidrVal)) >>> 0
-      const netNum = (ipNum & maskNum) >>> 0
-      const bcastNum = (netNum | (~maskNum >>> 0)) >>> 0
-
-      const numToIp = n => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.')
-      const totalHosts = Math.pow(2, 32 - cidrVal)
-      const usableHosts = totalHosts > 2 ? totalHosts - 2 : totalHosts
-
-      return {
-        valid: true,
-        networkIp: numToIp(netNum),
-        broadcastIp: numToIp(bcastNum),
-        subnetMask: numToIp(maskNum),
-        firstHost: numToIp(netNum + 1),
-        lastHost: numToIp(bcastNum - 1),
-        totalHosts,
-        usableHosts
-      }
-    } catch (e) {
-      return { valid: false }
-    }
-  }
-
   useEffect(() => {
-    setSub(calcSubnet(ipAddress, cidr))
+    setSub(calculateIpv4Subnet(ipAddress, cidr))
   }, [ipAddress, cidr])
 
   // ==========================================
@@ -566,7 +537,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
             </div>
             <div>
               <label>CIDR Prefix (/{cidr}):</label>
-              <input type="range" min="8" max="30" value={cidr} onChange={e => setCidr(Number(e.target.value))} />
+              <input type="range" min="0" max="32" value={cidr} onChange={e => setCidr(Number(e.target.value))} />
             </div>
           </div>
 
@@ -581,7 +552,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
                 <span className="res-val">{sub.subnetMask}</span>
               </div>
               <div className="res-card">
-                <span className="res-label">Broadcast IP</span>
+                <span className="res-label">{sub.lastAddressLabel}</span>
                 <span className="res-val">{sub.broadcastIp}</span>
               </div>
               <div className="res-card">

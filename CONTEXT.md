@@ -42,7 +42,9 @@ symptom or component before repeating an investigation.
    - Multi-stage build (Maven 3.9 + Temurin JDK 17 builder $\rightarrow$ Temurin JRE 17 Alpine runtime).
    - Serves API on host port `9190` by default (container port `8080`).
 2. **`frontend/Dockerfile`**:
-   - Multi-stage build (Node 18 Alpine builder $\rightarrow$ Nginx Alpine web server).
+   - Multi-stage build (Node 20 Alpine builder $\rightarrow$ Nginx Alpine web server).
+   - Uses the repository root as its build context so the prebuild diagram gate can read
+     `content/` and `scripts/render-diagrams.mjs`; `.dockerignore` excludes host build output.
    - Implements `nginx.conf` reverse proxy routing `/api` requests to `http://backend:8080`.
 3. **`docker-compose.yml`**:
    - Orchestrates `backend` and `frontend` services with health checks, a read-only curriculum
@@ -110,8 +112,8 @@ id, only manual click.
 content/<category>/NN[a-z]-<slug>.md
         │
         ▼
-ContentService            resolves ./content or ../content at startup;
-        │                 strips the "01b-" numeric prefix to match a topic id
+ContentService            resolves the configured/local content root at startup;
+        │                 builds an exact registered topic-to-file index
         ▼
 GET /api/v1/content/{category}/{topicId}     returns raw Markdown
         │
@@ -139,11 +141,15 @@ Mermaid is a build-time authoring dependency, not a reader dependency. `scripts/
 renders every unique fence in both themes through Playwright, measures and corrects Mermaid's
 under-sized HTML label boxes, and writes `frontend/public/diagrams/<hash>-{dark,light}.svg`.
 `frontend/src/utils/diagramHash.js` supplies the shared stable hash and
-`frontend/src/generated/diagramManifest.json` records source and intrinsic dimensions.
+`frontend/src/generated/diagramManifest.json` records source, intrinsic dimensions, and a
+fingerprint of the renderer, theme, font, and dependency inputs.
 `MermaidBlock.jsx` selects the active-theme asset, lazy-loads it as an image, and switches assets
 on theme changes. This removes the former runtime render queue, font-measurement race, loading
-state, and Mermaid payload. `npm run diagrams:check --prefix frontend` performs a deterministic
-structural check of all manifest entries and both assets; `prebuild` and CI enforce it.
+state, and Mermaid payload. The generator embeds the measured font, serializes XML safely,
+browser-decodes every asset before atomically publishing the complete set, and leaves the prior
+set intact if rendering fails. `npm run diagrams:check --prefix frontend` validates fingerprints
+and XML; `npm run diagrams:decode --prefix frontend` additionally decodes all assets in Chromium.
+`prebuild` and CI enforce these gates.
 
 **Authoring contract:** `content/CONTENT_SPEC.md` defines depth targets, required diagrams,
 interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
@@ -170,7 +176,8 @@ summaries and counts, then ordered topic rows with level badges and direct Study
 remain semantic buttons so keyboard users receive the same orientation as pointer users.
 
 `/search` and `/interview/:category` (P5) reuse the same roadmap visual language —
-`SearchPage.jsx` debounces a query against `GET /api/v1/search` and lists results as topic rows;
+`SearchPage.jsx` debounces a query against `GET /api/v1/search`, cancels superseded requests,
+keeps URL navigation and visible filters synchronized, and lists results as topic rows;
 `InterviewPage.jsx` paginates `GET /api/v1/interview/questions` (offset/limit "Load more", server-side
 category + difficulty filters, client-side shuffle) through a shared `components/shared/InterviewDeck.jsx`
 — the same accessible step-through deck `TopicViewer.jsx` uses for its per-topic practice section,
@@ -193,6 +200,8 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 - `GET /api/v1/topics` — Lists all 63 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
+- `GET /api/v1/health/readiness` — Confirms the exact curriculum index is available and reports
+  its registered topic count.
 - `GET /api/v1/search?q=&category=&limit=` — Cross-topic search over title, headings, coverage-manifest
   tags, summary and body, ranked and returning a matched heading + excerpt per hit
   (`DiscoveryController`/`DiscoveryService`, P5). Frontend: `SearchPage.jsx` at `/search`.
@@ -223,4 +232,5 @@ node scripts/audit-simulation-questions.mjs --check
 
 # Test validator and coverage-manifest behavior
 node --test scripts/validate-content.test.mjs
+bash scripts/test-start.sh
 ```

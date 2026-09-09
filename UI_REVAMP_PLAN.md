@@ -52,7 +52,10 @@ auto-play `useEffect` in all 18 visualizers that implement one (`SchedulingVisua
 TcpCongestion}`, and 14 `java/` visualizers) — manual step-forward/back is unaffected, only the
 automatic advance is suppressed. Also fixed five grids from the dead-Tailwind-class work that
 used a non-canonical `640px` breakpoint; they now match the project's 480/768/1024/1280 scale.
-`frontend/src/hooks/useSimulationTimer.js` is a second, unused auto-play implementation (zero
+> Historical note: the unused `frontend/src/hooks/useSimulationTimer.js` implementation described
+> below was removed during the 2026-09-09 audit remediation.
+
+`frontend/src/hooks/useSimulationTimer.js` was a second, unused auto-play implementation (zero
 consumers) — left alone rather than fixed, since fixing dead code changes nothing that ships.
 
 More of Phase 7 is now done. The three legacy, non-canonical media queries (`max-width: 780px`

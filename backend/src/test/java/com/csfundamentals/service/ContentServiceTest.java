@@ -25,14 +25,12 @@ class ContentServiceTest {
 
     @Test
     void getContent_shouldReturnNotFoundMessage_whenTopicDoesNotExist() {
-        String content = service.getContent("os", "non-existent-topic");
-        assertTrue(content.startsWith("Content not found"));
+        assertThrows(ContentNotFoundException.class, () -> service.getContent("os", "non-existent-topic"));
     }
 
     @Test
     void getContent_shouldReturnNotFoundMessage_whenCategoryIsIncorrect() {
-        String content = service.getContent("networking", "process-management");
-        assertTrue(content.startsWith("Content not found"));
+        assertThrows(ContentNotFoundException.class, () -> service.getContent("networking", "process-management"));
     }
 
     @Test
@@ -63,7 +61,6 @@ class ContentServiceTest {
         for (String topicId : dbmsTopics) {
             String content = service.getContent("dbms", topicId);
             assertNotNull(content, "Content missing for DBMS topic: " + topicId);
-            assertFalse(content.startsWith("Content not found"), "Topic not found: " + topicId);
             assertTrue(content.contains("🟢") || content.contains("Beginner"), "Missing Beginner tier for: " + topicId);
         }
     }
@@ -82,7 +79,6 @@ class ContentServiceTest {
         for (String topicId : javaTopics) {
             String content = service.getContent("java-spring", topicId);
             assertNotNull(content, "Content missing for Java topic: " + topicId);
-            assertFalse(content.startsWith("Content not found"), "Topic not found: " + topicId);
             assertTrue(content.contains("🟢") || content.contains("Beginner"), "Missing Beginner tier for: " + topicId);
         }
     }
@@ -94,21 +90,15 @@ class ContentServiceTest {
         assertEquals(63, topicService.getAllTopics().size());
 
         topicService.getAllTopics().forEach(topic -> {
-            String content = service.getContent(topic.category(), topic.id());
-            assertFalse(
-                content.startsWith("Content not found"),
-                () -> "Registered topic has no content: " + topic.category() + "/" + topic.id()
-            );
+            assertDoesNotThrow(() -> service.getContent(topic.category(), topic.id()),
+                () -> "Registered topic has no content: " + topic.category() + "/" + topic.id());
         });
     }
 
     @Test
     void getContent_shouldHandleNullAndEmptyGracefully() {
-        String contentNull = service.getContent("os", null);
-        assertTrue(contentNull.startsWith("Content not found"));
-
-        String contentEmpty = service.getContent("os", "");
-        assertTrue(contentEmpty.startsWith("Content not found"));
+        assertThrows(ContentNotFoundException.class, () -> service.getContent("os", null));
+        assertThrows(ContentNotFoundException.class, () -> service.getContent("os", ""));
     }
 
     @Test
@@ -119,6 +109,7 @@ class ContentServiceTest {
     @Test
     void exists_shouldReturnFalse_whenTopicDoesNotExist() {
         assertFalse(service.exists("os", "non-existent-topic"));
+        assertFalse(service.exists("os", "process"), "Prefixes must not resolve to registered lessons");
     }
 
     @Test

@@ -17,8 +17,12 @@ jobs:
       - run: npm ci --prefix frontend
       - run: npm test --prefix frontend
       - run: npm run build --prefix frontend
+      - run: npm run test:responsive --prefix frontend
+      - run: npm run diagrams:decode --prefix frontend
       - run: node scripts/validate-content.mjs
       - run: node scripts/audit-simulation-questions.mjs --check
+      - run: node --test scripts/validate-content.test.mjs scripts/audit-simulation-questions.test.mjs
+      - run: bash scripts/test-start.sh
 
   backend:
     runs-on: ubuntu-latest
@@ -30,3 +34,20 @@ jobs:
           java-version: '17'
           cache: maven
       - run: mvn test -f backend/pom.xml
+
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build
+      - run: |
+          docker compose up -d
+          trap 'docker compose down -v' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:9190/api/v1/topics >/dev/null && curl --fail --silent http://localhost:3000/topic/process-management | grep --quiet '<div id="root">'; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs
+          exit 1

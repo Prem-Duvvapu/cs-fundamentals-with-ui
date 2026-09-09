@@ -15,21 +15,42 @@ function diagramAssetUrl(hash, theme) {
   return `${normalizedBase}diagrams/${hash}-${theme}.svg`
 }
 
-function diagramDescription(code) {
+function diagramType(code) {
   const declaration = code
     .split('\n')
     .map(line => line.trim())
     .find(line => line && !line.startsWith('%%')) || ''
 
-  if (/^sequenceDiagram\b/i.test(declaration)) return 'Sequence diagram for the surrounding lesson'
-  if (/^(flowchart|graph)\b/i.test(declaration)) return 'Flowchart for the surrounding lesson'
-  if (/^stateDiagram(?:-v2)?\b/i.test(declaration)) return 'State diagram for the surrounding lesson'
-  if (/^classDiagram\b/i.test(declaration)) return 'Class diagram for the surrounding lesson'
-  if (/^erDiagram\b/i.test(declaration)) return 'Entity relationship diagram for the surrounding lesson'
-  if (/^gantt\b/i.test(declaration)) return 'Timeline diagram for the surrounding lesson'
-  if (/^mindmap\b/i.test(declaration)) return 'Mind map for the surrounding lesson'
-  if (/^pie\b/i.test(declaration)) return 'Pie chart for the surrounding lesson'
-  return 'Diagram for the surrounding lesson'
+  if (/^sequenceDiagram\b/i.test(declaration)) return 'Sequence diagram'
+  if (/^(flowchart|graph)\b/i.test(declaration)) return 'Flowchart'
+  if (/^stateDiagram(?:-v2)?\b/i.test(declaration)) return 'State diagram'
+  if (/^classDiagram\b/i.test(declaration)) return 'Class diagram'
+  if (/^erDiagram\b/i.test(declaration)) return 'Entity relationship diagram'
+  if (/^gantt\b/i.test(declaration)) return 'Timeline diagram'
+  if (/^mindmap\b/i.test(declaration)) return 'Mind map'
+  if (/^pie\b/i.test(declaration)) return 'Pie chart'
+  return 'Diagram'
+}
+
+function diagramDescription(code) {
+  const labels = []
+  const seen = new Set()
+  const add = value => {
+    const clean = value.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    if (clean && clean.length <= 80 && !seen.has(clean)) {
+      seen.add(clean)
+      labels.push(clean)
+    }
+  }
+  for (const match of code.matchAll(/"([^"]+)"|'([^']+)'|\[([^\]]+)]|\{([^}]+)}/g)) {
+    add(match[1] || match[2] || match[3] || match[4])
+    if (labels.length === 4) break
+  }
+  for (const match of code.matchAll(/^\s*(?:participant|actor)\s+\S+\s+as\s+(.+)$/gim)) {
+    add(match[1])
+    if (labels.length === 4) break
+  }
+  return labels.length > 0 ? `${diagramType(code)} showing ${labels.join(', ')}` : `${diagramType(code)} for the surrounding lesson`
 }
 
 function DiagramFallback({ code, message }) {
@@ -71,18 +92,26 @@ export default function MermaidBlock({ code }) {
   }
 
   return (
-    <figure className="mermaid-block u-scroll-x-hint" data-diagram-hash={hash}>
-      <img
-        className="mermaid-diagram"
-        src={assetUrl}
-        width={metadata.width}
-        height={metadata.height}
-        alt={diagramDescription(code)}
-        loading="lazy"
-        decoding="async"
-        onError={() => setFailedAsset(assetUrl)}
-      />
-      <figcaption className="scroll-hint-caption">Scroll to see the full diagram →</figcaption>
+    <figure className="mermaid-block u-scroll-x-hint" data-diagram-hash={hash} tabIndex="0" aria-label="Scrollable lesson diagram">
+      <a className="mermaid-open-link" href={assetUrl} target="_blank" rel="noreferrer" aria-label="Open full-size diagram in a new tab">
+        <img
+          className="mermaid-diagram"
+          src={assetUrl}
+          width={metadata.width}
+          height={metadata.height}
+          alt={diagramDescription(code)}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailedAsset(assetUrl)}
+        />
+      </a>
+      <figcaption>
+        <span className="scroll-hint-caption">Scroll to inspect the diagram, or open it full size →</span>
+        <details className="diagram-text-alternative">
+          <summary>Read diagram as text</summary>
+          <pre><code>{code}</code></pre>
+        </details>
+      </figcaption>
     </figure>
   )
 }
