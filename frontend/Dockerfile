@@ -1,5 +1,5 @@
 # Stage 1: Build React static assets
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
