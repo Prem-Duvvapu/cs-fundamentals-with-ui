@@ -7,7 +7,7 @@ const LEVEL_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', exper
 const LEVEL_GLYPHS = { beginner: '●', intermediate: '◐', expert: '◆' }
 const LEVEL_FILTERS = ['all', 'beginner', 'intermediate', 'expert']
 
-const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml']
+const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml', 'devops']
 
 const CATEGORY_DETAILS = {
   'java-spring': {
@@ -39,6 +39,12 @@ const CATEGORY_DETAILS = {
     shortLabel: 'AI/ML',
     glyph: '✳',
     summary: 'Connect modern ML foundations to retrieval, serving, evaluation, and production operations.'
+  },
+  devops: {
+    label: 'DevOps & Infrastructure',
+    shortLabel: 'DEVOPS',
+    glyph: '⚙',
+    summary: 'Take a working application to production: containers, orchestration, networking, delivery pipelines, and observability.'
   }
 }
 
@@ -138,7 +144,10 @@ export default function HomePage() {
           { id: 'model-serving', category: 'aiml', title: 'LLM Model Serving & Low-Latency Inference', level: 'expert', summary: 'vLLM PagedAttention, KV cache management, batching, GPU memory allocation' },
           { id: 'llm-parameters', category: 'aiml', title: 'LLM Sampling Parameters, Tokenization & ReAct Agents', level: 'intermediate', summary: 'Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops' },
           { id: 'feature-stores', category: 'aiml', title: 'Feature Stores, Data Drift & MLOps Architecture', level: 'expert', summary: 'Online vs offline feature stores, PSI drift detection, retraining pipelines' },
-          { id: 'recommendation-systems', category: 'aiml', title: '2-Stage Recommendation Engine Architecture', level: 'expert', summary: 'Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring' }
+          { id: 'recommendation-systems', category: 'aiml', title: '2-Stage Recommendation Engine Architecture', level: 'expert', summary: 'Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring' },
+
+          // DevOps & Infrastructure
+          { id: 'docker-fundamentals', category: 'devops', title: 'Docker & Container Fundamentals', level: 'beginner', summary: 'Namespaces, cgroups, image layers, multi-stage builds, networking modes, the containerd/runc runtime stack' }
         ])
       })
   }, [])
@@ -223,7 +232,7 @@ export default function HomePage() {
           </h2>
           <p>
             {selectedCategory === 'all'
-              ? `Study ${visibleTopicCount} topics across five connected foundations. Each section below follows the recommended priority order.`
+              ? `Study ${visibleTopicCount} topics across six connected foundations. Each section below follows the recommended priority order.`
               : `${CATEGORY_DETAILS[selectedCategory].summary} ${topicCountLabel(visibleTopicCount)} in this path.`}
           </p>
         </section>

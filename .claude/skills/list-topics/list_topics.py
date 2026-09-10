@@ -21,14 +21,15 @@ ALIASES = {
     'db': 'dbms', 'database': 'dbms', 'databases': 'dbms',
     'java': 'java-spring', 'spring': 'java-spring',
     'ai': 'aiml', 'ml': 'aiml', 'ai-ml': 'aiml',
+    'infra': 'devops', 'infrastructure': 'devops', 'ops': 'devops',
 }
 LABELS = {
     'os': 'Operating Systems', 'networking': 'Computer Networks',
     'dbms': 'Database Management Systems', 'java-spring': 'Java & Spring Ecosystem',
-    'aiml': 'AI / ML Architecture',
+    'aiml': 'AI / ML Architecture', 'devops': 'DevOps & Infrastructure',
 }
 LEVEL_ICON = {'beginner': 'B', 'intermediate': 'I', 'expert': 'E'}
-ORDER = ['os', 'networking', 'dbms', 'java-spring', 'aiml']
+ORDER = ['os', 'networking', 'dbms', 'java-spring', 'aiml', 'devops']
 
 FIELD = r'"((?:[^"\\]|\\.)*)"'
 TOPIC_RE = re.compile(r'new Topic\(\s*' + r'\s*,\s*'.join([FIELD] * 5) + r'\s*\)', re.S)

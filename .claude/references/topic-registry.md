@@ -4,7 +4,7 @@ A topic id (e.g. `er-model`) is a bare string duplicated across the codebase. Th
 single registry. Miss one entry and the topic silently 404s, shows "Visualizer coming soon",
 or renders under the wrong category — no build error, no test failure except (3).
 
-Category is always one of: `os`, `networking`, `dbms`, `java-spring`, `aiml`.
+Category is always one of: `os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`.
 
 ## The 7 registration points
 

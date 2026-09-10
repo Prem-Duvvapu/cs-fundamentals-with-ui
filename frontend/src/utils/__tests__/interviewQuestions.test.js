@@ -183,7 +183,7 @@ describe('curriculum interview-question parsing', () => {
       .map((filename) => ({ category: category.name, filename, filePath: path.join(categoryDirectory, filename) }))
   })
 
-  it('extracts all validated questions from all 63 lessons without trailing-section leakage', () => {
+  it('extracts all validated questions from all 64 lessons without trailing-section leakage', () => {
     const questions = topicFiles.flatMap(({ category, filename, filePath }) => {
       const topicId = filename.match(topicFilename)[1]
       const parsed = parseInterviewQuestions(fs.readFileSync(filePath, 'utf8'), topicId)
@@ -194,8 +194,8 @@ describe('curriculum interview-question parsing', () => {
       return parsed
     })
 
-    expect(topicFiles).toHaveLength(63)
-    expect(questions).toHaveLength(883)
+    expect(topicFiles).toHaveLength(64)
+    expect(questions).toHaveLength(897)
     expect(new Set(questions.map(({ id }) => id)).size).toBe(questions.length)
   })
 })

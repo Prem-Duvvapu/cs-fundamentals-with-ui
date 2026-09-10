@@ -80,7 +80,10 @@ public class TopicService {
         new Topic("model-serving", "LLM Model Serving & Low-Latency Inference", "aiml", "expert", "vLLM PagedAttention, KV cache management, batching, GPU memory allocation"),
         new Topic("llm-parameters", "LLM Sampling Parameters, Tokenization & ReAct Agents", "aiml", "intermediate", "Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops"),
         new Topic("feature-stores", "Feature Stores, Data Drift & MLOps Architecture", "aiml", "expert", "Online vs offline feature stores, PSI drift detection, retraining pipelines"),
-        new Topic("recommendation-systems", "2-Stage Recommendation Engine Architecture", "aiml", "expert", "Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring")
+        new Topic("recommendation-systems", "2-Stage Recommendation Engine Architecture", "aiml", "expert", "Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring"),
+
+        // DevOps & Infrastructure (1 Topic)
+        new Topic("docker-fundamentals", "Docker & Container Fundamentals", "devops", "beginner", "Namespaces, cgroups, image layers, multi-stage builds, networking modes, the containerd/runc runtime stack")
     );
 
     public List<Topic> getAllTopics() {

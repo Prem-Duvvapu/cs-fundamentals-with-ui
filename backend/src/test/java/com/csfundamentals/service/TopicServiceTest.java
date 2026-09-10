@@ -128,6 +128,16 @@ class TopicServiceTest {
     }
 
     @Test
+    void getTopicsByCategory_devops_shouldContainAll1Topic() {
+        List<Topic> devopsTopics = topicService.getTopicsByCategory("devops");
+        assertNotNull(devopsTopics);
+        assertEquals(1, devopsTopics.size(), "DevOps category must have exactly 1 registered topic");
+
+        List<String> topicIds = devopsTopics.stream().map(Topic::id).toList();
+        assertTrue(topicIds.contains("docker-fundamentals"));
+    }
+
+    @Test
     void getTopicById_shouldReturnCorrectTopic_whenExists() {
         Topic topic = topicService.getTopicById("dbms-introduction");
         assertNotNull(topic);
@@ -145,10 +155,11 @@ class TopicServiceTest {
     @Test
     void allRegisteredTopics_acrossAllCategories_shouldResolveToTieredMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
-        assertEquals(63, allTopics.size(), "Total registered topics should be 63 (8 OS + 12 Networking + 13 DBMS + 23 Java/Spring + 7 AI/ML)");
+        assertEquals(64, allTopics.size(), "Total registered topics should be 64 (8 OS + 12 Networking + 13 DBMS + 23 Java/Spring + 7 AI/ML + 1 DevOps)");
         assertEquals(13, allTopics.stream().filter(topic -> topic.category().equals("dbms")).count());
         assertEquals(23, allTopics.stream().filter(topic -> topic.category().equals("java-spring")).count());
         assertEquals(7, allTopics.stream().filter(topic -> topic.category().equals("aiml")).count());
+        assertEquals(1, allTopics.stream().filter(topic -> topic.category().equals("devops")).count());
 
         for (Topic topic : allTopics) {
             String content = contentService.getContent(topic.category(), topic.id());

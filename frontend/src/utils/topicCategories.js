@@ -3,7 +3,8 @@ export const CATEGORY_METADATA = {
   networking: { glyph: '⬡', shortLabel: 'NET', label: 'Computer Networks' },
   dbms: { glyph: '▤', shortLabel: 'DB', label: 'Database Management Systems' },
   'java-spring': { glyph: '◐', shortLabel: 'JAVA', label: 'Java & Spring' },
-  aiml: { glyph: '✳', shortLabel: 'AI/ML', label: 'AI & Machine Learning' }
+  aiml: { glyph: '✳', shortLabel: 'AI/ML', label: 'AI & Machine Learning' },
+  devops: { glyph: '⚙', shortLabel: 'DEVOPS', label: 'DevOps & Infrastructure' }
 }
 
 export const TOPIC_CATEGORY_MAP = {
@@ -69,7 +70,8 @@ export const TOPIC_CATEGORY_MAP = {
   'model-serving': 'aiml',
   'llm-parameters': 'aiml',
   'feature-stores': 'aiml',
-  'recommendation-systems': 'aiml'
+  'recommendation-systems': 'aiml',
+  'docker-fundamentals': 'devops'
 }
 
 export function getTopicCategory(topicId, fallback = 'os') {

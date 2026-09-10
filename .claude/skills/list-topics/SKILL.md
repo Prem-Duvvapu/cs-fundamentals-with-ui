@@ -1,12 +1,12 @@
 ---
 name: list-topics
-description: List the curriculum topics in cs-fundamentals-with-ui grouped by category (os, networking/cn, dbms, java-spring, aiml) with level, title, and one-line summary — optionally auditing that every topic is wired at all 7 registration points. Use when the user asks what topics exist, what's covered under a section, for a curriculum inventory, or whether a topic is fully registered (e.g. "/list-topics", "/list-topics cn", "what DBMS topics do we have").
+description: List the curriculum topics in cs-fundamentals-with-ui grouped by category (os, networking/cn, dbms, java-spring, aiml, devops) with level, title, and one-line summary — optionally auditing that every topic is wired at all 7 registration points. Use when the user asks what topics exist, what's covered under a section, for a curriculum inventory, or whether a topic is fully registered (e.g. "/list-topics", "/list-topics cn", "what DBMS topics do we have").
 user-invocable: true
 ---
 
 # List topics
 
-Runs a deterministic inventory instead of hand-reading `TopicService.java` — 56 topics is too
+Runs a deterministic inventory instead of hand-reading `TopicService.java` — 64 topics is too
 many to enumerate reliably by eye, and the docs disagree with each other on the counts.
 
 ## Run it
@@ -18,8 +18,9 @@ python3 .claude/skills/list-topics/list_topics.py cn --summaries     # one categ
 python3 .claude/skills/list-topics/list_topics.py --audit            # + 7-point registration audit
 ```
 
-Category names are `os`, `networking`, `dbms`, `java-spring`, `aiml`; the script accepts the
-aliases `cn`/`net`/`networks`, `db`/`database(s)`, `java`/`spring`, and `ai`/`ml`.
+Category names are `os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`; the script accepts
+the aliases `cn`/`net`/`networks`, `db`/`database(s)`, `java`/`spring`, `ai`/`ml`, and
+`infra`/`infrastructure`/`ops`.
 
 Level shows as `[B]` beginner, `[I]` intermediate, `[E]` expert. A `[no content file]` flag means
 the topic is registered but no Markdown resolves for it.
