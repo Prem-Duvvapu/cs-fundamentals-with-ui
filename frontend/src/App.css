@@ -1675,6 +1675,18 @@ body {
   padding: var(--space-3) 0;
 }
 .topic-content .katex { color: var(--text-prose); font-size: 1.06em; }
+/* Block math (`.katex-display > .katex`) already scrolls via its .katex-display ancestor above.
+   Inline math (`$...$`) had no containment at all — a formula wider than its line (e.g. a long
+   \text{} label) doesn't wrap, so it overflowed straight through <li>/<p>/<article>/<body>/<html>
+   on narrow viewports instead of scrolling locally (confirmed via a real 320px Playwright check
+   on content/aiml/01-embeddings-vector-db.md's "distance(...) ≈ 0.08" example). */
+.topic-content :not(.katex-display) > .katex {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  vertical-align: middle;
+}
 .topic-content .katex .mord, .topic-content .katex .mbin, .topic-content .katex .mrel,
 .topic-content .katex .mopen, .topic-content .katex .mclose { color: inherit; }
 .topic-content .katex .mop { color: var(--cat-base); }
