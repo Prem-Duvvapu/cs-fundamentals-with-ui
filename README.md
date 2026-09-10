@@ -40,6 +40,41 @@ docker compose up --build
 
 ---
 
+## 🚀 Deployment (free tier)
+
+Both halves already ship with a production `Dockerfile` (`backend/Dockerfile`,
+`frontend/Dockerfile`) — deploying is wiring, not new code. The backend has no database, so
+there's no persistence layer to provision anywhere.
+
+**Backend → [Render](https://render.com) free Web Service**
+1. Push this repo to your own GitHub account (fork or your own remote).
+2. On Render: **New → Blueprint**, connect the repo. Render reads `render.yaml` at the repo root
+   and creates a free Docker web service from `backend/Dockerfile` automatically — the build
+   context is the repo root, since the Dockerfile pulls in the top-level `content/` directory.
+   *(No Blueprint support on your plan? New → Web Service → same repo → Runtime: Docker →
+   Dockerfile path `backend/Dockerfile` → Docker build context `.` (repo root) → Plan: Free.)*
+3. Deploy. Render assigns a public URL like `https://cs-fundamentals-backend-xxxx.onrender.com` —
+   copy it. The backend already reads Render's injected `PORT` env var
+   (`application.properties`), so no config is needed there.
+
+**Frontend → [Vercel](https://vercel.com) free tier**
+1. New Project → import the same repo → set **Root Directory** to `frontend`.
+2. Before deploying, edit `frontend/vercel.json` and replace the placeholder
+   `https://cs-fundamentals-backend.onrender.com` with the real Render URL from the step above,
+   then commit and push.
+3. Deploy. Vercel builds with `npm run build` automatically and serves `dist/`.
+   `vercel.json`'s rewrite proxies `/api/*` to the Render backend server-to-server, so the
+   frontend's existing same-origin `/api/v1/...` calls (`utils/api.js`) work unmodified — no CORS
+   configuration needed, since the browser only ever talks to the Vercel domain. A second
+   rewrite sends every other path to `/index.html` so client-side routes (`/topic/:id`, `/search`,
+   `/interview/:category`) survive a hard refresh or a direct link.
+
+**Known free-tier tradeoff**: Render's free plan sleeps after ~15 minutes idle; the first request
+after a sleep takes 30–50s to wake the container. Expected and harmless for a portfolio link —
+just don't be surprised by a slow first click.
+
+---
+
 ## 🎮 Interactive Visualizers Included
 
 ### 💻 Operating Systems
