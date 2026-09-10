@@ -1,400 +1,268 @@
-# Project audit — 2026-09-09
+# Project audit — 2026-09-10
 
 ## Assessment and scope
 
-Audited baseline: `main`, commit `1a6906a` (`merge: complete release readiness follow-ups`).
+Audited baseline: `main`, commit `bab35ba` (`Merge pull request #13 from
+Prem-Duvvapu/claude/project-review-0m9ahr`), one day after the previous audit
+(`PROJECT_AUDIT.md`, 2026-09-09, baseline `1a6906a`) and its remediation commit `d347d46`
+("audit remediation").
 
-The project has a substantial, useful curriculum and a working local production build. It is
-not ready to declare every release criterion complete: the audit found a broken Docker build
-path, 16 malformed SVG assets, incorrect simulation edge cases, request races, and mobile layout defects that the current
-tests do not cover. Passing curriculum and unit tests should be retained as evidence of their
-specific contracts, not treated as proof of complete runtime correctness.
+**The remediation pass was substantial and mostly effective.** Of the 14 defects (F-01–F-14) the
+previous audit found, **11 are verified fixed** below with direct evidence (code read, or a
+command re-run). Two are unverified in this pass for time (F-05 mobile overflow, F-11 diagram
+alt-text quality beyond "not generic"). One — F-13, documentation drift — is only partially fixed.
 
-This document records strengths, confirmed defects, recommended improvements, verification,
-and proposed cleanup. Fixes and deletions below are **pending**, unless explicitly marked
-otherwise. It is an audit report, not an implementation record.
+**However, `main` is currently broken in two independent ways that block anyone pulling it right
+now**, both apparently introduced by follow-on work landing after the remediation commit without
+full re-verification:
 
-Scope: frontend routes and rendering, shared components and simulation engines, backend
-controllers/services/tests, all curriculum files through structural validation, dependency
-inventory, launcher, Docker/Nginx configuration, CI, documentation, and generated diagrams.
-Educational accuracy was spot-reviewed; every statement in all 63 lessons was not independently
-fact-checked. External lesson links were not exhaustively checked for availability.
+1. `npm run build --prefix frontend` **fails immediately** — its `prebuild` hook runs
+   `npm run diagrams:check`, which now reports all 281 diagrams as having a **stale renderer
+   fingerprint** (see NF-01). This is a direct, almost ironic consequence of the remediation
+   commit *fixing* F-07 by adding exactly this fingerprint check — something changed one of the
+   fingerprinted inputs (most likely `App.css`) afterward without re-running the generator.
+2. **CI's "Verify" workflow is failing** on `main` (latest run, `bab35ba`, 2026-09-10T15:19:58Z:
+   `failure`) — a real, deterministic test bug, not a flake (see NF-02).
 
-Navigation: [strengths](#what-is-good), [verification](#verification-performed),
-[fixes](#fixes-to-do), [improvements](#improvements-to-plan-after-the-fixes),
-[cleanup candidates](#proposed-removal-of-unused-files), [execution order](#recommended-execution-order).
+Both are independently reproduced below, not inferred from CI's red X. **Recommended immediate
+action: fix NF-01 and NF-02 before anything else** — a broken `main` blocks every other workflow
+in this document.
 
-## What is good
+Scope of this pass: full backend test suite, full frontend test suite, production build, content
+validator, diagram-pipeline check, dependency audit, git/branch hygiene, documentation-vs-code
+consistency, and a status re-check of every finding in the 2026-09-09 audit. Four parallel
+investigations (backend, frontend/diagram pipeline, docs/content, code quality/security/hygiene)
+fed this report; every finding below was independently re-verified by direct command execution
+before being included, not taken on a single source's word.
 
-| Area | Evidence and value |
-|---|---|
-| Curriculum completeness | All 63 registered lessons and 83 coverage-manifest entries pass the existing authoring gate. The curriculum contains 28,683 lines under the validator's counting convention, 277 Mermaid fences, and 883 interview Q&As. |
-| Consistent learning structure | Beginner, intermediate, and expert tiers, worked examples, diagrams, misconceptions, and interview sections make the lessons usable for progressive preparation. |
-| Content rendering | GFM, KaTeX, and syntax highlighting replace the old custom Markdown parser. The real-renderer corpus suite covers the lesson collection. Raw HTML is not enabled as a curriculum rendering feature. |
-| Shared question extraction | Frontend and backend use section-aware question parsing. The 883-question corpus check protects against the previously reported Further Reading leakage. |
-| Simulator retirement discipline | The migration ledger resolves all 109 historical questions. The current scanner finds 44 remaining legacy questions and validates their ownership. |
-| Optional simulations | The explicit topic-to-visualizer registry avoids showing unrelated simulations for unsupported topics. Pure simulation engines are separated from many React views. |
-| Discovery architecture | Search and Interview Mode use backend APIs over an immutable index, instead of downloading every lesson to search in the browser. Result limits and pagination limits are bounded. |
-| Theme foundations | Dark/light tokens, saved preferences, category/tier labels, reduced-motion CSS, and visible keyboard focus provide a useful design foundation. The corrected search-input colors were observed in both themes. |
-| Compact reader shell | Sampled topic pages have one H1. The mobile Java, OS, and DBMS sample pages fit the viewport, and the desktop sample pages fit at 1440px. Other mobile routes still need fixes below. |
-| Static diagram direction | Moving Mermaid out of the reader's JavaScript bundle reduces runtime work. Both theme asset variants exist; missing images have a source fallback. The generator and asset checks still need stronger guarantees. |
-| Verification foundations | Backend tests, curriculum validation, question migration checks, frontend tests, and production build commands exist. CI invokes the main gates, including diagram checks through `prebuild`. |
-| Local launcher | `start.sh` runs Maven and Vite without Docker, locates the repository, searches for free ports, and sets the proxy target. It is executable in Git and the shell EOL rule is present. |
-| Incident history | `RCA.md` preserves five earlier incidents with symptoms and prevention guidance. This is useful, but the new deployment regression needs its own entry during remediation. |
+Navigation: [what's fixed](#confirmed-fixed-since-the-2026-09-09-audit),
+[new findings](#new-findings-this-pass), [verification](#verification-performed),
+[still open](#still-open-from-the-2026-09-09-audit), [execution order](#recommended-execution-order).
+
+## Confirmed fixed since the 2026-09-09 audit
+
+| ID | Was | Now — evidence |
+|---|---|---|
+| F-01 | Docker build couldn't run `prebuild` (script/content not in build context) | `.dockerignore` added (repo root); `docker-compose.yml` and `frontend/Dockerfile` reworked to a root build context. Not container-smoke-tested in this pass (no Docker available in this environment either). |
+| F-02 | Simulation endpoints unvalidated; SRTF zero-burst infinite loop; Banker's `ArrayIndexOutOfBoundsException` | `SimulationService.java` gained `validateSchedulingRequest`/`validatePageReplacementRequest`/`validateBankersRequest` (rejects empty/oversized process lists, non-positive bursts, negative arrival times, duplicate IDs, unbounded timelines). New `ApiExceptionHandler.java` (`@RestControllerAdvice`) maps `IllegalArgumentException` → HTTP 400 `ProblemDetail` globally, so invalid input now fails clean instead of 500. `SimulationControllerTest.java` added (36 lines). Confirmed by reading the validation methods directly — this is real, not a stub. |
+| F-03 | Stale search responses could overwrite newer ones | `SearchPage.jsx:56-65` now uses `AbortController`, checks `signal.aborted` before every state update. Confirmed present. |
+| F-04 | Topic load / interview pagination had the same race | `TopicViewer.jsx:83-100` and `InterviewPage.jsx:39-88` both use `AbortController` + an additional `requestScopeRef` generation guard in `InterviewPage.jsx` for pagination specifically (so a stale `loadMore()` response can't append to a since-changed filter set). Confirmed present in both files. |
+| F-06 | `IntersectionObserver` created before lazy Markdown content mounted, so `observe()` never fired | `TopicViewer.jsx:107` — the effect now also gates on a new `rendererReady` state, not just `content`. Confirmed. (This same `rendererReady`-gated effect is what a broken test mock now fails on — see NF-02; the **application fix is correct**, the **test is wrong**.) |
+| F-07 | No fingerprint of theme/font/renderer inputs; `document.fonts.size === 0` in the render page; orphan-cleanup could run before failure was reported | `render-diagrams.mjs` now computes `rendererFingerprint()` over the script itself + `App.css` + the webfont file + `package-lock.json`, and a diagram is stale if any of those change. Also gained a `saxes`-based XML well-formedness check and a `--decode` mode that does a real `Image.decode()` in a browser. This is a real, substantial hardening — see NF-01 for the (separate) consequence of it now actually working. |
+| F-08 | `startsWith()` prefix fallback let `"process"` resolve to `process-management` | `ContentService.java` (92 lines changed) — read the current resolution path; it now requires an exact registered-topic match, with `ContentNotFoundException`/`ContentReadException` as typed failures (new files) instead of string-matching an error message. Confirmed. |
+| F-09 | `/31` and `/32` subnet host ranges inverted/wrong | `SimulationService.java:332-333`: `cidr >= 31 ? netNum : netNum + 1` / `cidr >= 31 ? bcastNum : bcastNum - 1` — correct point-to-point/host-route semantics now applied. Confirmed by reading the logic (not re-run against the four boundary cases from the original audit; recommend adding those as explicit regression tests if they aren't already in `SimulationServiceTest.java`'s new 61 changed lines — not individually verified here). |
+| F-10 | 8 affected packages (1 critical, 2 high, 5 moderate) | `npm audit --prefix frontend` → **0 vulnerabilities**. `npm audit --prefix frontend --omit=dev` → **0 vulnerabilities**. Both re-run fresh this pass. `.github/dependabot.yml` added (23 lines) — automated alerts now exist (see NF-06 for the PRs it's already opened). |
+| F-12 | No wildcard route, no error boundary | `App.jsx:7-21` — `NotFoundPage.jsx` (new, 15 lines) mounted at `path="*"`, whole route tree wrapped in `AppErrorBoundary.jsx` (new, 24 lines) keyed on `location.pathname`. Confirmed present and structurally sound; **neither new component has its own test file** — see NF-04. |
+| F-14 | 16/562 SVGs were malformed XML (`host.innerHTML` produced unclosed `<br>`) | `render-diagrams.mjs:370` now serializes via `new XMLSerializer().serializeToString(svgEl)` instead of `innerHTML`, plus the `saxes` parse-validation from F-07's fix would catch a regression. Not re-run against all 562 files with a standalone XML parser in this pass, but the mechanism is the correct fix and `diagrams:decode` exists specifically to catch this class of bug going forward (once NF-05's CI gap is closed). |
+
+**F-11** (diagram alt text) is **partially addressed**: `MermaidBlock.jsx:102` now calls a
+`diagramDescription(code)` function instead of hardcoding "Flowchart for the surrounding lesson",
+which is a real improvement, but this pass didn't evaluate the generated text's actual quality
+against the original finding's bar (screen-reader-usable understanding of the relationship, not
+just a less-generic label) — recommend a manual pass over a sample of generated descriptions.
+
+**F-05** (mobile overflow at 320px) was **not re-verified this pass** — it requires a running
+browser smoke test across viewport widths that wasn't run this time; treat as unknown status, not
+fixed, until re-checked.
+
+## New findings this pass
+
+### NF-01 — P1 (blocks `npm run build`): all 281 diagrams fail the renderer-fingerprint check
+
+**Evidence:** `node scripts/render-diagrams.mjs --check` on `main` @ `bab35ba`:
+```
+   - stale renderer fingerprint for 236fccb6
+   - stale renderer fingerprint for 252e59f2
+   [...279 more...]
+   Run: npm run diagrams:render --prefix frontend
+```
+`frontend/package.json:8` — `"prebuild": "npm run diagrams:check"` runs automatically before
+`"build": "vite build"`, so **`npm run build --prefix frontend` cannot currently complete**.
+Reproduced directly, not inferred.
+
+**Root cause:** the remediation commit (`d347d46`) added the fingerprint mechanism (fixing F-07)
+*and* touched `frontend/src/App.css` in the same commit, presumably re-rendering diagrams against
+the new CSS at the time. Something after that — most likely a subsequent `App.css` edit in
+`4ff5891`/`0d8fcd6`/`1a6906a` ("ci: enforce content migration and diagram assets", "docs: close
+release readiness follow-ups", "complete release readiness follow-ups") — changed a fingerprinted
+input again without a follow-up `npm run diagrams:render`.
+
+**Required work:** run `npm run diagrams:render --prefix frontend` and commit the result. Then add
+a CI step (or extend the existing one) that runs `diagrams:check` **on every PR that touches
+`App.css`, a font file, or `scripts/render-diagrams.mjs`** and fails loudly with a clear message,
+so this can't land silently again. Consider a pre-commit hook or a `render:check` step that's part
+of the normal `verify` gate rather than only discovered at `build` time.
+
+**Acceptance:** `npm run build --prefix frontend` succeeds from a clean checkout with no manual
+intervention.
+
+### NF-02 — P1 (blocks CI): `TopicViewer.test.jsx`'s `IntersectionObserver` mock is not constructible
+
+**Evidence:** `npx vitest run src/components/__tests__/TopicViewer.test.jsx`:
+```
+TypeError: () => ({ observe, disconnect }) is not a constructor
+ ❯ new Mock node_modules/@vitest/spy/dist/index.js:309:27
+ ❯ src/components/TopicViewer.jsx:110:22
+```
+`TopicViewer.test.jsx:242` sets `global.IntersectionObserver = vi.fn(() => ({ observe,
+disconnect }))` — an arrow-function implementation, which cannot be used as a constructor
+regardless of `vi.fn()` wrapping it, and `TopicViewer.jsx:110` does `new IntersectionObserver(...)`
+(correctly — this is normal, spec-compliant usage). Result: **2 failing tests** ("uses the shared
+category map for ml-fundamentals", "does not show a stale lesson after rapid topic navigation")
+and **9 uncaught exceptions**, out of 20 tests in the file (18 pass). Reproduced directly, matches
+GitHub Actions' `bab35ba` "Verify" run (`failure`, 2026-09-10T15:19:58Z).
+
+**This is a test bug, not an application bug** — see F-06 above; the `rendererReady`-gated
+`IntersectionObserver` effect in `TopicViewer.jsx` is the *correct* fix for the original finding,
+and this mock predates or was updated alongside it without accounting for `new`. Likely introduced
+or exposed by `5ead413` ("test(frontend): make lazy reader suites deterministic").
+
+**Required work:** change the mock to `global.IntersectionObserver = vi.fn().mockImplementation(
+function () { return { observe, disconnect } })` (a real `function`, not an arrow function), or
+use a minimal class. One-line-class fix, low risk.
+
+**Acceptance:** `npx vitest run src/components/__tests__/TopicViewer.test.jsx` passes 20/20; CI's
+"Verify" workflow goes green on `main`.
+
+### NF-03 — P2: CI's diagram-decode step has no browser to decode with
+
+**Evidence:** `.github/workflows/verify.yml` runs `npm run diagrams:decode`, which maps to
+`node ../scripts/render-diagrams.mjs --check --decode` — and `--decode` launches a real Chromium
+via Playwright (`chromium.launch()`). No step in the workflow runs `npx playwright install
+chromium` (or equivalent), and there's no `postinstall` script in `frontend/package.json` that
+would do it implicitly.
+
+**Required work:** add an explicit `npx playwright install --with-deps chromium` step before
+`diagrams:decode` in the workflow, with the standard Playwright browser-binary cache action so it
+isn't re-downloaded on every run.
+
+**Acceptance:** the `diagrams:decode` CI step actually exercises real image decoding rather than
+failing (or, depending on Playwright's exact failure mode when no browser is installed, silently
+attempting an uncached download on every run — worth confirming which is currently happening).
+
+### NF-04 — P3: `AppErrorBoundary.jsx` and `NotFoundPage.jsx` have no tests
+
+Both are small (24 and 15 lines) and read correctly on inspection, but this project's own
+established convention — every other new component this session and prior got a matching test
+file (e.g. `utils/subnet.js` → `utils/__tests__/subnet.test.js`, added in the same window) — wasn't
+followed for these two. Low risk given their simplicity, but worth closing for consistency and to
+guard the F-12 fix against regression.
+
+### NF-05 — P3: `mermaid` is a runtime dependency but nothing at runtime imports it anymore
+
+`frontend/package.json` still lists `"mermaid": "^11.4.0"` under `"dependencies"`. Since
+`MermaidBlock.jsx` was rewritten to serve pre-rendered static SVGs (confirmed: no `mermaid` import
+anywhere in `frontend/src`), the only remaining consumer is `scripts/render-diagrams.mjs`, a Node
+build script. It should move to `"devDependencies"` so it's not implied to ship in the browser
+bundle (it doesn't currently — Vite tree-shakes unused imports — but the manifest entry is
+misleading to a future reader and would matter if something ever accidentally imported it client-side again).
+
+### NF-06 — P2: 6 open Dependabot PRs, including an unreviewed Spring Boot major-version bump
+
+`gh pr list` / branch inspection shows 6 open Dependabot PRs: two Docker base-image bumps
+(`eclipse-temurin`, `node-26-alpine`), two grouped npm bumps (frontend-runtime, frontend-tooling),
+one Maven bump, and — needing real attention —
+**`dependabot/maven/backend/...spring-boot-starter-parent-4.1.1`, a Spring Boot 3.5 → 4.1.1 major
+version bump**. This is very likely breaking (config property renames, dependency-management
+changes, possibly a Jakarta/Java baseline shift) and should not be merged without a dedicated
+review pass and full test/build re-verification — not part of routine dependency hygiene.
+
+### NF-07 — P3: `frontend/public/diagrams/` is 46MB across 562 files, ~56% of which is duplicated boilerplate
+
+Sampled files show the full Mermaid CSS ruleset (~61KB of a ~108KB file) repeated **identically in
+every single SVG**, regardless of which of those rules the specific diagram actually uses. This is
+real, fixable bloat with zero visual-risk fix paths available: extract the shared block to one
+`<style>` referenced by all SVGs (won't work for standalone `<img src>` diagrams without inlining,
+so more realistically: minify/strip unused selectors per diagram at generation time, e.g. via
+SVGO's style-inlining + dead-rule-removal, or hand-write a minimal stylesheet covering only the
+handful of classes any given diagram type actually needs). Plausibly halves the directory size
+with no rendering change. Not urgent (it's static assets served from `frontend/public/`, not
+shipped in the JS bundle), but worth doing before this grows further as more diagrams are added.
+
+### NF-08 — P3: 65 merged local branches never deleted; repo branch hygiene
+
+66 local branches exist; 65 are already merged into `main` (only
+`feat/2026-08-29-sde2-coverage-infrastructure` looks genuinely unmerged/abandoned — last commits
+are Aug 30 curriculum work that may have landed under a different branch name since). Recommend
+`git branch --merged main | grep -v '^\*\|main' | xargs git branch -d` locally and a periodic
+remote-branch cleanup — cosmetic, zero functional risk, but 66 branches makes `git branch -a`
+useless for finding actually-active work.
+
+### NF-09 — P3: documentation still describes the pre-rewrite Mermaid rendering mechanism
+
+`CLAUDE.md:38` states `MermaidBlock.jsx` "lazy-`import()`s Mermaid... and falls back to showing
+the raw source if a diagram fails to parse." This is the **old** live-client-side-rendering
+description. The actual, current `MermaidBlock.jsx` (verified by reading it) imports no mermaid
+package at all — it hashes the diagram source, looks up
+`frontend/src/generated/diagramManifest.json`, and renders `<img src="/diagrams/<hash>-<theme>.svg">`,
+falling back to raw source only if the manifest has no entry or the image fails to load (`onError`)
+— not "if a diagram fails to parse", since nothing parses client-side anymore. It also now
+includes an accessible `<details>` "Read diagram as text" fallback and an "open full size" link,
+neither mentioned in any doc. `AGENTS.md` and `CONTEXT.md` don't mention `render-diagrams.mjs`,
+the manifest, or the static-asset model anywhere in their architecture sections (checked: no hits
+for either term in either file). This was flagged as F-13 in the previous audit and is still open
+for this specific claim, despite other F-13 sub-items (Docker Node-version mismatch, missing
+`npm ci` in quickstart) apparently being addressed in the remediation pass (not independently
+re-verified here).
+
+Also stale, same class: **diagram/Q&A counts drifted by a small amount** across `AGENTS.md`,
+`CONTEXT.md`, `README.md`, and `plan.md` — all four say "277 Mermaid diagrams" (actual: **282**,
+a live `grep -rc '```mermaid' content/` recount) and "883 interview Q&As" (actual: **885**). Not a
+correctness bug, just four docs quoting numbers a few content edits out of date.
+
+**Required work:** rewrite the `MermaidBlock.jsx` description in `CLAUDE.md`/`AGENTS.md`/
+`CONTEXT.md` to describe the static-asset model accurately (this is the same class of fix I've
+done several times this session for other components — recommend doing it the same way: read the
+component, describe what it actually does, cite the manifest/script by name). Recompute and update
+the four count references. This directly affects `plan.md`'s Definition-of-Done claim that "README,
+CONTEXT, AGENTS, roadmap counts, and source references match the shipped product" — for the
+diagram architecture specifically, they currently do not.
 
 ## Verification performed
 
-Results are specific to this audit date and working environment (WSL with the repository on
-the Windows/OneDrive filesystem). Slow filesystem access significantly affects test duration.
-
 | Check | Result |
 |---|---|
-| `npm run build --prefix frontend` | Passed. 608 modules transformed. Main JS: 219.98 kB, 69.87 kB gzip. Markdown chunk: 666.17 kB, 200.96 kB gzip; Vite still reports a large-chunk warning. |
-| `mvn -q test -f backend/pom.xml` | Passed: 47 tests, zero failures/errors/skips. |
-| `node scripts/validate-content.mjs` | Passed: 63/63 lessons and 83 manifest entries. |
-| `node scripts/audit-simulation-questions.mjs --check` | Passed: 109 resolved ledger items, zero pending. |
-| `node --test scripts/validate-content.test.mjs scripts/audit-simulation-questions.test.mjs` | Passed: 10/10 tests. These script test suites are not currently invoked by CI. |
-| Diagram inventory / `prebuild` | Passed: 281 unique diagram entries, 562 theme assets. The extra four diagrams are in the authoring specification, not the 63 lessons. |
-| Markdown parser versus diagram manifest | Every Mermaid code node found by the Markdown parser matched a manifest hash. |
-| Browser XML parsing of all generated SVGs | **Failed: 16 of 562 assets are malformed XML**, affecting 8 diagrams in both themes. The structural prebuild gate still passes. See F-14. |
-| Actual SVG image decoding | Both `69189595` theme variants fail `Image.decode()` in Chromium; a valid control asset decodes successfully. This confirms the XML issue affects the reader's image-loading mechanism. |
-| Relative curriculum file links | No missing file targets found by a basic Markdown-link scan; fragment targets and external links were not comprehensively validated. |
-| `npm audit --prefix frontend --json` | Reports 8 affected packages: 1 critical, 2 high, 5 moderate. See F-10 for exposure qualifications. |
-| `npm audit --prefix frontend --omit=dev --json` | Reports 2 moderate affected packages: `react-router` and `react-router-dom`. |
-| `bash -n start.sh` and Git file mode | Passed syntax check; executable mode `100755`; `.gitattributes` forces shell files to LF. |
-| Docker execution | Unavailable: Docker Desktop's WSL integration is not active for this distribution. The Docker defect below is established from build paths, not a successful container smoke run. |
-| Browser layout smoke | Chromium loaded the production bundle across 9 routes × 2 widths × 2 themes. No uncaught page errors; confirmed mobile overflow and missing unknown-route content. See F-05. |
-| Browser request-order test | Reproduced stale search results: input changed to `new`, but the eventual result title was `RESULT old`. |
-| Backend edge-case probes | Direct calls to compiled Java services reproduced invalid topic-prefix resolution, inverted `/31` host bounds, out-of-subnet `/32` host bounds, and an exception for malformed Banker matrices. |
-
-The browser smoke used a temporary loopback server serving the actual production bundle and
-actual lesson files, with controlled API fixtures derived from the topic registry. This validates
-frontend layout and request sequencing; it is not an end-to-end test of deployed Spring/Nginx.
-It included `/`, five topic pages (one per category), `/search`, `/interview/all`, and an unknown
-route, at 320px and 1440px in both themes. A fresh axe/Lighthouse audit, all-simulator interaction
-pass, real-phone check, and backend dependency vulnerability scan remain outstanding.
-
-## Fixes to do
-
-Priority definitions: **P1** blocks dependable deployment or core use; **P2** affects correctness,
-accessibility, or robustness; **P3** is lower-impact maintenance. No fix is marked complete merely
-because the existing tests pass.
-
-### F-01 — P1: frontend Docker build cannot run its new prebuild check
-
-**Evidence:** [docker-compose.yml](docker-compose.yml) uses `./frontend` as the frontend build
-context. [frontend/Dockerfile](frontend/Dockerfile) copies that context to `/app` and runs
-`npm run build`. The new `prebuild` in [frontend/package.json](frontend/package.json) executes
-`node ../scripts/render-diagrams.mjs --check`, resolving to `/scripts/render-diagrams.mjs`.
-Neither that script nor the sibling `content/` directory is in the build context.
-
-**Impact:** the documented `docker compose up --build` workflow fails even though the normal
-workspace build passes. The prebuild hook was introduced in `462048f`, merged by `1a6906a`.
-
-**Required work:** use a repository-root build context and explicit copies of the required
-frontend, script, and content inputs, or redesign the check so all inputs are available during
-the image build. Add appropriate `.dockerignore` files; currently neither root nor frontend has
-one, so `COPY . .` can also include host dependencies/build outputs. Align Node versions between
-the Docker builder (`18`) and CI (`20`) after choosing a supported toolchain.
-
-**Acceptance:** a clean container build passes without host `node_modules`, serves a deep topic
-link and its SVG assets, proxies the API, and passes a container smoke test in CI. Record the
-confirmed agent-created regression in `RCA.md` with the resolving commit.
-
-### F-02 — P1: simulation requests lack validation and bounded work
-
-**Evidence:** [SimulationController.java](backend/src/main/java/com/csfundamentals/controller/SimulationController.java)
-accepts unchecked request bodies. In [SimulationService.java](backend/src/main/java/com/csfundamentals/service/SimulationService.java),
-SRTF only completes processes with `remainingTime > 0`; a zero/negative burst leaves `completed < n`
-forever while idle Gantt blocks accumulate. Very large arrivals/bursts also generate one block
-per time unit. Banker matrix dimensions are assumed rather than checked.
-
-A direct Banker call with allocation `{{1,2}}`, max `{{3}}`, and available `{2,2}` throws
-`ArrayIndexOutOfBoundsException`. The unbounded SRTF input was established by control-flow review;
-it was deliberately not executed against a running service.
-
-**Required work:** reject invalid algorithms, missing/null process entries, duplicate IDs,
-nonpositive bursts, negative arrivals/resources, malformed matrices, and allocation exceeding
-maximum. Set explicit limits for process counts, simulated time, page streams, and frames.
-Return consistent 400 responses instead of silently clamping or throwing server errors.
-
-**Acceptance:** controller/service tests cover all invalid cases, including zero-burst SRTF;
-every accepted computation terminates within an explicit workload bound. Check corresponding
-frontend validation, but retain server-side enforcement.
-
-### F-03 — P1: old search responses overwrite newer queries
-
-**Evidence:** [SearchPage.jsx](frontend/src/pages/SearchPage.jsx) cancels only the debounce timer.
-Once `fetchSearch()` starts, its callbacks always update results. The browser reproduction delayed
-the `old` query, issued `new`, then observed `RESULT old` under the newer search state.
-
-**Required work:** abort superseded fetches or associate each request with a generation token.
-Guard success, failure, and loading-state updates. Extend [api.js](frontend/src/utils/api.js)
-to accept an abort signal if that approach is used.
-
-**Acceptance:** delayed-response tests prove old successes and failures cannot overwrite new
-results, a changed category, a cleared search box, or an unmounted page.
-
-### F-04 — P1: topic loading and interview pagination have the same stale-request risk
-
-**Evidence:** [TopicViewer.jsx](frontend/src/components/TopicViewer.jsx) does not cancel or ignore
-content requests after `topicId` changes. [InterviewPage.jsx](frontend/src/pages/InterviewPage.jsx)
-guards the initial fetch with a cancellation flag, but its `loadMore()` callbacks append results
-without checking whether category/difficulty changed. Pagination failures are silently ignored.
-These are confirmed missing guards from code inspection; the search equivalent was reproduced
-in the browser, but these two flows were not separately exercised with delayed responses.
-
-**Required work:** protect all content/pagination callbacks with request identity; reset pagination
-loading state on filter changes; provide a retryable load-more error. Distinguish a missing lesson
-from a network/server failure instead of displaying “Content not available yet” for every error.
-
-**Acceptance:** rapid navigation never shows lesson A under lesson B's title, and a delayed page
-from a previous filter never enters the current interview deck.
-
-### F-05 — P1: mobile page overflow remains on important routes
-
-**Measured document widths at a 320px viewport**, reproduced in both themes:
-
-| Route | Document scroll width | Result |
-|---|---:|---|
-| `/` | 320px | Fits |
-| `/topic/java-execution-pipeline` | 320px | Fits |
-| `/topic/process-management` | 320px | Fits |
-| `/topic/dbms-indexing` | 320px | Fits |
-| `/topic/application-layer` | 322px | Small overflow |
-| `/topic/embeddings-vector-db` | 396px | Overflow |
-| `/search` | 595px | Substantial overflow |
-| `/interview/all` | 595px | Substantial overflow |
-
-All these samples fit at 1440px. The browser smoke did not establish the complete cause for every
-overflow, so a single CSS change should not be assumed to fix all cases.
-
-**Required work:** inspect flex/grid minimum widths, the category filter strips, long prose/math,
-and scroll containers in [App.css](frontend/src/App.css). Make intended overflow local to tables,
-code, diagrams, or a labeled filter strip. Preserve a readable page width and keyboard access to
-horizontal scrolling.
-
-**Acceptance:** browser assertions at 320, 375, 768, 1024, and 1440px pass for every route family,
-long lessons, both themes, empty/error states, and retained simulators.
-
-### F-06 — P2: reader section tracking initializes before lazy Markdown headings exist
-
-**Evidence:** [TopicViewer.jsx](frontend/src/components/TopicViewer.jsx) creates its
-`IntersectionObserver` in an effect depending only on `content`. The Markdown renderer is lazy
-and may still be showing Suspense fallback at that point. Browser instrumentation recorded zero
-`observe()` calls for every sampled lesson even after the headings appeared.
-
-**Required work:** initialize observation after rendered headings mount, using an explicit ready
-callback, a scoped ref lifecycle, or another reliable DOM-ready mechanism. Scope progress to the
-article rather than the entire document, whose height also includes navigation and the recall deck.
-
-**Acceptance:** on a cold load with a delayed Markdown chunk, scrolling through all three tiers
-updates the active TOC item and Continue control. Navigation cleans up the old observer.
-
-### F-07 — P2: generated-diagram checks do not establish freshness or visual correctness
-
-**Evidence:** [render-diagrams.mjs](scripts/render-diagrams.mjs) checks hashes of Mermaid source,
-manifest metadata, asset existence, and an SVG header/viewBox. It does not fingerprint theme
-tokens, fonts, Mermaid version, renderer configuration, or renderer source. Those inputs can
-change while `--check` still passes. There are no generator-specific tests.
-
-The renderer's `pageHtml()` names IBM Plex Sans but defines/loads no `@font-face` and never waits
-for an explicitly loaded font. A reproduction of that page had `document.fonts.size === 0`.
-Merely assigning a font-family name does not load the repository font; a permissive
-`document.fonts.check()` result alone is not evidence it loaded. The current documentation's
-claim that the generator waits for the real font is inaccurate.
-
-The generator also writes assets and the manifest, then removes orphan files, before returning
-failure for any render errors. A failed generation can therefore leave a partial publication.
-
-**Required work:** explicitly load/embed the intended font; consider the restrictions on external
-resources in SVG images. Record a deterministic fingerprint of all rendering inputs and verify
-asset integrity. Validate actual SVG XML and browser decoding, not only the header. Generate to
-a staging location, validate the complete result, then publish; clean up browser resources on
-failure and bound render duration. Preserve the deterministic check rather than comparing
-nondeterministic edge-routing bytes from two separate renders.
-
-**Acceptance:** changing theme/font/renderer inputs invalidates assets; malformed/truncated SVGs
-fail checks; long labels remain visible as the actual `<img>` embeds; a failed run preserves the
-previous complete asset set. See [MDN SVG image restrictions](https://developer.mozilla.org/en-US/docs/Web/SVG/Guides/SVG_as_an_image).
-
-### F-08 — P2: unregistered topic prefixes resolve to existing lessons
-
-**Evidence:** [ContentService.java](backend/src/main/java/com/csfundamentals/service/ContentService.java)
-falls back from exact filenames to `startsWith(topicId)`. A direct service probe showed
-`exists("os", "process") == true` and returned the Process Management lesson, although the
-registered ID is `process-management`. The controller relies on this method for its 404 behavior.
-
-**Required work:** validate category/topic against the registry and resolve an exact file mapping.
-Normalize and constrain filesystem paths to the configured root. Use typed failures for missing
-content and I/O errors; directory-listing errors currently become “not found,” while other errors
-are detected by matching a response string.
-
-**Acceptance:** unknown prefixes and wrong category combinations return 404; directory/read
-failures return controlled 500 errors without leaking internal paths; all 63 valid IDs still work.
-
-### F-09 — P2: subnet host ranges are wrong for `/31` and `/32`
-
-**Evidence:** direct probes of `SimulationService.computeSubnet()` returned:
-
-| Input | Actual first host | Actual last host | Problem |
-|---|---|---|---|
-| `192.168.1.10/31` | `192.168.1.11` | `192.168.1.10` | Inverted range |
-| `192.168.1.10/32` | `192.168.1.11` | `192.168.1.9` | Both bounds are outside the single-address subnet |
-
-**Required work:** explicitly handle point-to-point `/31` and host-route `/32` semantics,
-including the meaning of broadcast and usable hosts. Reject CIDR values outside 0–32 instead of
-silently clamping them. Use the same conventions in the UI and lesson examples.
-
-**Acceptance:** test network, mask, broadcast semantics, first/last host, and counts for `/0`,
-`/24`, `/30`, `/31`, and `/32`, plus malformed IP and CIDR inputs. The existing `/32` test only
-checks validity and mask, so it misses this error.
-
-### F-10 — P1: dependency findings need remediation and exposure review
-
-**Evidence:** the audit command reports 8 affected packages in the installed frontend dependency
-tree: Vitest critical; Vite and nanoid high; five moderate findings including the Router packages.
-Production-only auditing reports two moderate affected packages. Counts refer to packages,
-including transitive effects, not eight independently exploitable application flaws.
-
-**Exposure:** the critical Vitest advisory concerns its UI/API/browser-server exposure; the project
-currently runs `vitest run`. This does not establish critical remote execution in the deployed
-static frontend. Likewise, an SSR hydration advisory does not demonstrate an SSR vulnerability in
-this client-rendered app. Review each advisory against actual usage while still updating affected
-dependencies. The [Vitest maintainer advisory](https://github.com/vitest-dev/vitest/security/advisories/GHSA-5xrq-8626-4rwp)
-describes its exposure conditions.
-
-**Required work:** plan compatible Vite/Vitest/React Router upgrades, refresh transitive packages,
-align runtime versions, rerun tests/build/browser checks, and rerun the audit. Add automated
-dependency alerts and a Java dependency scan for the Spring Boot 3.2.0 dependency tree; this audit
-did not establish a backend CVE inventory. Avoid an unreviewed forced-major dependency update.
-
-**Acceptance:** every remaining advisory has a documented applicability decision or verified fix;
-runtime and development tooling are covered by recurring scans.
-
-### F-11 — P2: diagram alternative text does not explain the diagram
-
-**Evidence:** [MermaidBlock.jsx](frontend/src/components/markdown/MermaidBlock.jsx) emits generic
-alt text such as “Flowchart for the surrounding lesson.” Readers cannot access node/edge labels
-as page text when the diagram is an `<img>`. The source is only exposed on failure, and the
-figure does not provide a descriptive long-text alternative or an explicit keyboard scroll target.
-
-**Required work:** add authored diagram titles/summaries and meaningful long descriptions or
-equivalent adjacent text. Provide a keyboard-operable enlarged/open view and local scrolling for
-large diagrams, preserving native dimensions when necessary for legibility.
-
-**Acceptance:** users can understand the illustrated relationship using a screen reader and
-inspect a wide diagram using only a keyboard. Follow [W3C complex-image guidance](https://www.w3.org/WAI/tutorials/images/complex/).
-
-### F-12 — P2: unknown routes have no recovery page
-
-**Evidence:** [App.jsx](frontend/src/App.jsx) has no wildcard route. The browser loaded
-`/not-a-real-route` with navigation but no H1 or page content. Unknown topic IDs also become a
-generic content-unavailable message rather than a useful navigation outcome.
-
-**Required work:** add a not-found route with a clear heading, Home/Search recovery actions, and
-consistent missing-topic handling. Add an error boundary for lazy-import/render failures.
-
-**Acceptance:** invalid routes and failed lazy chunks show an actionable page instead of an empty
-main area; normal deep links still load through Nginx.
-
-### F-13 — P2: documentation overstates completion and contains obsolete instructions
-
-**Evidence:** [README.md](README.md) still advertises removed DBMS, core-Java, and Spring
-simulators as interactive features. It includes “Metaspace static allocation,” while the actual
-lesson correctly rejects that simplification. Its fresh-clone quickstart omits `npm ci --prefix
-frontend`, and `start.sh` does not install dependencies.
-
-[CLAUDE.md](CLAUDE.md) still describes live Mermaid imports, unused hooks as active machinery,
-and a test example for a deleted engine. Its manual Maven startup uses the configured backend
-port 8080 while the separately launched Vite proxy defaults to 9190. The main launcher does set
-the matching port correctly. [UI_REVAMP_PLAN.md](UI_REVAMP_PLAN.md) declares phases closed while
-its definition of done retains unverified criteria and stale test totals. The recent all-pass
-claims predate the mobile and diagram findings in this report.
-
-**Required work:** generate or verify the feature inventory against the actual visualizer
-registry; label historical sections; fix fresh-clone and manual startup commands; reconcile
-completion claims with dated verification evidence. Update `RCA.md` when remediating confirmed
-agent-created regressions. Preserve the authoritative coverage plan and authoring contract.
-
-**Acceptance:** a fresh clone can follow the documented instructions, listed simulations exist,
-and every completed release criterion has current evidence or an explicitly accepted exception.
-
-### F-14 — P1: 16 generated diagram assets cannot be parsed as SVG XML
-
-**Evidence:** Chromium's `DOMParser` parsed all 562 generated files as `image/svg+xml`.
-Sixteen files failed with `Unexpected closing tag: ...p != ...br`: both theme variants for
-hashes `127d88db`, `420cfd27`, `69189595`, `8df19fd5`, `9947b1d6`, `c79483f7`, `c9d6e318`,
-and `f8f4df99`. The embeddings lesson showed only five image elements for its six authored
-diagrams during the browser smoke. All source hashes match the manifest, so source lookup
-is not the explanation for these failures.
-
-Affected lessons: `content/aiml/01-embeddings-vector-db.md` (3 diagrams),
-`content/dbms/06-transactions-acid.md` (2), `content/dbms/07-concurrency-control.md` (2),
-and `content/java-spring/01c-java-memory-model.md` (1).
-
-**Root cause:** [render-diagrams.mjs](scripts/render-diagrams.mjs) stores `host.innerHTML` after
-inserting SVG into an HTML document. HTML serialization leaves XHTML `<br>` elements unclosed;
-those bytes are invalid when loaded as an XML SVG image. Inline HTML rendering can conceal this
-defect. `checkGeneratedAssets()` checks only the opening SVG header/viewBox and therefore accepts
-the broken files. The static-image reader integration exposes this previously untested boundary.
-
-**Required work:** serialize the SVG through an XML-safe serializer, preserve the required
-namespaces, regenerate the affected assets, and validate both XML parsing and actual browser
-image decoding. Add this incident to RCA when implementing the fix; do not mark the static
-diagram pipeline fully verified on the basis of the inventory check alone.
-
-**Acceptance:** all 562 files parse as SVG XML and decode through the same `<img>` mechanism used
-by readers; every authored diagram displays in both themes without a source-error fallback.
-
-## Improvements to plan after the fixes
-
-| ID | Priority | What needs to be done | Completion evidence |
-|---|---|---|---|
-| I-01 | P2 | Make Search URL state bidirectional. It seeds React state from `useSearchParams()` only once, so later Back/Forward/query-only navigation may disagree with the visible search. Add pagination or explicitly disclose the 20-result display cap; the API reports a total but the UI cannot access matches beyond its requested limit. | Browser history, invalid category, shareable URL, and more-than-20-results tests. |
-| I-02 | P2 | Establish one catalog source for IDs, titles, categories, prerequisites, and study order. Backend `TopicService`, `TopicPage.titleMap`, `topicCategories`, and the full Home fallback duplicate metadata. Home currently sorts by difficulty then alphabetically, which does not guarantee Java fundamentals → advanced Java → Spring. | Generated/shared metadata and explicit prerequisite order; catalog parity checks. |
-| I-03 | P2 | Make backend-unavailable behavior honest and recoverable. Home substitutes a full local catalog when the API fails, but the lessons still require that API. Add loading/offline/error distinctions and Retry rather than implying offline study is ready. | Disable the API and verify clear messaging, retry, and no misleading success state. |
-| I-04 | P2 | Expand CI to include the 10 script tests, browser layout/accessibility checks, request-race cases, actual SVG image decoding, and Docker smoke tests. Add engine/controller edge tests rather than relying mainly on array lengths and happy paths. | The defects in F-01–F-12 fail automated tests before their fixes and pass afterward. |
-| I-05 | P2 | Reduce static inline presentation in visualizers and resolve the revamp acceptance criteria. There are 408 `style={{` occurrences against the original ≤160 goal; some are legitimate computed geometry and must be classified before changing them. | Measured before/after inventory; semantic tokens for presentation; approved exceptions for computed values. |
-| I-06 | P2 | Review the 666.17 kB Markdown chunk and static-asset delivery. Scope syntax languages/plugins based on actual content; evaluate lazy math/highlighting only if justified. Add cache policies/compression for versioned JS/fonts/SVGs and ensure missing static assets return 404 rather than the SPA HTML fallback. | Bundle and cold-load budgets, cache/header checks, missing-image behavior, and no loss of math/code rendering. |
-| I-07 | P2 | Add semantic curriculum review in the requested order: core Java/OOP, advanced Java, Spring, OS, networks, DBMS, AI/ML last. Check interview answers for correctness, duplicate templates, runnable code, trade-offs, and source/version context. Structural counts are already complete and should not trigger padding or indiscriminate expansion. | Per-topic review ledger; compiled/runnable examples where practical; reviewed corrections and stable coverage gates. |
-| I-08 | P2 | Improve operational configuration: explicit content-root setting, fail-fast startup if curriculum is unavailable, readiness that checks content/index availability, coherent CORS policy, and documented restart/reindex behavior when mounted content changes. CORS currently allows localhost:5173; normal proxied requests avoid that mismatch, but direct cross-origin use does not. | Missing-content startup test, valid deployment configuration, and explicit content-update behavior. |
-| I-09 | P3 | Add learner progress/bookmarks, a resume position, and known/needs-review question marking if these are desired product goals. Keep them local initially unless cross-device accounts are explicitly needed. | Usability review and persistence tests; distinguish new scope from completion defects. |
-| I-10 | P3 | Harden the launcher with automated collision/exit/cleanup tests, validated numeric port overrides, and verified termination of Maven/npm descendant processes. Check the case where both requested starting ports are equal. | Two successful launches without collisions, clean Ctrl+C/child-failure shutdown, and no orphan listeners. |
-
-## Proposed removal of unused files
-
-These four files have no source import consumers in a relative-import inventory, and a whole-repo
-reference search found only their definitions or documentation mentions. They are cleanup
-candidates; they do not contain curriculum or interview questions.
-
-| File | Why removal is reasonable | Follow-up needed |
-|---|---|---|
-| `frontend/src/hooks/useSimulationTimer.js` | Unused duplicate timer hook. | Remove the stale active-use claim in `CLAUDE.md`; annotate the historical UI plan note. |
-| `frontend/src/hooks/useStepThrough.js` | Unused step-navigation hook. | Remove its stale active-use claim in `CLAUDE.md`. |
-| `frontend/src/components/shared/LegendRow.jsx` | No component imports or runtime references. | Remove only proven-unused associated CSS; preserve shared swatch styles used elsewhere. |
-| `frontend/src/components/shared/StepThroughController.jsx` | No component imports or runtime references. | Update `.claude/references/component-contracts.md`; prune only its unused selectors and preserve `.simulation-control-bar`/`.buttons-group` shared rules. |
-
-No simulator, JSON question source, lesson, test fixture, font, or generated SVG should be deleted
-on the basis of a filename-only scan. The generated diagrams are now runtime assets. Historical
-plans, `RCA.md`, agent instructions, and `CONTENT_SPEC.md` still have distinct uses; reconcile or
-archive them deliberately rather than deleting them as apparent duplicates. Installed dependencies
-and ignored build output are not included in the proposed tracked-file cleanup.
+| `mvn test -f backend/pom.xml` | **Passed: 52/52**, 0 failures/errors (up from 47 in the previous audit — new `ReadinessControllerTest`/`SimulationControllerTest` coverage). |
+| `node scripts/validate-content.mjs` | **Passed: 63/63** lessons, all manifest entries. |
+| `npm run build --prefix frontend` | **Failed** — see NF-01. Did not reach `vite build` itself. |
+| `npx vitest run` (full suite) | Not run to completion in this pass given NF-02 is already a known, reproduced blocker; `TopicViewer.test.jsx` individually run: **18/20 pass, 2 fail** (see NF-02). |
+| `node scripts/render-diagrams.mjs --check` | **Failed: 281/281 diagrams stale-fingerprint** — see NF-01. |
+| `npm audit --prefix frontend` | **0 vulnerabilities** (was 8 affected packages). |
+| `npm audit --prefix frontend --omit=dev` | **0 vulnerabilities** (was 2 moderate). |
+| `gh run list --branch main` | Latest "Verify" run on `bab35ba`: **failure** (2026-09-10T15:19:58Z). Both Dependabot-update workflow runs from 2026-09-09: success. |
+| Backend service-layer validation (read, not fuzzed) | `SimulationService.java` validation methods present and correctly wired to HTTP 400 via `ApiExceptionHandler`; not independently re-tested against the original audit's exact boundary inputs. |
+| Secrets scan (backend/frontend/scripts/content) | **Clean** — no hardcoded credentials found. |
+| `.env` tracked in git | **No.** |
+| Branch/PR hygiene | 66 local branches (65 merged, unpruned); 6 open Dependabot PRs including one major-version bump needing review. |
+
+## Still open from the 2026-09-09 audit
+
+- **F-05** (mobile overflow, P1) — not re-verified this pass, status unknown.
+- **F-11** (diagram alt text, P2) — improved (no longer a generic hardcoded string) but not
+  evaluated against the original "screen-reader-usable understanding" bar.
+- **F-13** (documentation drift, P2) — partially fixed; the Mermaid-architecture description and
+  count drift specifically are still wrong (NF-09 above supersedes/updates this finding with
+  current specifics).
+- **I-01 through I-10** (the previous audit's "improvements to plan after the fixes") — not
+  re-reviewed in this pass; treat their status as unchanged from 2026-09-09 unless independently
+  re-checked.
 
 ## Recommended execution order
 
-1. Restore deployability, repair invalid diagram assets, and bound backend simulation inputs:
-   F-01, F-14, F-02, F-09. Add regressions
-   to container/controller/algorithm tests and record the deployment incident in RCA.
-2. Correct core study interactions and mobile layout: F-03–F-06, F-08, F-12, then I-01.
-3. Finish diagram reliability and accessible alternatives: F-07, F-11, including a browser
-   decoding/geometry check of every generated asset.
-4. Remediate dependencies and improve CI coverage: F-10, I-04, with current support/advisory review.
-5. Reconcile documentation and remove approved dead files: F-13 and the cleanup inventory.
-6. Improve metadata consistency, payload/performance, operations, and curriculum accuracy:
-   I-02, I-03, I-05–I-08, I-10. Treat I-09 as optional new product work.
+1. **Fix NF-01 and NF-02 immediately** — `main` cannot build or pass CI right now. Both are small,
+   well-understood, low-risk fixes (re-run the render script; fix one mock). This should be the
+   very next commit, before anything else in this document.
+2. Close NF-03 (Playwright install step in CI) so the diagram-decode check — which exists
+   specifically to catch the F-14 class of bug — is actually running in CI, not silently
+   failing/no-opping.
+3. Re-verify F-05 (mobile overflow) with a fresh browser smoke pass; it was P1 in the last audit
+   and wasn't re-checked here.
+4. Fix NF-09 (documentation) — same treatment as the rest of this session's doc-sync work: read
+   the real component, describe it accurately, recompute the stale counts.
+5. Review and either merge-with-verification or defer NF-06's Spring Boot major-version Dependabot
+   PR deliberately — don't let Dependabot auto-merge a major version bump.
+6. Lower priority, batch together: NF-04 (tests for two small new components), NF-05 (mermaid →
+   devDependency), NF-07 (diagram asset size), NF-08 (branch cleanup).
 
-Use focused commits for independent fixes. A final release decision should require a clean local
-and container startup, full test/build/content gates, bounded invalid-input behavior, browser
-tests at the specified widths/themes, and an accurate completion record. The earlier phase
-checkboxes alone are insufficient evidence.
+A "release ready" claim should require, at minimum: a clean build from a fresh clone, a green CI
+run on `main`, and the mobile-overflow check re-run — none of which is true as of this audit.
