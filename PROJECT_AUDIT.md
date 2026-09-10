@@ -12,16 +12,26 @@ previous audit found, **11 are verified fixed** below with direct evidence (code
 command re-run). Two are unverified in this pass for time (F-05 mobile overflow, F-11 diagram
 alt-text quality beyond "not generic"). One — F-13, documentation drift — is only partially fixed.
 
-**However, `main` is currently broken in two independent ways that block anyone pulling it right
-now**, both apparently introduced by follow-on work landing after the remediation commit without
-full re-verification:
+**Update, same day: all of this is now fixed and CI-verified green.** `main` was broken in two
+independent ways when this audit was first written (NF-01, NF-02 below); fixing them surfaced two
+more, each only reachable once the previous one stopped blocking the pipeline earlier (NF-03, then
+a root-caused, previously-unverified F-05 from the 2026-09-09 audit). All four are now fixed,
+merged, and confirmed by a **fully green CI run** on `main` (`34517899719`, all three jobs —
+backend, frontend, containers — pass end-to-end), not just a local re-run. Kept the findings below
+as originally written, since the diagnostic trail is worth keeping; each now has a **RESOLVED**
+line with the fixing commit.
 
-1. `npm run build --prefix frontend` **fails immediately** — its `prebuild` hook runs
-   `npm run diagrams:check`, which now reports all 281 diagrams as having a **stale renderer
-   fingerprint** (see NF-01). This is a direct, almost ironic consequence of the remediation
+Original assessment, before same-day remediation:
+
+**`main` was broken in two independent ways that blocked anyone pulling it**, both apparently
+introduced by follow-on work landing after the remediation commit without full re-verification:
+
+1. `npm run build --prefix frontend` **failed immediately** — its `prebuild` hook runs
+   `npm run diagrams:check`, which reported all 281 diagrams as having a **stale renderer
+   fingerprint** (see NF-01). This was a direct, almost ironic consequence of the remediation
    commit *fixing* F-07 by adding exactly this fingerprint check — something changed one of the
    fingerprinted inputs (most likely `App.css`) afterward without re-running the generator.
-2. **CI's "Verify" workflow is failing** on `main` (latest run, `bab35ba`, 2026-09-10T15:19:58Z:
+2. **CI's "Verify" workflow was failing** on `main` (latest run, `bab35ba`, 2026-09-10T15:19:58Z:
    `failure`) — a real, deterministic test bug, not a flake (see NF-02).
 
 Both are independently reproduced below, not inferred from CI's red X. **Recommended immediate
@@ -69,6 +79,16 @@ fixed, until re-checked.
 
 ### NF-01 — P1 (blocks `npm run build`): all 281 diagrams fail the renderer-fingerprint check
 
+**RESOLVED same day, commits `e6e56ab` then `6ecb5ee`.** The first fix (re-running
+`diagrams:render`) only fixed it locally — CI still failed identically on a completely clean
+checkout, which surfaced the real root cause: this repo's local checkouts have
+`core.autocrlf=true` (WSL/Windows), so `App.css`/`package-lock.json`/the render script itself all
+have CRLF line endings on disk here, while CI's clean Linux checkout produces LF bytes for the
+same committed content — the fingerprint hashed raw bytes, so a locally-computed fingerprint could
+never match CI's. This was never really a staleness bug, it was a line-ending one. Fixed by
+normalizing text inputs to LF before hashing (binary font input untouched). Confirmed fixed by a
+green CI run, not just a local recheck.
+
 **Evidence:** `node scripts/render-diagrams.mjs --check` on `main` @ `bab35ba`:
 ```
    - stale renderer fingerprint for 236fccb6
@@ -98,6 +118,9 @@ intervention.
 
 ### NF-02 — P1 (blocks CI): `TopicViewer.test.jsx`'s `IntersectionObserver` mock is not constructible
 
+**RESOLVED same day, commit `e6e56ab`.** Fixed exactly as described below (real `function`
+implementation instead of an arrow function). Confirmed: file passes 20/20 locally and in CI.
+
 **Evidence:** `npx vitest run src/components/__tests__/TopicViewer.test.jsx`:
 ```
 TypeError: () => ({ observe, disconnect }) is not a constructor
@@ -125,6 +148,13 @@ use a minimal class. One-line-class fix, low risk.
 "Verify" workflow goes green on `main`.
 
 ### NF-03 — P2: CI's diagram-decode step has no browser to decode with
+
+**RESOLVED same day, commit `e7951d8`.** Added a `Cache Playwright browsers` step
+(`actions/cache@v4`, keyed on `frontend/package-lock.json`) plus a Chromium install step, split
+into a full `--with-deps` install on a cache miss vs. `install-deps` only on a cache hit. Confirmed
+in the green CI run: both `test:responsive` and `diagrams:decode` now actually execute (they'd
+previously been unreachable, blocked by NF-01/NF-02 before this fix, then failed on a missing
+browser binary before this fix specifically).
 
 **Evidence:** `.github/workflows/verify.yml` runs `npm run diagrams:decode`, which maps to
 `node ../scripts/render-diagrams.mjs --check --decode` — and `--decode` launches a real Chromium
@@ -224,20 +254,39 @@ diagram architecture specifically, they currently do not.
 |---|---|
 | `mvn test -f backend/pom.xml` | **Passed: 52/52**, 0 failures/errors (up from 47 in the previous audit — new `ReadinessControllerTest`/`SimulationControllerTest` coverage). |
 | `node scripts/validate-content.mjs` | **Passed: 63/63** lessons, all manifest entries. |
-| `npm run build --prefix frontend` | **Failed** — see NF-01. Did not reach `vite build` itself. |
-| `npx vitest run` (full suite) | Not run to completion in this pass given NF-02 is already a known, reproduced blocker; `TopicViewer.test.jsx` individually run: **18/20 pass, 2 fail** (see NF-02). |
-| `node scripts/render-diagrams.mjs --check` | **Failed: 281/281 diagrams stale-fingerprint** — see NF-01. |
+| `npm run build --prefix frontend` | Originally **failed** (NF-01) — **now passes**, post-fix. |
+| `npx vitest run` (full suite) | Originally not completed given NF-02's known block — **now 31/31 files, 438/438 tests pass**, post-fix (re-run twice across the NF-01/02/03 and NF-10 fix commits). |
+| `node scripts/render-diagrams.mjs --check` | Originally **failed: 281/281** stale-fingerprint (NF-01) — **now passes**, post-fix. |
+| `npm run diagrams:decode --prefix frontend` | **Passes: 562/562** assets decode in a real browser, post-fix. |
+| `node scripts/test-responsive-layout.mjs` | Originally **failed 4/80** (F-05/NF-10) — **now passes: 8 route families × 5 widths × 2 themes**, post-fix. |
 | `npm audit --prefix frontend` | **0 vulnerabilities** (was 8 affected packages). |
 | `npm audit --prefix frontend --omit=dev` | **0 vulnerabilities** (was 2 moderate). |
-| `gh run list --branch main` | Latest "Verify" run on `bab35ba`: **failure** (2026-09-10T15:19:58Z). Both Dependabot-update workflow runs from 2026-09-09: success. |
+| `gh run list --branch main` | Originally **failure** (`bab35ba`, 2026-09-10T15:19:58Z) — **now green: run `34517899719`, all 3 jobs (backend/frontend/containers) pass end-to-end**, confirmed via `gh run watch`, not assumed. |
 | Backend service-layer validation (read, not fuzzed) | `SimulationService.java` validation methods present and correctly wired to HTTP 400 via `ApiExceptionHandler`; not independently re-tested against the original audit's exact boundary inputs. |
 | Secrets scan (backend/frontend/scripts/content) | **Clean** — no hardcoded credentials found. |
 | `.env` tracked in git | **No.** |
 | Branch/PR hygiene | 66 local branches (65 merged, unpruned); 6 open Dependabot PRs including one major-version bump needing review. |
 
+### NF-10 — RESOLVED same day, commit `c7f5823`: inline KaTeX math overflowed on narrow viewports (root cause of F-05)
+
+Re-verifying F-05 (below) after NF-01–NF-03 landed reproduced it directly:
+`node scripts/test-responsive-layout.mjs` failed 4/80 checks, all `/topic/embeddings-vector-db` at
+320-375px. Root-caused with a direct Playwright probe against the real production build (walking
+the DOM for elements whose `scrollWidth > clientWidth` without `overflow-x: auto`): an inline
+`$...$` formula inside a bullet list (`\text{distance}("dog","puppy") \approx 0.08`) had zero
+containment — block math (`.katex-display`) already scrolled from earlier work this session, but
+bare inline `.katex` didn't, so the one formula's overflow propagated through `<li>` →
+`.topic-content` → `.study-main` → ... → `<html>`. Fixed with a scoped rule
+(`:not(.katex-display) > .katex { max-width: 100%; overflow-x: auto; }`) so only genuinely-inline
+math gets local containment, not double-scrolling display math. Confirmed:
+`test-responsive-layout.mjs` now passes 8 route families × 5 widths × 2 themes.
+
 ## Still open from the 2026-09-09 audit
 
-- **F-05** (mobile overflow, P1) — not re-verified this pass, status unknown.
+- **F-05** (mobile overflow, P1) — **RESOLVED**, see NF-10 above. The specific cause (unconstrained
+  inline KaTeX) is fixed and verified with a real browser smoke test across all 5 documented
+  widths on the affected route; the other 7 route families in that test were already passing and
+  remain so.
 - **F-11** (diagram alt text, P2) — improved (no longer a generic hardcoded string) but not
   evaluated against the original "screen-reader-usable understanding" bar.
 - **F-13** (documentation drift, P2) — partially fixed; the Mermaid-architecture description and
