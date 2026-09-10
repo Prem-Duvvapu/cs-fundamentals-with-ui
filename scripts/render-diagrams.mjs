@@ -37,10 +37,23 @@ const { diagramHash } = await import(pathToFileURL(path.resolve(REPO_ROOT, 'fron
 
 const THEMES = ['dark', 'light']
 
+// Text inputs are read in text mode and normalized to LF: this repo's local checkouts (WSL/
+// Windows, core.autocrlf=true) and CI's clean Linux checkout produce different bytes for the same
+// committed content otherwise (CRLF vs LF), which made every fingerprint computed locally
+// mismatch CI's on the very next run regardless of how recently `diagrams:render` had been run —
+// not a staleness bug, a line-ending one. FONT_PATH is binary (woff2) and is hashed as raw bytes.
+const TEXT_INPUTS = [fileURLToPath(import.meta.url), APP_CSS, PACKAGE_LOCK_PATH]
+const BINARY_INPUTS = [FONT_PATH]
+
 function rendererFingerprint() {
-  const inputs = [fileURLToPath(import.meta.url), APP_CSS, FONT_PATH, PACKAGE_LOCK_PATH]
   const hash = createHash('sha256')
-  for (const input of inputs) {
+  for (const input of TEXT_INPUTS) {
+    hash.update(path.relative(REPO_ROOT, input))
+    hash.update('\0')
+    hash.update(fs.readFileSync(input, 'utf-8').replace(/\r\n/g, '\n'))
+    hash.update('\0')
+  }
+  for (const input of BINARY_INPUTS) {
     hash.update(path.relative(REPO_ROOT, input))
     hash.update('\0')
     hash.update(fs.readFileSync(input))
