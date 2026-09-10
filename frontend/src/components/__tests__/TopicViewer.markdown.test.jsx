@@ -44,8 +44,8 @@ const LEAK_PATTERNS = [
 ]
 
 describe('curriculum content inventory', () => {
-  it('found all 63 registered topic files', () => {
-    expect(contentFiles.length).toBe(63)
+  it('found all 64 registered topic files', () => {
+    expect(contentFiles.length).toBe(64)
   })
 })
 

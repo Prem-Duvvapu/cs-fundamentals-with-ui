@@ -89,7 +89,7 @@ export default function SearchPage() {
       <header className="roadmap-header">
         <p className="eyebrow">Cross-topic search</p>
         <h1>Search the curriculum</h1>
-        <p>Search titles, headings, and lesson content across all 63 topics.</p>
+        <p>Search titles, headings, and lesson content across all 64 topics.</p>
 
         <form className="search-form" role="search" onSubmit={event => event.preventDefault()}>
           <label htmlFor="curriculum-search-input" className="sr-only">Search query</label>

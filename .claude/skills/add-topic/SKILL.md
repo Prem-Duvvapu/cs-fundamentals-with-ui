@@ -14,7 +14,7 @@ Adding a topic touches ~10 files. The registration points are listed in
 
 Confirm with the user (ask only what you can't infer from their request):
 
-- **category** — `os` | `networking` | `dbms` | `java-spring` | `aiml`
+- **category** — `os` | `networking` | `dbms` | `java-spring` | `aiml` | `devops`
 - **topic id** — kebab-case, unique across all categories (`grep -rn "<id>" --include=*.java --include=*.jsx . | grep -v node_modules`)
 - **title**, one-line **summary**, **level** (`beginner`/`intermediate`/`expert`)
 - **curriculum position** — which existing topic it should sit after

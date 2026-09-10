@@ -76,6 +76,7 @@ export default function TopicPage() {
     'spring-security': 'Spring Security, JWT & OAuth2 Fundamentals',
     'spring-caching-async': 'Spring Caching, Async Work & Scheduling',
     'spring-testing-production': 'Spring Testing & Production Operations',
+    'docker-fundamentals': 'Docker & Container Fundamentals',
   }
 
   const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())

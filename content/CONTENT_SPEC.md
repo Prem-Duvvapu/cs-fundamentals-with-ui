@@ -12,7 +12,7 @@ in §9, read your target file, and write. You do not need to read anything else.
 fundamentals. Each topic is **one Markdown file** in `content/<category>/`, rendered in
 the app's "Study" tab.
 
-The five categories are exactly: `os`, `networking`, `dbms`, `java-spring`, `aiml`.
+The six categories are exactly: `os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`.
 
 Your reader is a software engineer preparing for technical interviews. They want to
 understand mechanisms deeply enough to answer follow-up questions, not to memorise

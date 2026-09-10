@@ -24,7 +24,7 @@ The counts in these files have drifted before — README, CONTEXT, and AGENTS ha
 different total. Recompute from the code, then make all four agree:
 
 ```bash
-ls content/os content/networking content/dbms content/java-spring content/aiml | wc -l   # per dir
+ls content/os content/networking content/dbms content/java-spring content/aiml content/devops | wc -l   # per dir
 grep -c "new Topic(" backend/src/main/java/com/csfundamentals/service/TopicService.java  # registered total
 grep -n "assertEquals([0-9]*, .*Topics.size()" backend/src/test/java/com/csfundamentals/service/TopicServiceTest.java
 ls frontend/src/components/visualizers/*/*.jsx frontend/src/components/visualizers/*.jsx | wc -l

@@ -111,10 +111,10 @@ just don't be surprised by a slow first click.
 
 ---
 
-## 📚 63 Curriculum Topics Covered
+## 📚 64 Curriculum Topics Covered
 
-All 63 lessons satisfy the authoring contract and coverage manifest: 28,683 curriculum lines,
-277 Mermaid diagrams, and 883 validated interview Q&As across the seven preparation areas.
+All 64 lessons satisfy the authoring contract and coverage manifest: 29,255 curriculum lines,
+285 Mermaid diagrams, and 897 validated interview Q&As across eight preparation areas.
 
 | Category | Topics Count | Key Areas Covered |
 | :--- | :--- | :--- |
@@ -123,6 +123,7 @@ All 63 lessons satisfy the authoring contract and coverage manifest: 28,683 curr
 | **DBMS** | 13 Topics | DBMS Introduction & Architecture, 3-Schema ANSI-SPARC, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control, Query Optimizer, practical SQL and window functions, Distributed Databases & CAP Theorem |
 | **Java & Spring** | 23 Topics | Core and Advanced Java, JVM/GC/concurrency, collections and streams, Spring container and MVC, Spring Boot internals, REST API design, Security, caching/async, testing/production, JPA/Hibernate, Batch, Quartz, SOLID and design patterns |
 | **AI / ML Systems** | 7 Topics | ML fundamentals and evaluation, Vector Embeddings & Vector DBs, RAG Architecture, LLM Model Serving & PagedAttention, LLM Sampling & ReAct Agents, Feature Stores & MLOps, 2-Stage Recommendation Engine |
+| **DevOps & Infrastructure** | 1 Topic | Docker & container fundamentals — namespaces, cgroups, image layers, multi-stage builds, networking modes, the containerd/runc runtime stack. Kubernetes, Nginx, CI/CD and more planned. |
 
 ---
 

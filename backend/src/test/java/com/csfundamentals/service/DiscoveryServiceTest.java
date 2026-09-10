@@ -23,8 +23,8 @@ class DiscoveryServiceTest {
 
     @Test
     void constructor_buildsOneImmutableIndexForTheValidatedCurriculum() {
-        assertEquals(63, service.indexedTopicCount());
-        assertEquals(883, service.indexedQuestionCount());
+        assertEquals(64, service.indexedTopicCount());
+        assertEquals(897, service.indexedQuestionCount());
 
         InterviewQuestionResponse response = service.getInterviewQuestions(null, null, 0, 500);
         assertThrows(UnsupportedOperationException.class, () -> response.questions().add(response.questions().get(0)));

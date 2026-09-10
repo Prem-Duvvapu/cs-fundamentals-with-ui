@@ -36,6 +36,10 @@
   --cat-aiml-hover: #f9a8d4;
   --cat-aiml-tint: #331227;
   --cat-aiml-border: #c1417f;
+  --cat-devops-base: #22d3ee;
+  --cat-devops-hover: #67e8f9;
+  --cat-devops-tint: #072e33;
+  --cat-devops-border: #0891b2;
   --cat-base: var(--cat-os-base);
   --cat-hover: var(--cat-os-hover);
   --cat-tint: var(--cat-os-tint);
@@ -134,6 +138,7 @@
   --cat-dbms-base: #047857; --cat-dbms-hover: #065f46; --cat-dbms-tint: #e8f7f1; --cat-dbms-border: #6ee7b7;
   --cat-java-base: #b45309; --cat-java-hover: #92400e; --cat-java-tint: #fdf2e4; --cat-java-border: #fdba74;
   --cat-aiml-base: #be185d; --cat-aiml-hover: #9d174d; --cat-aiml-tint: #fdeef5; --cat-aiml-border: #f9a8d4;
+  --cat-devops-base: #0e7490; --cat-devops-hover: #155e75; --cat-devops-tint: #ecfcfd; --cat-devops-border: #67e8f9;
   --state-success: #15803d; --state-success-tint: #e9f7ee; --state-success-border: #86efac;
   --state-warning: #a16207; --state-warning-tint: #fdf5e3; --state-warning-border: #fcd34d;
   --state-danger: #b91c1c; --state-danger-tint: #fdecec; --state-danger-border: #fca5a5;

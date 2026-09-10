@@ -155,10 +155,10 @@ and XML; `npm run diagrams:decode --prefix frontend` additionally decodes all as
 interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 
 **Guard suite:** `frontend/src/components/__tests__/TopicViewer.markdown.test.jsx` renders
-all 63 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
+all 64 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
-The content gate currently passes all 63 lessons and all 83 coverage-manifest entries, covering
-28,683 curriculum lines, 277 Mermaid diagrams, and 883 interview Q&As.
+The content gate currently passes all 64 lessons and all 83 coverage-manifest entries, covering
+29,255 curriculum lines, 285 Mermaid diagrams, and 897 interview Q&As.
 
 ### Reading Experience
 
@@ -184,7 +184,7 @@ category + difficulty filters, client-side shuffle) through a shared `components
 extracted so both call sites stay in sync. `category = 'all'` omits the server-side category filter
 rather than paging through a second client-side registry. Both routes are linked from the navbar.
 
-The token system in `frontend/src/App.css` provides dark and light palettes, five category accents,
+The token system in `frontend/src/App.css` provides dark and light palettes, six category accents,
 semantic state colours, reading typography, spacing and motion. The saved theme follows the system
 preference initially; Mermaid diagrams and syntax highlighting react to theme changes without a reload.
 All additions must retain keyboard focus indicators, pair colour with labels or glyphs, respect
@@ -198,7 +198,7 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 ## 🔌 REST API Endpoints
 
 - `GET /api/v1/topics` — Lists all 63 curriculum topics with level and summary metadata.
-- `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`).
+- `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 - `GET /api/v1/health/readiness` — Confirms the exact curriculum index is available and reports
   its registered topic count.

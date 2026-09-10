@@ -87,7 +87,7 @@ class ContentServiceTest {
     void everyRegisteredTopic_shouldResolveToContent() {
         TopicService topicService = new TopicService();
 
-        assertEquals(63, topicService.getAllTopics().size());
+        assertEquals(64, topicService.getAllTopics().size());
 
         topicService.getAllTopics().forEach(topic -> {
             assertDoesNotThrow(() -> service.getContent(topic.category(), topic.id()),
