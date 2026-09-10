@@ -239,7 +239,12 @@ Apply it.`
   it('observes sections only after the lazy reader reports that headings are mounted', async () => {
     const observe = vi.fn()
     const disconnect = vi.fn()
-    global.IntersectionObserver = vi.fn(() => ({ observe, disconnect }))
+    // A real `function`, not an arrow function — TopicViewer.jsx correctly calls this with
+    // `new`, and an arrow-function implementation can't be used as a constructor regardless
+    // of vi.fn() wrapping it.
+    global.IntersectionObserver = vi.fn().mockImplementation(function () {
+      return { observe, disconnect }
+    })
     global.fetch.mockResolvedValueOnce(new Response('## 🟢 Beginner Level\n\nBegin here.\n\n## 🟡 Intermediate Level\n\nContinue.'))
 
     const { unmount } = render(<TopicViewer topicId="process-management" />)
