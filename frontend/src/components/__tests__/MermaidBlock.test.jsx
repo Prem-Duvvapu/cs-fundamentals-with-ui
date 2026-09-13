@@ -4,7 +4,8 @@ import MermaidBlock from '../markdown/MermaidBlock'
 vi.mock('../../generated/diagramManifest.json', () => ({
   default: {
     '0aeb077d': { source: 'content/example.md', width: 640, height: 320 },
-    '7d828d65': { source: 'content/example.md', width: 480, height: 240 }
+    '7d828d65': { source: 'content/example.md', width: 480, height: 240 },
+    '7dbf61b8': { source: 'content/example.md', width: 400, height: 300 }
   }
 }))
 
@@ -53,4 +54,15 @@ it('shows the source when a generated image fails to load', () => {
 
   expect(screen.getByRole('figure', { name: /diagram unavailable/i })).toHaveTextContent(/asset could not be loaded/i)
   expect(screen.getByText('flowchart LR; C-->D')).toBeInTheDocument()
+})
+
+it('describes a state diagram by its real state names, not the anonymous [*] node', () => {
+  const code = 'stateDiagram-v2\n[*] --> Ready\nReady --> Running: dispatch\nRunning --> [*]'
+  render(<MermaidBlock code={code} />)
+
+  const image = screen.getByRole('img')
+  const name = image.getAttribute('alt')
+  expect(name).not.toMatch(/\*/)
+  expect(name).toMatch(/Ready/)
+  expect(name).toMatch(/Running/)
 })

@@ -145,7 +145,7 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Feature Stores & MLOps Architecture (Online/offline stores, PSI data drift detection, retraining)
 - [x] 2-Stage Recommendation Engine (Two-tower candidate retrieval, deep ranking models, pCTR scoring)
 
-### ⚙ DevOps & Infrastructure (1/10 planned Topics)
+### ⚙ DevOps & Infrastructure (1/5 planned Topics)
 - [x] Docker & Container Fundamentals (Namespaces, cgroups, image layers, multi-stage builds, networking modes, containerd/runc runtime stack)
 - [ ] Kubernetes Core Architecture, Networking & Deployments/Scaling — planned
 - [ ] Nginx as Reverse Proxy & Load Balancer — planned
@@ -331,7 +331,7 @@ and provides a keyboard-accessible full-size link. Mermaid and Playwright remain
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
-All 63 topics are registered at all integration points, so content work requires
+All 64 topics are registered at all integration points, so content work requires
 **zero** registration changes. Never edit `.java`, `.jsx`, `.js` or `.json` in a content unit.
 
 Current contract-completion order:
