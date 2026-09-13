@@ -4,6 +4,7 @@ import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import HomePage from '../HomePage'
 import { fetchTopics } from '../../utils/api'
+import { toggleBookmark, exportProgress } from '../../utils/topicProgress'
 
 vi.mock('../../utils/api', () => ({
   fetchTopics: vi.fn()
@@ -123,5 +124,54 @@ describe('HomePage', () => {
     fireEvent.click(screen.getByRole('button', { name: /^bookmarked$/i }))
     expect(screen.getByText('Deadlocks')).toBeInTheDocument()
     expect(screen.queryByText('OOP Pillars')).not.toBeInTheDocument()
+  })
+
+  it('exports progress as a downloaded JSON file', async () => {
+    if (!URL.createObjectURL) URL.createObjectURL = vi.fn()
+    if (!URL.revokeObjectURL) URL.revokeObjectURL = vi.fn()
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url')
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    renderPage()
+    await screen.findByText('OOP Pillars')
+    fireEvent.click(screen.getByRole('button', { name: 'Export progress' }))
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    const [blob] = createObjectURL.mock.calls[0]
+    expect(blob.type).toBe('application/json')
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+
+    createObjectURL.mockRestore()
+    revokeObjectURL.mockRestore()
+    clickSpy.mockRestore()
+  })
+
+  it('imports a progress file and reports how many topics were merged', async () => {
+    toggleBookmark('deadlocks')
+    const fixture = exportProgress()
+    window.localStorage.clear()
+
+    renderPage()
+    await screen.findByText('OOP Pillars')
+
+    const file = new File([JSON.stringify(fixture)], 'progress.json', { type: 'application/json' })
+    const input = document.querySelector('.progress-transfer-input')
+    await fireEvent.change(input, { target: { files: [file] } })
+
+    expect(await screen.findByText('Imported progress for 1 topic.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove Deadlocks from bookmarks' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('rejects an invalid progress file without changing any state', async () => {
+    renderPage()
+    await screen.findByText('OOP Pillars')
+
+    const file = new File(['not json'], 'progress.json', { type: 'application/json' })
+    const input = document.querySelector('.progress-transfer-input')
+    await fireEvent.change(input, { target: { files: [file] } })
+
+    expect(await screen.findByText('That file is not valid JSON.')).toBeInTheDocument()
   })
 })

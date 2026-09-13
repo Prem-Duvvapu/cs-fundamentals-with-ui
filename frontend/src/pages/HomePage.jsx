@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchTopics } from '../utils/api'
-import { isBookmarked, isCompleted, getCompletedCount } from '../utils/topicProgress'
+import { isBookmarked, isCompleted, getCompletedCount, exportProgress, importProgress } from '../utils/topicProgress'
 import useTopicProgress from '../hooks/useTopicProgress'
+
+const IMPORT_ERROR_MESSAGES = {
+  'invalid-json': 'That file is not valid JSON.',
+  'invalid-format': 'That file is not a recognized progress export.',
+  'unsupported-version': 'That file was exported from a newer version of this app.'
+}
 
 const LEVEL_ORDER = { beginner: 0, intermediate: 1, expert: 2 }
 const LEVEL_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', expert: 'Expert' }
@@ -70,6 +76,8 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedLevel, setSelectedLevel] = useState('all')
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false)
+  const [importStatus, setImportStatus] = useState(null)
+  const importInputRef = useRef(null)
   const { progress, toggleBookmark, toggleCompleted } = useTopicProgress()
 
   useEffect(() => {
@@ -160,6 +168,35 @@ export default function HomePage() {
       })
   }, [])
 
+  const handleExportProgress = () => {
+    const file = exportProgress()
+    const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `cs-fundamentals-progress-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportFile = (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = importProgress(reader.result)
+      setImportStatus(result.ok
+        ? { type: 'success', message: `Imported progress for ${result.importedCount} topic${result.importedCount === 1 ? '' : 's'}.` }
+        : { type: 'error', message: IMPORT_ERROR_MESSAGES[result.error] || 'Could not import that file.' })
+    }
+    reader.onerror = () => setImportStatus({ type: 'error', message: 'Could not read that file.' })
+    reader.readAsText(file)
+  }
+
   const categories = CATEGORY_ORDER.map(id => ({
     id,
     ...CATEGORY_DETAILS[id],
@@ -191,6 +228,28 @@ export default function HomePage() {
         {topics.length > 0 && (
           <p className="roadmap-progress-summary" role="status">
             {completedCount} of {topics.length} topics completed
+          </p>
+        )}
+
+        <div className="progress-transfer-actions">
+          <button type="button" className="progress-transfer-btn" onClick={handleExportProgress}>
+            Export progress
+          </button>
+          <button type="button" className="progress-transfer-btn" onClick={() => importInputRef.current?.click()}>
+            Import progress
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json"
+            onChange={handleImportFile}
+            className="progress-transfer-input"
+            aria-label="Import progress from a JSON file"
+          />
+        </div>
+        {importStatus && (
+          <p className={`progress-transfer-status progress-transfer-status--${importStatus.type}`} role="status">
+            {importStatus.message}
           </p>
         )}
 

@@ -185,6 +185,9 @@ Topics can be bookmarked and marked complete from either the roadmap row or the 
 a "Bookmarked" filter and a completed-topics count on the home page track this alongside the
 existing category/level filters. This state lives entirely in the browser's `localStorage`
 (no account or backend persistence), so it is per-device and clears if site data is cleared.
+"Export progress" / "Import progress" buttons on the home page download or restore this state as
+a JSON file, so it can be backed up or carried to another device; importing merges into whatever
+is already saved rather than replacing it, so a restore can never demote existing progress.
 
 The interface follows the operating-system theme on first visit and persists an explicit choice.
 Category and learning-level states always combine colour with a glyph or text label. See the

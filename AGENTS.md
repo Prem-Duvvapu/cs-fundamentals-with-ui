@@ -373,7 +373,10 @@ and [Mermaid theming](https://mermaid.js.org/config/theming.html).
 - **Client-only persistence**: theme (`hooks/useTheme.js`) and per-topic bookmark/completed
   progress (`utils/topicProgress.js` + `hooks/useTopicProgress.js`) both persist to `localStorage`
   under a `cs-fundamentals-*` key and broadcast changes via a `window` `CustomEvent`, with no
-  backend involvement — follow this pattern for any new client-only preference or progress state
+  backend involvement — follow this pattern for any new client-only preference or progress state.
+  `topicProgress.js` additionally exposes `exportProgress()`/`importProgress()` (a versioned JSON
+  envelope, merge-only on import) behind "Export progress"/"Import progress" buttons on the home
+  page — the escape hatch for state that only ever lives in one browser's storage.
 - **Documentation & Test Synchronization Rule**: After ANY code, architectural, or feature changes, ALWAYS update the required documentation markdown files (`README.md`, `CONTEXT.md`, `AGENTS.md`) and write/update unit & integration tests (`frontend` Vitest suites and `backend` JUnit 5 tests), verifying all tests pass cleanly before completing the task.
 - **RCA Rule**: Search `RCA.md` before investigating a repeated symptom. When an agent-created
   change causes a confirmed regression or a shared-agent workflow failure, add or update an RCA
