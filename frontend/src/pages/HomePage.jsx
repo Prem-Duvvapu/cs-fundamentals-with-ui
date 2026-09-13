@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { fetchTopics } from '../utils/api'
 import { isBookmarked, isCompleted, getCompletedCount, exportProgress, importProgress } from '../utils/topicProgress'
 import useTopicProgress from '../hooks/useTopicProgress'
+import { CATEGORY_ORDER, LEVEL_ORDER, LEVEL_LABELS, LEVEL_GLYPHS } from '../utils/topicCategories'
 
 const IMPORT_ERROR_MESSAGES = {
   'invalid-json': 'That file is not valid JSON.',
@@ -10,13 +11,11 @@ const IMPORT_ERROR_MESSAGES = {
   'unsupported-version': 'That file was exported from a newer version of this app.'
 }
 
-const LEVEL_ORDER = { beginner: 0, intermediate: 1, expert: 2 }
-const LEVEL_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', expert: 'Expert' }
-const LEVEL_GLYPHS = { beginner: '●', intermediate: '◐', expert: '◆' }
 const LEVEL_FILTERS = ['all', 'beginner', 'intermediate', 'expert']
 
-const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml', 'devops']
-
+// Distinct from utils/topicCategories.js's CATEGORY_METADATA: this page's established labels/
+// summaries (e.g. "AI/ML Systems") predate and differ from that shared module's, so it keeps its
+// own copy rather than risk changing text this page never asked to change.
 const CATEGORY_DETAILS = {
   'java-spring': {
     label: 'Java & Spring',

@@ -1,11 +1,49 @@
 export const CATEGORY_METADATA = {
-  os: { glyph: '◆', shortLabel: 'OS', label: 'Operating Systems' },
-  networking: { glyph: '⬡', shortLabel: 'NET', label: 'Computer Networks' },
-  dbms: { glyph: '▤', shortLabel: 'DB', label: 'Database Management Systems' },
-  'java-spring': { glyph: '◐', shortLabel: 'JAVA', label: 'Java & Spring' },
-  aiml: { glyph: '✳', shortLabel: 'AI/ML', label: 'AI & Machine Learning' },
-  devops: { glyph: '⚙', shortLabel: 'DEVOPS', label: 'DevOps & Infrastructure' }
+  os: {
+    glyph: '◆',
+    shortLabel: 'OS',
+    label: 'Operating Systems',
+    summary: 'Understand processes, memory, scheduling, synchronization, and the kernel services beneath applications.'
+  },
+  networking: {
+    glyph: '⬡',
+    shortLabel: 'NET',
+    label: 'Computer Networks',
+    summary: 'Follow data from local links through routing, transport, and secure application protocols.'
+  },
+  dbms: {
+    glyph: '▤',
+    shortLabel: 'DB',
+    label: 'Database Management Systems',
+    summary: 'Model data, reason about queries and transactions, then study storage and distributed trade-offs.'
+  },
+  'java-spring': {
+    glyph: '◐',
+    shortLabel: 'JAVA',
+    label: 'Java & Spring',
+    summary: 'Start with Java foundations, then build toward concurrency and Spring application architecture.'
+  },
+  aiml: {
+    glyph: '✳',
+    shortLabel: 'AI/ML',
+    label: 'AI & Machine Learning',
+    summary: 'Connect modern ML foundations to retrieval, serving, evaluation, and production operations.'
+  },
+  devops: {
+    glyph: '⚙',
+    shortLabel: 'DEVOPS',
+    label: 'DevOps & Infrastructure',
+    summary: 'Take a working application to production: containers, orchestration, networking, delivery pipelines, and observability.'
+  }
 }
+
+// The recommended study sequence — Java/Spring first, then the systems and data foundations
+// behind it. Distinct from CATEGORY_METADATA's key order, which is not significant.
+export const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml', 'devops']
+
+export const LEVEL_ORDER = { beginner: 0, intermediate: 1, expert: 2 }
+export const LEVEL_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', expert: 'Expert' }
+export const LEVEL_GLYPHS = { beginner: '●', intermediate: '◐', expert: '◆' }
 
 export const TOPIC_CATEGORY_MAP = {
   'process-management': 'os',

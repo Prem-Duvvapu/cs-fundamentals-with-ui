@@ -189,6 +189,10 @@ existing category/level filters. This state lives entirely in the browser's `loc
 a JSON file, so it can be backed up or carried to another device; importing merges into whatever
 is already saved rather than replacing it, so a restore can never demote existing progress.
 
+A `/progress` dashboard (linked from the navbar) turns that same state into an overview: overall
+completion, a bar per category and per level, the full bookmarked list, and a "Continue where you
+left off" pointer to the next not-yet-completed topic in curriculum order.
+
 A guided product tour spotlights the roadmap filters, a topic row, progress export/import, Search
 and Interview Mode, then crosses over to a topic page to show the Study/Simulation tabs. It shows
 itself once on a visitor's first visit and can be replayed any time from the "Take a tour" button

@@ -59,6 +59,15 @@ export default function Navbar({ onStartTour }) {
             <span aria-hidden="true">🎯</span>
             <span aria-hidden="true">Interview Mode</span>
           </Link>
+          <Link
+            to="/progress"
+            className={`navbar-icon-link ${pathname === '/progress' ? 'active' : ''}`}
+            aria-current={pathname === '/progress' ? 'page' : undefined}
+            aria-label="Progress"
+          >
+            <span aria-hidden="true">📊</span>
+            <span aria-hidden="true">Progress</span>
+          </Link>
           <button
             type="button"
             className="navbar-tour-btn"

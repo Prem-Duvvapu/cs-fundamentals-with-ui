@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import TopicPage from './pages/TopicPage'
 import SearchPage from './pages/SearchPage'
 import InterviewPage from './pages/InterviewPage'
+import ProgressPage from './pages/ProgressPage'
 import NotFoundPage from './pages/NotFoundPage'
 import AppErrorBoundary from './components/AppErrorBoundary'
 import ProductTour from './components/shared/ProductTour'
@@ -18,6 +19,7 @@ function RoutedContent() {
         <Route path="/topic/:topicId" element={<TopicPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/interview/:category" element={<InterviewPage />} />
+        <Route path="/progress" element={<ProgressPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppErrorBoundary>
