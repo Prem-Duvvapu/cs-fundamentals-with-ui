@@ -183,6 +183,14 @@ toggle and completed badge per topic row, a "Bookmarked" filter, and a completed
 `TopicPage.jsx` renders the same bookmark/mark-complete toggles in its header. There is no
 backend involvement — the state is per-browser and not part of the topic-registration model.
 
+`topicProgress.js` also exports `exportProgress()`/`importProgress()`, backing the home page's
+"Export progress" / "Import progress" buttons: export wraps the current state in a small
+versioned JSON envelope (`{ app, version, exportedAt, progress }`) and triggers a browser
+download; import parses that file and **merges** it into the existing state field-by-field
+(`true` always wins), so a restore can never silently erase progress made since the backup —
+there is no "replace all" mode. Malformed JSON, a non-object payload, or a `version` newer than
+this build supports are rejected with a distinct, human-readable status message.
+
 `/search` and `/interview/:category` (P5) reuse the same roadmap visual language —
 `SearchPage.jsx` debounces a query against `GET /api/v1/search`, cancels superseded requests,
 keeps URL navigation and visible filters synchronized, and lists results as topic rows;
