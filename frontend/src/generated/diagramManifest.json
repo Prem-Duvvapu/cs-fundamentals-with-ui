@@ -34,6 +34,13 @@
     "height": 542,
     "widened": 31
   },
+  "67943934": {
+    "source": "content/devops/03-nginx-reverse-proxy.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 953,
+    "height": 695,
+    "widened": 0
+  },
   "69189595": {
     "source": "content/aiml/01-embeddings-vector-db.md",
     "renderFingerprint": "37df36dfd90d19dd",
@@ -44,8 +51,8 @@
   "9257d04b": {
     "source": "content/CONTENT_SPEC.md",
     "renderFingerprint": "37df36dfd90d19dd",
-    "width": 394,
-    "height": 526,
+    "width": 350,
+    "height": 505,
     "widened": 13
   },
   "4be95349": {
@@ -761,6 +768,97 @@
     "width": 280,
     "height": 708,
     "widened": 13
+  },
+  "f26368c1": {
+    "source": "content/devops/02-kubernetes-fundamentals.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 1629,
+    "height": 396,
+    "widened": 22
+  },
+  "feb208d1": {
+    "source": "content/devops/02-kubernetes-fundamentals.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 798,
+    "height": 539,
+    "widened": 0
+  },
+  "e3291a09": {
+    "source": "content/devops/02-kubernetes-fundamentals.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 746,
+    "height": 275,
+    "widened": 9
+  },
+  "b6fe4def": {
+    "source": "content/devops/02-kubernetes-fundamentals.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 966,
+    "height": 126,
+    "widened": 7
+  },
+  "099b1fe3": {
+    "source": "content/devops/03-nginx-reverse-proxy.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 816,
+    "height": 338,
+    "widened": 13
+  },
+  "53b6bc71": {
+    "source": "content/devops/03-nginx-reverse-proxy.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 1431,
+    "height": 214,
+    "widened": 11
+  },
+  "50d95631": {
+    "source": "content/devops/04-cicd-pipelines-deployment-strategies.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 1828,
+    "height": 90,
+    "widened": 13
+  },
+  "1644345e": {
+    "source": "content/devops/04-cicd-pipelines-deployment-strategies.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 2683,
+    "height": 139,
+    "widened": 20
+  },
+  "db9447d0": {
+    "source": "content/devops/04-cicd-pipelines-deployment-strategies.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 770,
+    "height": 539,
+    "widened": 0
+  },
+  "24c88503": {
+    "source": "content/devops/04-cicd-pipelines-deployment-strategies.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 517,
+    "height": 641,
+    "widened": 12
+  },
+  "73ef5a77": {
+    "source": "content/devops/05-cloud-native-operations.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 815,
+    "height": 277,
+    "widened": 7
+  },
+  "474935d9": {
+    "source": "content/devops/05-cloud-native-operations.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 1427,
+    "height": 172,
+    "widened": 14
+  },
+  "c33f615f": {
+    "source": "content/devops/05-cloud-native-operations.md",
+    "renderFingerprint": "37df36dfd90d19dd",
+    "width": 1321,
+    "height": 591,
+    "widened": 0
   },
   "5fe6ea16": {
     "source": "content/java-spring/01-jvm-gc.md",

@@ -155,10 +155,10 @@ and XML; `npm run diagrams:decode --prefix frontend` additionally decodes all as
 interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 
 **Guard suite:** `frontend/src/components/__tests__/TopicViewer.markdown.test.jsx` renders
-all 64 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
+all 68 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
-The content gate currently passes all 64 lessons and all 83 coverage-manifest entries, covering
-29,255 curriculum lines, 285 Mermaid diagrams, and 897 interview Q&As.
+The content gate currently passes all 68 lessons and all 83 coverage-manifest entries, covering
+31,074 curriculum lines, 299 Mermaid diagrams, and 953 interview Q&As.
 
 ### Reading Experience
 
@@ -197,7 +197,7 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 
 ## 🔌 REST API Endpoints
 
-- `GET /api/v1/topics` — Lists all 64 curriculum topics with level and summary metadata.
+- `GET /api/v1/topics` — Lists all 68 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 - `GET /api/v1/health/readiness` — Confirms the exact curriculum index is available and reports

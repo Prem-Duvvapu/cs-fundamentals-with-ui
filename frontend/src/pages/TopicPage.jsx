@@ -77,6 +77,10 @@ export default function TopicPage() {
     'spring-caching-async': 'Spring Caching, Async Work & Scheduling',
     'spring-testing-production': 'Spring Testing & Production Operations',
     'docker-fundamentals': 'Docker & Container Fundamentals',
+    'kubernetes-fundamentals': 'Kubernetes Core Architecture, Networking & Deployments/Scaling',
+    'nginx-reverse-proxy': 'Nginx as Reverse Proxy & Load Balancer',
+    'cicd-pipelines-deployment-strategies': 'CI/CD Pipelines & Deployment Strategies',
+    'cloud-native-operations': 'Orchestration Trade-offs, Infrastructure as Code, Observability & Cloud Fundamentals',
   }
 
   const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())

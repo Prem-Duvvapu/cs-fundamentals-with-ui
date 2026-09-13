@@ -128,13 +128,17 @@ class TopicServiceTest {
     }
 
     @Test
-    void getTopicsByCategory_devops_shouldContainAll1Topic() {
+    void getTopicsByCategory_devops_shouldContainAll5Topics() {
         List<Topic> devopsTopics = topicService.getTopicsByCategory("devops");
         assertNotNull(devopsTopics);
-        assertEquals(1, devopsTopics.size(), "DevOps category must have exactly 1 registered topic");
+        assertEquals(5, devopsTopics.size(), "DevOps category must have exactly 5 registered topics");
 
         List<String> topicIds = devopsTopics.stream().map(Topic::id).toList();
         assertTrue(topicIds.contains("docker-fundamentals"));
+        assertTrue(topicIds.contains("kubernetes-fundamentals"));
+        assertTrue(topicIds.contains("nginx-reverse-proxy"));
+        assertTrue(topicIds.contains("cicd-pipelines-deployment-strategies"));
+        assertTrue(topicIds.contains("cloud-native-operations"));
     }
 
     @Test
@@ -155,11 +159,11 @@ class TopicServiceTest {
     @Test
     void allRegisteredTopics_acrossAllCategories_shouldResolveToTieredMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
-        assertEquals(64, allTopics.size(), "Total registered topics should be 64 (8 OS + 12 Networking + 13 DBMS + 23 Java/Spring + 7 AI/ML + 1 DevOps)");
+        assertEquals(68, allTopics.size(), "Total registered topics should be 68 (8 OS + 12 Networking + 13 DBMS + 23 Java/Spring + 7 AI/ML + 5 DevOps)");
         assertEquals(13, allTopics.stream().filter(topic -> topic.category().equals("dbms")).count());
         assertEquals(23, allTopics.stream().filter(topic -> topic.category().equals("java-spring")).count());
         assertEquals(7, allTopics.stream().filter(topic -> topic.category().equals("aiml")).count());
-        assertEquals(1, allTopics.stream().filter(topic -> topic.category().equals("devops")).count());
+        assertEquals(5, allTopics.stream().filter(topic -> topic.category().equals("devops")).count());
 
         for (Topic topic : allTopics) {
             String content = contentService.getContent(topic.category(), topic.id());
