@@ -9,6 +9,10 @@ function BrokenPage() {
 
 describe('application route recovery', () => {
   it('renders actionable recovery links for an unknown route', () => {
+    // Not exercising the guided tour here — suppress its first-visit auto-show so it doesn't
+    // navigate this test's deliberately-invalid route back to "/".
+    window.localStorage.setItem('cs-fundamentals-tour-seen', 'true')
+
     render(
       <MemoryRouter initialEntries={['/not-a-real-route']}>
         <App />

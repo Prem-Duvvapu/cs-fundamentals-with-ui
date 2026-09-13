@@ -189,6 +189,11 @@ existing category/level filters. This state lives entirely in the browser's `loc
 a JSON file, so it can be backed up or carried to another device; importing merges into whatever
 is already saved rather than replacing it, so a restore can never demote existing progress.
 
+A guided product tour spotlights the roadmap filters, a topic row, progress export/import, Search
+and Interview Mode, then crosses over to a topic page to show the Study/Simulation tabs. It shows
+itself once on a visitor's first visit and can be replayed any time from the "Take a tour" button
+in the navigation bar.
+
 The interface follows the operating-system theme on first visit and persists an explicit choice.
 Category and learning-level states always combine colour with a glyph or text label. See the
 [design-system reference](docs/DESIGN_SYSTEM.md) for tokens, responsive behavior, and accessibility

@@ -2,10 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Navbar from '../Navbar'
 
-function renderNavbar(route = '/') {
+function renderNavbar(route = '/', props = {}) {
   return render(
     <MemoryRouter initialEntries={[route]}>
-      <Navbar />
+      <Navbar {...props} />
     </MemoryRouter>
   )
 }
@@ -89,5 +89,14 @@ describe('Navbar', () => {
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
     expect(screen.getByRole('button', { name: /switch to dark theme/i })).toBeInTheDocument()
+  })
+
+  it('invokes onStartTour when the tour button is clicked', () => {
+    const onStartTour = vi.fn()
+    renderNavbar('/', { onStartTour })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take a tour of the app' }))
+
+    expect(onStartTour).toHaveBeenCalledTimes(1)
   })
 })

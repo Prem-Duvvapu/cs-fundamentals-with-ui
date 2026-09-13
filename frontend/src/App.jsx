@@ -6,6 +6,8 @@ import SearchPage from './pages/SearchPage'
 import InterviewPage from './pages/InterviewPage'
 import NotFoundPage from './pages/NotFoundPage'
 import AppErrorBoundary from './components/AppErrorBoundary'
+import ProductTour from './components/shared/ProductTour'
+import useProductTour from './hooks/useProductTour'
 
 function RoutedContent() {
   const location = useLocation()
@@ -23,12 +25,17 @@ function RoutedContent() {
 }
 
 export default function App() {
+  // Mounted here, a sibling of <Routes>, so its state survives the cross-route steps of the
+  // guided tour instead of resetting when the matched route unmounts/remounts.
+  const tour = useProductTour()
+
   return (
     <div className="app">
-      <Navbar />
+      <Navbar onStartTour={tour.start} />
       <main className="main-content">
         <RoutedContent />
       </main>
+      <ProductTour tour={tour} />
     </div>
   )
 }

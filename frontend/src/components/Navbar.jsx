@@ -27,7 +27,7 @@ function getActiveCategory(pathname) {
   return CATEGORY_LINKS.find(({ id }) => TOPIC_CATEGORIES[id].has(topicId))?.id
 }
 
-export default function Navbar() {
+export default function Navbar({ onStartTour }) {
   const { pathname } = useLocation()
   const { theme, toggleTheme } = useTheme()
   const activeCategory = getActiveCategory(pathname)
@@ -59,6 +59,15 @@ export default function Navbar() {
             <span aria-hidden="true">🎯</span>
             <span aria-hidden="true">Interview Mode</span>
           </Link>
+          <button
+            type="button"
+            className="navbar-tour-btn"
+            onClick={onStartTour}
+            aria-label="Take a tour of the app"
+          >
+            <span aria-hidden="true">🧭</span>
+            <span aria-hidden="true">Take a tour</span>
+          </button>
           <button
             type="button"
             className="theme-toggle"

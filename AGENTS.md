@@ -376,7 +376,16 @@ and [Mermaid theming](https://mermaid.js.org/config/theming.html).
   backend involvement — follow this pattern for any new client-only preference or progress state.
   `topicProgress.js` additionally exposes `exportProgress()`/`importProgress()` (a versioned JSON
   envelope, merge-only on import) behind "Export progress"/"Import progress" buttons on the home
-  page — the escape hatch for state that only ever lives in one browser's storage.
+  page — the escape hatch for state that only ever lives in one browser's storage. The guided
+  product tour (`hooks/useProductTour.js`) follows the same `localStorage`-flag pattern for its
+  first-visit auto-show/dismiss state.
+- **Guided tour**: `components/shared/ProductTour.jsx` + `hooks/useProductTour.js` +
+  `utils/tourSteps.js`/`utils/tourPosition.js`. Both the hook and the overlay are mounted once in
+  `App.jsx` (a sibling of `<Routes>`), not inside a page component, specifically so the tour's
+  state survives its own cross-route navigation (home → `/topic/cpu-scheduling`) instead of
+  resetting when the matched route unmounts. A test that renders `<App />` for something unrelated
+  should set `localStorage.setItem('cs-fundamentals-tour-seen', 'true')` first, or the tour's
+  first-visit auto-show will navigate the test to `/` out from under it (see `AppRouting.test.jsx`).
 - **Documentation & Test Synchronization Rule**: After ANY code, architectural, or feature changes, ALWAYS update the required documentation markdown files (`README.md`, `CONTEXT.md`, `AGENTS.md`) and write/update unit & integration tests (`frontend` Vitest suites and `backend` JUnit 5 tests), verifying all tests pass cleanly before completing the task.
 - **RCA Rule**: Search `RCA.md` before investigating a repeated symptom. When an agent-created
   change causes a confirmed regression or a shared-agent workflow failure, add or update an RCA
