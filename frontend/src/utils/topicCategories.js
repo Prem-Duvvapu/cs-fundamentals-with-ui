@@ -71,7 +71,11 @@ export const TOPIC_CATEGORY_MAP = {
   'llm-parameters': 'aiml',
   'feature-stores': 'aiml',
   'recommendation-systems': 'aiml',
-  'docker-fundamentals': 'devops'
+  'docker-fundamentals': 'devops',
+  'kubernetes-fundamentals': 'devops',
+  'nginx-reverse-proxy': 'devops',
+  'cicd-pipelines-deployment-strategies': 'devops',
+  'cloud-native-operations': 'devops'
 }
 
 export function getTopicCategory(topicId, fallback = 'os') {

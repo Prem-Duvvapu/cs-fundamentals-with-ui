@@ -82,8 +82,12 @@ public class TopicService {
         new Topic("feature-stores", "Feature Stores, Data Drift & MLOps Architecture", "aiml", "expert", "Online vs offline feature stores, PSI drift detection, retraining pipelines"),
         new Topic("recommendation-systems", "2-Stage Recommendation Engine Architecture", "aiml", "expert", "Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring"),
 
-        // DevOps & Infrastructure (1 Topic)
-        new Topic("docker-fundamentals", "Docker & Container Fundamentals", "devops", "beginner", "Namespaces, cgroups, image layers, multi-stage builds, networking modes, the containerd/runc runtime stack")
+        // DevOps & Infrastructure (5 Topics)
+        new Topic("docker-fundamentals", "Docker & Container Fundamentals", "devops", "beginner", "Namespaces, cgroups, image layers, multi-stage builds, networking modes, the containerd/runc runtime stack"),
+        new Topic("kubernetes-fundamentals", "Kubernetes Core Architecture, Networking & Deployments/Scaling", "devops", "intermediate", "Control plane and node architecture, Pods, Deployments and rolling updates, Services and kube-proxy, HPA"),
+        new Topic("nginx-reverse-proxy", "Nginx as Reverse Proxy & Load Balancer", "devops", "intermediate", "Event-driven worker architecture, load balancing algorithms, TLS termination, caching, rate limiting"),
+        new Topic("cicd-pipelines-deployment-strategies", "CI/CD Pipelines & Deployment Strategies", "devops", "intermediate", "CI vs CD, build-once/promote, rolling/blue-green/canary deploys, feature flags, progressive delivery, GitOps"),
+        new Topic("cloud-native-operations", "Orchestration Trade-offs, Infrastructure as Code, Observability & Cloud Fundamentals", "devops", "expert", "When to use Kubernetes, Terraform state/plan/apply, the three pillars of observability, IaaS/PaaS/SaaS, shared responsibility")
     );
 
     public List<Topic> getAllTopics() {

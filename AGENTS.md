@@ -17,14 +17,14 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 ├── AGENTS.md              # Context for AI agents
 ├── README.md              # Project overview & quickstart
 ├── CONTEXT.md             # System architecture & API documentation
-├── content/               # Markdown educational content (64 topics)
+├── content/               # Markdown educational content (68 topics)
 │   ├── CONTENT_SPEC.md    # ★ Authoring contract — read before writing content
 │   ├── os/                # Operating Systems (8 topics)
 │   ├── networking/        # Computer Networks (12 topics)
 │   ├── dbms/              # Database Management Systems (13 topics)
 │   ├── java-spring/       # Java & Spring Boot Ecosystem (23 topics)
 │   ├── aiml/              # AI / ML Architecture (7 topics)
-│   └── devops/            # DevOps & Infrastructure (1 topic)
+│   └── devops/            # DevOps & Infrastructure (5 topics)
 ├── backend/               # Spring Boot application
 │   ├── pom.xml
 │   └── src/main/java/com/csfundamentals/
@@ -70,7 +70,7 @@ Content is rendered by `frontend/src/components/markdown/MarkdownRenderer.jsx`
 Raw HTML is not permitted. Diagrams should be Mermaid, not ASCII box art — the ASCII
 diagrams in older files are legacy being replaced, not a pattern to copy.
 
-## Curriculum Roadmaps (64 Registered Topics)
+## Curriculum Roadmaps (68 Registered Topics)
 
 ### 💻 Operating Systems (8/8 Topics)
 - [x] Process Management (states, PCB, threads, fork, COW)
@@ -145,18 +145,20 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Feature Stores & MLOps Architecture (Online/offline stores, PSI data drift detection, retraining)
 - [x] 2-Stage Recommendation Engine (Two-tower candidate retrieval, deep ranking models, pCTR scoring)
 
-### ⚙ DevOps & Infrastructure (1/5 planned Topics)
+### ⚙ DevOps & Infrastructure (5/5 Topics)
 - [x] Docker & Container Fundamentals (Namespaces, cgroups, image layers, multi-stage builds, networking modes, containerd/runc runtime stack)
-- [ ] Kubernetes Core Architecture, Networking & Deployments/Scaling — planned
-- [ ] Nginx as Reverse Proxy & Load Balancer — planned
-- [ ] CI/CD Pipelines & Deployment Strategies — planned
-- [ ] Orchestration Trade-offs, Infrastructure as Code, Observability, Cloud Fundamentals — planned
+- [x] Kubernetes Core Architecture, Networking & Deployments/Scaling (Control plane/nodes, Pods, Deployments and rolling updates, Services and kube-proxy, HPA)
+- [x] Nginx as Reverse Proxy & Load Balancer (Event-driven worker architecture, load balancing algorithms, TLS termination, caching, rate limiting)
+- [x] CI/CD Pipelines & Deployment Strategies (CI vs CD, build-once/promote, rolling/blue-green/canary deploys, feature flags, progressive delivery, GitOps)
+- [x] Orchestration Trade-offs, Infrastructure as Code, Observability & Cloud Fundamentals (When to use Kubernetes, Terraform state/plan/apply, the three pillars of observability, IaaS/PaaS/SaaS, shared responsibility)
 
 A sixth category added 2026-09-10 for SDE-2 backend interview prep (containers, orchestration,
 delivery, and operations) alongside the existing five. Registration infrastructure (category
 tokens, home/nav wiring, `CONTENT_SPEC.md`'s category list) landed with this first topic rather
 than as an empty placeholder — see `content/devops/01-docker-fundamentals.md` for the exemplar
-this category's later topics should match in depth and voice.
+this category's later topics should match in depth and voice. The remaining four planned topics
+landed 2026-09-13, completing the category at 5/5; all five are Study-only (no dedicated
+visualizer), consistent with several other conceptual topics across the curriculum.
 
 ## Active Roadmap — Curriculum Depth Rebuild
 
@@ -326,19 +328,22 @@ the shared hash lives in `frontend/src/utils/diagramHash.js`, and the manifest r
 source, and a rendering-input fingerprint. `MermaidBlock.jsx` selects the theme asset, supplies
 intrinsic sizing and a label-derived description, exposes diagram source as a text alternative,
 and provides a keyboard-accessible full-size link. Mermaid and Playwright remain development-only.
-`npm run diagrams:check --prefix frontend` validates 281 manifest entries, fingerprints, and XML;
-`npm run diagrams:decode --prefix frontend` verifies all 570 assets through Chromium in CI.
+`npm run diagrams:check --prefix frontend` validates 299 manifest entries, fingerprints, and XML;
+`npm run diagrams:decode --prefix frontend` verifies all 598 assets through Chromium in CI.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
-All 64 topics are registered at all integration points, so content work requires
+All 68 topics are registered at all integration points, so content work requires
 **zero** registration changes. Never edit `.java`, `.jsx`, `.js` or `.json` in a content unit.
 
 Current contract-completion order:
-- **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS and AI/ML
-- **Verified** — 29,255 curriculum lines, 285 Mermaid diagrams and 897 interview Q&As across 64 lessons
-  (63 from the P4 content-depth rebuild plus `devops/docker-fundamentals`, added 2026-09-10)
-- **Gate** — `node scripts/validate-content.mjs` passes all 64 lessons and 83 manifest entries;
+- **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
+- **Verified** — 31,074 curriculum lines, 299 Mermaid diagrams and 953 interview Q&As across 68 lessons
+  (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
+  2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
+  `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
+  the category)
+- **Gate** — `node scripts/validate-content.mjs` passes all 68 lessons and 83 manifest entries;
   it also parses every Mermaid diagram with the real `mermaid` package (not mocked, unlike the
   Vitest suites), so a diagram with a genuine syntax error fails the gate instead of shipping to
   the error fallback in `MermaidBlock.jsx`
