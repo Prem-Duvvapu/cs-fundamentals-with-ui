@@ -36,19 +36,45 @@ function diagramDescription(code) {
   const labels = []
   const seen = new Set()
   const add = value => {
-    const clean = value.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-    if (clean && clean.length <= 80 && !seen.has(clean)) {
+    const clean = value
+      .replace(/<br\s*\/?>/gi, ' ')
+      // Mermaid's UML stereotype syntax (`<<interface>>`) must go before the generic HTML-tag
+      // strip below, which otherwise partial-matches it (`<[^>]+>` stops at the first `>`,
+      // consuming only `<<interface>` and leaving a stray trailing `>` in the label).
+      .replace(/<<[^>]*>>/g, ' ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      // A state-transition capture like `A --> Ready: admitted` grabs `Ready:` (no space before
+      // the colon) as the bare endpoint token; strip it so it dedupes against a plain `Ready`.
+      .replace(/:+$/, '')
+    // A state diagram's anonymous start/end node (`[*]`) captures as a bare `*` — not a label.
+    if (labels.length < 4 && clean && clean.length <= 80 && /[a-zA-Z0-9]/.test(clean) && !seen.has(clean)) {
       seen.add(clean)
       labels.push(clean)
     }
   }
   for (const match of code.matchAll(/"([^"]+)"|'([^']+)'|\[([^\]]+)]|\{([^}]+)}/g)) {
     add(match[1] || match[2] || match[3] || match[4])
-    if (labels.length === 4) break
+    if (labels.length >= 4) break
   }
   for (const match of code.matchAll(/^\s*(?:participant|actor)\s+\S+\s+as\s+(.+)$/gim)) {
     add(match[1])
-    if (labels.length === 4) break
+    if (labels.length >= 4) break
+  }
+  // State diagrams name states as bare, unquoted transition endpoints (`Ready --> Running`),
+  // which the quote/bracket capture above never sees (`[*]`, the anonymous start/end state, is
+  // excluded, not a real state name). Only try this when nothing else was found: flowchart nodes
+  // use the same `-->` arrow, and a node's `id["quoted label"]` has no space before its bracket,
+  // so `\S+` can capture a truncated `id["partial` fragment — harmless as a last resort, wrong to
+  // mix in alongside the clean quoted labels the first loop above already found.
+  if (labels.length === 0) {
+    for (const match of code.matchAll(/^\s*(\S+)\s*-{2,3}>\s*(\S+)/gm)) {
+      if (match[1] !== '[*]') add(match[1])
+      if (labels.length >= 4) break
+      if (match[2] !== '[*]') add(match[2])
+      if (labels.length >= 4) break
+    }
   }
   return labels.length > 0 ? `${diagramType(code)} showing ${labels.join(', ')}` : `${diagramType(code)} for the surrounding lesson`
 }
