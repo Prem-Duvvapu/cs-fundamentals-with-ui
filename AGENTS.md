@@ -145,7 +145,7 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Feature Stores & MLOps Architecture (Online/offline stores, PSI data drift detection, retraining)
 - [x] 2-Stage Recommendation Engine (Two-tower candidate retrieval, deep ranking models, pCTR scoring)
 
-### ⚙ DevOps & Infrastructure (1/10 planned Topics)
+### ⚙ DevOps & Infrastructure (1/5 planned Topics)
 - [x] Docker & Container Fundamentals (Namespaces, cgroups, image layers, multi-stage builds, networking modes, containerd/runc runtime stack)
 - [ ] Kubernetes Core Architecture, Networking & Deployments/Scaling — planned
 - [ ] Nginx as Reverse Proxy & Load Balancer — planned
