@@ -331,7 +331,7 @@ and provides a keyboard-accessible full-size link. Mermaid and Playwright remain
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
-All 63 topics are registered at all integration points, so content work requires
+All 64 topics are registered at all integration points, so content work requires
 **zero** registration changes. Never edit `.java`, `.jsx`, `.js` or `.json` in a content unit.
 
 Current contract-completion order:

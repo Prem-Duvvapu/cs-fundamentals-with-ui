@@ -197,7 +197,7 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 
 ## 🔌 REST API Endpoints
 
-- `GET /api/v1/topics` — Lists all 63 curriculum topics with level and summary metadata.
+- `GET /api/v1/topics` — Lists all 64 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 - `GET /api/v1/health/readiness` — Confirms the exact curriculum index is available and reports
@@ -208,6 +208,11 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 - `GET /api/v1/interview/questions?category=&difficulty=&offset=&limit=` — Paginated interview Q&A
   parsed directly from each lesson's `### Interview Questions` section, answers returned as
   Markdown. Frontend: `InterviewPage.jsx` at `/interview/:category` (`:category` may be `all`).
+- `POST /api/v1/simulation/{cpu-scheduling,page-replacement,subnet-calculator,bankers-algorithm}` —
+  the four legacy server-side simulations (`SimulationController`/`SimulationService`); every
+  newer simulator runs client-side instead. Request bodies are validated (empty/oversized process
+  lists, non-positive bursts, negative arrival times, duplicate IDs, unbounded timelines all
+  rejected), invalid input failing clean as an HTTP 400 `ProblemDetail` via `ApiExceptionHandler`.
 
 ---
 
