@@ -297,6 +297,8 @@ body {
 .navbar-actions { align-items: center; display: flex; gap: var(--space-4); }
 .navbar-icon-link { align-items: center; color: var(--text-secondary); display: inline-flex; font-size: var(--ui-sm); font-weight: 600; gap: var(--space-1); text-decoration: none; white-space: nowrap; }
 .navbar-icon-link:hover, .navbar-icon-link.active { color: var(--cat-os-base); }
+.navbar-tour-btn { align-items: center; background: transparent; border: var(--stroke-hair) solid var(--border-default); border-radius: var(--radius-sm); color: var(--text-secondary); cursor: pointer; display: inline-flex; font: 600 var(--ui-sm)/var(--ui-base-lh) var(--font-body); gap: var(--space-1); padding: var(--space-1) var(--space-3); white-space: nowrap; }
+.navbar-tour-btn:hover { background: var(--bg-raised); color: var(--text-primary); }
 
 .search-form { margin: var(--space-4) 0; max-width: 42rem; }
 .search-input { width: 100%; }
@@ -2151,7 +2153,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { box-shadow: va
   .navbar .nav-links { gap: var(--space-1); width: 100%; }
   .navbar .nav-links a { min-height: 2.75rem; white-space: nowrap; }
   .navbar-actions { gap: var(--space-2); }
-  .navbar-icon-link span:last-child { display: none; }
+  .navbar-icon-link span:last-child, .navbar-tour-btn span:last-child { display: none; }
   .topic-page-header,
   .topic-page-header--compact {
     display: flex;
@@ -2192,8 +2194,47 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { box-shadow: va
   .topic-content p, .topic-content li, .topic-content a, .topic-content :not(pre) > code { overflow-wrap: anywhere; }
 }
 
+/* Guided product tour (components/shared/ProductTour.jsx) */
+.tour-overlay { background: color-mix(in srgb, var(--bg-page) 55%, transparent); inset: 0; position: fixed; z-index: var(--z-toast); }
+.tour-spotlight {
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--bg-page) 65%, transparent);
+  outline: 2px solid var(--cat-base);
+  position: fixed;
+  transition: top var(--dur-fast) var(--ease-standard), left var(--dur-fast) var(--ease-standard), width var(--dur-fast) var(--ease-standard), height var(--dur-fast) var(--ease-standard);
+}
+.tour-tooltip {
+  background: var(--bg-surface);
+  border: var(--stroke-hair) solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-2);
+  max-width: min(320px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-5);
+  position: fixed;
+  transition: top var(--dur-fast) var(--ease-standard), left var(--dur-fast) var(--ease-standard);
+}
+.tour-tooltip--measuring { left: -9999px; top: -9999px; transition: none; }
+.tour-step-count { color: var(--text-muted); font-size: var(--ui-2xs); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.tour-title { color: var(--text-primary); font-family: var(--font-heading); font-size: var(--ui-lg); font-weight: 700; margin-top: var(--space-1); }
+.tour-body { color: var(--text-secondary); font-size: var(--ui-sm); margin-top: var(--space-2); }
+.tour-actions { align-items: center; display: flex; gap: var(--space-3); justify-content: space-between; margin-top: var(--space-5); }
+.tour-actions-nav { display: flex; gap: var(--space-2); }
+.tour-btn { border-radius: var(--radius-sm); cursor: pointer; font: 600 var(--ui-sm)/var(--ui-base-lh) var(--font-body); min-height: 2.5rem; padding: var(--space-1) var(--space-4); }
+.tour-btn--text { background: transparent; border: 0; color: var(--text-muted); padding-inline: var(--space-1); }
+.tour-btn--text:hover { color: var(--text-secondary); }
+.tour-btn--secondary { background: transparent; border: var(--stroke-hair) solid var(--border-default); color: var(--text-secondary); }
+.tour-btn--secondary:hover { background: var(--bg-raised); }
+.tour-btn--primary { background: var(--cat-base); border: 0; color: var(--text-inverse); }
+.tour-btn--primary:hover { filter: brightness(1.08); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spotlight, .tour-tooltip { transition: none; }
+}
+
 @media (max-width: 479px) {
   :root { --prose-h1: 1.75rem; }
   .topic-content pre, .topic-content .table-scroll { -webkit-overflow-scrolling: touch; }
   .tier-badge { display: flex; margin-bottom: var(--space-2); width: fit-content; }
+  .tour-tooltip { max-width: calc(100vw - 2 * var(--space-4)); }
+  .tour-actions { flex-wrap: wrap; }
 }

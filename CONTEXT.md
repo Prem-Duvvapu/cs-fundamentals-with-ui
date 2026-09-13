@@ -191,6 +191,20 @@ download; import parses that file and **merges** it into the existing state fiel
 there is no "replace all" mode. Malformed JSON, a non-object payload, or a `version` newer than
 this build supports are rejected with a distinct, human-readable status message.
 
+`components/shared/ProductTour.jsx` is a guided, spotlight-and-tooltip overlay driven by
+`hooks/useProductTour.js` (state machine) and `utils/tourSteps.js` (the ordered step list,
+mixing home-page and one topic-page leg). Both `useProductTour()` and `<ProductTour>` are mounted
+once in `App.jsx`, a sibling of `<Routes>`, so their state survives the tour's own cross-route
+navigation instead of resetting when the matched route unmounts — a step whose `path` differs
+from the current route triggers a `navigate()` before that step's target is looked up. Element
+lookup retries for a bounded number of animation frames (covering async-mounted content right
+after a navigation) and degrades to a centered, spotlight-less tooltip rather than hanging if a
+target never appears. `utils/tourPosition.js` is the pure, unit-tested placement function
+(clamps the tooltip within the viewport, flips above/below the target as space requires).
+Progress is tracked the same way as theme/bookmarks: a `localStorage` "seen" flag suppresses the
+automatic first-visit showing, and a "Take a tour" button in `Navbar.jsx` (wired via an
+`onStartTour` prop from `App.jsx`) replays it on demand regardless of that flag.
+
 `/search` and `/interview/:category` (P5) reuse the same roadmap visual language —
 `SearchPage.jsx` debounces a query against `GET /api/v1/search`, cancels superseded requests,
 keeps URL navigation and visible filters synchronized, and lists results as topic rows;
