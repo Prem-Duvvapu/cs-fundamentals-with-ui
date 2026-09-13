@@ -28,6 +28,7 @@ function renderPage() {
 describe('HomePage', () => {
   beforeEach(() => {
     vi.mocked(fetchTopics).mockResolvedValue(topics)
+    window.localStorage.clear()
   })
 
   it('renders the prioritized roadmap with semantic category controls', async () => {
@@ -108,5 +109,19 @@ describe('HomePage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'AI/ML Systems, 7 topics' }))
     expect(screen.getByText(/7 topics in this path/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Study Machine Learning Fundamentals & Evaluation' })).toHaveAttribute('href', '/topic/ml-fundamentals')
+  })
+
+  it('bookmarks a topic from its row and filters the roadmap to bookmarked-only', async () => {
+    renderPage()
+
+    await screen.findByText('OOP Pillars')
+    expect(screen.getByText('0 of 5 topics completed')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bookmark Deadlocks' }))
+    expect(screen.getByRole('button', { name: 'Remove Deadlocks from bookmarks' })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: /^bookmarked$/i }))
+    expect(screen.getByText('Deadlocks')).toBeInTheDocument()
+    expect(screen.queryByText('OOP Pillars')).not.toBeInTheDocument()
   })
 })
