@@ -4,6 +4,8 @@ import TopicViewer from '../components/TopicViewer'
 import { hasTopicVisualizer, TopicVisualizer } from '../components/visualizers/topicVisualizerRegistry'
 import { CATEGORY_METADATA, getTopicCategory } from '../utils/topicCategories'
 import { TOPIC_CATEGORY_MAP } from '../utils/topicCategories'
+import { isBookmarked, isCompleted } from '../utils/topicProgress'
+import useTopicProgress from '../hooks/useTopicProgress'
 import NotFoundPage from './NotFoundPage'
 
 export default function TopicPage() {
@@ -91,6 +93,10 @@ export default function TopicPage() {
   const selectedTab = canSimulate ? activeTab : 'theory'
   const isKnownTopic = Object.hasOwn(TOPIC_CATEGORY_MAP, topicId)
 
+  const { progress, toggleBookmark, toggleCompleted } = useTopicProgress()
+  const bookmarked = isBookmarked(topicId, progress)
+  const completed = isCompleted(topicId, progress)
+
   useEffect(() => {
     const updateHeader = () => setCompactHeader(window.scrollY > 120)
     updateHeader()
@@ -135,7 +141,29 @@ export default function TopicPage() {
             </li>
           </ol>
         </nav>
-        <h1 className="topic-page-title">{title}</h1>
+        <div className="topic-page-title-row">
+          <h1 className="topic-page-title">{title}</h1>
+          <div className="topic-progress-actions">
+            <button
+              type="button"
+              className="progress-toggle bookmark-toggle"
+              aria-pressed={bookmarked}
+              onClick={() => toggleBookmark(topicId)}
+            >
+              <span aria-hidden="true">{bookmarked ? '★' : '☆'}</span>
+              <span className="progress-toggle-label">{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+            </button>
+            <button
+              type="button"
+              className="progress-toggle complete-toggle"
+              aria-pressed={completed}
+              onClick={() => toggleCompleted(topicId)}
+            >
+              <span aria-hidden="true">{completed ? '✓' : '○'}</span>
+              <span className="progress-toggle-label">{completed ? 'Completed' : 'Mark complete'}</span>
+            </button>
+          </div>
+        </div>
 
         {canSimulate && (
           <div className="main-tab-switcher" role="tablist" aria-label="Topic view">

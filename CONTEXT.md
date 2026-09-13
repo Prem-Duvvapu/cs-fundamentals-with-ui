@@ -175,6 +175,14 @@ The home route complements the reader with a category-first roadmap. It presents
 summaries and counts, then ordered topic rows with level badges and direct Study links; filters
 remain semantic buttons so keyboard users receive the same orientation as pointer users.
 
+Per-topic bookmark and completed state is tracked client-side only, via
+`frontend/src/utils/topicProgress.js` (a `localStorage`-backed map of `topicId` → `{ bookmarked,
+completed }`, following the same storage-key/`CustomEvent` pattern as `useTheme.js`) and the
+`useTopicProgress` hook that subscribes components to it. `HomePage.jsx` renders a bookmark
+toggle and completed badge per topic row, a "Bookmarked" filter, and a completed-topics count;
+`TopicPage.jsx` renders the same bookmark/mark-complete toggles in its header. There is no
+backend involvement — the state is per-browser and not part of the topic-registration model.
+
 `/search` and `/interview/:category` (P5) reuse the same roadmap visual language —
 `SearchPage.jsx` debounces a query against `GET /api/v1/search`, cancels superseded requests,
 keeps URL navigation and visible filters synchronized, and lists results as topic rows;

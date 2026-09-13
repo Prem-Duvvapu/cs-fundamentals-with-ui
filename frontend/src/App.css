@@ -1951,6 +1951,12 @@ body {
 .topic-row-summary { color: var(--text-secondary); display: -webkit-box; font-size: var(--ui-base); -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .roadmap-cta { background: transparent; border: var(--stroke-hair) solid transparent; border-radius: var(--radius-sm); color: var(--cat-base); min-height: 2.75rem; padding: var(--space-2) var(--space-4); transition: background-color var(--dur-fast) var(--ease-standard); }
 .roadmap-cta:hover { background: var(--cat-tint); filter: none; transform: none; }
+.roadmap-progress-summary { color: var(--text-secondary); font-size: var(--ui-sm); font-weight: 600; margin-top: var(--space-2); }
+.completed-badge { align-items: center; background: var(--state-success-tint); border: var(--stroke-hair) solid var(--state-success-border); border-radius: var(--radius-full); color: var(--state-success); display: inline-flex; font-size: var(--ui-2xs); font-weight: 600; gap: var(--space-1); letter-spacing: var(--tracking-wide); margin-bottom: var(--space-2); margin-left: var(--space-2); padding: var(--space-1) var(--space-3); text-transform: uppercase; }
+.topic-row-actions { align-items: center; display: flex; gap: var(--space-2); }
+.bookmark-toggle-icon { align-items: center; background: transparent; border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-full); color: var(--text-muted); cursor: pointer; display: inline-flex; font-size: var(--ui-lg); height: 2.75rem; justify-content: center; transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); width: 2.75rem; }
+.bookmark-toggle-icon:hover { background: var(--bg-raised); border-color: var(--cat-border); }
+.bookmark-toggle-icon[aria-pressed="true"] { border-color: var(--state-warning-border); color: var(--state-warning); }
 .roadmap-empty-state { text-align: center; }
 .roadmap-empty-action { background: var(--state-info); border: 0; border-radius: var(--radius-sm); color: var(--text-inverse); cursor: pointer; font-weight: 600; margin-top: var(--space-4); min-height: 2.75rem; padding: var(--space-2) var(--space-4); }
 .reader-error { background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-6); }
@@ -1996,6 +2002,13 @@ body {
   margin: 0;
   min-width: 0;
 }
+.topic-page-title-row { align-items: start; display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; }
+.topic-progress-actions { display: flex; flex-shrink: 0; gap: var(--space-2); }
+.progress-toggle { align-items: center; background: transparent; border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-full); color: var(--text-secondary); cursor: pointer; display: inline-flex; font: 600 var(--ui-sm)/var(--ui-base-lh) var(--font-body); gap: var(--space-1); min-height: 2.5rem; padding: var(--space-1) var(--space-3); transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); }
+.progress-toggle:hover { background: var(--bg-raised); border-color: var(--cat-border); }
+.bookmark-toggle[aria-pressed="true"] { border-color: var(--state-warning-border); color: var(--state-warning); }
+.complete-toggle[aria-pressed="true"] { border-color: var(--state-success-border); color: var(--state-success); }
+.topic-page-header--compact .topic-progress-actions { display: none; }
 .topic-page-header--compact {
   align-items: center;
   display: grid;
@@ -2148,9 +2161,11 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { box-shadow: va
   .study-layout { gap: var(--space-3); }
   .study-navigation { margin-bottom: 0; }
   .topic-row { align-items: start; grid-template-columns: 2.5rem minmax(0, 1fr); }
-  .topic-row .roadmap-cta { grid-column: 1 / -1; width: 100%; }
+  .topic-row .topic-row-actions { grid-column: 1 / -1; width: 100%; }
+  .topic-row .roadmap-cta { flex: 1; }
   .roadmap-selectors, .level-selectors { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: var(--space-2); }
-  .roadmap-selector, .level-selector, .main-tab-btn, .btn-primary, .btn-secondary, .btn-danger { min-height: 44px; }
+  .roadmap-selector, .level-selector, .main-tab-btn, .btn-primary, .btn-secondary, .btn-danger, .progress-toggle, .bookmark-toggle-icon { min-height: 44px; }
+  .topic-page-title-row { flex-direction: column; }
   .field-grid { grid-template-columns: minmax(0, 1fr); }
   .gantt-wrapper { overflow-x: auto; overscroll-behavior-x: contain; position: relative; }
   .gantt-wrapper::after {

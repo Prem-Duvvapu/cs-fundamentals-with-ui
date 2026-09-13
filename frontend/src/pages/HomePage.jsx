@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchTopics } from '../utils/api'
+import { isBookmarked, isCompleted, getCompletedCount } from '../utils/topicProgress'
+import useTopicProgress from '../hooks/useTopicProgress'
 
 const LEVEL_ORDER = { beginner: 0, intermediate: 1, expert: 2 }
 const LEVEL_LABELS = { beginner: 'Beginner', intermediate: 'Intermediate', expert: 'Expert' }
@@ -67,6 +69,8 @@ export default function HomePage() {
   const [topics, setTopics] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedLevel, setSelectedLevel] = useState('all')
+  const [bookmarkedOnly, setBookmarkedOnly] = useState(false)
+  const { progress, toggleBookmark, toggleCompleted } = useTopicProgress()
 
   useEffect(() => {
     fetchTopics()
@@ -168,12 +172,13 @@ export default function HomePage() {
 
   const visibleCategories = selectedCategories.map(category => ({
     ...category,
-    topics: selectedLevel === 'all'
-      ? category.topics
-      : category.topics.filter(topic => (topic.level || 'beginner') === selectedLevel)
+    topics: category.topics
+      .filter(topic => selectedLevel === 'all' || (topic.level || 'beginner') === selectedLevel)
+      .filter(topic => !bookmarkedOnly || isBookmarked(topic.id, progress))
   }))
 
   const visibleTopicCount = visibleCategories.reduce((count, category) => count + category.topics.length, 0)
+  const completedCount = getCompletedCount(progress)
 
   return (
     <div className="roadmap-index">
@@ -183,6 +188,11 @@ export default function HomePage() {
         <p>
           Build interview-ready understanding in the order that compounds: Java and Spring first, then the systems and data foundations that support them.
         </p>
+        {topics.length > 0 && (
+          <p className="roadmap-progress-summary" role="status">
+            {completedCount} of {topics.length} topics completed
+          </p>
+        )}
 
         <div className="roadmap-filters">
           <nav className="roadmap-selectors" aria-label="Curriculum categories">
@@ -225,6 +235,14 @@ export default function HomePage() {
                 {level === 'all' ? 'All levels' : LEVEL_LABELS[level]}
               </button>
             ))}
+            <button
+              type="button"
+              className={`level-selector ${bookmarkedOnly ? 'active' : ''}`}
+              aria-pressed={bookmarkedOnly}
+              onClick={() => setBookmarkedOnly(current => !current)}
+            >
+              <span aria-hidden="true">★</span> Bookmarked
+            </button>
           </div>
         </div>
       </header>
@@ -253,6 +271,7 @@ export default function HomePage() {
               onClick={() => {
                 setSelectedCategory('all')
                 setSelectedLevel('all')
+                setBookmarkedOnly(false)
               }}
             >
               Show all topics
@@ -274,27 +293,47 @@ export default function HomePage() {
               <span>{topicCountLabel(category.topics.length)}</span>
             </div>
             <ol className="topic-rows" aria-label={`${category.label} topics`}>
-              {category.topics.map((topic, topicIndex) => (
-                <li key={topic.id} className="topic-row">
-                  <span className="topic-number" aria-label={`Topic ${topicIndex + 1}`}>{String(topicIndex + 1).padStart(2, '0')}</span>
-                  <div className="topic-row-body">
-                    <span
-                      className={`tier-badge tier-badge--${topic.level || 'beginner'}`}
-                      aria-label={`${LEVEL_LABELS[topic.level] || 'Beginner'} level`}
-                    >
-                      <span className="tier-badge-glyph" aria-hidden="true">
-                        {LEVEL_GLYPHS[topic.level] || LEVEL_GLYPHS.beginner}
+              {category.topics.map((topic, topicIndex) => {
+                const topicBookmarked = isBookmarked(topic.id, progress)
+                const topicCompleted = isCompleted(topic.id, progress)
+                return (
+                  <li key={topic.id} className="topic-row">
+                    <span className="topic-number" aria-label={`Topic ${topicIndex + 1}`}>{String(topicIndex + 1).padStart(2, '0')}</span>
+                    <div className="topic-row-body">
+                      <span
+                        className={`tier-badge tier-badge--${topic.level || 'beginner'}`}
+                        aria-label={`${LEVEL_LABELS[topic.level] || 'Beginner'} level`}
+                      >
+                        <span className="tier-badge-glyph" aria-hidden="true">
+                          {LEVEL_GLYPHS[topic.level] || LEVEL_GLYPHS.beginner}
+                        </span>
+                        <span>{LEVEL_LABELS[topic.level] || 'Beginner'}</span>
                       </span>
-                      <span>{LEVEL_LABELS[topic.level] || 'Beginner'}</span>
-                    </span>
-                    <h3 className="topic-row-title">{topic.title}</h3>
-                    <p className="topic-row-summary">{topic.summary}</p>
-                  </div>
-                  <Link to={`/topic/${topic.id}`} className="roadmap-cta" aria-label={`Study ${topic.title}`}>
-                    Study topic <span aria-hidden="true">→</span>
-                  </Link>
-                </li>
-              ))}
+                      {topicCompleted && (
+                        <span className="completed-badge">
+                          <span aria-hidden="true">✓</span> Completed
+                        </span>
+                      )}
+                      <h3 className="topic-row-title">{topic.title}</h3>
+                      <p className="topic-row-summary">{topic.summary}</p>
+                    </div>
+                    <div className="topic-row-actions">
+                      <button
+                        type="button"
+                        className="bookmark-toggle-icon"
+                        aria-pressed={topicBookmarked}
+                        aria-label={topicBookmarked ? `Remove ${topic.title} from bookmarks` : `Bookmark ${topic.title}`}
+                        onClick={() => toggleBookmark(topic.id)}
+                      >
+                        <span aria-hidden="true">{topicBookmarked ? '★' : '☆'}</span>
+                      </button>
+                      <Link to={`/topic/${topic.id}`} className="roadmap-cta" aria-label={`Study ${topic.title}`}>
+                        Study topic <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                  </li>
+                )
+              })}
             </ol>
           </section>
         ))}

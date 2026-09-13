@@ -204,4 +204,30 @@ describe('TopicPage Component', () => {
     expect(screen.getByRole('link', { name: /browse all topics/i })).toHaveAttribute('href', '/')
     expect(screen.queryByTestId('topic-viewer')).not.toBeInTheDocument()
   })
+
+  it('toggles bookmark and completed state and persists it to localStorage', () => {
+    window.localStorage.clear()
+
+    render(
+      <MemoryRouter initialEntries={['/topic/dbms-indexing']}>
+        <Routes>
+          <Route path="/topic/:topicId" element={<TopicPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const bookmarkBtn = screen.getByRole('button', { name: /^bookmark$/i })
+    const completeBtn = screen.getByRole('button', { name: /mark complete/i })
+    expect(bookmarkBtn).toHaveAttribute('aria-pressed', 'false')
+    expect(completeBtn).toHaveAttribute('aria-pressed', 'false')
+
+    fireEvent.click(bookmarkBtn)
+    expect(screen.getByRole('button', { name: /bookmarked/i })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: /mark complete/i }))
+    expect(screen.getByRole('button', { name: /^completed$/i })).toHaveAttribute('aria-pressed', 'true')
+
+    const stored = JSON.parse(window.localStorage.getItem('cs-fundamentals-progress'))
+    expect(stored['dbms-indexing']).toEqual({ bookmarked: true, completed: true })
+  })
 })

@@ -181,6 +181,11 @@ topic rows, level badges and a direct Study action. Each topic reader supplies r
 a responsive accessible table of contents, tier jumps and a recall deck without repeating the
 page title or navigation context.
 
+Topics can be bookmarked and marked complete from either the roadmap row or the topic page header;
+a "Bookmarked" filter and a completed-topics count on the home page track this alongside the
+existing category/level filters. This state lives entirely in the browser's `localStorage`
+(no account or backend persistence), so it is per-device and clears if site data is cleared.
+
 The interface follows the operating-system theme on first visit and persists an explicit choice.
 Category and learning-level states always combine colour with a glyph or text label. See the
 [design-system reference](docs/DESIGN_SYSTEM.md) for tokens, responsive behavior, and accessibility
