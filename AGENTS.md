@@ -238,7 +238,15 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
   the server-side category filter) — category tabs + difficulty filter chips trigger a fresh fetch
   from offset 0; a "Load N more" button pages through `GET /api/v1/interview/questions`'s
   offset/limit/total contract; a shuffle button reorders whatever's already loaded client-side.
-  Both routes are linked from `Navbar.jsx`.
+- `frontend/src/pages/ProgressPage.jsx` (`/progress`) — a stats dashboard over the same
+  `GET /api/v1/topics` fetch as `HomePage.jsx`, combined with `useTopicProgress()`'s
+  bookmark/completed state: overall completion, a bar per category and per level, the bookmarked
+  list, and a "continue where you left off" pick (the first not-completed topic in curriculum
+  order). No new endpoint. `frontend/src/utils/progressStats.js` holds the math as pure
+  `(topics, progress) → result` functions; `frontend/src/utils/topicCategories.js` gained
+  `CATEGORY_ORDER`/`LEVEL_ORDER`/`LEVEL_LABELS`/`LEVEL_GLYPHS` exports so this page and
+  `HomePage.jsx` share one source instead of duplicating them.
+  All three of `/search`, `/interview/:category`, and `/progress` are linked from `Navbar.jsx`.
 
 ### Current implementation priorities
 

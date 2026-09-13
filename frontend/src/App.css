@@ -1966,6 +1966,16 @@ body {
 .bookmark-toggle-icon { align-items: center; background: transparent; border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-full); color: var(--text-muted); cursor: pointer; display: inline-flex; font-size: var(--ui-lg); height: 2.75rem; justify-content: center; transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); width: 2.75rem; }
 .bookmark-toggle-icon:hover { background: var(--bg-raised); border-color: var(--cat-border); }
 .bookmark-toggle-icon[aria-pressed="true"] { border-color: var(--state-warning-border); color: var(--state-warning); }
+
+/* Progress dashboard (pages/ProgressPage.jsx) */
+.progress-bar { background: var(--bg-inset); border-radius: var(--radius-full); height: 0.5rem; overflow: hidden; width: 100%; }
+.progress-bar-fill { background: var(--cat-base); border-radius: var(--radius-full); height: 100%; transition: width var(--dur-fast) var(--ease-standard); }
+.progress-stat-rows { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+.progress-stat-row { align-items: center; display: grid; gap: var(--space-3); grid-template-columns: 1.5rem 11rem minmax(0, 1fr) auto; }
+.progress-level-glyph { color: var(--text-secondary); font-size: var(--ui-lg); text-align: center; }
+.progress-stat-label { color: var(--text-primary); font-weight: 600; }
+.progress-stat-count { color: var(--text-muted); font-size: var(--ui-sm); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.progress-next-up-body { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; margin-top: var(--space-3); }
 .roadmap-empty-state { text-align: center; }
 .roadmap-empty-action { background: var(--state-info); border: 0; border-radius: var(--radius-sm); color: var(--text-inverse); cursor: pointer; font-weight: 600; margin-top: var(--space-4); min-height: 2.75rem; padding: var(--space-2) var(--space-4); }
 .reader-error { background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-6); }
@@ -2175,6 +2185,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { box-shadow: va
   .roadmap-selectors, .level-selectors { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: var(--space-2); }
   .roadmap-selector, .level-selector, .main-tab-btn, .btn-primary, .btn-secondary, .btn-danger, .progress-toggle, .bookmark-toggle-icon, .progress-transfer-btn { min-height: 44px; }
   .topic-page-title-row { flex-direction: column; }
+  .progress-stat-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .progress-stat-row .progress-stat-label { flex: 1 1 auto; }
+  .progress-stat-row .progress-bar { flex-basis: 100%; order: 3; }
   .field-grid { grid-template-columns: minmax(0, 1fr); }
   .gantt-wrapper { overflow-x: auto; overscroll-behavior-x: contain; position: relative; }
   .gantt-wrapper::after {

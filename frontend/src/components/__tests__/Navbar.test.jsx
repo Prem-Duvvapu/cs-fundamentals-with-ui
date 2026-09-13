@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Navbar from '../Navbar'
 
@@ -47,6 +47,17 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Interview Mode' })).toHaveAttribute('href', '/interview/all')
     expect(screen.getByRole('link', { name: 'Interview Mode' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('links to the progress dashboard, marking it active on its own route', () => {
+    renderNavbar('/progress')
+
+    expect(screen.getByRole('link', { name: 'Progress' })).toHaveAttribute('href', '/progress')
+    expect(screen.getByRole('link', { name: 'Progress' })).toHaveAttribute('aria-current', 'page')
+
+    cleanup()
+    renderNavbar('/')
+    expect(screen.getByRole('link', { name: 'Progress' })).not.toHaveAttribute('aria-current')
   })
 
   it('marks Interview Mode active for any /interview/:category route', () => {

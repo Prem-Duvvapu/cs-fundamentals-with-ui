@@ -214,6 +214,18 @@ category + difficulty filters, client-side shuffle) through a shared `components
 extracted so both call sites stay in sync. `category = 'all'` omits the server-side category filter
 rather than paging through a second client-side registry. Both routes are linked from the navbar.
 
+`/progress` (`ProgressPage.jsx`, linked from the navbar) is a read-only view over the same
+`GET /api/v1/topics` fetch `HomePage.jsx` makes, combined with the bookmark/completed state from
+`useTopicProgress()` — no new endpoint, no new persistence. All of the actual math (overall/
+per-category/per-level completion percentages, the "continue where you left off" pick, the
+bookmarked list) lives in `utils/progressStats.js` as pure functions taking `(topics, progress)`,
+kept separate from the component so it's unit-testable without rendering anything.
+`utils/topicCategories.js`'s `CATEGORY_METADATA` gained a `summary` field and the module gained
+`CATEGORY_ORDER`/`LEVEL_ORDER`/`LEVEL_LABELS`/`LEVEL_GLYPHS` exports so `ProgressPage.jsx` and
+`HomePage.jsx` share one source for those; `HomePage.jsx` still keeps its own local category
+labels/summaries, since they predate and read differently from `CATEGORY_METADATA`'s (e.g. "AI/ML
+Systems" vs. "AI & Machine Learning") and changing that wasn't part of this work.
+
 The token system in `frontend/src/App.css` provides dark and light palettes, six category accents,
 semantic state colours, reading typography, spacing and motion. The saved theme follows the system
 preference initially; Mermaid diagrams and syntax highlighting react to theme changes without a reload.

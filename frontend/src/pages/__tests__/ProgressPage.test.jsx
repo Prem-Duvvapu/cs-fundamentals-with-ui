@@ -1,0 +1,91 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
+import ProgressPage from '../ProgressPage'
+import { fetchTopics } from '../../utils/api'
+import { toggleBookmark, toggleCompleted } from '../../utils/topicProgress'
+
+vi.mock('../../utils/api', () => ({
+  fetchTopics: vi.fn()
+}))
+
+const topics = [
+  { id: 'java-oop-pillars', category: 'java-spring', title: 'OOP Pillars', level: 'beginner', summary: 'Pillars of OOP.' },
+  { id: 'deadlocks', category: 'os', title: 'Deadlocks', level: 'intermediate', summary: 'Prevention and recovery.' },
+  { id: 'osi-model', category: 'networking', title: 'OSI Model', level: 'beginner', summary: 'Layered reference model.' }
+]
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <ProgressPage />
+    </MemoryRouter>
+  )
+}
+
+describe('ProgressPage', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+    vi.mocked(fetchTopics).mockResolvedValue(topics)
+  })
+
+  it('shows a loading state before topics arrive', () => {
+    vi.mocked(fetchTopics).mockReturnValue(new Promise(() => {})) // never resolves
+    renderPage()
+    expect(screen.getByRole('status')).toHaveTextContent('Loading your progress…')
+  })
+
+  it('shows an error state when topics fail to load', async () => {
+    vi.mocked(fetchTopics).mockRejectedValue(new Error('offline'))
+    renderPage()
+    expect(await screen.findByRole('alert')).toHaveTextContent(/couldn't load your progress/i)
+  })
+
+  it('reports overall completion once topics load, with nothing completed yet', async () => {
+    renderPage()
+    expect(await screen.findByText('0 of 3 topics completed (0%)')).toBeInTheDocument()
+  })
+
+  it('reflects completed topics in the overall count and the category/level breakdowns', async () => {
+    toggleCompleted('java-oop-pillars')
+    toggleCompleted('deadlocks')
+    renderPage()
+
+    expect(await screen.findByText('2 of 3 topics completed (67%)')).toBeInTheDocument()
+
+    const categorySection = screen.getByRole('heading', { name: 'By category' }).closest('section')
+    const javaRow = within(categorySection).getByText('Java & Spring').closest('li')
+    expect(within(javaRow).getByText('1 of 1')).toBeInTheDocument()
+
+    const levelSection = screen.getByRole('heading', { name: 'By level' }).closest('section')
+    const beginnerRow = within(levelSection).getByText('Beginner').closest('li')
+    expect(within(beginnerRow).getByText('1 of 2')).toBeInTheDocument()
+  })
+
+  it('suggests the first not-completed topic in curriculum order to continue with', async () => {
+    renderPage()
+    const nextSection = await screen.findByRole('heading', { name: 'Continue where you left off' })
+    expect(nextSection.closest('section')).toHaveTextContent('OOP Pillars')
+    expect(within(nextSection.closest('section')).getByRole('link', { name: 'Study OOP Pillars' })).toHaveAttribute('href', '/topic/java-oop-pillars')
+  })
+
+  it('omits the continue section once every topic is completed', async () => {
+    topics.forEach((topic) => toggleCompleted(topic.id))
+    renderPage()
+
+    await screen.findByText('3 of 3 topics completed (100%)')
+    expect(screen.queryByRole('heading', { name: 'Continue where you left off' })).not.toBeInTheDocument()
+  })
+
+  it('shows an empty state when nothing is bookmarked', async () => {
+    renderPage()
+    expect(await screen.findByText(/no bookmarks yet/i)).toBeInTheDocument()
+  })
+
+  it('lists bookmarked topics with working study links', async () => {
+    toggleBookmark('deadlocks')
+    renderPage()
+
+    expect(await screen.findByRole('link', { name: 'Study Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
+  })
+})
