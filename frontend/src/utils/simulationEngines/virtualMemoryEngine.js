@@ -91,7 +91,21 @@ export class VirtualMemoryEngine {
         state: this.cloneState()
       })
 
-      const assignedFrame = this.freeFrames.shift() || 15
+      // `shift() || 15` was wrong: frame 0 is falsy, so the first fault silently assigned frame
+      // 15 while consuming frame 0 from the free list — leaking 0 and leaving 15 free to be
+      // handed out a second time, mapping two pages to one frame.
+      const assignedFrame = this.freeFrames.shift()
+
+      if (assignedFrame === undefined) {
+        steps.push({
+          action: 'NO_FREE_FRAMES',
+          description: `🛑 No free physical frames remain. The OS would evict a resident page to swap before it can load Page #${vpn}.`,
+          highlightVpn: vpn,
+          state: this.cloneState()
+        })
+        return steps
+      }
+
       ptEntry.frame = assignedFrame
       ptEntry.valid = true
 

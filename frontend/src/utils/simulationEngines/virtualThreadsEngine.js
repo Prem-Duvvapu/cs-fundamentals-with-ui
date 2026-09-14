@@ -96,9 +96,12 @@ export class VirtualThreadsEngine {
       carrier.status = 'IDLE'
     }
 
+    // `carrier` can be undefined if the thread's carrierId no longer resolves; the description
+    // below used to dereference it unguarded and throw a TypeError mid-simulation.
+    const carrierLabel = carrier ? carrier.id : 'its carrier'
     steps.push({
       action: 'UNMOUNT_VTHREAD',
-      description: `🚀 UNMOUNTED! ${vt.id} unmounted from ${carrier.id} and parked. ${carrier.id} is now FREE for other Virtual Threads!`,
+      description: `🚀 UNMOUNTED! ${vt.id} unmounted from ${carrierLabel} and parked. ${carrierLabel} is now FREE for other Virtual Threads!`,
       state: this.cloneState()
     })
 

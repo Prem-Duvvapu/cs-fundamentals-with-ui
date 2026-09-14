@@ -32,9 +32,11 @@ export class JvmMemoryEngine {
     }
   }
 
-  allocateObject(name = `Obj#${nextObjId++}`, sizeKB = 100, isHumongous = false) {
+  allocateObject(name = `Obj#${nextObjId}`, sizeKB = 100, isHumongous = false) {
     const steps = []
-    const obj = { id: `obj-${nextObjId}`, name, sizeKB, age: 0, isAlive: true }
+    // The counter must advance per allocation, not only when `name` is defaulted — otherwise two
+    // explicitly-named objects both get `obj-1`, and a defaulted "Obj#1" got id `obj-2`.
+    const obj = { id: `obj-${nextObjId++}`, name, sizeKB, age: 0, isAlive: true }
 
     if (isHumongous) {
       steps.push({
@@ -109,11 +111,17 @@ export class JvmMemoryEngine {
       state: this.cloneState()
     })
 
-    // Copy surviving Eden objects to active Survivor space
-    const targetSurvivor = this.activeSurvivor === 0 ? this.s0 : this.s1
-    const targetName = this.activeSurvivor === 0 ? 'S0' : 'S1'
+    // A copying collector evacuates Eden *and* the occupied ("from") survivor space into the
+    // empty ("to") space. Evacuating Eden alone left the previous survivors behind to be wiped,
+    // so nothing ever aged past 1 and the tenuring promotion below was unreachable.
+    const toSurvivorKey = this.activeSurvivor === 0 ? 's0' : 's1'
+    const fromSurvivorKey = this.activeSurvivor === 0 ? 's1' : 's0'
 
-    survivingEden.forEach(obj => {
+    const agedFromSurvivor = this[fromSurvivorKey].map(obj => ({ ...obj, age: obj.age + 1 }))
+    const evacuating = [...survivingEden, ...agedFromSurvivor]
+    const toSurvivor = []
+
+    evacuating.forEach(obj => {
       if (obj.age >= 3) {
         this.oldGen.push(obj)
         steps.push({
@@ -122,17 +130,17 @@ export class JvmMemoryEngine {
           state: this.cloneState()
         })
       } else {
-        targetSurvivor.push(obj)
+        toSurvivor.push(obj)
       }
     })
 
-    // Clear Eden
+    // Clear Eden and the from-space; the to-space now holds everything that survived.
     this.eden = []
+    this[toSurvivorKey] = toSurvivor
+    this[fromSurvivorKey] = []
 
-    // Swap survivor spaces S0 <-> S1
+    // Swap roles so the next GC evacuates into the space just emptied.
     this.activeSurvivor = this.activeSurvivor === 0 ? 1 : 0
-    if (this.activeSurvivor === 0) this.s1 = []
-    else this.s0 = []
 
     steps.push({
       action: 'MINOR_GC_COMPLETE',
