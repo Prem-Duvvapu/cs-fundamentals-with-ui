@@ -6,9 +6,17 @@ carried over from existing docs. Where a measurement proved unreliable, that is 
 rather than reported as a finding.
 
 **Headline:** the platform is in good structural health — 68/68 content files pass the validation
-gate, accessibility checks are clean across all five routes, and there are zero dependency
-vulnerabilities. One **high-severity user-facing bug** was found and confirmed live: the entire
-DevOps category is invisible in both Search and Interview Mode.
+gate, accessibility checks are clean across all five routes, corrupt and hostile `localStorage`
+payloads are handled safely, and there are zero dependency vulnerabilities.
+
+Two **user-facing bugs** were found and confirmed live in a real browser:
+
+1. **A-13 (Critical)** — every first-time visitor is silently redirected off *any* deep link to
+   the home page. Shared links to topics, searches, interview decks, and the progress dashboard
+   all break for exactly the audience most likely to receive them.
+2. **A-01/A-02 (High)** — the entire DevOps category is invisible in Search and Interview Mode.
+
+Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ---
 
@@ -16,11 +24,13 @@ DevOps category is invisible in both Search and Interview Mode.
 
 | ID | Severity | Area | Finding |
 |---|---|---|---|
+| A-13 | **Critical** | UI/UX / routing | First-time visitors are redirected off **every** deep link to `/`; the back button does not recover the destination |
 | A-01 | **High** | Features / discovery | DevOps category missing from `/search` and `/interview` — 5 topics and 70 questions unreachable by UI |
 | A-02 | **High** | UI/UX | `/search?category=devops` silently drops the filter from the URL |
 | A-03 | Medium | Process | Topic-registration checklist has no *category*-level counterpart — root cause of A-01/A-02 |
 | A-04 | Medium | Tech debt | `CATEGORY_ORDER` defined in 3 places; 2 are stale |
 | A-05 | Medium | Testing | 7 simulation engines have zero tests, contradicting `CLAUDE.md`'s stated contract |
+| A-14 | Medium | Testing | No test covers first-load routing behaviour, which is why A-13 shipped unnoticed |
 | A-06 | Low | Docs | "299 Mermaid diagrams" counts 4 diagrams from the spec doc itself; the curriculum has 295 |
 | A-07 | Low | Build | 8 SVGs are generated, CI-validated, and shipped for diagrams no user ever sees |
 | A-08 | Low | Performance | 49 MB of diagram assets; 52 MB `dist/`; `MarkdownRenderer` chunk exceeds Vite's 500 KB warning |
@@ -28,6 +38,80 @@ DevOps category is invisible in both Search and Interview Mode.
 | A-10 | Low | Maintenance | Six dependencies are a major version behind (React 18→19, jsdom 23→30, mermaid 11→12) |
 | A-11 | Info | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
 | A-12 | Info | Process | Two `CONTENT_SPEC.md` rules are not machine-checkable and are enforced only by author discipline |
+| A-15 | Info | Robustness | Corrupt, malformed, and prototype-pollution `localStorage` payloads all degrade safely — no action needed |
+
+---
+
+## 1a. A-13 — First-time visitors lose every deep link (Critical)
+
+The most serious finding in this review, and the one with the widest blast radius.
+
+### What happens
+
+On a visitor's **first** visit (before the `cs-fundamentals-tour-seen` flag exists), the guided
+tour auto-starts. Its first step declares `path: '/'`, and the hook navigates to that path — so
+the visitor is pulled off whatever URL they actually opened.
+
+Measured in a real browser, cold context vs. returning context:
+
+| Opened URL | First-time visitor | Returning visitor |
+|---|---|---|
+| `/topic/kubernetes-fundamentals` | **redirected → `/`** | kept |
+| `/topic/cpu-scheduling` | **redirected → `/`** | kept |
+| `/search?q=tcp` | **redirected → `/`** | kept |
+| `/interview/dbms` | **redirected → `/`** | kept |
+| `/progress` | **redirected → `/`** | kept |
+
+Two aggravating factors:
+
+- **The back button does not recover the destination.** After the redirect, pressing back leaves
+  the visitor on `/`. The intended page is unreachable without re-opening the original link.
+- **It hits precisely the wrong audience.** Returning visitors — who already know the site — keep
+  their deep links. First-time visitors, the ones arriving from a shared link, a bookmark someone
+  sent them, or a search engine, are the only ones who lose their destination.
+
+### Root cause
+
+`frontend/src/hooks/useProductTour.js`:
+
+```js
+// Auto-show once, for a first-time visitor only.
+useEffect(() => {
+  if (!readSeen()) setActive(true)      // ← fires on ANY route
+}, [])
+
+useEffect(() => {
+  if (active && step?.path && step.path !== location.pathname) {
+    navigate(step.path)                  // ← step 1 path is '/', so it yanks the user home
+  }
+}, [active, stepIndex, navigate])
+```
+
+The auto-show effect has no route guard, so activating the tour on `/topic/foo` immediately
+triggers a navigation to `/`.
+
+### Honest note on how this shipped
+
+This mechanism was actually observed during the tour's own development — an unrelated routing
+test (`AppRouting.test.jsx`) started failing because the tour navigated it away from a deliberately
+invalid route, and the fix applied at the time was to set the tour-seen flag **in the test**. The
+mechanism was correctly diagnosed but filed as a test-harness nuisance rather than recognised as
+the production UX bug it also was. The note added to `CLAUDE.md` even documents the behaviour
+("the tour's auto-navigate-to-`/` will hijack the test's route") without drawing the conclusion
+that real users hit the same path. Worth recording, because the signal was there and was misread.
+
+### Suggested fix
+
+Guard the auto-show on the home route — the tour is written to start there anyway:
+
+```js
+useEffect(() => {
+  if (!readSeen() && location.pathname === '/') setActive(true)
+}, [])
+```
+
+A first-time visitor landing deep then keeps their page, and still gets the tour whenever they
+reach the home page (or via "Take a tour"). Pair it with the regression test in A-14.
 
 ---
 
@@ -262,6 +346,38 @@ discipline in this codebase is holding up as features are added.
   390 px.
 - The orphaned `/interview/devops` page (A-01) is the one place where the UI is internally
   inconsistent — a valid page with no navigation representation.
+- Deep-link handling is broken for first-time visitors (A-13).
+
+### A-15 — Robustness probes all passed (Info)
+
+Hostile and malformed inputs were pushed through the client-side persistence layer and the
+router. Everything degraded gracefully, with zero console or page errors:
+
+| Probe | Result |
+|---|---|
+| `localStorage` progress = `not-json` | Safe — renders `0 of 68 (0%)` |
+| `localStorage` progress = `[]` | Safe |
+| `localStorage` progress = `{"x":null}` | Safe |
+| `localStorage` progress = `{"cpu-scheduling":"bogus"}` | Safe |
+| `localStorage` progress = `{"__proto__":{"completed":true}}` | Safe — **no prototype pollution** |
+| `/interview/not-a-category` | Clean "Unknown category" page |
+| `/interview/DEVOPS` (wrong case) | Clean "Unknown category" page |
+| `/topic/not-a-topic` | Clean "Topic not found" page |
+| "Bookmarked" filter with zero bookmarks | Correct empty state, 0 rows |
+| Completion made on a topic page, then back-nav to `/progress` | Stat updated correctly (0% → 1%) |
+
+The `try/catch` + type-guard discipline in `topicProgress.js` is doing real work here — the
+prototype-pollution probe in particular is a meaningful pass, not a formality. No action needed.
+
+### A-14 — No test covers first-load routing (Medium)
+
+A-13 is a single-line bug in a hook that has **nine** dedicated unit tests, none of which
+exercises the case that matters: mounting the app at a non-`/` route as a first-time visitor.
+`useProductTour.test.jsx` always mounts its harness at `/`, so the redirect can't surface.
+
+**Recommendation:** add a test that renders `<App />` at `/topic/<id>` with no tour-seen flag and
+asserts the route is preserved. That single assertion would have caught A-13, and it guards the
+fix from regressing.
 
 ---
 
@@ -357,16 +473,32 @@ absence of any test that would have caught A-01.
 
 ## 11. Recommended order of work
 
-1. **A-01 / A-02** — import the shared `CATEGORY_ORDER` in `SearchPage` and `InterviewPage`; add a
+1. **A-13 + A-14** — add the `location.pathname === '/'` guard to the tour's auto-show, plus a
+   test that mounts `<App />` at a deep link with no tour-seen flag. *One line of product code;
+   fixes every broken shared link.* Highest value in this list.
+2. **A-01 / A-02** — import the shared `CATEGORY_ORDER` in `SearchPage` and `InterviewPage`; add a
    test asserting every `CATEGORY_METADATA` entry renders a filter chip. *Small fix, high value.*
-2. **A-03** — document the category-level registration checklist so this class of bug can't recur.
-3. **A-05** — write suites for the seven untested engines, or correct `CLAUDE.md`'s claim.
-4. **A-06 / A-07** — scope the diagram scan to topic files; correct 299 → 295 where it describes
+3. **A-03** — document the category-level registration checklist so this class of bug can't recur.
+4. **A-05** — write suites for the seven untested engines, or correct `CLAUDE.md`'s claim.
+5. **A-06 / A-07** — scope the diagram scan to topic files; correct 299 → 295 where it describes
    curriculum content.
-5. **A-12** — decide whether the scenario/answer-depth rules become machine-checkable or are
+6. **A-12** — decide whether the scenario/answer-depth rules become machine-checkable or are
    explicitly marked as human review criteria.
-6. **A-09, A-10, A-08** — diagram-type variety pass, dependency upgrades, bundle splitting, as
+7. **A-09, A-10, A-08** — diagram-type variety pass, dependency upgrades, bundle splitting, as
    capacity allows.
+
+Items 1 and 2 together are a small, self-contained PR and would resolve both user-facing bugs.
+
+### A pattern worth naming
+
+A-13 and A-01 share a shape: **a feature was added, every automated gate passed, and a whole class
+of user-facing behaviour silently broke.** In both cases the guardrails were real but
+mis-targeted — `TopicServiceTest` pins topic counts, `useProductTour.test.jsx` covers nine
+state-machine transitions, and neither asks the question a user would ask ("can I still get to
+the page I clicked?", "can I find DevOps?"). The gap isn't test *quantity* — 523 frontend tests
+pass — it's that the tests assert internal behaviour and none assert the externally-visible
+contract of a route. A handful of coarse "does this URL still show this thing" tests would cover
+more real risk than the next fifty unit tests.
 
 ---
 
@@ -378,8 +510,14 @@ absence of any test that would have caught A-01.
 - A-01/A-02: live Playwright session against `localhost:3000` with the backend on `:9190`,
   inspecting rendered filter chips, the post-load URL, and active-tab state; backend behaviour
   confirmed independently with `curl`.
+- A-13: each route opened in a **fresh browser context** (no prior `localStorage`) and compared
+  against the same route in a context with the tour-seen flag pre-set, so the first-visit
+  condition is isolated; back-button recovery tested separately.
+- A-15: hostile payloads injected via `addInitScript` before first paint, with page and console
+  error listeners attached throughout.
 - Accessibility: in-browser DOM evaluation across five routes.
 - Bundle/asset sizes: `du` against a completed production build.
 - Dependencies: `npm outdated` and `npm audit`.
 
 Findings that could not be measured reliably are labelled as such rather than reported as defects.
+No product code was changed by this review — every bug above is reported, not fixed.
