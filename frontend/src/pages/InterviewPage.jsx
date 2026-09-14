@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { fetchInterviewQuestions } from '../utils/api'
-import { CATEGORY_METADATA } from '../utils/topicCategories'
+import { CATEGORY_METADATA, CATEGORY_ORDER } from '../utils/topicCategories'
 import InterviewDeck from '../components/shared/InterviewDeck'
 
 const PAGE_SIZE = 50
 const DIFFICULTY_FILTERS = ['all', 'easy', 'medium', 'hard']
-const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml']
 
 function categoryLabel(id) {
   return id === 'all' ? 'All categories' : CATEGORY_METADATA[id]?.label || id

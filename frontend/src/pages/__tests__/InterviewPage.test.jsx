@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import InterviewPage from '../InterviewPage'
+import { CATEGORY_METADATA } from '../../utils/topicCategories'
 
 function makeQuestion(n, overrides = {}) {
   return {
@@ -159,5 +160,36 @@ describe('InterviewPage', () => {
     expect(await screen.findByRole('button', { name: /retry loading more/i })).toBeInTheDocument()
     expect(screen.getByText(/current deck is unchanged/i)).toBeInTheDocument()
     expect(screen.getByText(/Question number 1\?/)).toBeInTheDocument()
+  })
+
+  // Guards the bug where this page kept its own hardcoded category list, which went stale when
+  // the DevOps category shipped: /interview/devops rendered its 70 questions but had no tab, so
+  // the page was orphaned — reachable only by typing the URL, with no tab ever marked active.
+  describe('category tabs cover every registered category', () => {
+    it.each(Object.entries(CATEGORY_METADATA).map(([id, meta]) => [id, meta.shortLabel]))(
+      'renders a tab for %s',
+      async (id, shortLabel) => {
+        global.fetch.mockResolvedValue(new Response(JSON.stringify({
+          category: null, difficulty: null, total: 1, offset: 0, limit: 50, questions: [makeQuestion(1)]
+        })))
+
+        renderPage('/interview/all')
+        await screen.findByText('1 / 1')
+
+        expect(screen.getByRole('link', { name: shortLabel })).toBeInTheDocument()
+      }
+    )
+
+    it('marks the DevOps tab active on /interview/devops rather than leaving the page orphaned', async () => {
+      global.fetch.mockResolvedValue(new Response(JSON.stringify({
+        category: 'devops', difficulty: null, total: 1, offset: 0, limit: 50,
+        questions: [makeQuestion(1, { category: 'devops', topicId: 'docker-fundamentals' })]
+      })))
+
+      renderPage('/interview/devops')
+      await screen.findByText('1 / 1')
+
+      expect(screen.getByRole('link', { name: 'DEVOPS' })).toHaveClass('active')
+    })
   })
 })

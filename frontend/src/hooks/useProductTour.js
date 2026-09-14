@@ -33,9 +33,14 @@ export default function useProductTour() {
   const step = active ? TOUR_STEPS[stepIndex] : null
   const onTargetRoute = !step || !step.path || step.path === location.pathname
 
-  // Auto-show once, for a first-time visitor only.
+  // Auto-show once, for a first-time visitor who actually landed on the home route. Without the
+  // route guard the tour would start anywhere, and its first step's `path: '/'` would immediately
+  // navigate the visitor off the deep link they opened (a shared /topic/... link, say) with no
+  // way back. Landing deep is a deliberate destination; the tour waits for the navbar button.
   useEffect(() => {
-    if (!readSeen()) setActive(true)
+    if (!readSeen() && location.pathname === '/') setActive(true)
+    // Mount-only on purpose: this asks where the visitor *arrived*, not where they navigate later.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Navigate ahead of the target lookup when a step lives on a different route.
