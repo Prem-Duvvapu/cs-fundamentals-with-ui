@@ -22,23 +22,27 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ## 1. Severity summary
 
-| ID | Severity | Area | Finding |
-|---|---|---|---|
-| A-13 | **Critical** | UI/UX / routing | First-time visitors are redirected off **every** deep link to `/`; the back button does not recover the destination |
-| A-01 | **High** | Features / discovery | DevOps category missing from `/search` and `/interview` — 5 topics and 70 questions unreachable by UI |
-| A-02 | **High** | UI/UX | `/search?category=devops` silently drops the filter from the URL |
-| A-03 | Medium | Process | Topic-registration checklist has no *category*-level counterpart — root cause of A-01/A-02 |
-| A-04 | Medium | Tech debt | `CATEGORY_ORDER` defined in 3 places; 2 are stale |
-| A-05 | Medium | Testing | 7 simulation engines have zero tests, contradicting `CLAUDE.md`'s stated contract |
-| A-14 | Medium | Testing | No test covers first-load routing behaviour, which is why A-13 shipped unnoticed |
-| A-06 | Low | Docs | "299 Mermaid diagrams" counts 4 diagrams from the spec doc itself; the curriculum has 295 |
-| A-07 | Low | Build | 8 SVGs are generated, CI-validated, and shipped for diagrams no user ever sees |
-| A-08 | Low | Performance | 49 MB of diagram assets; 52 MB `dist/`; `MarkdownRenderer` chunk exceeds Vite's 500 KB warning |
-| A-09 | Low | Content | Diagram type mix is 68% `flowchart`; `erDiagram`/`gantt`/`classDiagram` barely used |
-| A-10 | Low | Maintenance | Six dependencies are a major version behind (React 18→19, jsdom 23→30, mermaid 11→12) |
-| A-11 | Info | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
-| A-12 | Info | Process | Two `CONTENT_SPEC.md` rules are not machine-checkable and are enforced only by author discipline |
-| A-15 | Info | Robustness | Corrupt, malformed, and prototype-pollution `localStorage` payloads all degrade safely — no action needed |
+> **Status update.** A-13, A-01, A-02, A-03, A-04 and A-14 were **fixed** in the follow-up PR that
+> accompanied this review; each row below is marked accordingly. The remaining items are still
+> open. Fix details are in §12.
+
+| ID | Severity | Status | Area | Finding |
+|---|---|---|---|---|
+| A-13 | **Critical** | ✅ Fixed | UI/UX / routing | First-time visitors are redirected off **every** deep link to `/`; the back button does not recover the destination |
+| A-01 | **High** | ✅ Fixed | Features / discovery | DevOps category missing from `/search` and `/interview` — 5 topics and 70 questions unreachable by UI |
+| A-02 | **High** | ✅ Fixed | UI/UX | `/search?category=devops` silently drops the filter from the URL |
+| A-03 | Medium | ✅ Fixed | Process | Topic-registration checklist has no *category*-level counterpart — root cause of A-01/A-02 |
+| A-04 | Medium | ✅ Fixed | Tech debt | `CATEGORY_ORDER` defined in 3 places; 2 are stale |
+| A-05 | Medium | Open | Testing | 7 simulation engines have zero tests, contradicting `CLAUDE.md`'s stated contract |
+| A-14 | Medium | ✅ Fixed | Testing | No test covers first-load routing behaviour, which is why A-13 shipped unnoticed |
+| A-06 | Low | Open | Docs | "299 Mermaid diagrams" counts 4 diagrams from the spec doc itself; the curriculum has 295 |
+| A-07 | Low | Open | Build | 8 SVGs are generated, CI-validated, and shipped for diagrams no user ever sees |
+| A-08 | Low | Open | Performance | 49 MB of diagram assets; 52 MB `dist/`; `MarkdownRenderer` chunk exceeds Vite's 500 KB warning |
+| A-09 | Low | Open | Content | Diagram type mix is 68% `flowchart`; `erDiagram`/`gantt`/`classDiagram` barely used |
+| A-10 | Low | Open | Maintenance | Six dependencies are a major version behind (React 18→19, jsdom 23→30, mermaid 11→12) |
+| A-11 | Info | Open | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
+| A-12 | Info | Open | Process | Two `CONTENT_SPEC.md` rules are not machine-checkable and are enforced only by author discipline |
+| A-15 | Info | — | Robustness | Corrupt, malformed, and prototype-pollution `localStorage` payloads all degrade safely — no action needed |
 
 ---
 
@@ -499,6 +503,44 @@ the page I clicked?", "can I find DevOps?"). The gap isn't test *quantity* — 5
 pass — it's that the tests assert internal behaviour and none assert the externally-visible
 contract of a route. A handful of coarse "does this URL still show this thing" tests would cover
 more real risk than the next fifty unit tests.
+
+---
+
+## 12. What was fixed in the follow-up
+
+The two user-facing bugs and the process gap behind them were fixed immediately after this review.
+
+| Item | Change |
+|---|---|
+| **A-13** | `useProductTour.js` — auto-show is now guarded to `location.pathname === '/'`. A first-time visitor landing deep keeps their page and can still start the tour from the navbar. One line of product code. |
+| **A-01 / A-02 / A-04** | `SearchPage.jsx` and `InterviewPage.jsx` now import the shared `CATEGORY_ORDER` from `utils/topicCategories.js` instead of each declaring a stale local copy. The three-way duplication is gone; one canonical source remains. |
+| **A-14** | `AppRouting.test.jsx` rewritten around a live router-location probe: every test in it now runs as a genuine first-time visitor (`localStorage` cleared), and deep links to `/topic/:id`, `/search?q=`, `/interview/:cat`, `/progress` and an unknown route must all survive. Two further tests assert the tour *does* still auto-open on `/` and does *not* for a returning visitor. |
+| **A-01 regression guard** | `SearchPage.test.jsx` and `InterviewPage.test.jsx` gained suites that iterate `CATEGORY_METADATA` and assert every registered category renders a filter chip / tab, plus explicit DevOps cases (`?category=devops` survives the URL; the DevOps tab is marked active). Because they iterate the shared source, a future category cannot silently go missing. |
+| **A-03** | `CLAUDE.md` gained an "Adding a *category*" checklist next to the existing 7-point topic checklist, naming all five touch points and stating the rule that caused this: never re-declare a local category list in a page. |
+
+### The fix was verified to actually fix something
+
+The regression tests were confirmed to fail without the product change, not just pass with it.
+Reverting the one-line guard and re-running `AppRouting.test.jsx` produced **7 failures** —
+every deep-link case plus the unknown-route test:
+
+```
+× renders actionable recovery links for an unknown route
+× keeps /topic/cpu-scheduling instead of redirecting to the home page
+× keeps /search?q=tcp instead of redirecting to the home page
+× keeps /interview/dbms instead of redirecting to the home page
+× keeps /progress instead of redirecting to the home page
+× keeps /not-a-real-route instead of redirecting to the home page
+× does not open the tour overlay on a deep link
+   Tests  7 failed | 3 passed (10)
+```
+
+Restoring the guard returned all 10 to green. A regression test that passes with and without the
+fix is worthless; these do not.
+
+One incidental confirmation: the unknown-route test previously needed a `tour-seen` workaround to
+pass at all. That workaround is now deleted and the test passes as a true first-time visitor —
+which is the clearest evidence the underlying behaviour, not just the symptom, changed.
 
 ---
 

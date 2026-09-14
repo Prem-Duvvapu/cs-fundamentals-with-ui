@@ -202,7 +202,12 @@ after a navigation) and degrades to a centered, spotlight-less tooltip rather th
 target never appears. `utils/tourPosition.js` is the pure, unit-tested placement function
 (clamps the tooltip within the viewport, flips above/below the target as space requires).
 Progress is tracked the same way as theme/bookmarks: a `localStorage` "seen" flag suppresses the
-automatic first-visit showing, and a "Take a tour" button in `Navbar.jsx` (wired via an
+automatic first-visit showing. That auto-show is additionally **guarded to the home route** — it
+fires only when the visitor actually landed on `/`. Without the guard the tour started on any
+route and its first step's `path: '/'` immediately navigated a first-time visitor off whatever
+deep link they had opened (a shared `/topic/...` link, say), with the back button unable to
+recover it; `AppRouting.test.jsx` now locks that behaviour down. A "Take a tour" button in
+`Navbar.jsx` (wired via an
 `onStartTour` prop from `App.jsx`) replays it on demand regardless of that flag.
 
 `/search` and `/interview/:category` (P5) reuse the same roadmap visual language —

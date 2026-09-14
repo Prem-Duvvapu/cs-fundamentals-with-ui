@@ -1,8 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
-import { MemoryRouter, useNavigate } from 'react-router-dom'
+import { MemoryRouter, useNavigate, useLocation } from 'react-router-dom'
 import SearchPage from '../SearchPage'
+import { CATEGORY_METADATA } from '../../utils/topicCategories'
+
+function LocationProbe() {
+  const { pathname, search } = useLocation()
+  return <div data-testid="location">{pathname + search}</div>
+}
 
 const SEARCH_RESPONSE = {
   query: 'window functions',
@@ -138,5 +144,33 @@ describe('SearchPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /open saved search/i }))
     await waitFor(() => expect(screen.getByRole('searchbox')).toHaveValue('network'))
     expect(screen.getByRole('button', { name: 'NET' })).toHaveClass('active')
+  })
+
+  // Guards the bug where this page kept its own hardcoded category list, which went stale when
+  // the DevOps category shipped: no filter chip existed for it, and ?category=devops was silently
+  // rewritten out of the URL. Driven off CATEGORY_METADATA so a future category can't regress it.
+  describe('category filter covers every registered category', () => {
+    it.each(Object.entries(CATEGORY_METADATA).map(([id, meta]) => [id, meta.shortLabel]))(
+      'renders a filter chip for %s',
+      async (id, shortLabel) => {
+        global.fetch.mockResolvedValue(new Response(JSON.stringify(SEARCH_RESPONSE)))
+        render(<MemoryRouter initialEntries={['/search']}><SearchPage /></MemoryRouter>)
+
+        expect(screen.getByRole('button', { name: shortLabel })).toBeInTheDocument()
+      }
+    )
+
+    it('preserves ?category=devops in the URL instead of silently dropping it', async () => {
+      global.fetch.mockResolvedValue(new Response(JSON.stringify({ ...SEARCH_RESPONSE, category: 'devops' })))
+      render(
+        <MemoryRouter initialEntries={['/search?q=kubernetes&category=devops']}>
+          <SearchPage />
+          <LocationProbe />
+        </MemoryRouter>
+      )
+
+      await waitFor(() => expect(screen.getByRole('button', { name: 'DEVOPS' })).toHaveClass('active'))
+      expect(screen.getByTestId('location')).toHaveTextContent('category=devops')
+    })
   })
 })

@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchSearch } from '../utils/api'
-import { CATEGORY_METADATA } from '../utils/topicCategories'
+import { CATEGORY_METADATA, CATEGORY_ORDER } from '../utils/topicCategories'
 
-const CATEGORY_ORDER = ['java-spring', 'os', 'networking', 'dbms', 'aiml']
 const SEARCH_DEBOUNCE_MS = 300
 
 function categoryFromParams(searchParams) {
