@@ -33,7 +33,7 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 | A-02 | **High** | ✅ Fixed | UI/UX | `/search?category=devops` silently drops the filter from the URL |
 | A-03 | Medium | ✅ Fixed | Process | Topic-registration checklist has no *category*-level counterpart — root cause of A-01/A-02 |
 | A-04 | Medium | ✅ Fixed | Tech debt | `CATEGORY_ORDER` defined in 3 places; 2 are stale |
-| A-05 | Medium | Open | Testing | 7 simulation engines have zero tests, contradicting `CLAUDE.md`'s stated contract |
+| A-05 | Medium | ✅ Fixed | Testing | 7 simulation engines have zero tests, contradicting `CLAUDE.md`'s stated contract — **writing them uncovered 5 real defects (§13)** |
 | A-14 | Medium | ✅ Fixed | Testing | No test covers first-load routing behaviour, which is why A-13 shipped unnoticed |
 | A-06 | Low | Open | Docs | "299 Mermaid diagrams" counts 4 diagrams from the spec doc itself; the curriculum has 295 |
 | A-07 | Low | Open | Build | 8 SVGs are generated, CI-validated, and shipped for diagrams no user ever sees |
@@ -477,21 +477,17 @@ absence of any test that would have caught A-01.
 
 ## 11. Recommended order of work
 
-1. **A-13 + A-14** — add the `location.pathname === '/'` guard to the tour's auto-show, plus a
-   test that mounts `<App />` at a deep link with no tour-seen flag. *One line of product code;
-   fixes every broken shared link.* Highest value in this list.
-2. **A-01 / A-02** — import the shared `CATEGORY_ORDER` in `SearchPage` and `InterviewPage`; add a
-   test asserting every `CATEGORY_METADATA` entry renders a filter chip. *Small fix, high value.*
-3. **A-03** — document the category-level registration checklist so this class of bug can't recur.
-4. **A-05** — write suites for the seven untested engines, or correct `CLAUDE.md`'s claim.
+1. ~~**A-13 + A-14**~~ — ✅ done. Tour auto-show guarded to `/`, plus deep-link route tests.
+2. ~~**A-01 / A-02**~~ — ✅ done. Both pages import the shared `CATEGORY_ORDER`; category coverage
+   is asserted off `CATEGORY_METADATA`.
+3. ~~**A-03**~~ — ✅ done. `CLAUDE.md` has a category-level registration checklist.
+4. ~~**A-05**~~ — ✅ done, and it was not routine: see §13 for the five defects it uncovered.
 5. **A-06 / A-07** — scope the diagram scan to topic files; correct 299 → 295 where it describes
-   curriculum content.
+   curriculum content. *Next up — one change closes both.*
 6. **A-12** — decide whether the scenario/answer-depth rules become machine-checkable or are
    explicitly marked as human review criteria.
 7. **A-09, A-10, A-08** — diagram-type variety pass, dependency upgrades, bundle splitting, as
    capacity allows.
-
-Items 1 and 2 together are a small, self-contained PR and would resolve both user-facing bugs.
 
 ### A pattern worth naming
 
@@ -541,6 +537,64 @@ fix is worthless; these do not.
 One incidental confirmation: the unknown-route test previously needed a `tour-seen` workaround to
 pass at all. That workaround is now deleted and the test passes as a true first-time visitor —
 which is the clearest evidence the underlying behaviour, not just the symptom, changed.
+
+---
+
+## 13. A-05 follow-up — the untested engines were untested *and* wrong
+
+Writing the seven missing suites was expected to be routine coverage work. It was not: **five real
+defects surfaced**, four of them in code whose entire job is to teach a mechanism correctly. This
+is the concrete answer to "why does A-05 matter more than a typical coverage gap".
+
+All five were confirmed by running the engines directly before any test was written, then fixed,
+then locked behind regression tests.
+
+| # | Engine | Defect | Effect on a learner |
+|---|---|---|---|
+| 1 | `virtualMemoryEngine` | `freeFrames.shift() \|\| 15` — frame **0 is falsy** | The first page fault taught frame **15** instead of **0**. Frame 0 was consumed and leaked; frame 15 stayed in the free list and could be handed out again, showing **two pages mapped to one physical frame** |
+| 2 | `jvmEngine` | Survivors were evacuated into S0, then S0 was immediately cleared by the swap | Every Minor GC **discarded the objects it had just copied** — the survivor-space animation showed evacuation, then nothing |
+| 3 | `jvmEngine` | Consequence of #2: nothing ever aged past 1 | **Tenuring promotion at age ≥ 3 was unreachable** — a headline feature of the simulation could never fire |
+| 4 | `jvmEngine` | `nextObjId++` sat in a default parameter | Two explicitly-named objects both got id `obj-1`; a defaulted `Obj#1` got id `obj-2` |
+| 5 | `virtualThreadsEngine` | `carrier.id` dereferenced outside its `if (carrier)` guard | A stale carrier reference threw `TypeError` and killed the simulation mid-run |
+
+### Fixes
+
+- **#1** — take the frame from `shift()` and test for `undefined`, not falsiness. Frame exhaustion
+  now emits an explicit `NO_FREE_FRAMES` step instead of inventing frame 15.
+- **#2/#3** — the collector now evacuates Eden **and** the occupied "from" survivor space into the
+  empty "to" space, ages both, clears the from-space, then swaps roles. Objects accumulate age
+  across collections, so tenuring promotion fires as designed.
+- **#4** — the counter advances once per allocation regardless of whether a name was passed.
+- **#5** — the description falls back to a neutral label when the carrier can't be resolved.
+
+### Verification
+
+79 tests now cover the seven engines. As with A-13, they were checked to **fail without the
+fixes**: reverting all four changes produces 10 failures, precisely the regression guards —
+
+```
+× assigns the first free frame even when that frame is 0
+× never hands the same physical frame to two pages
+× draws frames from the free list in order
+× reports exhaustion instead of inventing a frame when none are free
+× does not throw when the parked thread has a stale carrier reference
+× gives every object a unique id, including explicitly-named ones
+× keeps evacuated survivors instead of wiping the space it just filled
+× clears Eden and swaps the active survivor space
+× promotes an object to Old Gen once it reaches the tenuring threshold
+× keeps objects below the threshold in a survivor space
+   Tests  10 failed | 25 passed (35)
+```
+
+Restoring the fixes returns all 79 to green.
+
+### What this says about the earlier finding
+
+A-05 was filed as "7 engines have no tests, contradicting `CLAUDE.md`". The more useful framing
+turns out to be: **the absence of tests was hiding four wrong teaching simulations**, in exactly
+the layer `CLAUDE.md` designates as "where algorithm logic belongs" and that `/verify-project`
+warns component tests cannot check. The coverage gap was the symptom; incorrect instruction was
+the cost.
 
 ---
 
