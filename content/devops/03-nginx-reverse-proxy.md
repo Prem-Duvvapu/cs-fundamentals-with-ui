@@ -336,7 +336,10 @@ a kernel facility like `epoll` that lets one thread monitor thousands of file de
 and only wakes up for the ones actually ready for I/O. A thread-per-connection model instead
 pays a real memory cost per thread (each thread's stack alone is typically megabytes) and
 increasing CPU overhead from context-switching between them, which is why it hits a much
-lower practical connection ceiling on identical hardware.
+lower practical connection ceiling on identical hardware. The trade-off is that the event
+loop is cooperative: any blocking work inside a worker — a slow disk read, a synchronous
+third-party module — stalls every other connection that worker is serving, which is why
+Nginx pushes application work to a backend rather than doing it inline.
 
 **Q3. What do `proxy_set_header X-Real-IP` and `X-Forwarded-For` actually solve?** `[easy]`
 
@@ -344,7 +347,10 @@ Without them, every request the backend receives appears to originate from Nginx
 address, since Nginx is the one making the actual TCP connection to the backend — the real
 client's IP is otherwise lost entirely. These headers carry the original client IP through
 explicitly so backend logging, rate limiting, or geo-based logic can use the real client
-address instead of Nginx's.
+address instead of Nginx's. They are only trustworthy at the first proxy, though: a client
+can send its own `X-Forwarded-For`, so the edge Nginx must overwrite rather than append it,
+and a backend that rate-limits on a spoofable header is worse off than one that never saw
+the client IP at all.
 
 **Q4. Explain the difference between round robin, least connections, and IP hash load balancing.** `[easy]`
 
@@ -372,6 +378,9 @@ accumulate several long-running expensive requests purely by the coincidence of 
 order, while another backend's requests all happen to be cheap and finish quickly. Least
 connections targets this directly by routing new requests toward whichever backend
 currently has the fewest requests actually in flight, rather than by a fixed rotation.
+Least-connections is not free, though — it needs shared per-backend state across workers,
+and it still measures concurrency rather than cost, so a backend holding one very expensive
+request still looks idle next to one holding three cheap ones.
 
 **Q7. A client reports intermittent `504 Gateway Timeout` errors only for one specific, slow report-generation endpoint. What's the likely cause and fix?** `[medium]`
 
@@ -389,7 +398,10 @@ minutes after being cached, without contacting the backend again for an identica
 during that window — this is by design, not a bug, so up to 5-minute-stale data is the
 expected behavior. The first thing to check is the `$upstream_cache_status` response header
 (`HIT`, `MISS`, `EXPIRED`, `BYPASS`) to confirm whether the response actually came from cache
-at all before assuming the backend itself returned stale data.
+at all before assuming the backend itself returned stale data. The subtler cause is the
+cache key: `proxy_cache_key` defaults to scheme, host and URI, so two responses that differ
+by a header or cookie collapse onto one entry, and a per-user response can be served to
+everyone until it expires.
 
 **Q9. Why does `ip_hash` load balancing sometimes create a hot backend that receives far more traffic than the others, even under otherwise uniform traffic?** `[medium]`
 
@@ -399,7 +411,10 @@ the same value to the same backend regardless of how many distinct real users th
 represents or how loaded that backend already is. A large enough group of NAT'd clients can
 therefore concentrate disproportionate real traffic onto one backend purely because they
 share one apparent IP, which per-backend request-count metrics alone won't explain without
-knowing the client IP distribution.
+knowing the client IP distribution. `ip_hash` also rehashes when the backend list changes,
+so removing one server reshuffles a share of clients onto different backends — which is why
+`hash ... consistent` exists, trading a slightly less even spread for far less churn when
+the pool is resized.
 
 **Q10. Walk through what `limit_req_zone ... rate=10r/s` combined with `limit_req ... burst=20` actually does when a client sends 25 requests at once.** `[hard]`
 
@@ -410,7 +425,10 @@ under the current second's allowance, up to 20 more are queued and released at t
 steady rate over the following couple of seconds (or released immediately if `nodelay` is
 set, trading smoothed delivery for lower perceived latency), and anything beyond `rate +
 burst` total is rejected outright with a 503 — the design intentionally tolerates natural
-burstiness rather than enforcing a hard per-second wall.
+burstiness rather than enforcing a hard per-second wall. The catch is that the shared
+memory zone is per Nginx instance, not per fleet: with ten instances behind a load balancer
+the effective limit is ten times the configured rate, so the number in the config is not the
+number the backend actually sees.
 
 **Q11. Why is `nginx -t` before every reload considered close to mandatory operational practice?** `[hard]`
 
@@ -421,7 +439,10 @@ scripted around. `nginx -t` performs that exact syntax and basic semantic valida
 of time, letting an operator catch a bad config change in a controlled way instead of
 discovering it only when a scripted reload silently no-ops (or, in edge cases depending on
 how the reload is invoked, potentially leaves the fleet in an inconsistent state across
-instances) during an actual deploy.
+instances) during an actual deploy. Its limit is worth knowing too — `nginx -t` checks
+syntax and resolvable references, not intent, so a config that parses cleanly can still
+point `proxy_pass` at the wrong upstream or drop a `location` block that a live route
+depended on.
 
 **Q12. How does Nginx's event-driven model let one worker handle thousands of slow, idle-but-open connections (like long-polling or websockets) without proportionally more resource usage?** `[hard]`
 
@@ -432,7 +453,10 @@ idle consumes essentially no CPU time while it waits. This is fundamentally diff
 thread-per-connection model, where every open connection ties up a full OS thread's memory
 and scheduling overhead regardless of whether that connection is currently doing anything at
 all, which is exactly why event-driven servers scale to far higher counts of mostly-idle,
-long-lived connections on the same hardware.
+long-lived connections on the same hardware. The ceiling moves rather than disappearing:
+each idle connection still holds a file descriptor and a per-connection buffer, so the
+binding limits become `worker_connections`, the process `nofile` ulimit, and memory for
+buffers — which is what you actually tune when a worker starts refusing connections.
 
 **Q13. A fleet-wide restart of every Nginx instance at the same moment causes a spike in backend errors immediately afterward. What's the mechanism, and how would you prevent it?** `[hard]`
 
@@ -443,7 +467,9 @@ connection limits and connection-pool sizing assumed. The fix is restarting inst
 a staggered rolling fashion — a fraction of the fleet at a time, with a pause between
 batches — so backend connection counts ramp up gradually instead of all at once, the same
 principle behind a Kubernetes Deployment's rolling update `maxSurge`/`maxUnavailable`
-bounds.
+bounds. The same spike can arrive without a restart, since `keepalive_timeout` expiring
+across a fleet synchronises reconnections on its own — which is why backends that care
+about this jitter their timeouts rather than relying on restarts always being staggered.
 
 **Q14. Why can a client's authentication token size alone cause `400 Bad Request` errors at the proxy layer that have nothing to do with the backend application?** `[hard]`
 

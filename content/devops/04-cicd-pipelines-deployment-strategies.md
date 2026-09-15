@@ -312,7 +312,10 @@ artifact, so any running instance can be traced back to its precise code with ce
 mutable tag like `latest` can be reassigned to a completely different build at any time,
 which means the same tag string can refer to different actual content depending on when it
 was pulled, making rollback and incident investigation far harder — you can't be certain
-what code is actually running.
+what code is actually running. The immutable tag is only half the guarantee, though — an
+image digest pins the bytes, while a SHA tag can still be force-pushed over in most
+registries, so environments that need a hard guarantee deploy by digest and keep the SHA tag
+as the human-readable label.
 
 **Q3. Why is "build once, promote the same artifact" considered better practice than rebuilding separately for each environment?** `[easy]`
 
@@ -321,7 +324,10 @@ pulling a slightly different dependency version if anything is unpinned, meaning
 actually tested in staging is not guaranteed to be bit-for-bit identical to what runs in
 production. Building exactly once and promoting that same artifact through every
 environment guarantees there is no gap between "what was tested" and "what is deployed" —
-they are, by construction, the same bytes.
+they are, by construction, the same bytes. The constraint it imposes is that nothing
+environment-specific can be baked into the artifact: every endpoint, credential and feature
+toggle has to arrive at runtime as configuration, which is more setup work than a per-
+environment build but is what makes the promotion meaningful.
 
 **Q4. What problem does a canary deployment solve that a rolling update does not?** `[easy]`
 
@@ -330,7 +336,10 @@ full share of production traffic once it's up — there is no deliberate, contro
 of the new version to only a small slice of real traffic first. A canary deployment
 specifically routes a small percentage of real production traffic to the new version and
 validates its behavior against real usage patterns before increasing that percentage,
-catching problems that would otherwise only show up under genuine production load.
+catching problems that would otherwise only show up under genuine production load. What it
+costs is time and machinery — traffic splitting, a metrics baseline to compare against, and
+a soak period long enough to be statistically meaningful — so a canary at 1% of low-volume
+traffic can sit for hours without collecting enough errors to decide anything.
 
 **Q5. Why does a feature flag make rollback of a bad feature faster than redeploying?** `[medium]`
 
@@ -338,7 +347,9 @@ A feature flag is a runtime configuration toggle, so disabling a problematic fea
 flipping that flag off — a config change that typically takes effect in seconds. Redeploying
 a previous version instead requires running an entire pipeline (or at minimum a deploy
 stage) again, which takes meaningfully longer and depends on the previous artifact still
-being readily available to redeploy at all.
+being readily available to redeploy at all. The price is carried in the code: every flag is
+a live branch that must keep working in both states, and flags that are never removed
+accumulate into combinations nobody has tested together.
 
 **Q6. A pipeline's total run time drops from 18 minutes to under 10 after two changes: running test suites in parallel and adding dependency caching. Explain what each change actually did.** `[medium]`
 
@@ -348,7 +359,10 @@ of them — three suites taking 4, 6, and 8 minutes sequentially total 18 minute
 parallel the pipeline only waits on the 8-minute suite plus per-runner overhead. Dependency
 caching, keyed on a lockfile hash, skips a full dependency reinstall whenever the lockfile
 hasn't changed since the last cached run, cutting a step that can otherwise take several
-minutes down to a few seconds on a cache hit.
+minutes down to a few seconds on a cache hit. Both changes trade determinism for speed —
+parallel suites surface order-dependence between tests that sequential runs hid, and a cache
+keyed on anything looser than the lockfile can serve a stale dependency tree that makes a
+build pass for reasons unrelated to the commit.
 
 **Q7. Why is a rolling deployment's rollback not necessarily fast, even though it sounds like "reverse the process"?** `[medium]`
 
@@ -357,7 +371,10 @@ old instances (the version being rolled back to) must be brought back up and new
 drained, gradually, the same way the original rollout proceeded gradually. This takes real
 time proportional to the same batching and readiness-checking the forward rollout used,
 unlike a blue-green deploy's rollback, which is just switching traffic back to an
-environment that was never actually torn down and is instantly available.
+environment that was never actually torn down and is instantly available. That speed is
+bought with capacity: blue-green holds two full production environments at once, which is
+why teams accept the slower rolling rollback for services where doubling the footprint is
+not worth the faster undo.
 
 **Q8. Why can deploying new application code and a database migration slightly out of order during a rolling update cause errors that are hard to reproduce afterward?** `[medium]`
 
@@ -368,6 +385,9 @@ expectations don't match the schema's actual current state at that exact moment.
 rollout completes, every instance and the schema are consistent again, so the error is
 specific to that transition window and disappears on its own, making it look like it "just
 happened once" rather than a systemic ordering problem waiting to recur on the next deploy.
+The way out is expand-and-contract: ship a migration that is compatible with both the old
+and new code, deploy the code, then remove the old column or constraint in a later release —
+three deploys instead of one, in exchange for never having an incompatible window.
 
 **Q9. Your team's pipeline has a test that fails intermittently about 1 in 20 runs for reasons unrelated to real code changes. What's the actual risk of leaving it as-is?** `[medium]`
 
@@ -377,7 +397,10 @@ re-run without investigating, which means a genuine regression that happens to f
 alongside — or instead of — the flaky test can get the same reflexive "just re-run it"
 treatment and slip through. The fix is treating any flaky test as a priority bug to
 quarantine or fix immediately, not something to tolerate, specifically because its cost
-compounds through eroded trust in the whole pipeline's signal.
+compounds through eroded trust in the whole pipeline's signal. Quarantining is the
+stopgap, not the cure — a quarantined test stops blocking merges but also stops protecting
+the code path it covered, so it needs an owner and a deadline or it quietly becomes
+permanent.
 
 **Q10. Explain how a progressive-delivery controller automatically decides to roll back a canary, without a human watching a dashboard.** `[hard]`
 
@@ -388,6 +411,9 @@ canary's metrics breach a configured threshold at any step, the controller autom
 shifts traffic back to the stable version — the rollback decision and its execution are both
 automated, so a regression that only manifests under real traffic is caught and reverted
 within the analysis window rather than depending on a human noticing a dashboard in time.
+The analysis is only as good as the metric it watches: a regression that corrupts data while
+returning HTTP 200 sails past error-rate and latency checks, which is why teams add
+business-level metrics to the analysis rather than relying on the default signals.
 
 **Q11. What does GitOps change about where production deployment credentials live, and why does that matter for security?** `[hard]`
 
@@ -397,7 +423,9 @@ a direct path to production access. In a GitOps model, only an in-cluster agent 
 credentials, and it operates purely by pulling from a Git repository and reconciling toward
 it — the CI pipeline only needs permission to commit to that Git repository, never direct
 cluster access, which meaningfully shrinks the blast radius if the CI system itself is ever
-compromised.
+compromised. The Git repository becomes the new high-value target in exchange — anyone who
+can merge to it can change production — so the protection moves to branch rules, required
+reviews and commit signing rather than disappearing.
 
 **Q12. Why does GitOps's pull-based reconciliation model make Git history function as a complete deployment audit log, in a way push-based CD typically doesn't?** `[hard]`
 
@@ -407,7 +435,10 @@ every change to what runs in production necessarily exists as a reviewable, time
 commit with an author — there is no other path to changing production state. Push-based CD
 typically logs deploys in the CI system itself, which is a separate system with its own
 retention policy and is not inherently tied to a reviewable commit-and-approval workflow the
-way a Git-based pull request naturally is.
+way a Git-based pull request naturally is. The audit trail only holds while Git is the sole
+path: a `kubectl edit` against the live cluster still changes production, and it shows up as
+drift the agent reverts rather than as a commit, so the history is complete only if direct
+cluster write access is locked down.
 
 **Q13. A canary deployment at 25% traffic shows a slightly elevated error rate, but it's within the automated rollback threshold, so the rollout proceeds to 50%. At 50% traffic the error rate spikes sharply and triggers automatic rollback. What does this progression suggest about the actual bug, and why didn't 25% catch it?** `[hard]`
 
@@ -418,7 +449,10 @@ is reached, such as a connection pool being sized for the smaller traffic slice,
 contention issue, or a cache that only starts thrashing past a certain hit rate. At 25%
 traffic the absolute load on the canary simply hadn't crossed whatever threshold triggers
 the underlying problem yet, which is exactly the class of bug a canary strategy is
-specifically designed to surface progressively rather than all at once.
+specifically designed to surface progressively rather than all at once. The lesson for the
+pipeline is that the 25% step was not actually a pass — it was a signal below the threshold,
+and a canary analysis that compares each step against the *previous* step rather than only
+against a fixed limit would have caught the trend before 50%.
 
 **Q14. Why is "our test suite passed" not the same claim as "this is safe to release to 100% of production traffic," even in a mature CI/CD setup?** `[hard]`
 

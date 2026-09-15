@@ -244,9 +244,15 @@ Rules:
 
 - Difficulty tag on every question: `` `[easy]` ``, `` `[medium]` ``, or `` `[hard]` ``
 - Rough spread: **4 easy, 6 medium, 4 hard**
-- **No answer shorter than 3 sentences.** An answer that restates the question fails.
 - Answer in interviewer-satisfying order: **direct answer → mechanism → trade-off or failure case**
-- **At least 2 must be scenario questions** — "Your service shows X, what do you check?" — not definitions
+- **No answer shorter than 3 clauses** — one per beat of that order. An answer that restates
+  the question fails. *This is enforced:* `validate-content.mjs` counts clauses and exits
+  non-zero below the bar. It counts semicolons as well as full stops, because this
+  curriculum's voice joins beats with semicolons, and it neutralises code fences, inline
+  code, math, decimals and abbreviations first so they can't pad the count. Three clauses is
+  the floor, not the target — the median answer runs closer to five.
+- **At least 2 must be scenario questions** — "Your service shows X, what do you check?" — not
+  definitions. *Human review criterion; see §10.*
 - **Migrate first:** if `frontend/src/data/` contains a JSON file for your topic, its
   `theoryData.interviewQA` and `quizData` entries are existing questions. Fold them in
   (improving the answers to meet the 3-sentence bar) before writing new ones. Do not
@@ -273,14 +279,41 @@ implementation of this contract. Match its depth, structure and voice.
 
 ---
 
-## 10. Verify before reporting done
+## 10. What the validator cannot check
+
+Every rule above is enforced by `scripts/validate-content.mjs` **except** the scenario-question
+requirement, and that exception is deliberate rather than an oversight.
+
+Detecting "is this a scenario question?" from the question text alone was attempted and
+abandoned. Three successive regex detectors — keyword lists, second-person phrasing, symptom
+patterns — flagged 57, then 17, then 2 files as non-compliant across the same unchanged
+curriculum. The detector was the variable, not the content: the curriculum expresses scenarios
+in at least two legitimate styles ("Your rollout is stuck…, what do you check first?" and
+"A client reports intermittent 504s only for one endpoint…"), and every rule broad enough to
+catch both also caught ordinary "Walk through what happens when…" questions that are not
+scenarios. A check that flags compliant files trains authors to ignore it, which is worse than
+no check.
+
+So it stays a **human review criterion**. When writing or reviewing a topic, read the 12-15
+questions and confirm at least two put the reader in a situation and ask what they would do,
+rather than asking what something is. Do not add a marker tag to the question text to make it
+machine-checkable — the difficulty tag is parsed by `DiscoveryService.java`, and a second tag
+would change what the API serves.
+
+The same caution applies to depth: the 3-clause bar catches an answer that is too short to
+carry three beats, but it cannot tell whether the third clause is a real trade-off or filler.
+That judgement is yours.
+
+---
+
+## 11. Verify before reporting done
 
 ```bash
 node scripts/validate-content.mjs content/<category>/<your-file>.md
 ```
 
-The validator checks structure, depth, diagram count, diagram syntax, Q&A count and
-banned syntax. **Do not report your work as complete while it exits non-zero.**
+The validator checks structure, depth, diagram count, diagram syntax, Q&A count, answer
+depth and banned syntax. **Do not report your work as complete while it exits non-zero.**
 
 Then confirm it renders. From the repo root:
 

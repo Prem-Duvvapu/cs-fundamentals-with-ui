@@ -12,6 +12,7 @@ const TOPIC_SERVICE_PATH = path.resolve(REPO_ROOT, 'backend/src/main/java/com/cs
 const COVERAGE_MANIFEST_PATH = path.resolve(CONTENT_DIR, 'COVERAGE_MANIFEST.json')
 
 const TOPIC_FILE_REGEX = /^(\d+[a-z]?)-([a-z0-9-]+)\.md$/
+const MIN_ANSWER_CLAUSES = 3
 const VALID_MERMAID_TYPES = [
   'flowchart', 'sequenceDiagram', 'stateDiagram-v2', 'stateDiagram',
   'classDiagram', 'erDiagram', 'gantt', 'block-beta', 'journey',
@@ -224,6 +225,50 @@ async function validateMermaidSyntax(mermaidBlocks) {
   return errors
 }
 
+// The spec's "no answer shorter than 3 sentences" bar is really a bar on *depth* —
+// direct answer -> mechanism -> trade-off. Counting full stops alone measures the wrong
+// thing: this curriculum's voice joins clauses with semicolons, so a dense two-full-stop
+// answer can carry all three beats while a padded four-sentence one carries none. A
+// semicolon ends an independent clause, so it counts as a beat here. Code fences, inline
+// code, math, decimals and common abbreviations are neutralised first — each is a false
+// terminator that would otherwise inflate the count.
+export function countAnswerClauses(text) {
+  const prose = text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`\n]+`/g, ' CODE ')
+    .replace(/\$\$[\s\S]*?\$\$/g, ' MATH ')
+    .replace(/\$[^$\n]+\$/g, ' MATH ')
+    .replace(/\b(e\.g|i\.e|etc|vs|approx|cf)\./gi, '$1')
+    .replace(/\b\d+\.\d+/g, 'NUM')
+
+  return prose
+    // A closing quote, bracket or parenthesis may sit between the terminator and the
+    // whitespace — `... for you."` ends a clause just as `... for you.` does.
+    .split(/[.!?;]["'\u201d\u2019)\]]*(?=\s|$)/)
+    .map(part => part.trim())
+    .filter(Boolean)
+    .length
+}
+
+const QUESTION_HEADER = /\*\*Q(\d+)\.\s+([^*]+)\*\*\s*(?:`\[(?:easy|medium|hard)\]`|\[(?:easy|medium|hard)\])/g
+
+// Returns { question, clauses } for every answer below the depth bar.
+export function findThinAnswers(interviewText, minClauses = MIN_ANSWER_CLAUSES) {
+  const headers = [...interviewText.matchAll(QUESTION_HEADER)]
+  const thin = []
+
+  for (let i = 0; i < headers.length; i++) {
+    const start = headers[i].index + headers[i][0].length
+    const end = i + 1 < headers.length ? headers[i + 1].index : interviewText.length
+    const clauses = countAnswerClauses(interviewText.slice(start, end))
+    if (clauses < minClauses) {
+      thin.push({ question: `Q${headers[i][1]}`, clauses })
+    }
+  }
+
+  return thin
+}
+
 function checkHtmlOutsideCode(source) {
   // Strip code fences
   const withoutFences = source.replace(/```[\s\S]*?```/g, '')
@@ -336,6 +381,12 @@ export async function validateFile(filePath) {
     const allQHeaderMatches = [...interviewText.matchAll(/\*\*Q\d+\.[^*]+\*\*/g)]
     if (allQHeaderMatches.length > qaCount) {
       errors.push(`${allQHeaderMatches.length - qaCount} question(s) are missing difficulty tags ([easy]/[medium]/[hard])`)
+    }
+
+    const thinAnswers = findThinAnswers(interviewText)
+    if (thinAnswers.length > 0) {
+      const detail = thinAnswers.map(a => `${a.question} (${a.clauses})`).join(', ')
+      errors.push(`${thinAnswers.length} answer(s) below the ${MIN_ANSWER_CLAUSES}-clause depth bar: ${detail}`)
     }
   }
 

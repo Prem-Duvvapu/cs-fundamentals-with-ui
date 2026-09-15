@@ -22,9 +22,9 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ## 1. Severity summary
 
-> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06 and A-07 were **fixed** in the
-> follow-up PRs that accompanied this review; each row below is marked accordingly. The remaining
-> items are still open. Fix details are in §12, §13 and §14.
+> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06, A-07 and A-12 were **fixed**
+> in the follow-up PRs that accompanied this review; each row below is marked accordingly. The
+> remaining items are still open. Fix details are in §12 through §15.
 
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
@@ -41,7 +41,7 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 | A-09 | Low | Open | Content | Diagram type mix is 68% `flowchart`; `erDiagram`/`gantt`/`classDiagram` barely used |
 | A-10 | Low | Open | Maintenance | Six dependencies are a major version behind (React 18→19, jsdom 23→30, mermaid 11→12) |
 | A-11 | Info | Open | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
-| A-12 | Info | Open | Process | Two `CONTENT_SPEC.md` rules are not machine-checkable and are enforced only by author discipline |
+| A-12 | Info | ✅ Fixed | Process | Two `CONTENT_SPEC.md` rules were not machine-checkable and were enforced only by author discipline |
 | A-15 | Info | — | Robustness | Corrupt, malformed, and prototype-pollution `localStorage` payloads all degrade safely — no action needed |
 
 ---
@@ -317,6 +317,12 @@ convention (e.g. require the literal `Scenario:` prefix so the validator can enf
 explicitly mark both rules as review-time judgement calls in the spec. The current middle ground —
 a written rule nothing enforces — invites exactly the false-positive rabbit hole documented above.
 
+> **Resolved — see §15.** Both rules were split rather than treated alike: the depth rule became
+> enforceable once measured correctly (clauses, not sentences) and is now checked; the scenario
+> rule is documented as a human review criterion. The measurement above is what made that split
+> the right call, and the first paragraph's "sentence counting is a weak proxy" conclusion holds —
+> it was the *metric* that changed, not the verdict on sentences.
+
 ---
 
 ## 8. UI/UX audit
@@ -484,10 +490,10 @@ absence of any test that would have caught A-01.
 4. ~~**A-05**~~ — ✅ done, and it was not routine: see §13 for the five defects it uncovered.
 5. ~~**A-06 / A-07**~~ — ✅ done. The diagram scan is scoped to topic files and every documented
    count now matches the measurement; see §14.
-6. **A-12** — decide whether the scenario/answer-depth rules become machine-checkable or are
-   explicitly marked as human review criteria. *Next up.*
-7. **A-09, A-10, A-08** — diagram-type variety pass, dependency upgrades, bundle splitting, as
-   capacity allows.
+6. ~~**A-12**~~ — ✅ done. The depth rule is enforced on a corrected metric; the scenario rule is
+   documented as human review. See §15.
+7. **A-10, A-08, A-09** — dependency upgrades, bundle splitting, diagram-type variety pass, as
+   capacity allows. *Next up.*
 
 ### A pattern worth naming
 
@@ -636,6 +642,65 @@ outside each file.
 Doc counts were corrected in `README.md`, `CONTEXT.md`, and `AGENTS.md` — including the AGENTS
 lines describing what `diagrams:check` validates (299 → 295 entries, 598 → 590 assets), which were
 accurate before the fix and would have become wrong after it.
+
+---
+
+## 15. A-12 follow-up — one rule was enforceable, the other genuinely isn't
+
+A-12 treated two spec rules as one problem. They are not, and splitting them was the fix.
+
+### The depth rule: the metric was wrong, not the rule
+
+"No answer shorter than 3 sentences" is unenforceable as literally written, and §7 above
+demonstrated why: a literal sentence count flagged ~50 substantive answers. What §7 did not
+establish is *why* the metric misfires here, and that turns out to be specific and fixable.
+
+This curriculum's voice joins beats with semicolons and em-dashes. The spec asks for three
+beats — direct answer → mechanism → trade-off — and a semicolon ends an independent clause just
+as a full stop does. Counting **clauses** rather than sentences measures what the rule actually
+wants:
+
+```js
+export function countAnswerClauses(text) { /* strips code, math, decimals, abbreviations */
+  return prose.split(/[.!?;]["'”’)\]]*(?=\s|$)/).filter(Boolean).length
+}
+```
+
+Measured against all 953 answers, the two metrics disagree sharply:
+
+| Bar | Answers below it |
+|---|---|
+| < 3 sentences (the literal rule) | 51 across 6 files |
+| < 3 clauses (the corrected metric) | 39 across 6 files |
+| < 3 clauses, after this PR's content work | **0** |
+
+The corrected metric is what made enforcement viable: 39 thin answers across 6 files is a
+bounded content fix, and every one has been given its missing third beat — a trade-off or
+failure case, per the spec's own ordering. `validate-content.mjs` now errors below the bar, so
+the rule is enforced rather than nominal, and `countAnswerClauses` / `findThinAnswers` are
+exported with 5 `node --test` cases pinning the tricky parts (code fences, decimals,
+abbreviations, and a terminator followed by a closing quote).
+
+Two things worth recording. First, **the exemplar failed its own contract**:
+`dbms/06-transactions-acid.md`, which §9 of the spec designates as the reference implementation,
+had two answers below the bar. A rule nothing enforces is not followed even by the file held up
+as the model. Second, the **closing-quote case was a real bug in the first version of the
+counter** — an answer ending `… for you."` was scored a clause short, because the lookahead
+required whitespace immediately after the terminator. It surfaced as a "fix that didn't take"
+during the content pass and is now a test case.
+
+### The scenario rule: still human review, now documented as such
+
+Nothing changed in the measurement here, and nothing should. Three detectors flagged 57, then 17,
+then 2 files across the same unchanged curriculum; the detector was the variable. The available
+machine-checkable alternative — a marker tag on scenario questions — was rejected on inspection:
+`DiscoveryService.java`'s `QUESTION_LINE` regex parses the difficulty tag, and a second tag would
+change what `/api/v1/interview/questions` serves, which is a real cost for a lint rule.
+
+So `CONTENT_SPEC.md` gains **§10, "What the validator cannot check"**, stating plainly that this
+one rule is a review-time judgement call, why automating it was abandoned, and what a reviewer
+should look for instead. The middle ground A-12 objected to — a written rule nothing enforces and
+nothing acknowledges as unenforced — is gone in both directions.
 
 ---
 
