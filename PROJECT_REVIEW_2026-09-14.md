@@ -22,9 +22,9 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ## 1. Severity summary
 
-> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06, A-07, A-12 and A-10 were
-> **fixed** in the follow-up PRs that accompanied this review; each row below is marked
-> accordingly. The remaining items are still open. Fix details are in §12 through §16.
+> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06, A-07, A-12, A-10 and A-08
+> were **fixed** in the follow-up PRs that accompanied this review; each row below is marked
+> accordingly. The remaining items are still open. Fix details are in §12 through §17.
 
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
@@ -37,7 +37,7 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 | A-14 | Medium | ✅ Fixed | Testing | No test covers first-load routing behaviour, which is why A-13 shipped unnoticed |
 | A-06 | Low | ✅ Fixed | Docs | "299 Mermaid diagrams" counted 4 diagrams from the spec doc itself; the curriculum has 295 |
 | A-07 | Low | ✅ Fixed | Build | 8 SVGs were generated, CI-validated, and shipped for diagrams no user ever sees |
-| A-08 | Low | Open | Performance | 49 MB of diagram assets; 52 MB `dist/`; `MarkdownRenderer` chunk exceeds Vite's 500 KB warning |
+| A-08 | Low | ✅ Fixed | Performance | 49 MB of diagram assets → 31 MB; 52 MB `dist/` → 34 MB; the 663 KB chunk is split and under the warning (§17) |
 | A-09 | Low | Open | Content | Diagram type mix is 68% `flowchart`; `erDiagram`/`gantt`/`classDiagram` barely used |
 | A-10 | Low | ✅ Fixed | Maintenance | Six dependencies were a major version behind; 10 of 12 upgraded, 2 held back with cause (§16) |
 | A-11 | Info | Open | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
@@ -498,10 +498,11 @@ absence of any test that would have caught A-01.
 6. ~~**A-12**~~ — ✅ done. The depth rule is enforced on a corrected metric; the scenario rule is
    documented as human review. See §15.
 7. ~~**A-10**~~ — ✅ done. 10 of 12 upgraded; mermaid and katex held back with cause. See §16.
-8. **A-08, A-09** — bundle splitting and a diagram-type variety pass, as capacity allows.
-   *Next up.*
-9. **A-16** — seed the sketch RNG and turn off the Gantt `today` marker so a re-render is a clean
-   no-op. Deliberately not bundled into the dependency PR that found it: it has a visual diff.
+8. ~~**A-08**~~ — ✅ done. Font subsetting took assets from 49 MB to 31 MB; the chunk is split.
+   See §17.
+9. **A-09** — diagram-type variety pass. *Next up.*
+10. **A-16** — seed the sketch RNG and turn off the Gantt `today` marker so a re-render is a clean
+    no-op. Deliberately not bundled into the dependency PR that found it: it has a visual diff.
 
 ### A pattern worth naming
 
@@ -798,6 +799,82 @@ is a renderer change with a visual diff of its own and does not belong in a depe
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
 | A-16 | Low | Open | Build | Diagram rendering is nondeterministic — unseeded hand-drawn stroke RNG and a wall-clock Gantt `today` marker make every re-render churn ~18 assets |
+
+---
+
+## 17. A-08 follow-up — the bulk of the 49 MB was one font, 590 times
+
+A-08 read as two problems, a fat directory and a fat chunk. The directory turned out to have a
+single dominant cause that the original measurement did not name.
+
+### Where the 49 MB actually was
+
+A sampled asset was 106,416 bytes, of which **60,960 — 57% — was one base64 `@font-face` blob**.
+Every one of the 590 assets carries its own copy of the same 45 KB IBM Plex variable face. That is
+not waste by accident: an SVG loaded through `<img>` is an isolated document and cannot fetch
+external resources, so a referenced font would silently fall back and the text would reflow out of
+the boxes measured at render time. The font has to be inline. It does **not** have to be the whole
+font.
+
+Two measurements decided the subset:
+
+- **Characters.** Across all 295 diagrams the curriculum draws **94 distinct characters** —
+  ASCII plus `« » θ — • ∞`. The face covers the full Latin set.
+- **Weights.** Grepping the rendered assets, mermaid only ever asks for `400`/`normal` and
+  `bold`/`bolder`; `bolder` against a 400 parent resolves to 700. So the 100-700 variable range
+  can be instanced to 400-700. (Pinning one weight is smaller still, and was rejected — it would
+  flatten the bold class-diagram and cluster titles.)
+
+| | Before | After |
+|---|---|---|
+| Embedded face | 45,712 B | 22,416 B |
+| Sample asset | 106,416 B | 75,087 B |
+| `public/diagrams/` | 49 MB | **31 MB** |
+| `dist/` | 52 MB | **34 MB** |
+
+The subset is built from the corpus at render time, so a future diagram that introduces a new
+character is covered automatically rather than rendering tofu. The corpus character set is hashed
+into the renderer fingerprint for the same reason: without it, a new diagram introducing a new
+glyph would change every *other* asset's embedded font without changing any of their hashes.
+
+### Proving it is a visual no-op
+
+A font change that shifts text metrics by a fraction of a pixel would reflow labels out of boxes,
+and no existing test would catch it. Three independent checks:
+
+1. **Geometry.** Every asset's `viewBox` was compared against its pre-change version:
+   **588 of 590 byte-identical**. The 2 that differ are `605841ab`, already logged as A-16 — one of
+   the hand-drawn-jitter diagrams whose width varies between any two renders regardless of this
+   change.
+2. **Decode.** `npm run diagrams:decode` decoded all 590 assets in Chromium — clean.
+3. **Pixels.** 14 diagrams, chosen by *excluding* the 9 known-nondeterministic hashes, were
+   rendered pre- and post-change in Chromium at identical viewports and compared byte-for-byte:
+   **14/14 pixel-identical**.
+
+Plus a live check against a running backend across three topic pages: every diagram `<img>`
+decoded to a non-zero intrinsic size, no failed `/diagrams/` requests, KaTeX intact (105 elements
+on the math-heavy topic), no console errors. The first run of that check reported "broken" images
+and was wrong — the diagram images are lazy, and the page had not been scrolled. Scrolling the
+full height first is what the check does now.
+
+### The chunk
+
+`MarkdownRenderer` was 663 KB in one piece. Its composition, measured: **katex 259 KB**,
+**highlight.js 188 KB**, renderer and remark/rehype chain 217 KB.
+
+Conditionally loading katex was considered and rejected on measurement: **52 of 68 topics contain
+math**, so 76% of topic views would pay an extra round-trip and an async re-render to save the
+other 24% a download they mostly need anyway.
+
+What did land is a three-way split via `manualChunks`, so each chunk is under Vite's 500 KB
+threshold and the warning is gone. This does not reduce what a first topic visit downloads — every
+lesson needs the renderer — but it stops a change to *our* renderer code from invalidating 663 KB
+of unchanged vendor bytes in the reader's cache. (Vite 8 runs rolldown, which only accepts the
+function form of `manualChunks`; the object form fails the build.)
+
+highlight.js at 188 KB was checked rather than assumed: the bundle was grepped for grammars outside
+the registered eight (Fortran, Haskell, Clojure, Erlang, Prolog, COBOL, Verilog, Matlab, Julia) —
+**zero hits**. The existing language pruning works; 188 KB is what core plus eight grammars costs.
 
 ---
 

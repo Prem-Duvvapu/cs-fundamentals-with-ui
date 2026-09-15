@@ -33,6 +33,7 @@ const PACKAGE_LOCK_PATH = path.resolve(REPO_ROOT, 'frontend/package-lock.json')
 
 const require = createRequire(path.resolve(REPO_ROOT, 'frontend/package.json'))
 const { SaxesParser } = require('saxes')
+const subsetFont = require('subset-font')
 const { diagramHash } = await import(pathToFileURL(path.resolve(REPO_ROOT, 'frontend/src/utils/diagramHash.js')).href)
 
 const THEMES = ['dark', 'light']
@@ -49,7 +50,7 @@ const BINARY_INPUTS = [FONT_PATH]
 // playwright supplies the Chromium that lays out and measures its text. Hashing the whole
 // package-lock.json instead — as this did — made every unrelated devDependency bump invalidate
 // all 295 fingerprints and force a 590-file re-render with no visual change in any of them.
-const VERSIONED_DEPENDENCIES = ['mermaid', 'playwright']
+const VERSIONED_DEPENDENCIES = ['mermaid', 'playwright', 'subset-font']
 
 function lockedDependencyVersions() {
   const lock = JSON.parse(fs.readFileSync(PACKAGE_LOCK_PATH, 'utf-8'))
@@ -62,7 +63,12 @@ function lockedDependencyVersions() {
   })
 }
 
-function rendererFingerprint() {
+// Takes the corpus because the embedded font is a subset of it: a new diagram introducing a
+// character no existing asset drew would otherwise change every *other* asset's font without
+// changing any of their hashes or fingerprints. Hashing the charset closes that, and is cheap —
+// the subset bytes are a pure function of the font file, this charset, and subset-font's version,
+// all three of which are already inputs here.
+function rendererFingerprint(diagrams) {
   const hash = createHash('sha256')
   for (const input of TEXT_INPUTS) {
     hash.update(path.relative(REPO_ROOT, input))
@@ -80,6 +86,8 @@ function rendererFingerprint() {
     hash.update(version)
     hash.update('\0')
   }
+  hash.update(subsetCharacters(diagrams))
+  hash.update('\0')
   return hash.digest('hex').slice(0, 16)
 }
 
@@ -131,6 +139,39 @@ function collectDiagrams() {
   return [...seen.values()]
 }
 
+// Every diagram embeds its own copy of the webfont, because an SVG loaded through <img> is an
+// isolated document that cannot fetch external resources — the font has to be inline or the text
+// reflows against a fallback and overruns the boxes measured at render time. The full variable
+// face is 45 KB, which base64 inflates to ~61 KB in *each* of 590 assets: more than half of the
+// 49 MB on disk was one font repeated 590 times. Subsetting it to the characters the curriculum
+// actually draws, instanced to the only weights these diagrams use, cuts that roughly in half
+// with no visual change.
+//
+// The weight range is 400-700 and not the face's full 100-700: measured across the rendered
+// assets, mermaid only ever asks for 400/`normal` and `bold`/`bolder`, and `bolder` against a
+// 400 parent resolves to 700. Pinning a single weight would be smaller still, but would flatten
+// the bold class-diagram and cluster titles.
+const FONT_WEIGHT_RANGE = { min: 400, max: 700 }
+
+// The corpus's own characters, plus printable ASCII as a floor so a label mermaid synthesises
+// rather than copying from the source (a count, an edge marker) can never hit a missing glyph.
+function subsetCharacters(diagrams) {
+  const chars = new Set()
+  for (let code = 0x20; code <= 0x7e; code++) chars.add(String.fromCharCode(code))
+  for (const diagram of diagrams) for (const char of diagram.code) chars.add(char)
+  chars.delete('\n')
+  return [...chars].sort().join('')
+}
+
+async function buildFontSubset(diagrams) {
+  const full = fs.readFileSync(FONT_PATH)
+  const subset = await subsetFont(full, subsetCharacters(diagrams), {
+    targetFormat: 'woff2',
+    variationAxes: { wght: FONT_WEIGHT_RANGE }
+  })
+  return subset.toString('base64')
+}
+
 function checkGeneratedAssets(diagrams) {
   const issues = []
   let manifest
@@ -142,7 +183,7 @@ function checkGeneratedAssets(diagrams) {
     return 1
   }
 
-  const fingerprint = rendererFingerprint()
+  const fingerprint = rendererFingerprint(diagrams)
   const expectedHashes = new Set(diagrams.map(diagram => diagram.hash))
   const expectedFiles = new Set()
 
@@ -264,7 +305,7 @@ function pageHtml(fontData) {
     font-family: 'IBM Plex Sans';
     src: url(data:font/woff2;base64,${fontData}) format('woff2');
     font-style: normal;
-    font-weight: 100 700;
+    font-weight: 400 700;
     font-display: block;
   }
   body { margin: 0; font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; }
@@ -322,8 +363,8 @@ async function renderAll({ checkOnly }) {
   }
 
   const tokens = readThemeTokens()
-  const fingerprint = rendererFingerprint()
-  const fontData = fs.readFileSync(FONT_PATH).toString('base64')
+  const fingerprint = rendererFingerprint(diagrams)
+  const fontData = await buildFontSubset(diagrams)
   // playwright's entry is CJS, so the namespace object puts its exports under .default here.
   const playwright = await import(pathToFileURL(require.resolve('playwright')).href)
   const { chromium } = playwright.default ?? playwright
@@ -403,7 +444,7 @@ async function renderAll({ checkOnly }) {
           svgEl.querySelectorAll('.cluster-label').forEach(label => svgEl.appendChild(label))
 
           const fontStyle = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-          fontStyle.textContent = `@font-face{font-family:'IBM Plex Sans';src:url(data:font/woff2;base64,${embeddedFont}) format('woff2');font-style:normal;font-weight:100 700}svg{font-family:'IBM Plex Sans','Segoe UI',sans-serif}`
+          fontStyle.textContent = `@font-face{font-family:'IBM Plex Sans';src:url(data:font/woff2;base64,${embeddedFont}) format('woff2');font-style:normal;font-weight:400 700}svg{font-family:'IBM Plex Sans','Segoe UI',sans-serif}`
           svgEl.insertBefore(fontStyle, svgEl.firstChild)
 
           const box = svgEl.getBBox()
