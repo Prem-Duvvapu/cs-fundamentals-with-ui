@@ -185,6 +185,7 @@ gantt
     title Round Robin schedule, quantum 2 ms
     dateFormat x
     axisFormat %L ms
+    todayMarker off
     section CPU
     P1 :p1a, 0, 2
     P2 :p2a, 2, 4

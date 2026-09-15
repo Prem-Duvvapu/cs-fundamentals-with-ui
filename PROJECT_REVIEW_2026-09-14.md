@@ -22,9 +22,9 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ## 1. Severity summary
 
-> **Status update.** Every finding this review raised has now been **fixed or resolved** except
-> A-16, which the work itself uncovered. Each row below is marked accordingly, and fix details are
-> in §12 through §18.
+> **Status update.** Every finding this review raised has now been **fixed or resolved**, including
+> A-16, which the work itself uncovered. A-11 stands as an observation with no action required.
+> Each row below is marked accordingly, and fix details are in §12 through §19.
 
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
@@ -40,10 +40,10 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 | A-08 | Low | ✅ Fixed | Performance | 49 MB of diagram assets → 31 MB; 52 MB `dist/` → 34 MB; the 663 KB chunk is split and under the warning (§17) |
 | A-09 | Low | ✅ Resolved | Content | Diagram type mix is 67% `flowchart` — not itself a defect; the 3 genuinely mis-typed diagrams were corrected and the mix is now reported every run (§18) |
 | A-10 | Low | ✅ Fixed | Maintenance | Six dependencies were a major version behind; 10 of 12 upgraded, 2 held back with cause (§16) |
-| A-11 | Info | Open | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
+| A-11 | Info | — | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring — an observation, not a defect; no action |
 | A-12 | Info | ✅ Fixed | Process | Two `CONTENT_SPEC.md` rules were not machine-checkable and were enforced only by author discipline |
 | A-15 | Info | — | Robustness | Corrupt, malformed, and prototype-pollution `localStorage` payloads all degrade safely — no action needed |
-| A-16 | Low | Open | Build | *Found during the A-10 upgrade.* Diagram rendering is nondeterministic — an unseeded hand-drawn stroke RNG and a wall-clock Gantt `today` marker churn ~18 assets on every re-render (§16) |
+| A-16 | Low | ✅ Fixed | Build | *Found during the A-10 upgrade.* Diagram rendering was nondeterministic — a re-render now changes **0** files (§19) |
 
 ---
 
@@ -298,6 +298,11 @@ band is not what organic authoring looks like; it indicates a template was appli
 That is not a defect, and quality spot-checks read well — but it's worth knowing that question
 count was likely driven by a target rather than by how much each topic actually warranted.
 
+> **No action taken, deliberately.** Closing this would mean either adding questions to topics that
+> do not warrant them or deleting ones that read well — both worse than the uniformity. The related
+> concern that *is* actionable, answer depth, was taken up under A-12 and is now enforced (§15).
+> This row stands as an observation for a future author, not a task.
+
 ### A-12 — Two spec rules aren't machine-checkable (Info)
 
 `CONTENT_SPEC.md` requires "at least 2 scenario questions" per file and answers of "≥3 sentences"
@@ -507,8 +512,7 @@ absence of any test that would have caught A-01.
    See §17.
 9. ~~**A-09**~~ — ✅ done, with the finding partly reframed: the ratio is not a defect, three
    specific diagrams were. See §18.
-10. **A-16** — seed the sketch RNG and turn off the Gantt `today` marker so a re-render is a clean
-    no-op. Deliberately not bundled into the dependency PR that found it: it has a visual diff.
+10. ~~**A-16**~~ — ✅ done. A re-render with no input change now rewrites 0 of 590 files. See §19.
 
 ### A pattern worth naming
 
@@ -804,7 +808,7 @@ is a renderer change with a visual diff of its own and does not belong in a depe
 
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
-| A-16 | Low | Open | Build | Diagram rendering is nondeterministic — unseeded hand-drawn stroke RNG and a wall-clock Gantt `today` marker make every re-render churn ~18 assets |
+| A-16 | Low | ✅ Fixed | Build | Diagram rendering was nondeterministic — unseeded rough.js stroke RNG and a wall-clock Gantt `today` marker; a re-render now changes 0 files (§19) |
 
 ---
 
@@ -940,6 +944,40 @@ The live browser check of the three retyped diagrams first reported a raw-source
 route, which would have meant the manifest lookup was missing. It was a bad locator: `MermaidBlock`
 renders a `<pre>` inside a `<details>` — the intentional "Read diagram as text" alternative — on
 every *successful* render. All three new hashes resolve from the manifest and render as images.
+
+---
+
+## 19. A-16 follow-up — a re-render now changes nothing
+
+A-16 was logged during the A-10 upgrade, when narrowing the renderer fingerprint forced one
+re-render and 18 of 590 assets came back different despite no input having changed. Two causes,
+both confirmed by inspection rather than inferred:
+
+- **Unseeded rough.js strokes (16 assets).** Mermaid's `classDiagram` and `erDiagram` renderers
+  draw through rough.js, whose stroke wobble comes from an RNG seeded at random unless pinned. Path
+  *endpoints* were byte-identical across renders; only the intermediate bezier control points
+  moved. Fixed with `look: 'classic'` and `handDrawnSeed: 1` in the renderer's `mermaid.initialize`.
+- **A wall-clock Gantt marker (2 assets).** `content/os/03-cpu-scheduling.md`'s Round Robin chart
+  emitted `<line class="today" x1="162172659501578">` — Unix epoch time baked into a committed
+  asset. It moved every run and drifted across the chart over calendar time.
+
+The marker took two attempts. Setting `gantt: { todayMarker: 'off' }` in the renderer config
+**did not work** — mermaid honours `todayMarker` only as a directive inside the diagram source — so
+it is now `todayMarker off` in the `.md` itself. That is the better place for it anyway: a "today"
+line on a chart measuring a 0-16 **millisecond** scheduling quantum was meaningless, and it was
+being drawn far off the plotted range.
+
+**The measurement that closes this**, running `diagrams:render` repeatedly with no input change:
+
+| Run | Files changed |
+|---|---|
+| Before the fix | 18 |
+| Seed pinned only | 2 |
+| Seed + `todayMarker off` | **0** |
+
+A re-render is now a byte-for-byte no-op, which means a future diff to `public/diagrams/` says
+something real changed rather than needing to be triaged. All 590 assets still decode in Chromium
+and the manifest gate passes.
 
 ---
 
