@@ -336,8 +336,8 @@ the shared hash lives in `frontend/src/utils/diagramHash.js`, and the manifest r
 source, and a rendering-input fingerprint. `MermaidBlock.jsx` selects the theme asset, supplies
 intrinsic sizing and a label-derived description, exposes diagram source as a text alternative,
 and provides a keyboard-accessible full-size link. Mermaid and Playwright remain development-only.
-`npm run diagrams:check --prefix frontend` validates 299 manifest entries, fingerprints, and XML;
-`npm run diagrams:decode --prefix frontend` verifies all 598 assets through Chromium in CI.
+`npm run diagrams:check --prefix frontend` validates 295 manifest entries, fingerprints, and XML;
+`npm run diagrams:decode --prefix frontend` verifies all 590 assets through Chromium in CI.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
@@ -346,7 +346,7 @@ All 68 topics are registered at all integration points, so content work requires
 
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
-- **Verified** — 31,074 curriculum lines, 299 Mermaid diagrams and 953 interview Q&As across 68 lessons
+- **Verified** — 31,074 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
   (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
