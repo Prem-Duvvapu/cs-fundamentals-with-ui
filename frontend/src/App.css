@@ -241,6 +241,18 @@ body {
   width: 100%;
 }
 
+.app-footer {
+  padding: var(--space-4) var(--space-6);
+  text-align: center;
+  border-top: var(--stroke-hair) solid var(--border-subtle);
+}
+
+.app-footer p {
+  margin: 0;
+  font-size: var(--ui-xs);
+  color: var(--text-muted);
+}
+
 /* Navbar */
 .navbar {
   background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
@@ -400,6 +412,7 @@ body {
   .main-content { padding: 1rem; }
   .tier-navigation button, .study-navigation button { font-size: 0.85rem; }
   .interview-deck-actions button { flex: 1 1 8rem; }
+  .app-footer { padding: var(--space-3) 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
