@@ -22,9 +22,9 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ## 1. Severity summary
 
-> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06, A-07 and A-12 were **fixed**
-> in the follow-up PRs that accompanied this review; each row below is marked accordingly. The
-> remaining items are still open. Fix details are in §12 through §15.
+> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06, A-07, A-12 and A-10 were
+> **fixed** in the follow-up PRs that accompanied this review; each row below is marked
+> accordingly. The remaining items are still open. Fix details are in §12 through §16.
 
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
@@ -39,10 +39,11 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 | A-07 | Low | ✅ Fixed | Build | 8 SVGs were generated, CI-validated, and shipped for diagrams no user ever sees |
 | A-08 | Low | Open | Performance | 49 MB of diagram assets; 52 MB `dist/`; `MarkdownRenderer` chunk exceeds Vite's 500 KB warning |
 | A-09 | Low | Open | Content | Diagram type mix is 68% `flowchart`; `erDiagram`/`gantt`/`classDiagram` barely used |
-| A-10 | Low | Open | Maintenance | Six dependencies are a major version behind (React 18→19, jsdom 23→30, mermaid 11→12) |
+| A-10 | Low | ✅ Fixed | Maintenance | Six dependencies were a major version behind; 10 of 12 upgraded, 2 held back with cause (§16) |
 | A-11 | Info | Open | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
 | A-12 | Info | ✅ Fixed | Process | Two `CONTENT_SPEC.md` rules were not machine-checkable and were enforced only by author discipline |
 | A-15 | Info | — | Robustness | Corrupt, malformed, and prototype-pollution `localStorage` payloads all degrade safely — no action needed |
+| A-16 | Low | Open | Build | *Found during the A-10 upgrade.* Diagram rendering is nondeterministic — an unseeded hand-drawn stroke RNG and a wall-clock Gantt `today` marker churn ~18 assets on every re-render (§16) |
 
 ---
 
@@ -467,6 +468,10 @@ None are urgent given zero vulnerabilities, but jsdom (7 majors) and React 19 wi
 to adopt. The mermaid 12 upgrade is lower-risk than it looks, since mermaid is now a build-time
 dev dependency only — a bad render would be caught by the diagram gate rather than shipping.
 
+> **Resolved — see §16.** Ten of the twelve landed, React 19 included. Two did not, and the
+> "mermaid 12 is lower-risk than it looks" call above turned out to be wrong for a reason this
+> table could not see: mermaid 12 pulls in five high-severity advisories. Details in §16.
+
 ### Test suite
 
 | Suite | Files | Tests |
@@ -492,8 +497,11 @@ absence of any test that would have caught A-01.
    count now matches the measurement; see §14.
 6. ~~**A-12**~~ — ✅ done. The depth rule is enforced on a corrected metric; the scenario rule is
    documented as human review. See §15.
-7. **A-10, A-08, A-09** — dependency upgrades, bundle splitting, diagram-type variety pass, as
-   capacity allows. *Next up.*
+7. ~~**A-10**~~ — ✅ done. 10 of 12 upgraded; mermaid and katex held back with cause. See §16.
+8. **A-08, A-09** — bundle splitting and a diagram-type variety pass, as capacity allows.
+   *Next up.*
+9. **A-16** — seed the sketch RNG and turn off the Gantt `today` marker so a re-render is a clean
+   no-op. Deliberately not bundled into the dependency PR that found it: it has a visual diff.
 
 ### A pattern worth naming
 
@@ -701,6 +709,95 @@ So `CONTENT_SPEC.md` gains **§10, "What the validator cannot check"**, stating 
 one rule is a review-time judgement call, why automating it was abandoned, and what a reviewer
 should look for instead. The middle ground A-12 objected to — a written rule nothing enforces and
 nothing acknowledges as unenforced — is gone in both directions.
+
+---
+
+## 16. A-10 follow-up — ten upgrades landed, two were refused by evidence
+
+`npm audit` still reports **0 vulnerabilities**, and that constraint is what decided the two
+hold-backs.
+
+### Landed
+
+| Package | From | To |
+|---|---|---|
+| react / react-dom | 18.3.1 | 19.3.0 |
+| @types/react, @types/react-dom | 18.x | 19.3.0 |
+| @testing-library/react | 14.3.1 | 16.3.3 |
+| @testing-library/jest-dom | 6.9.1 | 7.0.1 |
+| react-markdown | 9.1.0 | 10.1.0 |
+| jsdom | 23.2.0 | 30.0.1 |
+| vitest | 4.1.11 | 5.0.0 |
+| vite | 8.2.2 | 8.3.0 |
+
+React 19 needed **no source changes**. A scan for the APIs it removes — `ReactDOM.render`,
+`unmountComponentAtNode`, `findDOMNode`, `defaultProps` on function components, `propTypes`,
+string refs — found none; `main.jsx` was already on `createRoot`.
+
+Because the frontend suite is largely render smoke tests, it is not sufficient evidence on its own
+for a framework major. React 19 was additionally verified in a real browser against a running
+backend: six routes (`/`, two topic pages, `/search`, `/interview/dbms`, `/progress`), each in a
+fresh context, with `pageerror` and `console.error` listeners attached — **zero errors on every
+route**, 105 KaTeX elements rendered on the math-heavy topic, diagram images loading, and the
+Simulation tab stepping without error.
+
+### Held back — mermaid 11 → 12
+
+**Refused on evidence, not caution.** Mermaid 12 parses all 295 diagrams cleanly, so the grammar
+is fine. But it introduces **five high-severity advisories** through `chevrotain` → `lodash-es`
+(code injection via `_.template`, prototype pollution in `_.unset`/`_.omit`), and npm's own
+remediation for them is to reinstall mermaid 11.17.2. Taking a repo from 0 vulnerabilities to 5
+high in the name of a maintenance upgrade inverts the point of the upgrade.
+
+Mermaid is a build-time devDependency and the vulnerable code never reaches a user, so this is not
+urgent — but the trade is still bad, and it would additionally force a re-render of all 590 assets
+whose visual output nobody could review at that scale. Revisit when `chevrotain` ships a patched
+`lodash-es`.
+
+### Held back — katex 0.16 → 0.18
+
+**KaTeX's CSS and JS are a version-coupled pair**, and `rehype-katex@7.0.1` — the latest release —
+hard-depends on `katex@^0.16.0`. Upgrading the app's direct `katex` to 0.18 does not change what
+renders the math; it only changes which stylesheet `MarkdownRenderer.jsx` imports, leaving 0.18 CSS
+applied to 0.16 markup. The test suite would not have caught it: `TopicViewer.markdown.test.jsx`
+asserts `.katex` elements exist, not that they are styled correctly.
+
+This was actually installed and reverted once the dependency tree showed `rehype-katex` carrying
+its own nested `katex@0.16.47`. Revisit when rehype-katex depends on katex 0.18.
+
+### Incidental fix — the renderer fingerprint was far too broad
+
+The upgrades surfaced this immediately: the first `npm install` invalidated **all 295** diagram
+fingerprints and demanded a full re-render. The cause was that `rendererFingerprint()` hashed the
+entire `frontend/package-lock.json`, so any dependency change anywhere — a vitest bump, a
+transitive resolution — forced 590 assets to be regenerated with no visual difference in any of
+them.
+
+Only two installed packages actually change a render: `mermaid` draws the diagram and `playwright`
+supplies the Chromium that lays out and measures its text. The fingerprint now hashes those two
+resolved versions instead of the lockfile, and throws if either is missing from the lockfile rather
+than silently fingerprinting nothing.
+
+### A note on the 18 SVGs this re-render changed
+
+Narrowing the fingerprint forced one re-render, and 18 of 590 assets came back different. Inspected
+rather than assumed, they split into two causes, **both pre-existing renderer nondeterminism
+unrelated to this PR**:
+
+- **Hand-drawn stroke jitter (16 files).** Path endpoints are byte-identical; only the intermediate
+  bezier control points move. These are sketch-style strokes drawn from an unseeded RNG, so the
+  same shape is scribbled differently each render.
+- **A Gantt "today" marker (2 files).** `<line class="today" x1="162168641633141" …>` is wall-clock
+  time baked into a committed asset. It moves on every render and drifts across the chart over
+  calendar time.
+
+Neither affects what a reader sees today, but together they mean a re-render can never be a clean
+no-op. Logged below as A-16; the fix is seeding the sketch RNG and setting `todayMarker: off`, which
+is a renderer change with a visual diff of its own and does not belong in a dependency-bump PR.
+
+| ID | Severity | Status | Area | Finding |
+|---|---|---|---|---|
+| A-16 | Low | Open | Build | Diagram rendering is nondeterministic — unseeded hand-drawn stroke RNG and a wall-clock Gantt `today` marker make every re-render churn ~18 assets |
 
 ---
 

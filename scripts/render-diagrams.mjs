@@ -42,8 +42,25 @@ const THEMES = ['dark', 'light']
 // committed content otherwise (CRLF vs LF), which made every fingerprint computed locally
 // mismatch CI's on the very next run regardless of how recently `diagrams:render` had been run —
 // not a staleness bug, a line-ending one. FONT_PATH is binary (woff2) and is hashed as raw bytes.
-const TEXT_INPUTS = [fileURLToPath(import.meta.url), APP_CSS, PACKAGE_LOCK_PATH]
+const TEXT_INPUTS = [fileURLToPath(import.meta.url), APP_CSS]
 const BINARY_INPUTS = [FONT_PATH]
+
+// Only two installed packages change what comes out of a render: mermaid draws the diagram, and
+// playwright supplies the Chromium that lays out and measures its text. Hashing the whole
+// package-lock.json instead — as this did — made every unrelated devDependency bump invalidate
+// all 295 fingerprints and force a 590-file re-render with no visual change in any of them.
+const VERSIONED_DEPENDENCIES = ['mermaid', 'playwright']
+
+function lockedDependencyVersions() {
+  const lock = JSON.parse(fs.readFileSync(PACKAGE_LOCK_PATH, 'utf-8'))
+  return VERSIONED_DEPENDENCIES.map(name => {
+    const entry = lock.packages?.[`node_modules/${name}`]
+    if (!entry?.version) {
+      throw new Error(`${name} not found in frontend/package-lock.json — cannot fingerprint the renderer`)
+    }
+    return `${name}@${entry.version}`
+  })
+}
 
 function rendererFingerprint() {
   const hash = createHash('sha256')
@@ -57,6 +74,10 @@ function rendererFingerprint() {
     hash.update(path.relative(REPO_ROOT, input))
     hash.update('\0')
     hash.update(fs.readFileSync(input))
+    hash.update('\0')
+  }
+  for (const version of lockedDependencyVersions()) {
+    hash.update(version)
     hash.update('\0')
   }
   return hash.digest('hex').slice(0, 16)

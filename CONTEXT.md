@@ -1,7 +1,7 @@
 # System Architecture & Development Context
 
 ## Overview
-**CS Fundamentals with UI** is a content-first, full-stack educational platform for Computer Science fundamentals. It consists of a **Spring Boot REST backend** serving structured three-tier Markdown content and a **React 18 / Vite frontend** that makes reading, navigation and interview practice the primary experience, with interactive simulations available when they add learning value.
+**CS Fundamentals with UI** is a content-first, full-stack educational platform for Computer Science fundamentals. It consists of a **Spring Boot REST backend** serving structured three-tier Markdown content and a **React 19 / Vite frontend** that makes reading, navigation and interview practice the primary experience, with interactive simulations available when they add learning value.
 
 The curriculum expansion is governed by [`plan.md`](plan.md), which maps the complete SDE-2
 acceptance checklist to 63 registered lessons. [`content/COVERAGE_MANIFEST.json`](content/COVERAGE_MANIFEST.json)
@@ -142,7 +142,10 @@ renders every unique fence in both themes through Playwright, measures and corre
 under-sized HTML label boxes, and writes `frontend/public/diagrams/<hash>-{dark,light}.svg`.
 `frontend/src/utils/diagramHash.js` supplies the shared stable hash and
 `frontend/src/generated/diagramManifest.json` records source, intrinsic dimensions, and a
-fingerprint of the renderer, theme, font, and dependency inputs.
+fingerprint of the renderer script, theme CSS, embedded font, and the two installed packages
+that change what comes out of a render — `mermaid` and `playwright` (which supplies the Chromium
+that lays out the text). The fingerprint deliberately does *not* hash the whole `package-lock.json`:
+that made every unrelated devDependency bump invalidate all 295 fingerprints.
 `MermaidBlock.jsx` selects the active-theme asset, lazy-loads it as an image, and switches assets
 on theme changes. This removes the former runtime render queue, font-measurement race, loading
 state, and Mermaid payload. The generator embeds the measured font, serializes XML safely,

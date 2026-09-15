@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Full-stack interactive CS-fundamentals learning platform: a Spring Boot 3.5 / Java 17 REST backend that serves 3-tier Markdown curriculum content from `content/`, and a React 18 / Vite 8 SPA built reading-first, with per-topic **interactive simulators** where they materially teach a mechanism (all simulation logic except four legacy endpoints runs client-side), plus cross-topic search and per-category Interview Mode over the same validated lesson content.
+Full-stack interactive CS-fundamentals learning platform: a Spring Boot 3.5 / Java 17 REST backend that serves 3-tier Markdown curriculum content from `content/`, and a React 19 / Vite 8 SPA built reading-first, with per-topic **interactive simulators** where they materially teach a mechanism (all simulation logic except four legacy endpoints runs client-side), plus cross-topic search and per-category Interview Mode over the same validated lesson content.
 
 `AGENTS.md` (agent context + curriculum roadmap) and `CONTEXT.md` (architecture + visualizer inventory) are the project's own docs — they overlap with this file and are kept in sync by the rule below.
 
