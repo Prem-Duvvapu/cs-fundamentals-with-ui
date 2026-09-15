@@ -396,6 +396,14 @@ async function renderAll({ checkOnly }) {
           fontFamily: "'IBM Plex Sans', 'Segoe UI', sans-serif",
           themeVariables: vars,
           htmlLabels: true,
+          // The class/ER renderers draw their shapes through rough.js, whose stroke wobble comes
+          // from an RNG seeded at random unless pinned — endpoints stay put and only the bezier
+          // control points move, so re-rendering churned 16 assets with no visual meaning. Pinning
+          // the seed makes those a byte-for-byte no-op. (The other churning asset was a gantt
+          // `today` marker baking wall-clock time into the SVG; mermaid only honours `todayMarker`
+          // as a directive in the diagram source, not from this config, so it is turned off there.)
+          look: 'classic',
+          handDrawnSeed: 1,
           flowchart: { padding: 16 },
           sequence: { actorMargin: 60, messageMargin: 40, boxMargin: 12 }
         })

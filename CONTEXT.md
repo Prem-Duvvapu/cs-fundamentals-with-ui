@@ -158,7 +158,10 @@ generator serializes XML safely,
 browser-decodes every asset before atomically publishing the complete set, and leaves the prior
 set intact if rendering fails. `npm run diagrams:check --prefix frontend` validates fingerprints
 and XML; `npm run diagrams:decode --prefix frontend` additionally decodes all assets in Chromium.
-`prebuild` and CI enforce these gates.
+`prebuild` and CI enforce these gates. Rendering is deterministic: the rough.js stroke seed is
+pinned and the one Gantt chart sets `todayMarker off`, so re-running `diagrams:render` with no
+input change rewrites **0** of the 590 assets — a diff under `public/diagrams/` therefore means
+something real changed.
 
 **Authoring contract:** `content/CONTENT_SPEC.md` defines depth targets, required diagrams,
 interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
