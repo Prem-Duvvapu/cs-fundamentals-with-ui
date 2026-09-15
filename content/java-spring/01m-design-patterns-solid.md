@@ -65,12 +65,33 @@ Low-level details include SQL clients, HTTP gateways, file systems, and vendor S
 Dependency inversion means both policy and detail depend on a stable abstraction owned near the policy.
 
 ```mermaid
-flowchart TB
-    O["Order service: policy"] --> P["PaymentPort"]
-    A["Stripe adapter: detail"] --> P
-    B["Test fake: detail"] --> P
-    P --> C["Domain contract"]
+classDiagram
+    class OrderService {
+        <<policy>>
+        -PaymentPort payments
+        +checkout(Order) Receipt
+    }
+    class PaymentPort {
+        <<interface>>
+        +charge(PaymentRequest) PaymentResult
+    }
+    class StripeAdapter {
+        <<detail>>
+        +charge(PaymentRequest) PaymentResult
+    }
+    class TestFake {
+        <<detail>>
+        +charge(PaymentRequest) PaymentResult
+    }
+    OrderService ..> PaymentPort : depends on
+    StripeAdapter ..|> PaymentPort : implements
+    TestFake ..|> PaymentPort : implements
 ```
+
+The two arrow kinds are the whole point. `OrderService` *depends on* the port; the adapters
+*implement* it. Both arrows point at `PaymentPort` and neither points at a vendor, so the
+compile-time dependency runs opposite to the call at runtime — that inversion is what lets the
+Stripe adapter be swapped for a fake without the policy knowing.
 
 The abstraction should describe what the policy needs, such as `charge(PaymentRequest)`.
 

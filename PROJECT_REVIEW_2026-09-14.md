@@ -22,9 +22,9 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ## 1. Severity summary
 
-> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06, A-07, A-12, A-10 and A-08
-> were **fixed** in the follow-up PRs that accompanied this review; each row below is marked
-> accordingly. The remaining items are still open. Fix details are in §12 through §17.
+> **Status update.** Every finding this review raised has now been **fixed or resolved** except
+> A-16, which the work itself uncovered. Each row below is marked accordingly, and fix details are
+> in §12 through §18.
 
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
@@ -38,7 +38,7 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 | A-06 | Low | ✅ Fixed | Docs | "299 Mermaid diagrams" counted 4 diagrams from the spec doc itself; the curriculum has 295 |
 | A-07 | Low | ✅ Fixed | Build | 8 SVGs were generated, CI-validated, and shipped for diagrams no user ever sees |
 | A-08 | Low | ✅ Fixed | Performance | 49 MB of diagram assets → 31 MB; 52 MB `dist/` → 34 MB; the 663 KB chunk is split and under the warning (§17) |
-| A-09 | Low | Open | Content | Diagram type mix is 68% `flowchart`; `erDiagram`/`gantt`/`classDiagram` barely used |
+| A-09 | Low | ✅ Resolved | Content | Diagram type mix is 67% `flowchart` — not itself a defect; the 3 genuinely mis-typed diagrams were corrected and the mix is now reported every run (§18) |
 | A-10 | Low | ✅ Fixed | Maintenance | Six dependencies were a major version behind; 10 of 12 upgraded, 2 held back with cause (§16) |
 | A-11 | Info | Open | Content | Q&A counts are near-perfectly uniform (67 files × 14), suggesting templated authoring |
 | A-12 | Info | ✅ Fixed | Process | Two `CONTENT_SPEC.md` rules were not machine-checkable and were enforced only by author discipline |
@@ -268,6 +268,11 @@ notably low for a subject where entity-relationship modelling is core, and `clas
 barely used across 23 Java/Spring topics where class hierarchies are the subject matter. Worth a
 targeted pass asking "would a different diagram type teach this better?" rather than a blanket
 rewrite.
+
+> **Resolved — see §18.** The targeted pass was done and the framing above needs one correction:
+> the 68% share is **not itself a defect**, and this table on its own could not tell a
+> correctly-typed flowchart from a mis-typed one. Asking the question per diagram found three that
+> were genuinely wrong.
 
 ---
 
@@ -500,7 +505,8 @@ absence of any test that would have caught A-01.
 7. ~~**A-10**~~ — ✅ done. 10 of 12 upgraded; mermaid and katex held back with cause. See §16.
 8. ~~**A-08**~~ — ✅ done. Font subsetting took assets from 49 MB to 31 MB; the chunk is split.
    See §17.
-9. **A-09** — diagram-type variety pass. *Next up.*
+9. ~~**A-09**~~ — ✅ done, with the finding partly reframed: the ratio is not a defect, three
+   specific diagrams were. See §18.
 10. **A-16** — seed the sketch RNG and turn off the Gantt `today` marker so a re-render is a clean
     no-op. Deliberately not bundled into the dependency PR that found it: it has a visual diff.
 
@@ -875,6 +881,65 @@ function form of `manualChunks`; the object form fails the build.)
 highlight.js at 188 KB was checked rather than assumed: the bundle was grepped for grammars outside
 the registered eight (Fortran, Haskell, Clojure, Erlang, Prolog, COBOL, Verilog, Matlab, Julia) —
 **zero hits**. The existing language pruning works; 188 KB is what core plus eight grammars costs.
+
+---
+
+## 18. A-09 follow-up — the ratio was not the defect; three diagrams were
+
+A-09 was reported as a distribution problem: 68% `flowchart`, `erDiagram` and `classDiagram`
+barely used. Acting on it required deciding whether a skewed ratio is a defect at all.
+
+It is not. This curriculum is largely about processes, data paths and decision logic, and
+`flowchart` is the correct type for those. A target ratio would be a number to gratify, and
+converting correct flowcharts to hit it would make the curriculum worse — `CONTENT_SPEC.md` §5
+already warns that diagrams must add information rather than restate the adjacent prose.
+
+So the pass asked a per-diagram question instead — *do this diagram's arrows mean what the prose
+says?* — and three failed it:
+
+| File | Was | Now | Why it was wrong |
+|---|---|---|---|
+| `java-spring/01k-java-reflection-exceptions.md` | `flowchart` | `classDiagram` | The prose above it reads "`Throwable` is the root of the hierarchy… `Error` represents severe JVM failures" — and the diagram drew an unrelated order-parsing control flow. It illustrated nothing the surrounding text was about. |
+| `dbms/12-sql-querying.md` | `flowchart` | `erDiagram` | Drew an entity-relationship schema in flowchart vocabulary, with `-->\|"1 to many"\|` labels standing in for cardinality, in a section whose whole point is "state expected cardinality before writing the JOIN". |
+| `java-spring/01m-design-patterns-solid.md` | `flowchart` | `classDiagram` | `OrderService --> PaymentPort` and `StripeAdapter --> PaymentPort` were drawn with the *same arrow*, one meaning "depends on" and the other "implements". That distinction **is** dependency inversion; the diagram hid the thing it existed to teach. |
+
+Each replacement carries the information the flowchart could not: `<<interface>>` and
+`<<checked>>`/`<<unchecked>>` stereotypes, `PK`/`FK` columns, crow's-foot cardinality, and
+`..>` (depends) versus `..|>` (realises). The ER and DIP diagrams gained a short paragraph reading
+the notation back to the reader, so the diagram is used rather than merely present.
+
+**The mix after the pass:**
+
+| Type | Before | After |
+|---|---|---|
+| `flowchart` | 202 (68%) | 199 (67%) |
+| `classDiagram` | 5 | **7** |
+| `erDiagram` | 2 | **3** |
+
+That is a deliberately small movement. Three diagrams were wrong; the other 292 were not.
+
+### Keeping it visible
+
+The real problem was not the ratio but that nothing surfaced it — `CONTENT_SPEC.md` §5 has had a
+"pick the type that matches the concept shape" table all along, and authors (this one included)
+defaulted past it. `validate-content.mjs` now prints the corpus-wide type mix on every run:
+
+```
+Diagram type mix across 295 diagram(s): flowchart 199 (67%), sequenceDiagram 62 (21%),
+stateDiagram-v2 23 (8%), classDiagram 7 (2%), erDiagram 3 (1%), gantt 1 (0%)
+   See CONTENT_SPEC.md section 5 — pick the type that matches the concept shape.
+```
+
+Reported, never enforced — a threshold here would be noise, and the spec section now states that
+explicitly along with the sharpest test the pass produced: **if a diagram's arrows mean two
+different things, it is the wrong type.**
+
+### Verification note
+
+The live browser check of the three retyped diagrams first reported a raw-source fallback on every
+route, which would have meant the manifest lookup was missing. It was a bad locator: `MermaidBlock`
+renders a `<pre>` inside a `<details>` — the intentional "Read diagram as text" alternative — on
+every *successful* render. All three new hashes resolve from the manifest and render as images.
 
 ---
 

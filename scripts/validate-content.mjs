@@ -335,6 +335,10 @@ export async function validateFile(filePath) {
     errors.push(`Found ${mermaidBlocks.length} Mermaid diagrams (required: >= 3, at least 1 per tier)`)
   }
 
+  const diagramTypes = mermaidBlocks
+    .map(block => block.code.trim().replace(/^%%.*\n\s*/, '').match(/^([A-Za-z0-9-]+)/)?.[1])
+    .filter(Boolean)
+
   // Check valid diagram types
   mermaidBlocks.forEach((block, idx) => {
     const val = validateMermaidBlock(block.code)
@@ -401,6 +405,7 @@ export async function validateFile(filePath) {
     fullPath: filePath,
     lineCount,
     diagramCount: mermaidBlocks.length,
+    diagramTypes,
     qaCount,
     errors,
     warnings,
@@ -492,6 +497,27 @@ async function main() {
     } else {
       console.log(`\n✅ ${result.file} (${result.lineCount} lines, ${result.diagramCount} diagrams, ${result.qaCount} Q&As)`)
     }
+  }
+
+  // The type mix is reported, never enforced. `flowchart` legitimately dominates a curriculum
+  // about processes and data paths, so a threshold here would be noise — but an author reaching
+  // for a flowchart when CONTENT_SPEC section 5's table says `classDiagram` or `erDiagram` is a
+  // real miss, and it stayed invisible until someone counted. Printing the mix every run is what
+  // makes it noticeable.
+  const typeCounts = new Map()
+  for (const result of results) {
+    for (const type of result.diagramTypes) {
+      typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1)
+    }
+  }
+  const diagramTotal = [...typeCounts.values()].reduce((sum, n) => sum + n, 0)
+  if (diagramTotal > 0) {
+    const mix = [...typeCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => `${type} ${count} (${Math.round((count / diagramTotal) * 100)}%)`)
+      .join(', ')
+    console.log(`\nDiagram type mix across ${diagramTotal} diagram(s): ${mix}`)
+    console.log('   See CONTENT_SPEC.md section 5 — pick the type that matches the concept shape.')
   }
 
   if (isReportFlag) {

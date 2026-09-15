@@ -126,6 +126,15 @@ Pick the diagram type that matches the shape of the concept:
 | Data model | `erDiagram` | ER modelling, schema normalisation |
 | Ordered phases with duration | `gantt` | Scheduling algorithm comparison |
 
+This table is a rule, not a menu. `flowchart` legitimately dominates a curriculum about processes
+and data paths, so there is no target ratio to hit and the validator enforces none — but it prints
+the corpus-wide type mix on every run, because reaching for `flowchart` when the concept is a type
+hierarchy or a data model is a real miss that stayed invisible until someone counted. Three such
+diagrams were found and corrected: an exception hierarchy drawn as control flow, a JOIN schema
+drawn as boxes-and-arrows, and a dependency-inversion diagram whose single arrow style hid the
+difference between *implements* and *depends on* — the exact distinction it existed to teach. If a
+diagram's arrows mean two different things, it is the wrong type.
+
 ### Worked diagram examples
 
 **Lifecycle — `stateDiagram-v2`:**
