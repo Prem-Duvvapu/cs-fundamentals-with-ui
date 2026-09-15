@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import TopicPage from './pages/TopicPage'
 import SearchPage from './pages/SearchPage'
@@ -37,6 +38,7 @@ export default function App() {
       <main className="main-content">
         <RoutedContent />
       </main>
+      <Footer />
       <ProductTour tour={tour} />
     </div>
   )
