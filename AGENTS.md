@@ -330,7 +330,8 @@ way: `content/os/03-cpu-scheduling.md`'s gantt chart used
 sub-second remainder) showed "000" at every tick — `dateFormat x` (Unix milliseconds) is correct.
 
 `scripts/render-diagrams.mjs` renders every diagram once per theme, corrects label geometry,
-XML-serializes the SVG, embeds the measured font, and browser-decodes every result before replacing
+XML-serializes the SVG, embeds a subset of the measured font (curriculum characters only, instanced
+to the 400-700 weight range — 49 MB of assets down to 31 MB), and browser-decodes every result before replacing
 the prior complete asset set. Output goes to `frontend/public/diagrams/<hash>-{dark,light}.svg`;
 the shared hash lives in `frontend/src/utils/diagramHash.js`, and the manifest records dimensions,
 source, and a rendering-input fingerprint. `MermaidBlock.jsx` selects the theme asset, supplies

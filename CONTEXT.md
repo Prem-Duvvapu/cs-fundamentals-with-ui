@@ -142,13 +142,19 @@ renders every unique fence in both themes through Playwright, measures and corre
 under-sized HTML label boxes, and writes `frontend/public/diagrams/<hash>-{dark,light}.svg`.
 `frontend/src/utils/diagramHash.js` supplies the shared stable hash and
 `frontend/src/generated/diagramManifest.json` records source, intrinsic dimensions, and a
-fingerprint of the renderer script, theme CSS, embedded font, and the two installed packages
-that change what comes out of a render — `mermaid` and `playwright` (which supplies the Chromium
-that lays out the text). The fingerprint deliberately does *not* hash the whole `package-lock.json`:
-that made every unrelated devDependency bump invalidate all 295 fingerprints.
+fingerprint of the renderer script, theme CSS, embedded font, the corpus character set, and the
+three installed packages that change what comes out of a render — `mermaid` (draws), `playwright`
+(supplies the Chromium that lays out the text) and `subset-font` (trims the embedded face). The
+fingerprint deliberately does *not* hash the whole `package-lock.json`: that made every unrelated
+devDependency bump invalidate all 295 fingerprints.
 `MermaidBlock.jsx` selects the active-theme asset, lazy-loads it as an image, and switches assets
 on theme changes. This removes the former runtime render queue, font-measurement race, loading
-state, and Mermaid payload. The generator embeds the measured font, serializes XML safely,
+state, and Mermaid payload. An SVG loaded through `<img>` is an isolated document that cannot
+fetch external resources, so the webfont has to travel inside each asset; the generator embeds a
+**subset** of it — the characters the curriculum actually draws, instanced to the 400-700 weight
+range mermaid uses — which took `public/diagrams/` from 49 MB to 31 MB with byte-identical
+`viewBox` geometry on 588 of 590 assets and pixel-identical renders on a 14-diagram sample. The
+generator serializes XML safely,
 browser-decodes every asset before atomically publishing the complete set, and leaves the prior
 set intact if rendering fails. `npm run diagrams:check --prefix frontend` validates fingerprints
 and XML; `npm run diagrams:decode --prefix frontend` additionally decodes all assets in Chromium.
