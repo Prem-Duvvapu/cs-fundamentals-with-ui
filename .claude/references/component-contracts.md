@@ -86,8 +86,8 @@ Tailwind-looking class names (`bg-slate-900/90`, `grid-cols-4`, `space-y-6`) res
 2. `state={{...}}` passed to `StateInspector` (expects `data`) — inspector renders nothing.
 
 The Tailwind-with-no-Tailwind defect that used to also affect these 6 (plus several other,
-since-removed modules) was fixed by the Phase 6 UI-revamp rewrite — see `UI_REVAMP_PLAN.md` —
-and no longer applies anywhere in the codebase.
+since-removed modules) was fixed by the Phase 6 UI-revamp rewrite and no longer applies anywhere
+in the codebase.
 
 Check with:
 

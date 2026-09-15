@@ -83,6 +83,8 @@ just don't be surprised by a slow first click.
 - **🧠 Memory Management & Page Replacement**: LRU, FIFO, and Optimal page replacement simulators with hit/fault counters and MMU Address Translation calculator.
 - **🔒 Process Synchronization**: Mutex locking critical sections and Producer-Consumer bounded buffer semaphores.
 - **🛡 Deadlock & Banker's Algorithm**: Resource Allocation Matrix evaluator and safe sequence checker.
+- **📁 File Systems**: inode direct/indirect pointer allocation walkthrough and the Linux VFS abstraction layers.
+- **💿 Disk Scheduling**: head-movement comparison across FCFS, SSTF, SCAN (elevator), and C-SCAN.
 
 ### 🌐 Computer Networks
 - **🗺️ Network Topology Explorer**: Interactive Star, Bus, Ring, Mesh, Tree, and Hybrid topologies with fault simulation.
@@ -93,6 +95,8 @@ just don't be surprised by a slow first click.
 - **🔍 ARP Resolution Protocol**: Layer 2 broadcast requests and dynamic kernel ARP cache table inspector.
 - **🔄 NAT / PAT Translation Table**: Socket translation simulation between internal LAN and public WAN sockets.
 - **🛣️ Distance Vector Routing (Bellman-Ford)**: Step-by-step multi-router routing vector exchange and convergence rounds.
+- **🐢 TCP Congestion Control**: Slow start, congestion avoidance, and AIMD window growth/backoff alongside the 3-way handshake.
+- **🔗 Consistent Hashing**: Hash-ring node placement and key redistribution on node add/remove — also powers the Distributed Databases & CAP Theorem simulation.
 
 ### 🗄️ Database Management Systems (DBMS)
 - **🧮 Relational Algebra, Calculus & Joins Simulator**: Animated Selection ($\sigma$), Projection ($\pi$), Equi-Join ($\bowtie$), Left Outer Join ($\$), and Tuple Relational Calculus (TRC) translation.
@@ -109,11 +113,19 @@ just don't be surprised by a slow first click.
 - **🗄 Connection Pooling**: HikariCP exhaustion and wait-queue behavior.
 - **⏱ Quartz Scheduler**: Trigger, misfire, and clustered `JobStoreTX` behavior.
 
+### 🤖 AI/ML Systems
+- **📐 Embeddings & Vector Search**: 2D vector coordinate and cosine-distance calculator with similarity-search result ranking.
+- **🧩 RAG Pipeline**: Step-through of the retrieval-augmented-generation request path end to end.
+- **⚡ vLLM PagedAttention**: Traditional contiguous GPU allocation vs. PagedAttention's block-based virtual paging, side by side.
+- **🎛 LLM Sampling**: Temperature logit scaling and nucleus (top-p) sampling against a rescaled token-probability distribution.
+- **🏬 Feature Stores**: Population Stability Index (PSI) drift detection and online vs. offline feature lookup latency.
+- **🎯 Recommendation Systems**: The 2-stage pipeline — two-tower ANN candidate retrieval narrowing a 10M-item catalog, then deep & cross-network ranking.
+
 ---
 
 ## 📚 68 Curriculum Topics Covered
 
-All 68 lessons satisfy the authoring contract and coverage manifest: 31,183 curriculum lines,
+All 68 lessons satisfy the authoring contract and coverage manifest: 31,240 curriculum lines,
 295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
 
 | Category | Topics Count | Key Areas Covered |
@@ -156,8 +168,8 @@ study product. The implementation sequence is:
    `/interview/:category`, backed by `GET /api/v1/search` and
    `GET /api/v1/interview/questions`.
 5. Complete responsive/accessibility and release verification. — the original phase is complete;
-   the 2026-09-09 follow-up audit and its remediation evidence are tracked in
-   [PROJECT_AUDIT.md](PROJECT_AUDIT.md).
+   the most recent full audit and its remediation evidence are tracked in
+   [PROJECT_REVIEW_2026-09-14.md](PROJECT_REVIEW_2026-09-14.md).
 
 The detailed engineering status and content-wave order live in [AGENTS.md](AGENTS.md).
 The expanded [SDE-2 coverage plan](plan.md) is the acceptance checklist for OS, Networking,
