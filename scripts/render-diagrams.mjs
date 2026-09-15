@@ -77,12 +77,18 @@ function validateSvgXml(svg, filename) {
   return parseError ? `invalid SVG XML in ${filename}: ${parseError.message}` : null
 }
 
+// A curriculum topic file is `<NN><letter?>-<slug>.md` inside a category directory — the same
+// shape TopicViewer.markdown.test.jsx uses. Scanning every `.md` under content/ also swept in
+// CONTENT_SPEC.md, whose 4 example fences were rendered, fingerprinted, CI-validated and shipped
+// as 8 SVGs that no user-facing page ever requests.
+const TOPIC_FILENAME = /^\d+[a-z]?-[a-z0-9-]+\.md$/
+
 function findContentFiles(dir) {
   const out = []
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name)
     if (entry.isDirectory()) out.push(...findContentFiles(full))
-    else if (entry.name.endsWith('.md')) out.push(full)
+    else if (TOPIC_FILENAME.test(entry.name)) out.push(full)
   }
   return out.sort()
 }

@@ -22,9 +22,9 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 
 ## 1. Severity summary
 
-> **Status update.** A-13, A-01, A-02, A-03, A-04 and A-14 were **fixed** in the follow-up PR that
-> accompanied this review; each row below is marked accordingly. The remaining items are still
-> open. Fix details are in §12.
+> **Status update.** A-13, A-01, A-02, A-03, A-04, A-14, A-05, A-06 and A-07 were **fixed** in the
+> follow-up PRs that accompanied this review; each row below is marked accordingly. The remaining
+> items are still open. Fix details are in §12, §13 and §14.
 
 | ID | Severity | Status | Area | Finding |
 |---|---|---|---|---|
@@ -35,8 +35,8 @@ Both are small, well-understood fixes. Neither is caught by any existing test.
 | A-04 | Medium | ✅ Fixed | Tech debt | `CATEGORY_ORDER` defined in 3 places; 2 are stale |
 | A-05 | Medium | ✅ Fixed | Testing | 7 simulation engines have zero tests, contradicting `CLAUDE.md`'s stated contract — **writing them uncovered 5 real defects (§13)** |
 | A-14 | Medium | ✅ Fixed | Testing | No test covers first-load routing behaviour, which is why A-13 shipped unnoticed |
-| A-06 | Low | Open | Docs | "299 Mermaid diagrams" counts 4 diagrams from the spec doc itself; the curriculum has 295 |
-| A-07 | Low | Open | Build | 8 SVGs are generated, CI-validated, and shipped for diagrams no user ever sees |
+| A-06 | Low | ✅ Fixed | Docs | "299 Mermaid diagrams" counted 4 diagrams from the spec doc itself; the curriculum has 295 |
+| A-07 | Low | ✅ Fixed | Build | 8 SVGs were generated, CI-validated, and shipped for diagrams no user ever sees |
 | A-08 | Low | Open | Performance | 49 MB of diagram assets; 52 MB `dist/`; `MarkdownRenderer` chunk exceeds Vite's 500 KB warning |
 | A-09 | Low | Open | Content | Diagram type mix is 68% `flowchart`; `erDiagram`/`gantt`/`classDiagram` barely used |
 | A-10 | Low | Open | Maintenance | Six dependencies are a major version behind (React 18→19, jsdom 23→30, mermaid 11→12) |
@@ -482,10 +482,10 @@ absence of any test that would have caught A-01.
    is asserted off `CATEGORY_METADATA`.
 3. ~~**A-03**~~ — ✅ done. `CLAUDE.md` has a category-level registration checklist.
 4. ~~**A-05**~~ — ✅ done, and it was not routine: see §13 for the five defects it uncovered.
-5. **A-06 / A-07** — scope the diagram scan to topic files; correct 299 → 295 where it describes
-   curriculum content. *Next up — one change closes both.*
+5. ~~**A-06 / A-07**~~ — ✅ done. The diagram scan is scoped to topic files and every documented
+   count now matches the measurement; see §14.
 6. **A-12** — decide whether the scenario/answer-depth rules become machine-checkable or are
-   explicitly marked as human review criteria.
+   explicitly marked as human review criteria. *Next up.*
 7. **A-09, A-10, A-08** — diagram-type variety pass, dependency upgrades, bundle splitting, as
    capacity allows.
 
@@ -595,6 +595,47 @@ turns out to be: **the absence of tests was hiding four wrong teaching simulatio
 the layer `CLAUDE.md` designates as "where algorithm logic belongs" and that `/verify-project`
 warns component tests cannot check. The coverage gap was the symptom; incorrect instruction was
 the cost.
+
+---
+
+## 14. A-06 / A-07 follow-up — one scan boundary, two findings
+
+Both findings traced to a single line in `scripts/render-diagrams.mjs`: `findContentFiles()`
+walked `content/` and collected **every** `.md` file. `content/` holds the curriculum *and*
+`CONTENT_SPEC.md`, the authoring contract — whose four example fences were therefore hashed,
+rendered in both themes, fingerprint-validated on every CI run, and shipped as 8 SVG files that no
+user-facing page ever requests (A-07). The same over-broad scan is what made the documented
+"299 Mermaid diagrams" figure overstate the curriculum by exactly those 4 (A-06).
+
+**The fix** scopes the walk to files that match the topic-file naming convention:
+
+```js
+const TOPIC_FILENAME = /^\d+[a-z]?-[a-z0-9-]+\.md$/
+```
+
+`CONTENT_SPEC.md` no longer matches, and any future non-topic doc dropped into `content/` is
+excluded by the same rule rather than silently entering the render set.
+
+**Result**
+
+| | Before | After |
+|---|---|---|
+| Unique diagrams scanned | 299 | 295 |
+| Manifest entries | 299 | 295 |
+| SVG assets | 598 | 590 |
+| Assets sourced from `CONTENT_SPEC.md` | 8 | 0 |
+
+**On the 143 modified SVGs.** Re-rendering changed 143 existing files, which looks alarming for a
+change that only removes diagrams. It was verified before committing rather than assumed: each
+modified file keeps an identical `viewBox` and an identical byte count, and diffs by ~20 bytes —
+all inside generated element ids (`id="actor201"` → `id="actor197"`). Mermaid assigns those from a
+**global monotonic counter** across a render session, so dropping 4 diagrams shifts every
+subsequent diagram's internal ids by 4. Zero visual change; the ids are not referenced from
+outside each file.
+
+Doc counts were corrected in `README.md`, `CONTEXT.md`, and `AGENTS.md` — including the AGENTS
+lines describing what `diagrams:check` validates (299 → 295 entries, 598 → 590 assets), which were
+accurate before the fix and would have become wrong after it.
 
 ---
 

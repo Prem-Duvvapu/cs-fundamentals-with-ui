@@ -158,7 +158,7 @@ interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 all 68 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
 The content gate currently passes all 68 lessons and all 83 coverage-manifest entries, covering
-31,074 curriculum lines, 299 Mermaid diagrams, and 953 interview Q&As.
+31,074 curriculum lines, 295 Mermaid diagrams, and 953 interview Q&As.
 
 ### Reading Experience
 

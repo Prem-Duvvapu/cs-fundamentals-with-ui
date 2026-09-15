@@ -114,7 +114,7 @@ just don't be surprised by a slow first click.
 ## 📚 68 Curriculum Topics Covered
 
 All 68 lessons satisfy the authoring contract and coverage manifest: 31,074 curriculum lines,
-299 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
+295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
 
 | Category | Topics Count | Key Areas Covered |
 | :--- | :--- | :--- |
