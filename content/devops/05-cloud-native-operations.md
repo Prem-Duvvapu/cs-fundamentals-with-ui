@@ -262,7 +262,10 @@ solves — or whether their current setup already meets their uptime and scale r
 I'd also ask whether the team has, or is willing to build, the operational expertise
 Kubernetes requires, since its complexity cost is ongoing, not a one-time setup cost, and
 adopting it without a genuine need just adds operational overhead without solving a real
-problem.
+problem. The honest framing is that the decision is reversible in one direction only — two
+services on a host can move to Kubernetes later at modest cost, while a team that adopts it
+early and then discovers it cannot operate it has already reshaped its deploy tooling,
+networking and on-call around it.
 
 **Q2. What does "idempotent" mean in the context of Infrastructure as Code, and why does it matter?** `[easy]`
 
@@ -271,7 +274,9 @@ running `terraform apply` twice against an unchanged configuration should change
 the second run, since the described state already matches reality. This matters because it
 makes IaC safe to re-run without fear of duplicating resources or causing unintended side
 effects, which is what makes automated, repeated reconciliation of infrastructure state
-practical in the first place.
+practical in the first place. It holds only as far as the provider's API does: a resource
+changed outside Terraform, or one whose provider reports state inaccurately, breaks the
+assumption — which is why drift detection exists rather than being unnecessary.
 
 **Q3. What's the difference between IaaS, PaaS, and SaaS?** `[easy]`
 
@@ -288,7 +293,10 @@ destroyed — without actually making any changes, giving a human the chance to 
 diff before anything happens. This catches surprising or destructive actions, like a
 resource being destroyed and recreated instead of updated in place, before they actually
 occur, which is a safety step a direct console change or an unreviewed script has no
-equivalent of.
+equivalent of. The plan is a prediction, not a contract, though — it is computed against
+state as of that moment, so anything that changes between plan and apply can make the
+applied result differ, which is why pipelines save the plan file and apply exactly that
+artifact rather than re-planning at apply time.
 
 **Q5. Explain the difference between metrics, logs, and traces, and why an observability strategy typically needs all three.** `[medium]`
 
@@ -317,7 +325,10 @@ propagated through every service it touches, so pulling all spans for that trace
 exactly which hop accounted for the latency for that specific request. Aggregate metrics
 average across many requests and can look healthy even when a meaningful subset of
 individual requests are slow for a reason specific to their own path through the system,
-which only a per-request trace can actually surface.
+which only a per-request trace can actually surface. Tracing has its own cost: full
+capture is prohibitively expensive at volume, so systems sample — and a sampling policy that
+drops the slow outliers defeats the purpose, which is why tail-based sampling that decides
+after seeing the whole trace is preferred for exactly this problem.
 
 **Q8. Why can adding a seemingly harmless label to a metric cause a monitoring system to slow down or crash?** `[medium]`
 
@@ -327,7 +338,9 @@ series for every distinct value ever observed, and cardinality (the number of di
 series) is often the dominant cost driver in a metrics backend, not the number of metric
 names. A label that should have been a bounded category (a route template, a status code)
 instead becomes effectively unbounded, multiplying stored series far beyond what the system
-was sized for.
+was sized for. The cost lands on ingestion and query, not just storage: every active series
+holds memory in the scrape path, so a single high-cardinality label can push a metrics
+server into OOM long before its disk fills.
 
 **Q9. Your team has an alert that fires several times a week for a condition that always self-resolves within a minute. What's the actual risk of leaving it as-is, beyond wasted attention?** `[medium]`
 
@@ -337,7 +350,10 @@ perfectly discriminate between this alert and a different, genuinely serious one
 happens to look similar or fires around the same time — the alert's noise erodes trust in
 the alerting system as a whole, not just in that one signal. The fix is tuning the threshold
 or duration so the alert only fires when the condition is actually a real problem, not
-tolerating a known-noisy alert as background noise indefinitely.
+tolerating a known-noisy alert as background noise indefinitely. Tuning has a failure mode
+of its own — a threshold raised far enough to silence the noise can also silence the real
+condition — so the better move is usually alerting on sustained symptoms users feel rather
+than on a transient cause.
 
 **Q10. Explain the Shared Responsibility Model and give a concrete example of a security incident that would be the customer's fault, not the cloud provider's.** `[hard]`
 
@@ -348,7 +364,10 @@ code. A publicly-readable cloud storage bucket containing sensitive data due to 
 misconfigured access policy is a textbook example: the storage service itself functioned
 exactly as designed and the provider's infrastructure was never compromised, the customer
 simply configured its access controls incorrectly, which is squarely within their side of
-the shared responsibility line.
+the shared responsibility line. The line moves with the service model, which is where teams
+get caught: the same organisation is responsible for guest OS patching on a raw VM and not
+responsible for it on a managed function, so "the provider handles it" is only ever true
+relative to a specific service.
 
 **Q11. How does cloud-level elasticity (an auto-scaling group) relate to and differ from Kubernetes' Horizontal Pod Autoscaler operating inside that same infrastructure?** `[hard]`
 
@@ -369,7 +388,10 @@ the underlying orchestration choice was inappropriate for the workload's actual 
 count and scaling needs. The right diagnostic question is separate: does this workload's
 service count, traffic variability, and required uptime actually justify Kubernetes'
 ongoing operational cost, independent of this one incident — conflating "we had a
-cost-control gap" with "we chose the wrong platform" risks fixing the wrong problem.
+cost-control gap" with "we chose the wrong platform" risks fixing the wrong problem. It is
+worth noting the incident is still evidence of something — an unbounded autoscaler reaching
+a runaway state usually means nobody owned the cost guardrails, and that same gap will
+reappear on whatever platform the team runs next.
 
 **Q13. Why is `terraform plan` reviewed by a human considered a stronger safety mechanism than a code review of the Terraform configuration file alone?** `[hard]`
 
@@ -380,6 +402,9 @@ attributes) force a destroy-and-recreate rather than an in-place update, which i
 visible in the computed plan against the tool's actual provider logic, not from reading the
 configuration text alone. Reviewing the plan catches the specific class of surprise where
 the intended change and the tool's literal interpretation of how to achieve it diverge.
+Neither review replaces the other: the plan cannot tell you the change was a bad idea, only
+what it will do, so the configuration diff stays the place where intent is reviewed and the
+plan is where consequences are.
 
 **Q14. Explain, end to end, how a trace ID lets you find the true root cause of one slow user request across five services, when each service's own metrics look normal on average.** `[hard]`
 

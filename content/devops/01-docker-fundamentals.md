@@ -429,7 +429,10 @@ the default bridge network) that forwards traffic arriving on the host's port 80
 container's private bridge IP on port 3000. Without `-p`, the container is still reachable on
 port 3000 from other containers on the same bridge network, since they can address it
 directly by its private IP or Compose service name — the mapping is only required to reach it
-from outside the host.
+from outside the host. The common failure this causes is binding the server inside the
+container to `127.0.0.1` instead of `0.0.0.0`: the NAT rule delivers the packet to the
+container's bridge IP, nothing is listening on that address, and the connection is refused
+even though the mapping is correct.
 
 **Q3. Why does image layer order in a Dockerfile affect build speed?** `[easy]`
 

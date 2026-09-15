@@ -391,6 +391,9 @@ it, since nothing is comparing desired state to actual state for that specific P
 Deployment (via a ReplicaSet) continuously reconciles "are there exactly N Pods matching
 this template" and recreates a Pod automatically on failure, which is the self-healing
 behavior people actually mean when they say "Kubernetes restarts things for you."
+The recreation is not a resurrection, though — the replacement is a brand-new Pod on
+another node with a new IP and empty local disk, so anything the old Pod held only in
+memory or in an `emptyDir` is gone.
 
 **Q3. What's the difference between `ClusterIP`, `NodePort`, and `LoadBalancer` Service types?** `[easy]`
 
@@ -426,7 +429,11 @@ the desired count total Pods may temporarily go) and `maxUnavailable` (how far b
 New Pods must pass their readiness probe before the controller removes an equivalent number
 of old Pods, so the rollout proceeds in small batches rather than all at once, and a broken
 new image simply stalls the rollout at partial old/new capacity instead of taking down the
-whole service.
+whole service. The cost of that safety is spare capacity: with `maxUnavailable: 0` the
+rollout needs room for `maxSurge` extra Pods before it can start, and on a full cluster it
+will sit pending indefinitely. A stalled rollout also does not roll itself back —
+`progressDeadlineSeconds` only marks the Deployment as failed; reverting is still a manual
+`kubectl rollout undo`.
 
 **Q7. Your rollout is stuck with some old and some new Pods, and it's been ten minutes. What do you check first?** `[medium]`
 
@@ -445,7 +452,10 @@ the number of Services, evaluated with equal-probability random selection among 
 IPVS mode uses the kernel's IP Virtual Server module, a purpose-built layer-4 load balancer
 with hash-table lookups and real load-balancing algorithms like least-connection, which
 scales meaningfully better on clusters with thousands of Services and is the recommended
-mode at that scale.
+mode at that scale. IPVS is not a clean replacement, though: it still relies on iptables
+for packet marking and masquerading, and it needs the `ip_vs` kernel modules present on
+every node — when they are missing, kube-proxy silently falls back to iptables mode, so a
+cluster can believe it is running IPVS while one node is not.
 
 **Q9. A Deployment's HPA target is 50% CPU. It's running 4 replicas at 90% average CPU utilization. What does the HPA compute as the new replica count, and why isn't it a round number?** `[medium]`
 
@@ -453,7 +463,10 @@ The HPA computes `ceil(currentReplicas × currentMetric / desiredMetric)` = `cei
 50)` = `ceil(7.2)` = 8 replicas. It always rounds up rather than truncating, because
 rounding down could leave the cluster under-provisioned relative to the target even after
 scaling — better to slightly over-provision than to under-shoot and stay above the target
-utilization.
+utilization. The HPA also will not act on every small deviation: a default tolerance of
+10% means a metric within that band of the target is treated as on-target, and a
+stabilization window delays scale-down, both of which exist to stop the controller
+oscillating on noisy CPU readings.
 
 **Q10. Why is a Kubernetes Secret not the same thing as an encrypted credential?** `[medium]`
 
@@ -463,7 +476,10 @@ read the Secret via the API, or who has direct access to an `etcd` store without
 encryption-at-rest enabled, can trivially decode it back to plaintext. Real confidentiality
 requires explicitly enabling etcd encryption-at-rest, restricting RBAC access to Secrets, or
 using an external secrets manager integration, none of which is on by default just because
-the object is called a Secret.
+the object is called a Secret. Even with all of that in place, the Secret is plaintext by
+the time it reaches the workload — mounted as a file or injected as an environment
+variable — so anyone who can exec into the Pod or read its `/proc` entries can read it
+regardless of how well etcd is protected.
 
 **Q11. Why does Kubernetes separate `requests` and `limits` for a container's resources instead of using one number?** `[hard]`
 
@@ -485,7 +501,12 @@ kubelet stops reporting, the Node controller eventually marks it unhealthy and e
 Pods from consideration, and the ReplicaSet controller for those Pods' Deployments simply
 observes fewer matching Pods than desired — the same code path that handles any other cause
 of a Pod disappearing recreates them elsewhere, with the node failure never needing its own
-special branch of logic.
+special branch of logic. The trade-off is latency, not correctness: the controller cannot
+distinguish a dead node from an unreachable one, so it waits out the node-monitor grace
+period and then the eviction timeout — several minutes by default — before declaring the
+Pods gone, and for a StatefulSet it will not recreate them at all until the old Pod is
+positively confirmed deleted, because two Pods with the same identity writing the same
+volume is worse than downtime.
 
 **Q13. Your team sets `maxUnavailable: 100%` on a Deployment to speed up an emergency rollout, and it makes an outage worse. What went wrong?** `[hard]`
 
