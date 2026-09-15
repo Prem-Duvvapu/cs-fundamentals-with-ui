@@ -5,7 +5,7 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 
 ## Tech Stack
 - **Backend**: Java 17+, Spring Boot 3.x, Maven
-- **Frontend**: React 18+, Vite, React Router v6
+- **Frontend**: React 19, Vite, React Router v7
 - **Data**: Static content-driven (`content/<category>/`); JSON for animations/configs
 - **Styling**: Vanilla CSS in one global `frontend/src/App.css`, driven by `:root` and
   `[data-theme]` design tokens. No CSS Modules, CSS-in-JS, or utility framework. See
