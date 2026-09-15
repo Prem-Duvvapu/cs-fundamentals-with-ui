@@ -1,5 +1,13 @@
 # CS Fundamentals — SDE-2 Coverage and Delivery Plan
 
+**Status: complete.** Every checklist item and phase below has been delivered and verified;
+`content/COVERAGE_MANIFEST.json` and `scripts/validate-content.mjs` are the live, machine-checked
+successors to this document's acceptance rules, and this file remains as the traceability record
+of how that coverage was reached. One figure below is now stale rather than historical: the
+"Question targets" section's final numbers (63 lessons, 883 questions) predate the DevOps
+category added afterward. The current, correct totals are **68 lessons across six categories and
+953 validated interview questions** — see `README.md` or `AGENTS.md` for the live count.
+
 ## Objective
 
 Deliver a content-first, interview-oriented curriculum that covers the complete user-supplied

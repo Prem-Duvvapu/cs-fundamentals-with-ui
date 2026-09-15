@@ -250,19 +250,20 @@ in the 63-topic expansion. `content/COVERAGE_MANIFEST.json` enforces the mapping
 
 ### Current implementation priorities
 
-**2026-09-09 audit remediation:** the findings in `PROJECT_AUDIT.md` are being resolved as tested
-release fixes. The frontend Docker build now uses the repository root context; generated diagrams
+**2026-09-09 audit remediation:** the findings from that audit were resolved as tested release
+fixes (see `PROJECT_REVIEW_2026-09-14.md` for the current, superseding audit trail). The frontend
+Docker build now uses the repository root context; generated diagrams
 are XML-serialized, font-embedded, input-fingerprinted, browser-decoded, and atomically published.
 Simulation endpoints reject malformed or unbounded work with HTTP 400, `/31` and `/32` subnet host
 ranges are explicit, and content is resolved through an exact registered-topic index that fails
 fast when incomplete. Frontend reads cancel superseded requests, TOC observation begins after lazy
 Markdown headings mount, mobile overflow is locally contained, and failed routes provide recovery
-actions. Dependency automation is enabled, with the frontend on Vite 8/Vitest 4/React Router 7 and
+actions. Dependency automation is enabled, with the frontend on Vite 8/Vitest 5/React Router 7 and
 the backend on the Java 17-compatible Spring Boot 3.5 line. Four proven-unused shared files listed
 in the audit were removed.
 
-P6 is complete, including the accessibility audit UI_REVAMP_PLAN.md Phase 7 previously listed as
-blocked. This environment does have a browser (Chromium via Playwright, pre-installed): axe-core
+P6 is complete, including the accessibility audit (UI-revamp Phase 7, previously listed as
+blocked). This environment does have a browser (Chromium via Playwright, pre-installed): axe-core
 was run against 5 routes (`/`, `/topic/:id` for a hub topic and a direct-visualizer OS topic,
 `/search`, `/interview/all`) in both themes — 10 checks, 28 violations found and fixed, 0
 remaining. Fixes: `HomePage.jsx`/`SearchPage.jsx`/`InterviewPage.jsx` each nested a second
@@ -276,7 +277,7 @@ several backgrounds — darkened to `#5f6a7c`. Every Markdown table rendered the
 `aria-label="Scrollable table"`, so a lesson with several tables produced duplicate-landmark
 findings — `MarkdownRenderer.jsx`'s `table()` renderer now numbers them per document.
 
-UI_REVAMP_PLAN.md Phase 8 (delete the legacy CSS token shim, delete the dead CSS classes, sync
+UI-revamp Phase 8 (delete the legacy CSS token shim, delete the dead CSS classes, sync
 `AGENTS.md`) is also done. The shim (`--bg-dark`, `--bg-card`, `--border-color`,
 `--accent-{purple,blue,green,amber,red,pink}`, `--font-main`) still had 77 live references (25 in
 App.css alone for `--border-color`, plus 5 direct `--accent-purple` refs in networking visualizer
@@ -347,7 +348,7 @@ All 68 topics are registered at all integration points, so content work requires
 
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
-- **Verified** — 31,183 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
+- **Verified** — 31,240 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
   (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing

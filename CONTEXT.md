@@ -61,19 +61,24 @@ symptom or component before repeating an investigation.
 ### 💻 Operating Systems
 - **CPU Scheduling Simulator (`SchedulingVisualizer.jsx`)**: Interactive execution for FCFS, SJF, SRTF, Round Robin, and Priority scheduling with live Gantt chart.
 - **Process Lifecycle & PCB Inspector (`ProcessLifecycleVisualizer.jsx`)**: State machine transitions and live Process Control Block (PCB) inspector.
-- **Memory Management & Paging (`MemoryVisualizer.jsx`)**: Page replacement algorithms (LRU, FIFO, Optimal) and MMU Address Translation calculator.
+- **Memory Management & Paging (`MemoryVisualizer.jsx`)**: Page replacement algorithms (LRU, FIFO, Optimal) and an MMU Address Translation calculator (`os/VirtualMemoryVisualizer.jsx`).
 - **Process Synchronization (`SynchronizationVisualizer.jsx`)**: Mutex locking and Bounded Buffer Producer-Consumer model.
 - **Deadlock Detector (`DeadlockVisualizer.jsx`)**: Banker's Algorithm safety sequence calculation.
+- **File Systems (`os/FileSystemVisualizer.jsx`)**: inode direct/single/double/triple-indirect pointer allocation walkthrough and the Linux VFS abstraction layers.
+- **Disk Scheduling (`os/DiskSchedulingVisualizer.jsx`)**: head-movement comparison across FCFS, SSTF, SCAN (elevator), and C-SCAN.
 
 ### 🌐 Computer Networks (`NetworkingVisualizer.jsx`)
 - **Network Topologies**: Interactive Star, Bus, Ring, Mesh, Tree, and Hybrid layouts.
 - **Physical Line Encoding**: Real-time oscilloscope waveforms for NRZ-L, NRZ-I, Manchester, and Differential Manchester.
+- **TCP 3-Way Handshake**: SYN / SYN-ACK / ACK state walkthrough (inline step-through, never engine-backed); shared by `tcp-ip` and `tcp-congestion`.
+- **TCP Congestion Control (`networking/TcpCongestionVisualizer.jsx`)**: slow start, congestion avoidance, and AIMD window growth/backoff, rendered beneath the handshake on the same tab.
 - **TCP & UDP Segment Header Inspector (`TcpSegmentVisualizer.jsx`)**: Bitfield grid with live byte offset tooltips.
 - **QoS Traffic Shaping Simulator (`TrafficShapingVisualizer.jsx`)**: Token Bucket vs. Leaky Bucket burst simulation.
 - **DHCP DORA 4-Step Flow (`DhcpDoraVisualizer.jsx`)**: Step-through state machine for Discover, Offer, Request, and ACK.
 - **ARP Resolution Protocol (`ArpResolutionVisualizer.jsx`)**: Layer 2 broadcast requests and dynamic ARP cache table updates.
 - **NAT / PAT Translation Table (`NatTranslationVisualizer.jsx`)**: Internal-to-external socket rewriting simulation.
 - **Distance Vector Bellman-Ford (`DistanceVectorVisualizer.jsx`)**: Multi-router vector exchange convergence.
+- **Consistent Hashing (`networking/ConsistentHashingVisualizer.jsx`)**: hash-ring node placement and key redistribution on node add/remove; also the Simulation tab for DBMS's `distributed-databases-cap` (see the DBMS section below).
 
 ### 🗄️ Database Management Systems (`DbmsVisualizer.jsx`)
 5 sub-tabs — the P3 simulation triage (see `plan.md`'s P3 audit checkpoint) kept only the engines
@@ -103,6 +108,17 @@ id, only manual click.
 - **HashMap & Bucket Internals (`java/HashMapVisualizer.jsx`)** at `java-hashmap-internals`: bucket chaining, treeification, and resize.
 - **Virtual Threads / Loom (`java/VirtualThreadsVisualizer.jsx`)** at `java-multithreading-concurrency`: mount/unmount onto carrier threads.
 - **HikariCP Connection Pool (`java/ConnectionPoolVisualizer.jsx`)** at `spring-testing-production`: pool exhaustion and wait-queue behaviour.
+
+### 🤖 AI/ML Systems (`AiMlVisualizer.jsx`)
+6 sub-tabs, all inline step-through UI state (no dedicated `simulationEngines/` file, same pattern
+as the Java hub's Spring MVC/Quartz tabs — the mechanism is a fixed worked example, not a
+configurable algorithm).
+- **Embeddings & Vector Search**: a 2D vector coordinate and cosine-distance calculator plus a similarity-search results ranking.
+- **RAG Pipeline**: step-through of the retrieval-augmented-generation request path end to end.
+- **vLLM PagedAttention**: traditional contiguous GPU allocation vs. PagedAttention's block-based virtual paging, contrasted side by side.
+- **LLM Sampling**: logit scaling (temperature) and nucleus (top-p) sampling against a rescaled token-probability distribution.
+- **Feature Stores**: Population Stability Index (PSI) drift detection and online vs. offline feature lookup latency.
+- **Recommendation Systems**: the 2-stage pipeline — two-tower ANN candidate retrieval narrowing a 10M-item catalog, then deep & cross-network ranking.
 
 ---
 
@@ -152,8 +168,7 @@ on theme changes. This removes the former runtime render queue, font-measurement
 state, and Mermaid payload. An SVG loaded through `<img>` is an isolated document that cannot
 fetch external resources, so the webfont has to travel inside each asset; the generator embeds a
 **subset** of it — the characters the curriculum actually draws, instanced to the 400-700 weight
-range mermaid uses — which took `public/diagrams/` from 49 MB to 31 MB with byte-identical
-`viewBox` geometry on 588 of 590 assets and pixel-identical renders on a 14-diagram sample. The
+range mermaid uses — which took `public/diagrams/` from 49 MB to 31 MB with no visual change. The
 generator serializes XML safely,
 browser-decodes every asset before atomically publishing the complete set, and leaves the prior
 set intact if rendering fails. `npm run diagrams:check --prefix frontend` validates fingerprints
@@ -170,7 +185,7 @@ interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 all 68 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
 The content gate currently passes all 68 lessons and all 83 coverage-manifest entries, covering
-31,183 curriculum lines, 295 Mermaid diagrams, and 953 interview Q&As.
+31,240 curriculum lines, 295 Mermaid diagrams, and 953 interview Q&As.
 
 ### Reading Experience
 
