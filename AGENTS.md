@@ -352,7 +352,9 @@ Current contract-completion order:
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
   the category)
-- **Gate** — `node scripts/validate-content.mjs` passes all 68 lessons and 83 manifest entries;
+- **Gate** — `node scripts/validate-content.mjs` passes all 68 lessons and 83 manifest entries, and
+  prints the corpus-wide Mermaid type mix each run (reported, never enforced — see `CONTENT_SPEC.md`
+  section 5 for how to pick a type);
   it also parses every Mermaid diagram with the real `mermaid` package (not mocked, unlike the
   Vitest suites), so a diagram with a genuine syntax error fails the gate instead of shipping to
   the error fallback in `MermaidBlock.jsx`, and it enforces the interview-answer depth bar

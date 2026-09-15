@@ -692,12 +692,12 @@
     "height": 69,
     "widened": 15
   },
-  "9e756fc1": {
+  "3b535275": {
     "source": "content/dbms/12-sql-querying.md",
     "renderFingerprint": "d9c17fef2c539fd9",
-    "width": 483,
-    "height": 462,
-    "widened": 12
+    "width": 488,
+    "height": 614,
+    "widened": 47
   },
   "a3524192": {
     "source": "content/dbms/12-sql-querying.md",
@@ -1105,12 +1105,12 @@
     "height": 426,
     "widened": 13
   },
-  "c3e4d673": {
+  "f5101aaa": {
     "source": "content/java-spring/01k-java-reflection-exceptions.md",
     "renderFingerprint": "d9c17fef2c539fd9",
-    "width": 402,
-    "height": 575,
-    "widened": 11
+    "width": 1004,
+    "height": 613,
+    "widened": 25
   },
   "76c75279": {
     "source": "content/java-spring/01k-java-reflection-exceptions.md",
@@ -1161,12 +1161,12 @@
     "height": 90,
     "widened": 9
   },
-  "605798a5": {
+  "239f36a2": {
     "source": "content/java-spring/01m-design-patterns-solid.md",
     "renderFingerprint": "d9c17fef2c539fd9",
-    "width": 670,
-    "height": 275,
-    "widened": 9
+    "width": 1029,
+    "height": 384,
+    "widened": 16
   },
   "7891087f": {
     "source": "content/java-spring/01m-design-patterns-solid.md",

@@ -157,14 +157,31 @@ The order requires an index such as `(customer_id, created_at DESC, id DESC)` fo
 A JOIN pairs rows according to a predicate. Before writing one, state expected cardinality: one-to-one, one-to-many, or many-to-many. Unexpected multiplication is usually a missing predicate or a misunderstood relationship.
 
 ```mermaid
-flowchart TD
-    C["customers: one row per customer"] -->|"1 to many"| O["orders"]
-    O -->|"1 to many"| I["order_items"]
-    P["products"] -->|"1 to many"| I
-    C --> J["JOIN customers to orders"]
-    O --> J
-    J --> R["one result row per matching order"]
+erDiagram
+    CUSTOMERS ||--o{ ORDERS : places
+    ORDERS ||--|{ ORDER_ITEMS : contains
+    PRODUCTS ||--o{ ORDER_ITEMS : "appears in"
+    CUSTOMERS {
+        int id PK
+        string name
+    }
+    ORDERS {
+        int id PK
+        int customer_id FK
+        date placed_at
+    }
+    ORDER_ITEMS {
+        int order_id FK
+        int product_id FK
+        int quantity
+    }
+    PRODUCTS {
+        int id PK
+        string name
+    }
 ```
+
+Read the cardinality off the crow's feet before writing the JOIN. `CUSTOMERS ||--o{ ORDERS` is one-to-*zero*-or-many, so an INNER JOIN silently drops customers who have never ordered while a LEFT JOIN keeps them. `ORDERS ||--|{ ORDER_ITEMS` is one-to-*one*-or-many, so joining orders to items multiplies each order row by its item count — which is why `SUM(o.total)` over that join double-counts, and the fix is aggregating items first rather than adding a `DISTINCT`.
 
 The main join types are:
 

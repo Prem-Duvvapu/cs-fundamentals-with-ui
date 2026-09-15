@@ -27,12 +27,30 @@ That search is called stack unwinding.
 `Error` represents severe JVM or environment failures.
 
 ```mermaid
-flowchart TD
-    A["parse order"] --> B{"valid input?"}
-    B -->|yes| C["return order"]
-    B -->|no| D["throw invalid order"]
-    D --> E["caller catches failure"]
-    E --> F["return useful response"]
+classDiagram
+    class Throwable {
+        +getMessage() String
+        +getCause() Throwable
+        +getStackTrace() StackTraceElement[]
+    }
+    class Error {
+        <<unchecked - do not catch>>
+    }
+    class Exception {
+        <<checked - catch or declare>>
+    }
+    class RuntimeException {
+        <<unchecked - a broken precondition>>
+    }
+    Throwable <|-- Error
+    Throwable <|-- Exception
+    Exception <|-- RuntimeException
+    Error <|-- OutOfMemoryError
+    Error <|-- StackOverflowError
+    Exception <|-- IOException
+    Exception <|-- SQLException
+    RuntimeException <|-- NullPointerException
+    RuntimeException <|-- IllegalArgumentException
 ```
 
 An exception is not automatically a programming bug.
