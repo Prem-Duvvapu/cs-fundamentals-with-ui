@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import ProgressPage from '../ProgressPage'
 import { fetchTopics } from '../../utils/api'
-import { toggleBookmark, toggleCompleted } from '../../utils/topicProgress'
+import { toggleBookmark, toggleCompleted, exportProgress } from '../../utils/topicProgress'
 
 vi.mock('../../utils/api', () => ({
   fetchTopics: vi.fn()
@@ -87,5 +87,54 @@ describe('ProgressPage', () => {
     renderPage()
 
     expect(await screen.findByRole('link', { name: 'Study Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
+  })
+
+  it('exports progress as a downloaded JSON file', async () => {
+    if (!URL.createObjectURL) URL.createObjectURL = vi.fn()
+    if (!URL.revokeObjectURL) URL.revokeObjectURL = vi.fn()
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url')
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    renderPage()
+    await screen.findByRole('heading', { name: 'Progress Dashboard' })
+    fireEvent.click(screen.getByRole('button', { name: 'Export progress' }))
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    const [blob] = createObjectURL.mock.calls[0]
+    expect(blob.type).toBe('application/json')
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+
+    createObjectURL.mockRestore()
+    revokeObjectURL.mockRestore()
+    clickSpy.mockRestore()
+  })
+
+  it('imports a progress file and reports how many topics were merged', async () => {
+    toggleBookmark('deadlocks')
+    const fixture = exportProgress()
+    window.localStorage.clear()
+
+    renderPage()
+    await screen.findByRole('heading', { name: 'Progress Dashboard' })
+
+    const file = new File([JSON.stringify(fixture)], 'progress.json', { type: 'application/json' })
+    const input = document.querySelector('.progress-transfer-input')
+    await fireEvent.change(input, { target: { files: [file] } })
+
+    expect(await screen.findByText('Imported progress for 1 topic.')).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Study Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
+  })
+
+  it('rejects an invalid progress file without changing any state', async () => {
+    renderPage()
+    await screen.findByRole('heading', { name: 'Progress Dashboard' })
+
+    const file = new File(['not json'], 'progress.json', { type: 'application/json' })
+    const input = document.querySelector('.progress-transfer-input')
+    await fireEvent.change(input, { target: { files: [file] } })
+
+    expect(await screen.findByText('That file is not valid JSON.')).toBeInTheDocument()
   })
 })

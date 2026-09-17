@@ -1966,6 +1966,12 @@ body {
 .topic-row-summary { color: var(--text-secondary); display: -webkit-box; font-size: var(--ui-base); -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .roadmap-cta { background: transparent; border: var(--stroke-hair) solid transparent; border-radius: var(--radius-sm); color: var(--cat-base); min-height: 2.75rem; padding: var(--space-2) var(--space-4); transition: background-color var(--dur-fast) var(--ease-standard); }
 .roadmap-cta:hover { background: var(--cat-tint); filter: none; transform: none; }
+/* The hero's single entry point. `.roadmap-cta` alone reads as a quiet text link (it is the
+   per-row "Study topic" style), which is right inside a list of 68 rows and wrong for the one
+   action a first-time visitor should notice. */
+.roadmap-cta-primary { background: var(--cat-base); border-color: transparent; color: var(--text-inverse); font-weight: 700; }
+.roadmap-cta-primary:hover { background: var(--cat-hover); }
+.roadmap-start { margin-top: var(--space-4); }
 .roadmap-progress-summary { color: var(--text-secondary); font-size: var(--ui-sm); font-weight: 600; margin-top: var(--space-2); }
 .progress-transfer-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
 .progress-transfer-btn { background: transparent; border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-full); color: var(--text-secondary); cursor: pointer; font: 600 var(--ui-sm)/var(--ui-base-lh) var(--font-body); min-height: 2.5rem; padding: var(--space-1) var(--space-4); transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard); }
@@ -2195,6 +2201,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { box-shadow: va
   .topic-row { align-items: start; grid-template-columns: 2.5rem minmax(0, 1fr); }
   .topic-row .topic-row-actions { grid-column: 1 / -1; width: 100%; }
   .topic-row .roadmap-cta { flex: 1; }
+  /* On a phone this prose sat between the category heading and its own topic list, pushing every
+     topic off the first screen. The list says the same thing more directly, so the summary steps
+     aside here; the topic count stays. It returns in full at >= 768px and on the per-category view. */
+  .category-meta p { display: none; }
+  .category-overview { gap: var(--space-3); }
+  .category-overview .topic-rows { margin-top: 0; }
   .roadmap-selectors, .level-selectors { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: var(--space-2); }
   .roadmap-selector, .level-selector, .main-tab-btn, .btn-primary, .btn-secondary, .btn-danger, .progress-toggle, .bookmark-toggle-icon, .progress-transfer-btn { min-height: 44px; }
   .topic-page-title-row { flex-direction: column; }

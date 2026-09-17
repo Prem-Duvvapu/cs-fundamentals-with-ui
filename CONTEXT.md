@@ -210,8 +210,8 @@ toggle and completed badge per topic row, a "Bookmarked" filter, and a completed
 `TopicPage.jsx` renders the same bookmark/mark-complete toggles in its header. There is no
 backend involvement — the state is per-browser and not part of the topic-registration model.
 
-`topicProgress.js` also exports `exportProgress()`/`importProgress()`, backing the home page's
-"Export progress" / "Import progress" buttons: export wraps the current state in a small
+`topicProgress.js` also exports `exportProgress()`/`importProgress()`, backing the **progress
+dashboard's** "Export progress" / "Import progress" buttons: export wraps the current state in a small
 versioned JSON envelope (`{ app, version, exportedAt, progress }`) and triggers a browser
 download; import parses that file and **merges** it into the existing state field-by-field
 (`true` always wins), so a restore can never silently erase progress made since the backup —
@@ -228,14 +228,14 @@ lookup retries for a bounded number of animation frames (covering async-mounted 
 after a navigation) and degrades to a centered, spotlight-less tooltip rather than hanging if a
 target never appears. `utils/tourPosition.js` is the pure, unit-tested placement function
 (clamps the tooltip within the viewport, flips above/below the target as space requires).
-Progress is tracked the same way as theme/bookmarks: a `localStorage` "seen" flag suppresses the
-automatic first-visit showing. That auto-show is additionally **guarded to the home route** — it
-fires only when the visitor actually landed on `/`. Without the guard the tour started on any
-route and its first step's `path: '/'` immediately navigated a first-time visitor off whatever
-deep link they had opened (a shared `/topic/...` link, say), with the back button unable to
-recover it; `AppRouting.test.jsx` now locks that behaviour down. A "Take a tour" button in
-`Navbar.jsx` (wired via an
-`onStartTour` prop from `App.jsx`) replays it on demand regardless of that flag.
+The tour is **opt-in and never opens on its own**, so it keeps no `localStorage` flag: the only
+way in is the "Take a tour" button in `Navbar.jsx` (wired via an `onStartTour` prop from
+`App.jsx`). It previously auto-showed on a first visit, which put a 9-step modal over a dimmed
+page before a stranger had seen any curriculum, and was also the root of a deep-link regression —
+the first step's `path: '/'` navigated a first-time visitor off whatever `/topic/...` link they
+had opened, with the back button unable to recover it. Removing the auto-show makes that class of
+bug structurally impossible; `AppRouting.test.jsx` locks it down, asserting deep links survive,
+that nothing opens unprompted on any route including `/`, and that the navbar button still works.
 
 `/search` and `/interview/:category` (P5) reuse the same roadmap visual language —
 `SearchPage.jsx` debounces a query against `GET /api/v1/search`, cancels superseded requests,

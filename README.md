@@ -195,20 +195,21 @@ page title or navigation context.
 
 Topics can be bookmarked and marked complete from either the roadmap row or the topic page header;
 a "Bookmarked" filter and a completed-topics count on the home page track this alongside the
-existing category/level filters. This state lives entirely in the browser's `localStorage`
-(no account or backend persistence), so it is per-device and clears if site data is cleared.
-"Export progress" / "Import progress" buttons on the home page download or restore this state as
-a JSON file, so it can be backed up or carried to another device; importing merges into whatever
-is already saved rather than replacing it, so a restore can never demote existing progress.
+existing category/level filters. Both appear only once they mean something — a visitor with no
+progress is not shown a score of zero or a filter that can only return nothing. This state lives
+entirely in the browser's `localStorage` (no account or backend persistence), so it is per-device
+and clears if site data is cleared. "Export progress" / "Import progress" buttons on the
+`/progress` dashboard download or restore this state as a JSON file, so it can be backed up or
+carried to another device; importing merges into whatever is already saved rather than replacing
+it, so a restore can never demote existing progress.
 
 A `/progress` dashboard (linked from the navbar) turns that same state into an overview: overall
 completion, a bar per category and per level, the full bookmarked list, and a "Continue where you
 left off" pointer to the next not-yet-completed topic in curriculum order.
 
-A guided product tour spotlights the roadmap filters, a topic row, progress export/import, Search
-and Interview Mode, then crosses over to a topic page to show the Study/Simulation tabs. It shows
-itself once on a visitor's first visit and can be replayed any time from the "Take a tour" button
-in the navigation bar.
+A guided product tour spotlights the roadmap filters, a topic row, Search and Interview Mode, then
+crosses over to a topic page to show the Study/Simulation tabs. It is entirely opt-in — it never
+interrupts a first visit, and opens only from the "Take a tour" button in the navigation bar.
 
 The interface follows the operating-system theme on first visit and persists an explicit choice.
 Category and learning-level states always combine colour with a glyph or text label. See the

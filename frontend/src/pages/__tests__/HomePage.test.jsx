@@ -4,7 +4,7 @@ import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import HomePage from '../HomePage'
 import { fetchTopics } from '../../utils/api'
-import { toggleBookmark, exportProgress } from '../../utils/topicProgress'
+import { toggleBookmark } from '../../utils/topicProgress'
 
 vi.mock('../../utils/api', () => ({
   fetchTopics: vi.fn()
@@ -116,7 +116,6 @@ describe('HomePage', () => {
     renderPage()
 
     await screen.findByText('OOP Pillars')
-    expect(screen.getByText('0 of 5 topics completed')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Bookmark Deadlocks' }))
     expect(screen.getByRole('button', { name: 'Remove Deadlocks from bookmarks' })).toHaveAttribute('aria-pressed', 'true')
@@ -126,52 +125,41 @@ describe('HomePage', () => {
     expect(screen.queryByText('OOP Pillars')).not.toBeInTheDocument()
   })
 
-  it('exports progress as a downloaded JSON file', async () => {
-    if (!URL.createObjectURL) URL.createObjectURL = vi.fn()
-    if (!URL.revokeObjectURL) URL.revokeObjectURL = vi.fn()
-    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url')
-    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
-
+  // A first-time visitor should not be shown a score of zero, a filter that can only ever return
+  // nothing, or a card restating the sentence directly above it.
+  it('hides zero-state clutter until it means something', async () => {
     renderPage()
+
     await screen.findByText('OOP Pillars')
-    fireEvent.click(screen.getByRole('button', { name: 'Export progress' }))
+    expect(screen.queryByText('0 of 5 topics completed')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^bookmarked$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Recommended sequence' })).not.toBeInTheDocument()
 
-    expect(createObjectURL).toHaveBeenCalledTimes(1)
-    const [blob] = createObjectURL.mock.calls[0]
-    expect(blob.type).toBe('application/json')
-    expect(clickSpy).toHaveBeenCalledTimes(1)
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
-
-    createObjectURL.mockRestore()
-    revokeObjectURL.mockRestore()
-    clickSpy.mockRestore()
+    fireEvent.click(screen.getByRole('button', { name: 'Bookmark Deadlocks' }))
+    expect(screen.getByRole('button', { name: /^bookmarked$/i })).toBeInTheDocument()
   })
 
-  it('imports a progress file and reports how many topics were merged', async () => {
-    toggleBookmark('deadlocks')
-    const fixture = exportProgress()
-    window.localStorage.clear()
-
+  // Un-bookmarking the last topic while the filter is on must not strand the visitor: the control
+  // has to stay reachable so they can switch it back off.
+  it('keeps the bookmarked filter reachable after the last bookmark is removed', async () => {
     renderPage()
+
     await screen.findByText('OOP Pillars')
+    fireEvent.click(screen.getByRole('button', { name: 'Bookmark Deadlocks' }))
+    fireEvent.click(screen.getByRole('button', { name: /^bookmarked$/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Deadlocks from bookmarks' }))
 
-    const file = new File([JSON.stringify(fixture)], 'progress.json', { type: 'application/json' })
-    const input = document.querySelector('.progress-transfer-input')
-    await fireEvent.change(input, { target: { files: [file] } })
+    const filter = screen.getByRole('button', { name: /^bookmarked$/i })
+    expect(filter).toHaveAttribute('aria-pressed', 'true')
 
-    expect(await screen.findByText('Imported progress for 1 topic.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Remove Deadlocks from bookmarks' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(filter)
+    expect(screen.getByText('OOP Pillars')).toBeInTheDocument()
   })
 
-  it('rejects an invalid progress file without changing any state', async () => {
+  it('offers one entry point that points at the next uncompleted topic', async () => {
     renderPage()
-    await screen.findByText('OOP Pillars')
 
-    const file = new File(['not json'], 'progress.json', { type: 'application/json' })
-    const input = document.querySelector('.progress-transfer-input')
-    await fireEvent.change(input, { target: { files: [file] } })
-
-    expect(await screen.findByText('That file is not valid JSON.')).toBeInTheDocument()
+    const cta = await screen.findByRole('link', { name: /Start here: OOP Pillars/ })
+    expect(cta).toHaveAttribute('href', '/topic/java-oop-pillars')
   })
 })
