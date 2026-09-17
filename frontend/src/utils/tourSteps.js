@@ -34,13 +34,6 @@ const TOUR_STEPS = [
     body: 'Star a topic to save it for later, or jump straight into the reader with Study topic.'
   },
   {
-    id: 'progress-transfer',
-    path: '/',
-    target: '.progress-transfer-actions',
-    title: 'Back up your progress',
-    body: 'Bookmarks and completion live only in this browser. Export them to a file any time, and import that file to restore or move to another device.'
-  },
-  {
     id: 'search',
     path: '/',
     target: '.navbar-icon-link[aria-label="Search"]',

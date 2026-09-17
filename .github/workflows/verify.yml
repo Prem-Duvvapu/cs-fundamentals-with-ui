@@ -11,7 +11,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # jsdom 30 / vitest 5 (A-10) require Node >=22.22.2 — on Node 20 every test file fails
+          # to start with "webidl.util.markAsUncloneable is not a function" (undici's CacheStorage
+          # ctor calling an API newer than Node 20's bundled undici exposes). This is a floor, not
+          # a moving pin: any later engines bump on these two packages needs this raised to match.
+          node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --prefix frontend

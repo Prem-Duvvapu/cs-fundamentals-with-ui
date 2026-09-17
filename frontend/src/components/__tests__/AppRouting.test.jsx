@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import App from '../../App'
 import AppErrorBoundary from '../AppErrorBoundary'
@@ -23,8 +23,8 @@ function renderApp(route) {
 }
 
 beforeEach(() => {
-  // Every test in this file is a *first-time* visitor: no tour-seen flag, no saved progress.
-  // That is the state in which the tour auto-shows, and the state deep-link handling must survive.
+  // Every test in this file is a *first-time* visitor: no saved progress of any kind. That is the
+  // state deep-link handling has to survive, and the state the tour must not interrupt.
   window.localStorage.clear()
   global.fetch = vi.fn().mockResolvedValue(
     new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } })
@@ -57,6 +57,8 @@ describe('application route recovery', () => {
 // Regression guard for the bug where the guided tour's first-visit auto-show fired on every
 // route and its `path: '/'` first step immediately navigated the visitor off whatever deep link
 // they opened — breaking every shared link for exactly the people most likely to follow one.
+// The tour no longer opens by itself at all, so that bug is now structurally impossible; these
+// tests stay as the guard that keeps it that way.
 describe('deep links survive a first-time visit', () => {
   it.each([
     ['/topic/cpu-scheduling'],
@@ -79,18 +81,21 @@ describe('deep links survive a first-time visit', () => {
     expect(document.querySelector('.tour-tooltip')).toBeNull()
   })
 
-  it('still auto-opens the tour for a first-time visitor landing on the home page', async () => {
-    renderApp('/')
-
-    await waitFor(() => expect(document.querySelector('.tour-tooltip')).not.toBeNull())
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-  })
-
-  it('does not auto-open the tour for a returning visitor on the home page', async () => {
-    window.localStorage.setItem('cs-fundamentals-tour-seen', 'true')
+  it('does not open the tour on the home page either — it is opt-in', async () => {
     renderApp('/')
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/'))
     expect(document.querySelector('.tour-tooltip')).toBeNull()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('opens the tour only when the navbar button asks for it', async () => {
+    renderApp('/')
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/'))
+    fireEvent.click(screen.getByRole('button', { name: 'Take a tour of the app' }))
+
+    await waitFor(() => expect(document.querySelector('.tour-tooltip')).not.toBeNull())
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })

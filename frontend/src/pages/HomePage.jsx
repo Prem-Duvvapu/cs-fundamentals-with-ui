@@ -1,15 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchTopics } from '../utils/api'
-import { isBookmarked, isCompleted, getCompletedCount, exportProgress, importProgress } from '../utils/topicProgress'
+import { isBookmarked, isCompleted, getCompletedCount } from '../utils/topicProgress'
+import { getNextTopic, getBookmarkedTopics } from '../utils/progressStats'
 import useTopicProgress from '../hooks/useTopicProgress'
 import { CATEGORY_ORDER, LEVEL_ORDER, LEVEL_LABELS, LEVEL_GLYPHS } from '../utils/topicCategories'
-
-const IMPORT_ERROR_MESSAGES = {
-  'invalid-json': 'That file is not valid JSON.',
-  'invalid-format': 'That file is not a recognized progress export.',
-  'unsupported-version': 'That file was exported from a newer version of this app.'
-}
 
 const LEVEL_FILTERS = ['all', 'beginner', 'intermediate', 'expert']
 
@@ -75,9 +70,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedLevel, setSelectedLevel] = useState('all')
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false)
-  const [importStatus, setImportStatus] = useState(null)
-  const importInputRef = useRef(null)
-  const { progress, toggleBookmark, toggleCompleted } = useTopicProgress()
+  const { progress, toggleBookmark } = useTopicProgress()
 
   useEffect(() => {
     fetchTopics()
@@ -167,35 +160,6 @@ export default function HomePage() {
       })
   }, [])
 
-  const handleExportProgress = () => {
-    const file = exportProgress()
-    const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `cs-fundamentals-progress-${new Date().toISOString().slice(0, 10)}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }
-
-  const handleImportFile = (event) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = importProgress(reader.result)
-      setImportStatus(result.ok
-        ? { type: 'success', message: `Imported progress for ${result.importedCount} topic${result.importedCount === 1 ? '' : 's'}.` }
-        : { type: 'error', message: IMPORT_ERROR_MESSAGES[result.error] || 'Could not import that file.' })
-    }
-    reader.onerror = () => setImportStatus({ type: 'error', message: 'Could not read that file.' })
-    reader.readAsText(file)
-  }
-
   const categories = CATEGORY_ORDER.map(id => ({
     id,
     ...CATEGORY_DETAILS[id],
@@ -216,39 +180,31 @@ export default function HomePage() {
   const visibleTopicCount = visibleCategories.reduce((count, category) => count + category.topics.length, 0)
   const completedCount = getCompletedCount(progress)
 
+  // Same helper the progress dashboard uses for "Continue where you left off", so both pages agree
+  // on what comes next instead of each deciding for themselves.
+  const nextTopic = getNextTopic(topics, progress)
+  // Kept visible while the filter is on, even at zero bookmarks: otherwise un-bookmarking your last
+  // topic hides the control while the filter stays active, with no way left to switch it off.
+  const showBookmarkFilter = bookmarkedOnly || getBookmarkedTopics(topics, progress).length > 0
+
   return (
     <div className="roadmap-index">
       <header className="roadmap-header">
         <p className="eyebrow">A deliberate learning path</p>
         <h1>CS Fundamentals Roadmap</h1>
         <p>
-          Build interview-ready understanding in the order that compounds: Java and Spring first, then the systems and data foundations that support them.
+          {topics.length || 68} lessons on the fundamentals interviewers actually ask about — each read at three depths, with diagrams, worked examples and interview questions.
         </p>
-        {topics.length > 0 && (
-          <p className="roadmap-progress-summary" role="status">
-            {completedCount} of {topics.length} topics completed
+        {nextTopic && (
+          <p className="roadmap-start">
+            <Link to={`/topic/${nextTopic.id}`} className="roadmap-cta roadmap-cta-primary">
+              {completedCount === 0 ? 'Start here' : 'Continue'}: {nextTopic.title} →
+            </Link>
           </p>
         )}
-
-        <div className="progress-transfer-actions">
-          <button type="button" className="progress-transfer-btn" onClick={handleExportProgress}>
-            Export progress
-          </button>
-          <button type="button" className="progress-transfer-btn" onClick={() => importInputRef.current?.click()}>
-            Import progress
-          </button>
-          <input
-            ref={importInputRef}
-            type="file"
-            accept="application/json"
-            onChange={handleImportFile}
-            className="progress-transfer-input"
-            aria-label="Import progress from a JSON file"
-          />
-        </div>
-        {importStatus && (
-          <p className={`progress-transfer-status progress-transfer-status--${importStatus.type}`} role="status">
-            {importStatus.message}
+        {completedCount > 0 && (
+          <p className="roadmap-progress-summary" role="status">
+            {completedCount} of {topics.length} topics completed
           </p>
         )}
 
@@ -293,29 +249,31 @@ export default function HomePage() {
                 {level === 'all' ? 'All levels' : LEVEL_LABELS[level]}
               </button>
             ))}
-            <button
-              type="button"
-              className={`level-selector ${bookmarkedOnly ? 'active' : ''}`}
-              aria-pressed={bookmarkedOnly}
-              onClick={() => setBookmarkedOnly(current => !current)}
-            >
-              <span aria-hidden="true">★</span> Bookmarked
-            </button>
+            {showBookmarkFilter && (
+              <button
+                type="button"
+                className={`level-selector ${bookmarkedOnly ? 'active' : ''}`}
+                aria-pressed={bookmarkedOnly}
+                onClick={() => setBookmarkedOnly(current => !current)}
+              >
+                <span aria-hidden="true">★</span> Bookmarked
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       <div aria-live="polite">
-        <section className="category-overview" aria-labelledby="roadmap-summary">
-          <h2 id="roadmap-summary">
-            {selectedCategory === 'all' ? 'Recommended sequence' : CATEGORY_DETAILS[selectedCategory].label}
-          </h2>
-          <p>
-            {selectedCategory === 'all'
-              ? `Study ${visibleTopicCount} topics across six connected foundations. Each section below follows the recommended priority order.`
-              : `${CATEGORY_DETAILS[selectedCategory].summary} ${topicCountLabel(visibleTopicCount)} in this path.`}
-          </p>
-        </section>
+        {/* Only when a category is chosen. The "all" variant restated the intro sentence above and
+            cost ~175px of the first screen, pushing every topic below the fold. */}
+        {selectedCategory !== 'all' && (
+          <section className="category-overview" aria-labelledby="roadmap-summary">
+            <h2 id="roadmap-summary">{CATEGORY_DETAILS[selectedCategory].label}</h2>
+            <p>
+              {CATEGORY_DETAILS[selectedCategory].summary} {topicCountLabel(visibleTopicCount)} in this path.
+            </p>
+          </section>
+        )}
 
         {topics.length === 0 ? (
           <p className="category-overview">Loading the curriculum roadmap…</p>

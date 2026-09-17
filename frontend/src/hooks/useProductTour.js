@@ -2,26 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { TOUR_STEPS } from '../utils/tourSteps'
 
-const STORAGE_KEY = 'cs-fundamentals-tour-seen'
 // Bounded retry for a step's target to mount (e.g. right after a cross-route navigation);
 // past this it degrades to a centered, spotlight-less tooltip instead of waiting forever.
 const MAX_LOOKUP_ATTEMPTS = 30
-
-function readSeen() {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) === 'true'
-  } catch {
-    return false
-  }
-}
-
-function writeSeen() {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, 'true')
-  } catch {
-    // Storage can be unavailable in privacy modes; the tour just won't self-suppress next visit.
-  }
-}
 
 export default function useProductTour() {
   const navigate = useNavigate()
@@ -33,15 +16,11 @@ export default function useProductTour() {
   const step = active ? TOUR_STEPS[stepIndex] : null
   const onTargetRoute = !step || !step.path || step.path === location.pathname
 
-  // Auto-show once, for a first-time visitor who actually landed on the home route. Without the
-  // route guard the tour would start anywhere, and its first step's `path: '/'` would immediately
-  // navigate the visitor off the deep link they opened (a shared /topic/... link, say) with no
-  // way back. Landing deep is a deliberate destination; the tour waits for the navbar button.
-  useEffect(() => {
-    if (!readSeen() && location.pathname === '/') setActive(true)
-    // Mount-only on purpose: this asks where the visitor *arrived*, not where they navigate later.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // The tour never opens on its own — it starts only from the navbar's "Take a tour" button.
+  // It used to auto-show on a first visit, which meant a stranger's first impression was a
+  // 10-step modal over a dimmed page before they had seen any of the actual curriculum. That
+  // also made the deep-link regression possible at all (step 1's `path: '/'` yanking a visitor
+  // off a shared /topic/... link); with no auto-open, that whole class of bug cannot recur.
 
   // Navigate ahead of the target lookup when a step lives on a different route.
   useEffect(() => {
@@ -78,7 +57,6 @@ export default function useProductTour() {
   }, [active, step, onTargetRoute])
 
   const finish = useCallback(() => {
-    writeSeen()
     setActive(false)
     setStepIndex(0)
     setTargetEl(null)
