@@ -259,8 +259,10 @@ ranges are explicit, and content is resolved through an exact registered-topic i
 fast when incomplete. Frontend reads cancel superseded requests, TOC observation begins after lazy
 Markdown headings mount, mobile overflow is locally contained, and failed routes provide recovery
 actions. Dependency automation is enabled, with the frontend on Vite 8/Vitest 5/React Router 7 and
-the backend on the Java 17-compatible Spring Boot 3.5 line. Four proven-unused shared files listed
-in the audit were removed.
+the backend on the Java 17-compatible Spring Boot 4.1 line, which moved default JSON handling to
+Jackson 3 (`tools.jackson.databind`) and split `@WebMvcTest` into the `spring-boot-webmvc-test`
+module with `@MockitoBean` replacing `@MockBean`. Four proven-unused shared files listed in the
+audit were removed.
 
 P6 is complete, including the accessibility audit (UI-revamp Phase 7, previously listed as
 blocked). This environment does have a browser (Chromium via Playwright, pre-installed): axe-core
