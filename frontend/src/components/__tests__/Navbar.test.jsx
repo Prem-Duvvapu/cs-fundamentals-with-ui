@@ -40,6 +40,15 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: /OS/ })).not.toHaveAttribute('aria-current')
   })
 
+  it('marks the DEVOPS link active for a devops topic', () => {
+    // Deliberately not docker-fundamentals — that topic was already in the old, buggy local
+    // TOPIC_CATEGORIES set, so it wouldn't catch a regression of the fix that removed it.
+    renderNavbar('/topic/kubernetes-fundamentals')
+
+    expect(screen.getByRole('link', { name: /DEVOPS/ })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /OS/ })).not.toHaveAttribute('aria-current')
+  })
+
   it('links to search and a default interview category, marking whichever is active', () => {
     renderNavbar('/search')
 
