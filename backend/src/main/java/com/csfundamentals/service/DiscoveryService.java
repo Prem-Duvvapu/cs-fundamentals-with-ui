@@ -5,8 +5,8 @@ import com.csfundamentals.model.InterviewQuestionResponse;
 import com.csfundamentals.model.SearchResponse;
 import com.csfundamentals.model.SearchResult;
 import com.csfundamentals.model.Topic;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
