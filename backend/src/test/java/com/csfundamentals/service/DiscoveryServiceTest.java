@@ -2,7 +2,7 @@ package com.csfundamentals.service;
 
 import com.csfundamentals.model.InterviewQuestionResponse;
 import com.csfundamentals.model.SearchResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
