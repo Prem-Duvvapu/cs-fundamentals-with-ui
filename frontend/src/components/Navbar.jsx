@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import useTheme from '../hooks/useTheme'
+import { getTopicCategory } from '../utils/topicCategories'
 
 const CATEGORY_LINKS = [
   { id: 'os', glyph: '◆', label: 'OS', firstTopic: 'process-management' },
@@ -10,21 +11,9 @@ const CATEGORY_LINKS = [
   { id: 'devops', glyph: '⚙', label: 'DEVOPS', firstTopic: 'docker-fundamentals' }
 ]
 
-const TOPIC_CATEGORIES = {
-  os: new Set(['process-management', 'memory-management', 'cpu-scheduling', 'synchronization', 'deadlocks', 'file-systems', 'io-systems', 'disk-scheduling']),
-  networking: new Set(['network-fundamentals', 'physical-layer-media', 'osi-model', 'data-link-layer', 'ip-subnetting', 'routing-algorithms', 'tcp-ip', 'tcp-congestion', 'transport-layer-protocols', 'application-layer', 'network-security', 'network-performance-qos']),
-  dbms: new Set(['dbms-introduction', 'dbms-architecture', 'er-model', 'relational-algebra-calculus', 'sql-querying', 'functional-dependencies-keys', 'database-normalization', 'dbms-indexing', 'storage-raid-indexing', 'transactions-acid', 'concurrency-control', 'query-optimization', 'distributed-databases-cap']),
-  'java-spring': new Set(['java-execution-pipeline', 'java-memory-model', 'java-oop-pillars', 'java-static-final-records', 'jvm-gc', 'java-functional-lambdas', 'java-generics', 'java-collections-framework', 'java-hashmap-internals', 'java-streams-optional', 'java-reflection-exceptions', 'java-multithreading-concurrency', 'spring-bean-lifecycle', 'spring-mvc-lifecycle', 'jpa-hibernate-lifecycle', 'spring-batch-lifecycle', 'quartz-scheduler', 'design-patterns-solid', 'spring-boot-internals', 'spring-rest-api-design', 'spring-security', 'spring-caching-async', 'spring-testing-production']),
-  aiml: new Set(['ml-fundamentals', 'embeddings-vector-db', 'rag-architecture', 'model-serving', 'llm-parameters', 'feature-stores', 'recommendation-systems']),
-  devops: new Set(['docker-fundamentals'])
-}
-
 function getActiveCategory(pathname) {
-  const categoryMatch = pathname.match(/^\/category\/([^/]+)/)
-  if (categoryMatch) return categoryMatch[1]
-
   const topicId = pathname.match(/^\/topic\/([^/]+)/)?.[1]
-  return CATEGORY_LINKS.find(({ id }) => TOPIC_CATEGORIES[id].has(topicId))?.id
+  return getTopicCategory(topicId, null) ?? undefined
 }
 
 export default function Navbar({ onStartTour }) {
