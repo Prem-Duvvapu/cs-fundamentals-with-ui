@@ -141,7 +141,7 @@ All 68 lessons satisfy the authoring contract and coverage manifest: 31,240 curr
 
 ## 🛠 Tech Stack & Architecture
 
-- **Backend**: Java 17, Spring Boot 3.5, Maven
+- **Backend**: Java 17, Spring Boot 4.1, Maven
 - **Frontend**: React 19, Vite 8, React Router 7, and token-driven vanilla CSS
 - **Content rendering**: react-markdown + remark-gfm, KaTeX math, syntax highlighting, and
   pre-rendered dark/light Mermaid SVGs (no Mermaid runtime on the reader path)
