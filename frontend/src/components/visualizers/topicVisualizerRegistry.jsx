@@ -61,6 +61,8 @@ const registry = Object.freeze({
   'spring-mvc-lifecycle': hub(JavaSpringVisualizer, 'spring-mvc-lifecycle'),
   'quartz-scheduler': hub(JavaSpringVisualizer, 'quartz-scheduler'),
   'spring-testing-production': direct(ConnectionPoolVisualizer),
+  'event-driven-messaging': hub(JavaSpringVisualizer, 'event-driven-messaging'),
+  'microservices-patterns': hub(JavaSpringVisualizer, 'microservices-patterns'),
 
   'embeddings-vector-db': hub(AiMlVisualizer, 'embeddings-vector-db'),
   'rag-architecture': hub(AiMlVisualizer, 'rag-architecture'),

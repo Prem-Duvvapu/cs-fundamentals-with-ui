@@ -123,17 +123,17 @@ just don't be surprised by a slow first click.
 
 ---
 
-## 📚 68 Curriculum Topics Covered
+## 📚 71 Curriculum Topics Covered
 
-All 68 lessons satisfy the authoring contract and coverage manifest: 31,240 curriculum lines,
-295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
+All 71 lessons satisfy the authoring contract and coverage manifest: 32,439 curriculum lines,
+308 Mermaid diagrams, and 995 validated interview Q&As across six preparation areas.
 
 | Category | Topics Count | Key Areas Covered |
 | :--- | :--- | :--- |
 | **Operating Systems** | 8 Topics | Process Management, Memory Management, CPU Scheduling, Synchronization, Deadlocks, File Systems, I/O Systems, Disk Scheduling & Allocation |
 | **Computer Networks** | 12 Topics | Network Fundamentals, Physical Media, OSI & TCP/IP, Data Link Layer & ARQ, IP Subnetting & CIDR, Routing Algorithms, TCP/UDP Handshakes, TCP Flow & Congestion Control, Transport Protocols (QUIC/SCTP), Application Layer (HTTP/3, DNS), Network Security (TLS 1.3), QoS & Traffic Shaping |
 | **DBMS** | 13 Topics | DBMS Introduction & Architecture, 3-Schema ANSI-SPARC, ER Model & Mapping, Relational Algebra & Calculus, Keys & Functional Dependencies, Database Normalization (1NF–BCNF), B+ Tree Indexing, File Storage & RAID Arrays, Transactions & ACID, Concurrency Control, Query Optimizer, practical SQL and window functions, Distributed Databases & CAP Theorem |
-| **Java & Spring** | 23 Topics | Core and Advanced Java, JVM/GC/concurrency, collections and streams, Spring container and MVC, Spring Boot internals, REST API design, Security, caching/async, testing/production, JPA/Hibernate, Batch, Quartz, SOLID and design patterns |
+| **Java & Spring** | 26 Topics | Core and Advanced Java, JVM/GC/concurrency, collections and streams, Spring container and MVC, Spring Boot internals, REST API design, Security, caching/async, testing/production, JPA/Hibernate, Spring Data JPA repositories, Batch, Quartz, SOLID and design patterns, event-driven messaging (Kafka/RabbitMQ/outbox), microservices patterns (discovery/circuit breakers/config) |
 | **AI / ML Systems** | 7 Topics | ML fundamentals and evaluation, Vector Embeddings & Vector DBs, RAG Architecture, LLM Model Serving & PagedAttention, LLM Sampling & ReAct Agents, Feature Stores & MLOps, 2-Stage Recommendation Engine |
 | **DevOps & Infrastructure** | 5 Topics | Docker & containers, Kubernetes architecture/networking/scaling, Nginx as reverse proxy & load balancer, CI/CD pipelines & deployment strategies, orchestration trade-offs/IaC/observability/cloud fundamentals |
 

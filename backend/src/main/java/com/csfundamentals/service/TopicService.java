@@ -64,6 +64,7 @@ public class TopicService {
         new Topic("spring-bean-lifecycle", "Spring IoC Container & Bean Lifecycle", "java-spring", "intermediate", "Bean instantiation, Aware interfaces, @PostConstruct, BeanPostProcessor, @PreDestroy, Auto-Configuration"),
         new Topic("spring-mvc-lifecycle", "Spring MVC Request Execution & Security Pipeline", "java-spring", "intermediate", "DispatcherServlet, HandlerMapping, HandlerAdapter, HttpMessageConverter, Security Filter Chain"),
         new Topic("jpa-hibernate-lifecycle", "JPA / Hibernate Entity Lifecycle & N+1 Solver", "java-spring", "expert", "Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs"),
+        new Topic("spring-data-jpa-repositories", "Spring Data JPA Repositories & Query Derivation", "java-spring", "intermediate", "JpaRepository/CrudRepository, derived query methods, @Query JPQL/native, pagination, projections, auditing"),
         new Topic("spring-batch-lifecycle", "Spring Batch Execution Architecture & Chunk Engine", "java-spring", "expert", "JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry"),
         new Topic("quartz-scheduler", "Quartz Scheduler Lifecycle & Clustered JobStoreTX", "java-spring", "expert", "Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering"),
         new Topic("design-patterns-solid", "SOLID Principles & Design Patterns", "java-spring", "intermediate", "SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns"),
@@ -72,6 +73,8 @@ public class TopicService {
         new Topic("spring-security", "Spring Security, Authentication & Authorization", "java-spring", "expert", "Security filter chain, sessions, JWT, OAuth2, method security, CSRF and secure defaults"),
         new Topic("spring-caching-async", "Spring Caching, Async Work & Resilience", "java-spring", "expert", "Cache abstraction, async execution, retries, timeouts, scheduling and resilient service boundaries"),
         new Topic("spring-testing-production", "Spring Testing & Production Readiness", "java-spring", "expert", "Slice tests, integration tests, test containers, observability, deployment checks and incident-safe operations"),
+        new Topic("event-driven-messaging", "Event-Driven Messaging: Kafka, RabbitMQ & the Outbox Pattern", "java-spring", "expert", "Delivery semantics, transactional outbox pattern, idempotent consumers, dead-letter queues, exactly-once limits"),
+        new Topic("microservices-patterns", "Microservices Patterns: Discovery, Circuit Breakers & Config", "java-spring", "expert", "Service discovery, Resilience4j circuit breaker state machine, API gateway, config server, distributed tracing"),
 
         // AI / ML Systems (7 Comprehensive Topics)
         new Topic("ml-fundamentals", "Machine Learning Fundamentals & Model Evaluation", "aiml", "beginner", "Supervised learning, features, train-validation-test splits, metrics, overfitting and responsible evaluation"),

@@ -122,9 +122,12 @@ export default function HomePage() {
           { id: 'spring-caching-async', category: 'java-spring', title: 'Spring Caching, Async Work & Resilience', level: 'expert', summary: 'Cache abstraction, async execution, scheduling, retries, backpressure and resilience boundaries' },
           { id: 'spring-testing-production', category: 'java-spring', title: 'Spring Testing & Production Readiness', level: 'expert', summary: 'Test slices, integration tests, Testcontainers, observability, deployment checks and incident-safe operations' },
           { id: 'jpa-hibernate-lifecycle', category: 'java-spring', title: 'JPA / Hibernate Entity Lifecycle & N+1 Solver', level: 'expert', summary: 'Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs' },
+          { id: 'spring-data-jpa-repositories', category: 'java-spring', title: 'Spring Data JPA Repositories & Query Derivation', level: 'intermediate', summary: 'JpaRepository/CrudRepository, derived query methods, @Query JPQL/native, pagination, projections, auditing' },
           { id: 'spring-batch-lifecycle', category: 'java-spring', title: 'Spring Batch Execution Architecture & Chunk Engine', level: 'expert', summary: 'JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry' },
           { id: 'quartz-scheduler', category: 'java-spring', title: 'Quartz Scheduler Lifecycle & Clustered JobStoreTX', level: 'expert', summary: 'Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering' },
           { id: 'design-patterns-solid', category: 'java-spring', title: 'SOLID Principles & Design Patterns', level: 'intermediate', summary: 'SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns' },
+          { id: 'event-driven-messaging', category: 'java-spring', title: 'Event-Driven Messaging: Kafka, RabbitMQ & the Outbox Pattern', level: 'expert', summary: 'Delivery semantics, transactional outbox pattern, idempotent consumers, dead-letter queues, exactly-once limits' },
+          { id: 'microservices-patterns', category: 'java-spring', title: 'Microservices Patterns: Discovery, Circuit Breakers & Config', level: 'expert', summary: 'Service discovery, Resilience4j circuit breaker state machine, API gateway, config server, distributed tracing' },
 
           // DBMS & SQL (13 Comprehensive Topics)
           { id: 'dbms-introduction', category: 'dbms', title: 'DBMS Introduction & Architecture', level: 'beginner', summary: 'What is DBMS, types, components, database languages, file system problems' },
@@ -193,7 +196,7 @@ export default function HomePage() {
         <p className="eyebrow">A deliberate learning path</p>
         <h1>CS Fundamentals Roadmap</h1>
         <p>
-          {topics.length || 68} lessons on the fundamentals interviewers actually ask about — each read at three depths, with diagrams, worked examples and interview questions.
+          {topics.length || 71} lessons on the fundamentals interviewers actually ask about — each read at three depths, with diagrams, worked examples and interview questions.
         </p>
         {nextTopic && (
           <p className="roadmap-start">

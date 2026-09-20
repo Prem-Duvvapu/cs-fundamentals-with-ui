@@ -98,8 +98,8 @@ describe('HomePage', () => {
 
     await screen.findByText('Spring Boot Internals & Auto-Configuration')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Java & Spring, 23 topics' }))
-    expect(screen.getByText(/23 topics in this path/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Java & Spring, 26 topics' }))
+    expect(screen.getByText(/26 topics in this path/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Study Spring Security, Authentication & Authorization' })).toHaveAttribute('href', '/topic/spring-security')
     expect(screen.getByRole('link', { name: 'Study Spring Testing & Production Readiness' })).toHaveAttribute('href', '/topic/spring-testing-production')
 
