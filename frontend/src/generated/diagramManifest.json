@@ -27,6 +27,13 @@
     "height": 420,
     "widened": 12
   },
+  "50659479": {
+    "source": "content/java-spring/12-event-driven-messaging.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 796,
+    "height": 275,
+    "widened": 13
+  },
   "54041605": {
     "source": "content/dbms/02-er-model.md",
     "renderFingerprint": "001202a1f5194108",
@@ -1266,6 +1273,27 @@
     "height": 275,
     "widened": 13
   },
+  "a4fa166d": {
+    "source": "content/java-spring/04a-spring-data-jpa-repositories.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 1329,
+    "height": 214,
+    "widened": 12
+  },
+  "59f94558": {
+    "source": "content/java-spring/04a-spring-data-jpa-repositories.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 860,
+    "height": 420,
+    "widened": 17
+  },
+  "1afcb9f9": {
+    "source": "content/java-spring/04a-spring-data-jpa-repositories.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 1627,
+    "height": 487,
+    "widened": 0
+  },
   "d9d88220": {
     "source": "content/java-spring/05-spring-batch-lifecycle.md",
     "renderFingerprint": "001202a1f5194108",
@@ -1475,6 +1503,69 @@
     "width": 2703,
     "height": 90,
     "widened": 19
+  },
+  "6948b03e": {
+    "source": "content/java-spring/12-event-driven-messaging.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 216,
+    "height": 373,
+    "widened": 5
+  },
+  "4197dc27": {
+    "source": "content/java-spring/12-event-driven-messaging.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 1292,
+    "height": 90,
+    "widened": 9
+  },
+  "7529bc9a": {
+    "source": "content/java-spring/12-event-driven-messaging.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 1392,
+    "height": 435,
+    "widened": 0
+  },
+  "40d98a2b": {
+    "source": "content/java-spring/12-event-driven-messaging.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 1214,
+    "height": 235,
+    "widened": 10
+  },
+  "f01337e6": {
+    "source": "content/java-spring/13-microservices-patterns.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 910,
+    "height": 481,
+    "widened": 16
+  },
+  "1a8715b4": {
+    "source": "content/java-spring/13-microservices-patterns.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 928,
+    "height": 343,
+    "widened": 12
+  },
+  "5438497b": {
+    "source": "content/java-spring/13-microservices-patterns.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 375,
+    "height": 354,
+    "widened": 8
+  },
+  "6d8f2b12": {
+    "source": "content/java-spring/13-microservices-patterns.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 594,
+    "height": 441,
+    "widened": 9
+  },
+  "0418bfef": {
+    "source": "content/java-spring/13-microservices-patterns.md",
+    "renderFingerprint": "001202a1f5194108",
+    "width": 1014,
+    "height": 525,
+    "widened": 0
   },
   "e44143cd": {
     "source": "content/networking/00-network-fundamentals.md",

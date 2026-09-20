@@ -93,16 +93,18 @@ via the retained `ConsistentHashingVisualizer` (see Networking, below), not this
 - **Concurrency Control & 2PL (`ConcurrencyControlVisualizer.jsx`)**: Conflict serializability, Strict 2PL locks, Timestamp Ordering, Thomas Write Rule, and deadlock wait-for graphs.
 
 ### ☕ Java & Spring Ecosystem (`JavaSpringVisualizer.jsx`)
-3 sub-tabs after the same P3 triage; the 8 core-Java topics (execution pipeline, memory model, OOP
+5 sub-tabs after the same P3 triage; the 8 core-Java topics (execution pipeline, memory model, OOP
 pillars, static/final/records, functional/lambdas, generics, collections, streams/Optional) and
-Spring Batch/Bean/JPA read Study only now. HashMap internals, Virtual Threads, and HikariCP were
-also removed from this hub — they route directly to their own standalone component via
-`topicVisualizerRegistry.jsx` (`java-hashmap-internals`, `java-multithreading-concurrency`,
-`spring-testing-production`), so keeping them here too was a duplicate tab reachable by no topic
-id, only manual click.
+Spring Batch/Bean/JPA/Spring Data JPA repositories read Study only now. HashMap internals, Virtual
+Threads, and HikariCP were also removed from this hub — they route directly to their own
+standalone component via `topicVisualizerRegistry.jsx` (`java-hashmap-internals`,
+`java-multithreading-concurrency`, `spring-testing-production`), so keeping them here too was a
+duplicate tab reachable by no topic id, only manual click.
 - **JVM Heap & GC (`JvmMemoryVisualizer.jsx`)**: Young/Old Gen allocations, G1GC/ZGC collectors, and Virtual Threads.
 - **Spring MVC Flow**: DispatcherServlet request pipeline and security filter chain execution (inline step-through, never engine-backed).
 - **Quartz Scheduler & Cluster**: misfire policy and `JobStoreTX` cluster locking (inline step-through, never engine-backed).
+- **Event-Driven Messaging (`utils/simulationEngines/eventDrivenMessagingEngine.js`)**: outbox-row publish, crash/redelivery idempotency dedup, broker-outage retry, and poison-message dead-lettering, engine-backed with 4 named scenarios.
+- **Circuit Breaker (`utils/simulationEngines/circuitBreakerEngine.js`)**: Resilience4j-style CLOSED/OPEN/HALF_OPEN state machine driven by a count-based sliding-window failure rate, engine-backed with 4 named scenarios (healthy service, failure spike, recovery, failed recovery).
 
 ### ☕ Java & Spring — direct-mounted (bypass the hub, like OS topics)
 - **HashMap & Bucket Internals (`java/HashMapVisualizer.jsx`)** at `java-hashmap-internals`: bucket chaining, treeification, and resize.
@@ -162,7 +164,7 @@ fingerprint of the renderer script, theme CSS, embedded font, the corpus charact
 three installed packages that change what comes out of a render — `mermaid` (draws), `playwright`
 (supplies the Chromium that lays out the text) and `subset-font` (trims the embedded face). The
 fingerprint deliberately does *not* hash the whole `package-lock.json`: that made every unrelated
-devDependency bump invalidate all 295 fingerprints.
+devDependency bump invalidate all 308 fingerprints.
 `MermaidBlock.jsx` selects the active-theme asset, lazy-loads it as an image, and switches assets
 on theme changes. This removes the former runtime render queue, font-measurement race, loading
 state, and Mermaid payload. An SVG loaded through `<img>` is an isolated document that cannot
@@ -175,17 +177,17 @@ set intact if rendering fails. `npm run diagrams:check --prefix frontend` valida
 and XML; `npm run diagrams:decode --prefix frontend` additionally decodes all assets in Chromium.
 `prebuild` and CI enforce these gates. Rendering is deterministic: the rough.js stroke seed is
 pinned and the one Gantt chart sets `todayMarker off`, so re-running `diagrams:render` with no
-input change rewrites **0** of the 590 assets — a diff under `public/diagrams/` therefore means
+input change rewrites **0** of the 616 assets — a diff under `public/diagrams/` therefore means
 something real changed.
 
 **Authoring contract:** `content/CONTENT_SPEC.md` defines depth targets, required diagrams,
 interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 
 **Guard suite:** `frontend/src/components/__tests__/TopicViewer.markdown.test.jsx` renders
-all 68 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
+all 71 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
-The content gate currently passes all 68 lessons and all 83 coverage-manifest entries, covering
-31,240 curriculum lines, 295 Mermaid diagrams, and 953 interview Q&As.
+The content gate currently passes all 71 lessons and all 83 coverage-manifest entries, covering
+32,439 curriculum lines, 308 Mermaid diagrams, and 995 interview Q&As.
 
 ### Reading Experience
 
@@ -271,7 +273,7 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 
 ## 🔌 REST API Endpoints
 
-- `GET /api/v1/topics` — Lists all 68 curriculum topics with level and summary metadata.
+- `GET /api/v1/topics` — Lists all 71 curriculum topics with level and summary metadata.
 - `GET /api/v1/topics/category/{category}` — Lists topics for a specific category (`os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`).
 - `GET /api/v1/content/{category}/{topicId}` — Fetches raw 3-level Markdown educational content for a topic.
 - `GET /api/v1/health/readiness` — Confirms the exact curriculum index is available and reports

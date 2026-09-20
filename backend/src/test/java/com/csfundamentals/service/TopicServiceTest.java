@@ -80,10 +80,10 @@ class TopicServiceTest {
     }
 
     @Test
-    void getTopicsByCategory_javaSpring_shouldContainAll23Topics() {
+    void getTopicsByCategory_javaSpring_shouldContainAll26Topics() {
         List<Topic> javaTopics = topicService.getTopicsByCategory("java-spring");
         assertNotNull(javaTopics);
-        assertEquals(23, javaTopics.size(), "Java/Spring category must have exactly 23 registered topics");
+        assertEquals(26, javaTopics.size(), "Java/Spring category must have exactly 26 registered topics");
 
         List<String> topicIds = javaTopics.stream().map(Topic::id).toList();
         assertTrue(topicIds.contains("java-execution-pipeline"));
@@ -101,6 +101,7 @@ class TopicServiceTest {
         assertTrue(topicIds.contains("spring-bean-lifecycle"));
         assertTrue(topicIds.contains("spring-mvc-lifecycle"));
         assertTrue(topicIds.contains("jpa-hibernate-lifecycle"));
+        assertTrue(topicIds.contains("spring-data-jpa-repositories"));
         assertTrue(topicIds.contains("spring-batch-lifecycle"));
         assertTrue(topicIds.contains("quartz-scheduler"));
         assertTrue(topicIds.contains("design-patterns-solid"));
@@ -109,6 +110,8 @@ class TopicServiceTest {
         assertTrue(topicIds.contains("spring-security"));
         assertTrue(topicIds.contains("spring-caching-async"));
         assertTrue(topicIds.contains("spring-testing-production"));
+        assertTrue(topicIds.contains("event-driven-messaging"));
+        assertTrue(topicIds.contains("microservices-patterns"));
     }
 
     @Test
@@ -159,9 +162,9 @@ class TopicServiceTest {
     @Test
     void allRegisteredTopics_acrossAllCategories_shouldResolveToTieredMarkdownContent() {
         List<Topic> allTopics = topicService.getAllTopics();
-        assertEquals(68, allTopics.size(), "Total registered topics should be 68 (8 OS + 12 Networking + 13 DBMS + 23 Java/Spring + 7 AI/ML + 5 DevOps)");
+        assertEquals(71, allTopics.size(), "Total registered topics should be 71 (8 OS + 12 Networking + 13 DBMS + 26 Java/Spring + 7 AI/ML + 5 DevOps)");
         assertEquals(13, allTopics.stream().filter(topic -> topic.category().equals("dbms")).count());
-        assertEquals(23, allTopics.stream().filter(topic -> topic.category().equals("java-spring")).count());
+        assertEquals(26, allTopics.stream().filter(topic -> topic.category().equals("java-spring")).count());
         assertEquals(7, allTopics.stream().filter(topic -> topic.category().equals("aiml")).count());
         assertEquals(5, allTopics.stream().filter(topic -> topic.category().equals("devops")).count());
 

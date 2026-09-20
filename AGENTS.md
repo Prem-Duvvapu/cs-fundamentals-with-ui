@@ -17,12 +17,12 @@ Educational platform for Computer Science fundamentals, structured for **beginne
 ├── AGENTS.md              # Context for AI agents
 ├── README.md              # Project overview & quickstart
 ├── CONTEXT.md             # System architecture & API documentation
-├── content/               # Markdown educational content (68 topics)
+├── content/               # Markdown educational content (71 topics)
 │   ├── CONTENT_SPEC.md    # ★ Authoring contract — read before writing content
 │   ├── os/                # Operating Systems (8 topics)
 │   ├── networking/        # Computer Networks (12 topics)
 │   ├── dbms/              # Database Management Systems (13 topics)
-│   ├── java-spring/       # Java & Spring Boot Ecosystem (23 topics)
+│   ├── java-spring/       # Java & Spring Boot Ecosystem (26 topics)
 │   ├── aiml/              # AI / ML Architecture (7 topics)
 │   └── devops/            # DevOps & Infrastructure (5 topics)
 ├── backend/               # Spring Boot application
@@ -111,7 +111,7 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Practical SQL Querying (joins, CTEs, aggregates, window functions, query correctness)
 - [x] Distributed DBMS, 2PC & CAP Theorem (2-Phase Commit, 3PC, CAP Theorem, Quorum Consensus)
 
-### ☕ Java & Spring Ecosystem (23/23 Topics)
+### ☕ Java & Spring Ecosystem (26/26 Topics)
 - [x] Java Execution Pipeline (javac, ClassLoader Parent Delegation, Bytecode Verifier, Tiered JIT)
 - [x] Java Memory Model (Primitives, References, Stack Frames, Heap Objects, 100% Pass-by-Value)
 - [x] OOP Pillars & Dynamic Method Dispatch (Encapsulation, Polymorphism, JVM vtable)
@@ -127,6 +127,7 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Spring Bean Lifecycle (BeanDefinition, Instantiation, Aware Interfaces, BeanPostProcessors)
 - [x] Spring MVC Request Execution Flow (DispatcherServlet, HandlerMapping, Security Filter Chain)
 - [x] JPA / Hibernate Entity Lifecycle (Transient, Managed, Detached, Removed, N+1 Query Solver)
+- [x] Spring Data JPA Repositories & Query Derivation (JpaRepository, derived queries, @Query, pagination, projections, auditing)
 - [x] Spring Batch Execution Architecture (JobLauncher, Step, Chunk ItemReader/Processor/Writer)
 - [x] Quartz Scheduler Lifecycle (JobDetail, Trigger, Clustered JobStoreTX)
 - [x] SOLID Principles & Design Patterns (SRP, OCP, LSP, ISP, DIP, Singleton, Observer, Factory, Strategy)
@@ -135,6 +136,8 @@ diagrams in older files are legacy being replaced, not a pattern to copy.
 - [x] Spring Security (filter chain, sessions, JWT, OAuth2, CSRF, method security)
 - [x] Spring Caching, Async Work & Scheduling (Redis, invalidation, stampede control, executor sizing)
 - [x] Spring Testing & Production Readiness (test slices, Testcontainers, metrics, graceful shutdown)
+- [x] Event-Driven Messaging: Kafka, RabbitMQ & the Outbox Pattern (delivery semantics, transactional outbox, idempotent consumers, DLQ)
+- [x] Microservices Patterns: Discovery, Circuit Breakers & Config (service discovery, Resilience4j state machine, API gateway, config server, distributed tracing)
 
 ### 🤖 AI / ML Architecture (7/7 Topics)
 - [x] Machine Learning Fundamentals & Evaluation (learning types, algorithms, metrics, neural networks)
@@ -340,22 +343,23 @@ the shared hash lives in `frontend/src/utils/diagramHash.js`, and the manifest r
 source, and a rendering-input fingerprint. `MermaidBlock.jsx` selects the theme asset, supplies
 intrinsic sizing and a label-derived description, exposes diagram source as a text alternative,
 and provides a keyboard-accessible full-size link. Mermaid and Playwright remain development-only.
-`npm run diagrams:check --prefix frontend` validates 295 manifest entries, fingerprints, and XML;
-`npm run diagrams:decode --prefix frontend` verifies all 590 assets through Chromium in CI.
+`npm run diagrams:check --prefix frontend` validates 308 manifest entries, fingerprints, and XML;
+`npm run diagrams:decode --prefix frontend` verifies all 616 assets through Chromium in CI.
 
 ### Rules for content work (P4)
 Each work unit is **one agent, one file**, and touches **only** `content/<category>/<file>.md`.
-All 68 topics are registered at all integration points, so content work requires
+All 71 topics are registered at all integration points, so content work requires
 **zero** registration changes. Never edit `.java`, `.jsx`, `.js` or `.json` in a content unit.
 
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
-- **Verified** — 31,240 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
+- **Verified** — 32,439 curriculum lines, 308 Mermaid diagrams and 995 interview Q&As across 71 lessons
   (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
-  the category)
-- **Gate** — `node scripts/validate-content.mjs` passes all 68 lessons and 83 manifest entries, and
+  the category — plus `spring-data-jpa-repositories`, `event-driven-messaging` and
+  `microservices-patterns` added to close out Java/Spring coverage)
+- **Gate** — `node scripts/validate-content.mjs` passes all 71 lessons and 83 manifest entries, and
   prints the corpus-wide Mermaid type mix each run (reported, never enforced — see `CONTENT_SPEC.md`
   section 5 for how to pick a type);
   it also parses every Mermaid diagram with the real `mermaid` package (not mocked, unlike the

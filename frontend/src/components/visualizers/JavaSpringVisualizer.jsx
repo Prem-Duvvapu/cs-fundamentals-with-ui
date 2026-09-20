@@ -1,5 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import JvmMemoryVisualizer from './java/JvmMemoryVisualizer'
+import SimulationControlBar from '../shared/SimulationControlBar'
+import StateInspector from '../shared/StateInspector'
+import { EventDrivenMessagingEngine, MESSAGING_SCENARIOS } from '../../utils/simulationEngines/eventDrivenMessagingEngine'
+import { CircuitBreakerEngine, CIRCUIT_BREAKER_SCENARIOS } from '../../utils/simulationEngines/circuitBreakerEngine'
 
 export default function JavaSpringVisualizer({ defaultTopicId }) {
   // Determine initial sub-tab mode based on defaultTopicId prop
@@ -8,6 +12,8 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
       case 'jvm-gc': return 'jvm'
       case 'spring-mvc-lifecycle': return 'mvc'
       case 'quartz-scheduler': return 'quartz'
+      case 'event-driven-messaging': return 'messaging'
+      case 'microservices-patterns': return 'circuit-breaker'
       default: return 'jvm'
     }
   }
@@ -33,6 +39,30 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
   // ==========================================
   const [disallowConcurrent, setDisallowConcurrent] = useState(true)
   const [misfirePolicy, setMisfirePolicy] = useState('fire_now')
+
+  // ==========================================
+  // MODE 7: EVENT-DRIVEN MESSAGING (OUTBOX PATTERN)
+  // ==========================================
+  const messagingEngine = useMemo(() => new EventDrivenMessagingEngine(), [])
+  const [messagingState, setMessagingState] = useState(() => messagingEngine.getCurrentState())
+  const [messagingPlaying, setMessagingPlaying] = useState(false)
+
+  const handleMessagingScenario = (scenarioId) => {
+    setMessagingState(messagingEngine.setScenario(scenarioId))
+    setMessagingPlaying(false)
+  }
+
+  // ==========================================
+  // MODE 8: CIRCUIT BREAKER STATE MACHINE
+  // ==========================================
+  const circuitBreakerEngine = useMemo(() => new CircuitBreakerEngine(), [])
+  const [circuitBreakerState, setCircuitBreakerState] = useState(() => circuitBreakerEngine.getCurrentState())
+  const [circuitBreakerPlaying, setCircuitBreakerPlaying] = useState(false)
+
+  const handleCircuitBreakerScenario = (scenarioId) => {
+    setCircuitBreakerState(circuitBreakerEngine.setScenario(scenarioId))
+    setCircuitBreakerPlaying(false)
+  }
 
   return (
     <div className="visualizer-container">
@@ -62,6 +92,18 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
             className={`main-tab-btn ${activeTab === 'quartz' ? 'active-tab' : ''}`}
           >
             ⏱ Quartz Scheduler & Cluster
+          </button>
+          <button
+            onClick={() => setActiveTab('messaging')}
+            className={`main-tab-btn ${activeTab === 'messaging' ? 'active-tab' : ''}`}
+          >
+            📨 Event-Driven Messaging
+          </button>
+          <button
+            onClick={() => setActiveTab('circuit-breaker')}
+            className={`main-tab-btn ${activeTab === 'circuit-breaker' ? 'active-tab' : ''}`}
+          >
+            🔌 Circuit Breaker
           </button>
         </div>
       </div>
@@ -132,6 +174,166 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* MODE 7: EVENT-DRIVEN MESSAGING (OUTBOX PATTERN) */}
+      {activeTab === 'messaging' && (
+        <div className="u-col-lg">
+          <div className="scenario-picker-panel">
+            <label className="scenario-picker-label">Select Scenario:</label>
+            <div className="scenario-picker-grid">
+              {Object.values(MESSAGING_SCENARIOS).map(scenario => (
+                <button
+                  key={scenario.id}
+                  onClick={() => handleMessagingScenario(scenario.id)}
+                  className={`scenario-chip ${messagingState.activeScenario === scenario.id ? 'is-active' : ''}`}
+                  title={scenario.description}
+                >
+                  {scenario.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="detail-card">
+            <div className="detail-card-header">
+              <h4>{messagingState.stepData.title}</h4>
+              <span className="status-chip is-normal">
+                Step {messagingState.stepIndex + 1} of {messagingState.totalSteps}
+              </span>
+            </div>
+            <p className="detail-card-desc">{messagingState.stepData.explanation}</p>
+
+            <div className="metrics-grid">
+              {messagingState.stepData.outboxStatus !== undefined && (
+                <div className="viz-card">
+                  <h4>📤 Outbox Row</h4>
+                  <span className={`status-chip ${messagingState.stepData.outboxStatus === 'PUBLISHED' ? 'is-normal' : 'is-alert'}`}>
+                    {messagingState.stepData.outboxStatus}
+                  </span>
+                </div>
+              )}
+              {messagingState.stepData.brokerQueue !== undefined && (
+                <div className="viz-card">
+                  <h4>📮 Broker Queue</h4>
+                  {messagingState.stepData.brokerQueue.length === 0
+                    ? <span className="status-chip">empty</span>
+                    : messagingState.stepData.brokerQueue.map((msg, i) => (
+                      <span key={i} className="header-pill">{msg}</span>
+                    ))}
+                </div>
+              )}
+              {messagingState.stepData.idempotencyStore !== undefined && (
+                <div className="viz-card">
+                  <h4>🔑 Idempotency Store</h4>
+                  {messagingState.stepData.idempotencyStore.length === 0
+                    ? <span className="status-chip">empty</span>
+                    : messagingState.stepData.idempotencyStore.map((id, i) => (
+                      <span key={i} className="header-pill">{id}</span>
+                    ))}
+                </div>
+              )}
+              {messagingState.stepData.dlq !== undefined && (
+                <div className="viz-card">
+                  <h4>☠️ Dead-Letter Queue</h4>
+                  {messagingState.stepData.dlq.length === 0
+                    ? <span className="status-chip">empty</span>
+                    : messagingState.stepData.dlq.map((id, i) => (
+                      <span key={i} className="status-chip is-alert">{id}</span>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <SimulationControlBar
+            isPlaying={messagingPlaying}
+            onTogglePlay={() => setMessagingPlaying(!messagingPlaying)}
+            onStepForward={() => setMessagingState(messagingEngine.nextStep())}
+            onStepBackward={() => setMessagingState(messagingEngine.prevStep())}
+            onReset={() => { setMessagingState(messagingEngine.reset()); setMessagingPlaying(false) }}
+            currentTime={messagingState.stepIndex}
+            maxTime={Math.max(0, messagingState.totalSteps - 1)}
+            onSeek={(idx) => {
+              messagingEngine.stepIndex = idx
+              setMessagingState(messagingEngine.getCurrentState())
+            }}
+          />
+
+          <StateInspector
+            title="Outbox Pattern Inspector"
+            data={{
+              scenario: messagingState.scenarioMeta.name,
+              outboxStatus: messagingState.stepData.outboxStatus ?? 'n/a',
+              brokerQueueDepth: messagingState.stepData.brokerQueue?.length ?? 0,
+              inventoryReservedCount: messagingState.stepData.inventoryReservedCount ?? 0,
+              retryCount: messagingState.stepData.retryCount ?? 0
+            }}
+          />
+        </div>
+      )}
+
+      {/* MODE 8: CIRCUIT BREAKER STATE MACHINE */}
+      {activeTab === 'circuit-breaker' && (
+        <div className="u-col-lg">
+          <div className="scenario-picker-panel">
+            <label className="scenario-picker-label">Select Scenario:</label>
+            <div className="scenario-picker-grid">
+              {Object.values(CIRCUIT_BREAKER_SCENARIOS).map(scenario => (
+                <button
+                  key={scenario.id}
+                  onClick={() => handleCircuitBreakerScenario(scenario.id)}
+                  className={`scenario-chip ${circuitBreakerState.activeScenario === scenario.id ? 'is-active' : ''}`}
+                  title={scenario.description}
+                >
+                  {scenario.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="detail-card">
+            <div className="detail-card-header">
+              <h4>Call {circuitBreakerState.stepData.callNumber}</h4>
+              <span className={`status-chip ${circuitBreakerState.stepData.state === 'OPEN' ? 'is-alert' : 'is-normal'}`}>
+                {circuitBreakerState.stepData.state}
+              </span>
+            </div>
+            <p className="detail-card-desc">{circuitBreakerState.stepData.explanation}</p>
+
+            {circuitBreakerState.stepData.rejected && (
+              <div className="info-panel accent-danger">
+                <p>⛔ Call rejected immediately — <code>CallNotPermittedException</code>, no network call attempted.</p>
+              </div>
+            )}
+          </div>
+
+          <SimulationControlBar
+            isPlaying={circuitBreakerPlaying}
+            onTogglePlay={() => setCircuitBreakerPlaying(!circuitBreakerPlaying)}
+            onStepForward={() => setCircuitBreakerState(circuitBreakerEngine.nextStep())}
+            onStepBackward={() => setCircuitBreakerState(circuitBreakerEngine.prevStep())}
+            onReset={() => { setCircuitBreakerState(circuitBreakerEngine.reset()); setCircuitBreakerPlaying(false) }}
+            currentTime={circuitBreakerState.stepIndex}
+            maxTime={Math.max(0, circuitBreakerState.totalSteps - 1)}
+            onSeek={(idx) => {
+              circuitBreakerEngine.stepIndex = idx
+              setCircuitBreakerState(circuitBreakerEngine.getCurrentState())
+            }}
+          />
+
+          <StateInspector
+            title="Circuit Breaker Inspector"
+            data={{
+              scenario: circuitBreakerState.scenarioMeta.name,
+              state: circuitBreakerState.stepData.state,
+              failureRatePercent: circuitBreakerState.stepData.failureRatePercent != null
+                ? `${circuitBreakerState.stepData.failureRatePercent.toFixed(1)}%`
+                : 'not yet evaluated',
+              rejected: circuitBreakerState.stepData.rejected ? 'yes' : 'no'
+            }}
+          />
         </div>
       )}
     </div>
