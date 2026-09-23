@@ -158,7 +158,7 @@ If initialization throws an exception, later active uses commonly fail with `NoC
 
 | Phase | Main work | Typical failure |
 |---|---|---|
-| loading | locate and define class bytes | `ClassNotFoundException` or `ClassNotFoundError` |
+| loading | locate and define class bytes | `ClassNotFoundException` or `NoClassDefFoundError` |
 | verification | enforce bytecode structural and type rules | `VerifyError` |
 | preparation | allocate static storage and defaults | linkage-related error |
 | resolution | bind symbolic references | `NoSuchMethodError` or `NoClassDefFoundError` |

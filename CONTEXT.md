@@ -313,3 +313,12 @@ node scripts/audit-simulation-questions.mjs --check
 node --test scripts/validate-content.test.mjs
 bash scripts/test-start.sh
 ```
+
+## Java learning improvement work
+
+The [Java learning plan](JAVA_LEARNING_PLAN.md) tracks the September 23 content and
+reader audit follow-up in independently verified packages. Java/Spring explanations
+assume basic programming knowledge; Java, OOP and framework prerequisites must be
+taught explicitly. The [authoring contract](content/CONTENT_SPEC.md) defines the
+example, practice and version-labelling requirements. Existing bookmarks and completion
+tracking are the baseline for later learning-path improvements.
