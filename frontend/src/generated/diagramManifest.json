@@ -937,19 +937,19 @@
     "height": 495,
     "widened": 0
   },
-  "121628e8": {
+  "e1b07b47": {
     "source": "content/java-spring/01d-java-oop-pillars.md",
     "renderFingerprint": "32eb2803eec9ce62",
-    "width": 1213,
-    "height": 90,
-    "widened": 7
-  },
-  "cc4fcac4": {
-    "source": "content/java-spring/01d-java-oop-pillars.md",
-    "renderFingerprint": "32eb2803eec9ce62",
-    "width": 289,
-    "height": 440,
+    "width": 578,
+    "height": 296,
     "widened": 9
+  },
+  "8763c2c3": {
+    "source": "content/java-spring/01d-java-oop-pillars.md",
+    "renderFingerprint": "32eb2803eec9ce62",
+    "width": 281,
+    "height": 288,
+    "widened": 7
   },
   "c355048a": {
     "source": "content/java-spring/01d-java-oop-pillars.md",

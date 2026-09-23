@@ -260,3 +260,10 @@ are preserved. Topic pages set a descriptive browser title.
 
 Diagram font inputs ignore CRLF/LF differences. `node --test scripts/diagram-charset.test.mjs`
 protects this portability rule; the font helper itself is included in asset fingerprints.
+
+The reference [OOP lesson](content/java-spring/01d-java-oop-pillars.md) starts with
+objects, a complete Java 17 account program, an output trace and predict/change/debug
+exercises before introducing interfaces and dispatch. Run `node scripts/verify-java-examples.mjs`
+to compile and execute programs marked `java runnable=ClassName` and compare their
+`text output=ClassName` blocks. The backend CI job runs this gate with JDK 17 and its
+negative-case tests; unmarked excerpts are outside this initial gate.

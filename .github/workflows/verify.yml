@@ -55,6 +55,8 @@ jobs:
           java-version: '17'
           cache: maven
       - run: mvn test -f backend/pom.xml
+      - run: node scripts/verify-java-examples.mjs
+      - run: node --test scripts/verify-java-examples.test.mjs
 
   containers:
     runs-on: ubuntu-latest
