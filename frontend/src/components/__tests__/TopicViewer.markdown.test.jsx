@@ -44,6 +44,13 @@ const LEAK_PATTERNS = [
 ]
 
 describe('curriculum content inventory', () => {
+  it('starts every lesson with a valid document title', () => {
+    for (const file of contentFiles) {
+      const firstLine = fs.readFileSync(file, 'utf-8').split(/\r?\n/)[0]
+      expect(firstLine, path.relative(CONTENT_DIR, file)).toMatch(/^# \S/)
+    }
+  })
+
   it('found all 68 registered topic files', () => {
     expect(contentFiles.length).toBe(68)
   })

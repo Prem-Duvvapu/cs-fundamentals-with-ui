@@ -1,94 +1,210 @@
-# OOP Pillars & Dynamic Method Dispatch (vtable)
+# OOP Pillars & Dynamic Method Dispatch
 
-Object-oriented programming organises state and behaviour around collaborating objects. In Java it is more than class syntax: access control, type contracts, inheritance rules, overload resolution, and runtime dispatch all affect correctness and performance. Interviewers use OOP questions to test whether you can distinguish source-level design from JVM behaviour.
+A program often needs to keep related information and operations together. An account, for example, has a balance and operations that change that balance. Object-oriented programming, or **OOP**, gives us a way to organise those responsibilities and control how other code uses them.
+
+**Before you start:** know variables, conditions and simple functions. You do not need previous OOP knowledge. To run the examples, install a JDK and read the Beginner section of [Java execution](/topic/java-execution-pipeline); use Java 17 or later.
+
+**After this lesson you can:**
+
+- Create an object and explain fields, methods, constructors and `this`.
+- Protect an object's rules instead of exposing writable data.
+- Use a common interface for different implementations.
+- Distinguish compile-time overload selection from runtime method dispatch.
+
+Start with the Beginner tier and its exercises. The Expert tier explains JVM optimisations and can wait until the object model is comfortable.
 
 ## 🟢 Beginner Level
 
-### The four OOP pillars
+### 1. From separate variables to an object
+
+Suppose an application keeps two account balances. Separate variables work at first, but every function that changes them must remember the same rules: a deposit is positive, and a balance must remain valid.
+
+A **class** describes a kind of thing: which data it holds and which operations it offers.
+An **object** is one particular instance of that class, created while the program runs.
+A **field** is a variable belonging to the object. A **method** is a function declared in a class.
+Two account objects use the same class definition but have separate balance fields.
+
+A recipe and two cakes are a useful analogy: one description can produce separate instances.
+The analogy stops there: objects also execute methods and can keep references to other objects.
 
 ```mermaid
 flowchart LR
-    E["Encapsulation: protect invariants"] --> A["Abstraction: expose a contract"]
-    A --> I["Inheritance: reuse a valid is-a relation"]
-    I --> P["Polymorphism: substitute implementations"]
+    C["BankAccount class: fields and methods"] --> A["Account object A: 1000 cents"]
+    C --> B["Account object B: 100 cents"]
+    R["account reference"] --> A
+    S["second reference"] --> B
 ```
 
-1. **Encapsulation**: Bundling data (fields) and methods operating on that data within a single class while restricting direct access from outside via `private` access modifiers and validated getters/setters.
-2. **Abstraction**: Exposing essential contract features while hiding background operational complexity using `abstract class` and `interface`.
-3. **Inheritance**: Deriving new classes (subclasses) from existing parent classes (`extends`), reusing common attributes and behaviors.
-4. **Polymorphism**: The ability of an object reference of a supertype to exhibit different runtime behaviors depending on the concrete subclass instance bound to it.
+A **reference** is a value that lets code reach an object. The variable `account` holds a reference, rather than containing all the object's fields inside the variable.
+Writing `new BankAccount(1000)` creates an object and runs its constructor with `1000` as the starting balance.
+A **constructor** initialises a new object. Its name matches the class and it has no return type, not even `void`.
 
-Encapsulation is not merely writing getters and setters. A class owns an invariant and exposes operations that preserve it. For an account, `withdraw(amount)` can reject a negative amount or insufficient funds; a public mutable `balance` field cannot.
+### 2. Run your first account class
 
-Abstraction separates the caller's required behaviour from the implementation's details. A caller can depend on a `PaymentGateway` interface that promises `authorize`, while one implementation uses a remote card provider and another provides a deterministic test double.
+**Runnable example — Java 17+, no imports or external libraries.** Save this entire block as `AccountDemo.java`.
+The file contains two classes; the public class matches the filename. `main` is the entry point Java runs.
+For now, use its `public static void main(String[] args)` declaration as the launch template; it receives command-line arguments and returns no value.
 
-Inheritance is appropriate only when a subtype can honour every promise of its parent. `SavingsAccount is an Account` may be valid if it preserves account operations; `Square extends Rectangle` is a warning because independent width and height setters break substitutability.
+```java runnable=AccountDemo
+class BankAccount {
+    private int balanceInCents;
 
-Polymorphism lets code select behaviour by runtime object type without a growing `if (type == ...)` chain. The abstraction is useful only when callers can work through the common contract, rather than downcasting back to every implementation.
+    BankAccount(int startingBalance) {
+        if (startingBalance < 0) {
+            throw new IllegalArgumentException("Starting balance cannot be negative");
+        }
+        this.balanceInCents = startingBalance;
+    }
 
-These relationships supply a more precise design vocabulary. **Association** means that objects
-collaborate without implying ownership; a `Doctor` treats a `Patient`. **Aggregation** is a weak
-whole-part association in which the part can outlive the whole; a `Team` groups independently
-existing `Player` objects. **Composition** is strong ownership; an `Order` owns its `OrderLine`
-values and controls their lifecycle. Inheritance models an **IS-A** relationship, while composition
-and aggregation usually model **HAS-A** relationships.
+    void deposit(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Deposit must be positive");
+        }
+        if (amount > Integer.MAX_VALUE - balanceInCents) {
+            throw new IllegalArgumentException("Balance would be too large");
+        }
+        balanceInCents = balanceInCents + amount;
+    }
 
-Java supports compile-time polymorphism through method **overload** selection and runtime
-polymorphism through method **override** dispatch. The compiler selects an overloaded signature
-from declared types; the JVM then dispatches an overridable instance method from the receiver's
-runtime class. A sound class hierarchy therefore needs both a valid design relationship and a
-subtype that preserves the parent contract.
+    int balance() {
+        return balanceInCents;
+    }
+}
 
-### A concrete object collaboration
+public class AccountDemo {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount(1000);
+        account.deposit(250);
+        System.out.println(account.balance());
 
-Consider an order checkout service. It owns an order's state transition, depends on a payment abstraction, and accepts any implementation of that abstraction.
+        BankAccount alias = account;
+        alias.deposit(50);
+        System.out.println(account.balance());
+
+        BankAccount second = new BankAccount(100);
+        System.out.println(second.balance());
+    }
+}
+```
+
+Compile and run from the directory containing the file:
+
+```bash
+javac --release 17 AccountDemo.java
+java AccountDemo
+```
+
+Expected output:
+
+```text output=AccountDemo
+1250
+1300
+100
+```
+
+`int` stores a whole number; cents keep this example free of fractional rounding.
+`Integer.MAX_VALUE` is the largest `int`, so the second check prevents addition from overflowing.
+This is a teaching model, not a complete banking implementation: it has no persistence, withdrawals or concurrent access protection.
+
+### 3. Trace the state and protect its rules
+
+The dot in `account.deposit(250)` means “call this method on the object reached through `account`.”
+`this` means the current object inside an instance method or constructor.
+In `this.balanceInCents = startingBalance`, the left side is that object's field and the right side is the constructor's input.
+`void deposit(...)` changes state without returning a result; `int balance()` returns an integer.
+
+| Step | Object A | Object B | Why |
+|---|---|---|---|
+| Create `account` | 1000 | Not created | Constructor sets A's starting balance |
+| Deposit 250 | 1250 | Not created | A's field changes |
+| Assign `alias = account` | 1250 | Not created | Copies the reference; creates no object |
+| Deposit 50 through `alias` | 1300 | Not created | Both references reach A |
+| Create `second` | 1300 | 100 | `new` creates a separate object B |
+
+The `private` keyword restricts access to the field: unrelated caller code cannot directly assign its value.
+`deposit` checks its input before changing the field. `throw new IllegalArgumentException(...)` stops the method with an error describing the invalid argument; later lessons explain catching exceptions.
+A caller trying `account.deposit(-50)` gets that error, and the previous balance remains unchanged.
+
+This is **encapsulation**: keep data and its valid operations together, and control outside access.
+An **invariant** is a rule that must remain true, such as this example's non-negative balance.
+Adding a public `setBalance(int value)` that accepts every integer would break that protection even if the field stayed private.
+
+**Predict:** replace `BankAccount alias = account` with `BankAccount alias = new BankAccount(1000)`. What does the second print show?
+
+**Answer:** `1250`. The deposit through `alias` now changes a different object; the original `account` still holds 1250 cents. Assignment copies a reference, while `new` creates an object.
+
+**Debug:** add `account.balanceInCents = -1` inside `AccountDemo.main`. Why will compilation fail?
+
+**Answer:** the field is private to `BankAccount`. Call a supported operation rather than making the field public; the class should keep responsibility for validating changes.
+
+### The four OOP pillars
+
+**Abstraction** means giving callers the operations they need without requiring them to know the internal steps.
+The account's `deposit` method is already a small abstraction: callers use an amount instead of changing its field themselves.
+An **interface** makes a shared set of operations explicit. A class uses `implements` to provide those operations.
+
+**Excerpt — declarations for a larger program, not a standalone application:**
 
 ```java
-interface PaymentGateway {
-    Receipt authorize(Money amount);
+interface Notifier {
+    String message();
 }
 
-final class CheckoutService {
-    private final PaymentGateway gateway;
-
-    CheckoutService(PaymentGateway gateway) {
-        this.gateway = gateway;
+class EmailNotifier implements Notifier {
+    @Override
+    public String message() {
+        return "Email notification";
     }
+}
 
-    Receipt checkout(Order order) {
-        order.requirePayable();
-        return gateway.authorize(order.total());
+class SmsNotifier implements Notifier {
+    @Override
+    public String message() {
+        return "SMS notification";
     }
 }
 ```
 
-`CheckoutService` does not know whether the gateway uses HTTP, a queue, or an in-memory fake. That is abstraction and dependency inversion in a small form. The service still owns the business invariant: a cancelled order cannot be authorised.
+`String` represents text. Each class provides the interface's `message()` method with a different result.
+`public` makes these methods accessible to callers; interface implementations must not reduce that access.
+`@Override` asks the compiler to check that the method really implements or overrides an inherited method.
 
-### Inheritance, interfaces, and composition
-
-Composition means a class delegates a capability to another object instead of becoming a subtype. It avoids inheriting irrelevant API surface and lets behaviour vary per object rather than per class hierarchy.
-
-Inheritance couples a subclass to the state and extension rules of its parent. An interface exposes
-a narrower behavioural contract and permits unrelated implementations, while composition lets an
-object acquire that behaviour by holding an interface-typed collaborator. These tools are
-complementary: the following service composes a gateway interface whose implementations participate
-in interface inheritance.
+Inside a method, `Notifier notifier = new EmailNotifier()` declares a reference using the shared interface.
+Calling `notifier.message()` uses the actual object's implementation and returns `Email notification`.
+Replacing the object with `new SmsNotifier()` makes the same call return `SMS notification`.
+This is **polymorphism**: caller code uses one contract with different implementations.
 
 ```mermaid
 classDiagram
-    class CheckoutService
-    class PaymentGateway {
+    class Notifier {
       <<interface>>
-      +authorize(amount) Receipt
+      +message() String
     }
-    class CardGateway
-    class TestGateway
-    CheckoutService --> PaymentGateway : depends on
-    PaymentGateway <|.. CardGateway
-    PaymentGateway <|.. TestGateway
+    class EmailNotifier
+    class SmsNotifier
+    Notifier <|.. EmailNotifier
+    Notifier <|.. SmsNotifier
 ```
 
-Prefer composition when the relationship is “has a” or “uses a.” Use inheritance when the subtype genuinely is a more specific parent type and can be substituted everywhere the parent is expected.
+**Change:** add a `ConsoleNotifier` that returns `Console notification`. Does caller code using only `Notifier.message()` need a new `if` branch?
+
+**Answer:** no. Supply a `ConsoleNotifier` object through the same interface. The implementation provides the different behavior; callers need a new branch only if they depend on extra implementation-specific details.
+
+### Inheritance, interfaces, and composition
+
+**Inheritance** lets a class extend another class with `extends`, acquiring accessible behavior and optionally overriding instance methods.
+It should describe a valid **IS-A** relationship: a subtype must keep the promises made by its parent.
+An account subtype that suddenly rejects an operation the parent promises to allow is a poor substitute.
+
+**Composition** means holding another object and delegating work to it: a checkout service **HAS-A** notifier.
+It can use an email notifier today and an SMS notifier tomorrow without becoming either kind of notifier itself.
+Prefer this arrangement when objects collaborate rather than representing the same kind of thing.
+
+Related design terms are **association** (objects collaborate, such as a doctor and patient) and **aggregation** (a group contains independently existing members, such as a team and players).
+In a stricter ownership model, composition means that a whole controls its parts' lifecycle, such as an order owning its line items. Ordinary Java references do not enforce that ownership automatically.
+
+The four pillars now name ideas you have seen: encapsulation protects valid state, abstraction exposes useful operations, inheritance expresses a valid subtype, and polymorphism allows interchangeable implementations.
+You can write useful Java without a large inheritance tree. The next tier separates two often-confused mechanisms: overloading and overriding.
 
 ---
 
@@ -99,15 +215,17 @@ Prefer composition when the relationship is “has a” or “uses a.” Use inh
 | Feature | Method Overloading (Compile-Time) | Method Overriding (Runtime) |
 | :--- | :--- | :--- |
 | **Binding Mechanism** | **Static Binding** by `javac` at compile time | **Dynamic Dispatch** by JVM at runtime |
-| **Method Signature** | Same method name, **different parameter types/counts** | **Identical** method name, parameter types, and return type |
-| **Class Scope** | Defined within the same class | Defined in subclass overriding superclass method |
-| **Bytecode Opcode** | `invokestatic` / `invokespecial` | `invokevirtual` / `invokeinterface` |
+| **Method Signature** | Same name, different parameter types/counts | Same name and parameter types; a reference return type may be more specific |
+| **Class Scope** | Methods can be declared or inherited | Instance method implements or overrides an inherited contract |
+| **Invocation** | An overloaded instance method can still use runtime dispatch | Ordinary virtual calls use `invokevirtual` or `invokeinterface`; explicit `super` calls differ |
 
 ### How overload resolution works
 
 Overloading chooses a method from the compile-time types of arguments. The compiler prefers an
 exact match, then primitive widening, then boxing, then varargs. It does not inspect the runtime
 class of a reference to choose an overload.
+
+**Excerpt — method declarations and call-site lines shown together; put the declarations in a class and the call inside a method.**
 
 ```java
 void print(Object value) { System.out.println("object"); }
@@ -255,7 +373,7 @@ An API should expose operations rather than representation when possible.
 
 ### Class initialisation and construction order
 
-Before a constructor body runs, Java initialises superclass state first.
+On the Java 17 baseline, superclass construction precedes the subclass field initialisers and the remaining subclass constructor statements. Java 25 permits restricted statements before constructor delegation; do not apply the older first-statement rule universally.
 
 Field initialisers and instance initialiser blocks execute as part of construction in declared order for each class.
 
@@ -279,11 +397,11 @@ Builders are helpful when a value has many optional fields, but a builder should
 
 ### Sealed hierarchies and pattern matching
 
-Sealed classes explicitly list permitted direct subtypes.
+Sealed classes, finalised in Java 17, explicitly list permitted direct subtypes.
 
 They are useful when a domain has a closed set of variants, such as a payment result being `Approved`, `Declined`, or `Retryable`.
 
-The compiler can check exhaustive `switch` expressions over that closed hierarchy.
+Pattern matching for `switch`, finalised in Java 21, lets the compiler check exhaustive type cases over that closed hierarchy. This feature is newer than the Java 17 baseline used by the runnable example.
 
 This gives some benefits of algebraic data types while keeping Java's object model.
 
@@ -317,22 +435,8 @@ flowchart LR
 ```
 
 - **Monomorphic vs. Megamorphic Call Sites**:
-  - If a call site always invokes the exact same concrete class method (**Monomorphic**), the HotSpot JIT performs **Devirtualization / Inline Caching**, replacing indirect vtable pointer lookups with a direct jump or inlined instructions.
+  - If a call site always invokes the exact same concrete class method (**Monomorphic**), the HotSpot JIT can use **Devirtualization / Inline Caching**, replacing indirect vtable pointer lookups with a direct jump or inlined instructions.
   - A call site with many receiver types (**Megamorphic**) may use a more general dispatch path. The threshold and generated code depend on the JVM and its profile; there is no Java guarantee that a third receiver type forces one particular vtable lookup.
-
-### Key Interview Questions
-
-#### Q1: Can private, static, or final methods be overridden in Java?
-**Answer**: No.
-- `private`: Not visible to subclasses; thus cannot be overridden.
-- `static`: Belongs to the class, not instances. Defining a static method with the same signature in a subclass results in **Method Hiding**, resolved statically by compile-time reference type.
-- `final`: Explicitly prohibits overriding; compiler throws an error.
-
-#### Q2: How does the `default` method in Java 8 interfaces resolve the Diamond Problem?
-**Answer**: Java resolves interface default method conflicts with two rules:
-1. **Classes beat Interfaces**: Superclass method implementations always take precedence over interface default methods.
-2. **Most Specific Interface**: If interface B extends interface A, B's default method wins.
-3. If two unrelated interfaces provide conflicting default methods, the compiling class **must** explicitly override the method and specify `InterfaceName.super.methodName()`.
 
 ### JIT optimisation and call-site shape
 
@@ -436,5 +540,7 @@ The parent constructor called an overridable method before subclass construction
 
 ### Further Reading
 
-- [Java Language Specification: overriding, hiding, and overloading](https://docs.oracle.com/javase/specs/jls/se26/html/jls-8.html) defines the source-language rules.
-- [Java Virtual Machine Specification: `invokevirtual`](https://docs.oracle.com/en/java/javase/26/docs/specs/jvms/jvms-6.html) describes virtual instance-method invocation.
+- [Java classes and objects tutorial](https://dev.java/learn/classes-objects/) — constructors, fields, methods and object references.
+- [Java 17 method inheritance, overriding and overloading](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.8) — return types, access and method-selection rules.
+- [JVM method invocation instructions](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-6.html#jvms-6.5.invokevirtual) — the bytecode behind ordinary virtual method calls.
+- [Java language changes through Java 21](https://docs.oracle.com/en/java/javase/21/language/java-language-changes-summary.html) — when sealed classes and pattern matching became permanent.

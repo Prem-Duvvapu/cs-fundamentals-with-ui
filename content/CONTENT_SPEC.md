@@ -309,10 +309,26 @@ For Java and Spring lessons rebuilt under `JAVA_LEARNING_PLAN.md`:
 - Review accuracy and clarity independently of line counts. The structural validator
   cannot establish whether a novice understands an explanation or whether code compiles.
 
+### Executable Java example markers
+
+For a complete Java 17 program, use a fence such as `java runnable=AccountDemo` and
+pair it with a `text output=AccountDemo` fence containing exact expected standard output.
+The name must match the public class and filename. The verifier compiles the actual
+lesson source with `javac --release 17`, runs it in a temporary directory and compares
+output. It needs an installed JDK and no extra dependencies.
+
+Run `node scripts/verify-java-examples.mjs` after changing a marked example. CI also runs
+`node --test scripts/verify-java-examples.test.mjs` to check that invalid source and
+incorrect output fail. Excerpts and intentionally failing examples must remain unmarked;
+framework projects and newer-Java examples need their own declared-version verification.
+This initial gate verifies marked programs only, not every existing Java snippet.
+
 ## 10. Exemplar
 
 Before writing, read **`content/dbms/06-transactions-acid.md`**. It is the reference
-implementation of this contract. Match its depth, structure and voice.
+implementation of the structural contract. For Java teaching, also read
+`content/java-spring/01d-java-oop-pillars.md`: its Beginner tier demonstrates the
+basic-programming audience, runnable example, state trace and explained exercises.
 
 ---
 

@@ -220,7 +220,7 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: the responsive browser gate now checks actual visibility before and after
   toggling at every tested width/theme, and checks subsection coverage against rendered headings.
 - Prevention: retain DOM interaction tests and browser-computed visibility checks together.
-- Resolving change: reader-navigation package following PR #39; commit recorded after verification.
+- Resolving commit: `e66fc56` (reader navigation and portable diagrams, PR #40).
 
 ## RCA-2026-09-23-02 — Diagram fingerprints differed between Windows and Linux
 
@@ -233,7 +233,7 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: regression tests compare CRLF/LF input and preserve non-ASCII glyphs, ASCII
   coverage, deduplication and order independence. Build/decode verification follows regeneration.
 - Prevention: CI runs the charset regression tests; diagram checks validate the helper fingerprint.
-- Resolving change: reader-navigation package following PR #39; commit recorded after verification.
+- Resolving commit: `e66fc56` (reader navigation and portable diagrams, PR #40).
 
 ## RCA-2026-09-23-03 — Container omitted the diagram font helper
 
@@ -242,7 +242,18 @@ unsupported state controlling whether the Simulation tab should appear.
 - Root cause: the new imported helper was available in full checkouts but missing from
   the frontend image's explicitly selected script files.
 - Resolution: copy both renderer scripts into `/app/scripts/` in the builder stage.
-- Verification: rerun the PR's container build/start check before merging.
+- Verification: PR #40 passed the container build/start checks after the fix; frontend and backend jobs also passed before merge.
 - Prevention: treat renderer imports as container inputs and retain container CI alongside
   full-checkout builds; a successful local build alone is not the release gate.
-- Resolving commit: recorded with the next verified package's merge record.
+- Resolving commit: `cdbc35a` (container helper copy, PR #40).
+
+## RCA-2026-09-23-04 — OOP title rendered as body text during review
+
+- Evidence: final mobile review of PR #41 displayed `c# OOP Pillars` in the article.
+- Root cause: a stray character prefixed the Markdown title during authoring. Existing
+  gates validated tiers and body rendering but did not require a valid first-line title.
+- Resolution: remove the prefix and check every curriculum file's document title.
+- Verification: the new inventory regression test passes across all 68 lessons; PR CI
+  reruns the full renderer suite before merge. The defect was caught before release.
+- Prevention: retain the title gate and visual review alongside structural validation.
+- Resolving commit: `5dd45cc`.

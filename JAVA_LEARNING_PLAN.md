@@ -24,9 +24,9 @@ latest main before starting another package. Do not mark planned work as deliver
 | Package | Concrete result | Status |
 |---|---|---|
 | 1. Accuracy and authoring baseline | Fix nonexistent exception, text-block syntax, constructor version claims, dispatch overstatement and bean-mock guidance; define basic-programming audience | Merged in PR #39 |
-| 2. Reader navigation | Mobile TOC genuinely closes; subsection links match rendered headings; Study/Simulation selection survives refresh and history; descriptive page titles | Implemented; verification pending |
-| 3. Reference OOP lesson | Prerequisites and outcomes, bank-account example, output trace, vocabulary, practice, version-labelled internals | Planned |
-| 4. Executable examples | Compile/run examples on declared baseline; distinguish runnable programs, excerpts and deliberate failures | Planned |
+| 2. Reader navigation | Mobile TOC genuinely closes; subsection links match rendered headings; Study/Simulation selection survives refresh and history; descriptive page titles | Merged in PR #40 |
+| 3. Reference OOP lesson | Prerequisites and outcomes, bank-account example, output trace, vocabulary, practice, version-labelled internals | Implemented |
+| 4. Executable examples | Compile/run examples on declared baseline; distinguish runnable programs, excerpts and deliberate failures | Initial Java 17 gate implemented; broader example migration remains |
 | 5. Curriculum metadata | Explicit prerequisite order and outcomes, consistent discovery/previous/next links; safe registration of new topics with coverage checks | Planned |
 | 6. Java foundations | Setup/run/debug, types and operators, conditions/loops/methods, arrays, strings, numbers and wrappers | Planned |
 | 7. Practical Java | Exceptions and resource handling, files/I/O, date/time, Maven, unit tests, debugging and JDBC prerequisites | Planned |
@@ -91,3 +91,17 @@ committing, wait for required CI, then merge. No package is complete merely beca
 Package 1 verification so far: all 68 lessons and 83 manifest entries pass; 53 backend
 tests pass; the published JSON text block compiles with `javac --release 17` and produces
 the documented JSON. PR #39 passed frontend, backend, container and deployment checks before merge.
+
+Package 2: reader commit `e66fc56`, Docker follow-up `cdbc35a`, PR #40. Local
+verification: 635 frontend tests, production build, 80 responsive route/width/theme
+checks, browser refresh/history checks and 590 diagram decode checks passed.
+
+Packages 3–4: the reference OOP lesson retains four diagrams and 14 interview
+questions. Its marked account program compiles on Java 17 and produces the expected
+output. The initial executable-example gate deliberately covers only marked programs;
+existing unmarked snippets still need review as their lessons are rebuilt.
+
+Reference lesson and initial example gate: PR #41, commits `9a3407b` and `5dd45cc`.
+The lesson passes structural/coverage validation and its Java program/output check;
+196 renderer tests passed, followed by the added all-lesson title regression check.
+The broader foundation, Spring, learning-path and HLD packages remain planned.
