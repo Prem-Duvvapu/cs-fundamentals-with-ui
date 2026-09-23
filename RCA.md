@@ -234,3 +234,15 @@ unsupported state controlling whether the Simulation tab should appear.
   coverage, deduplication and order independence. Build/decode verification follows regeneration.
 - Prevention: CI runs the charset regression tests; diagram checks validate the helper fingerprint.
 - Resolving change: reader-navigation package following PR #39; commit recorded after verification.
+
+## RCA-2026-09-23-03 — Container omitted the diagram font helper
+
+- Evidence: PR #40's container job failed after extracting the charset helper, while the
+  local build and Vercel deployment passed. Docker copied only `render-diagrams.mjs`.
+- Root cause: the new imported helper was available in full checkouts but missing from
+  the frontend image's explicitly selected script files.
+- Resolution: copy both renderer scripts into `/app/scripts/` in the builder stage.
+- Verification: rerun the PR's container build/start check before merging.
+- Prevention: treat renderer imports as container inputs and retain container CI alongside
+  full-checkout builds; a successful local build alone is not the release gate.
+- Resolving commit: recorded with the next verified package's merge record.
