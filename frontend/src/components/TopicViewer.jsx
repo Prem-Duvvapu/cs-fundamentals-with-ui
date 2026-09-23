@@ -21,15 +21,6 @@ function prefersExpandedToc() {
   return window.matchMedia(DESKTOP_TOC_QUERY).matches
 }
 
-function slugify(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-}
-
-function getSections(content) {
-  return [...content.matchAll(/^## (?!#)(.+)$/gm)]
-    .map(([, title]) => ({ title, id: slugify(title) }))
-}
-
 function cleanSectionTitle(title) {
   return title.replace(/^(?:🟢|🟡|🔴)\s*/u, '')
 }
@@ -45,10 +36,19 @@ export default function TopicViewer({ topicId, category }) {
   const [rendererReady, setRendererReady] = useState(false)
   const [retryNonce, setRetryNonce] = useState(0)
   const [activeSection, setActiveSection] = useState('')
+  const [sections, setSections] = useState([])
   const [readingProgress, setReadingProgress] = useState(0)
   const [tocExpanded, setTocExpanded] = useState(prefersExpandedToc)
   const articleRef = useRef(null)
   const handleRendererReady = useCallback(() => setRendererReady(true), [])
+
+  useEffect(() => {
+    if (!rendererReady) return
+    const headings = [...(articleRef.current?.querySelectorAll('h2[id], h3[id]') || [])]
+      .map(heading => ({ id: heading.id, title: heading.dataset.tocTitle || heading.textContent, level: Number(heading.tagName[1]) }))
+    setSections(headings)
+    setActiveSection(current => current || headings[0]?.id || '')
+  }, [content, rendererReady])
 
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return undefined
@@ -77,6 +77,7 @@ export default function TopicViewer({ topicId, category }) {
     setContent('')
     setRendererReady(false)
     setActiveSection('')
+    setSections([])
     setReadingProgress(0)
     const cat = category || getTopicCategory(topicId)
 
@@ -93,7 +94,6 @@ export default function TopicViewer({ topicId, category }) {
       .then(text => {
         if (controller.signal.aborted) return
         setContent(text)
-        setActiveSection(getSections(text)[0]?.id || '')
         setLoading(false)
       })
       .catch(error => {
@@ -106,7 +106,7 @@ export default function TopicViewer({ topicId, category }) {
 
   useEffect(() => {
     if (!content || !rendererReady || typeof IntersectionObserver === 'undefined') return undefined
-    const sectionIds = getSections(content).map(section => section.id)
+    const sectionIds = sections.map(section => section.id)
     const observer = new IntersectionObserver(
       entries => {
         const visible = entries.find(entry => entry.isIntersecting)
@@ -119,7 +119,7 @@ export default function TopicViewer({ topicId, category }) {
       if (element) observer.observe(element)
     })
     return () => observer.disconnect()
-  }, [content, rendererReady])
+  }, [content, rendererReady, sections])
 
   useEffect(() => {
     const updateProgress = () => {
@@ -164,7 +164,6 @@ export default function TopicViewer({ topicId, category }) {
     )
   }
 
-  const sections = getSections(content)
   const currentSection = sections.find(section => section.id === activeSection) || sections[0]
   const currentLabel = currentSection ? cleanSectionTitle(currentSection.title) : 'the first section'
 
@@ -193,7 +192,7 @@ export default function TopicViewer({ topicId, category }) {
         <nav id="topic-table-of-contents" aria-label="Table of contents" hidden={!tocExpanded}>
           <ol>
             {sections.map(section => (
-              <li key={section.id}>
+              <li key={section.id} className={section.level === 3 ? 'toc-subsection' : undefined}>
                 <button
                   type="button"
                   onClick={() => scrollToSection(section.id)}

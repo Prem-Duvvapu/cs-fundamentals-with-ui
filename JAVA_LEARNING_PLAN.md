@@ -23,8 +23,8 @@ latest main before starting another package. Do not mark planned work as deliver
 
 | Package | Concrete result | Status |
 |---|---|---|
-| 1. Accuracy and authoring baseline | Fix nonexistent exception, text-block syntax, constructor version claims, dispatch overstatement and bean-mock guidance; define basic-programming audience | Implemented; verification and merge pending |
-| 2. Reader navigation | Mobile TOC genuinely closes; subsection links match rendered headings; Study/Simulation selection survives refresh and history; descriptive page titles | Planned |
+| 1. Accuracy and authoring baseline | Fix nonexistent exception, text-block syntax, constructor version claims, dispatch overstatement and bean-mock guidance; define basic-programming audience | Merged in PR #39 |
+| 2. Reader navigation | Mobile TOC genuinely closes; subsection links match rendered headings; Study/Simulation selection survives refresh and history; descriptive page titles | Implemented; verification pending |
 | 3. Reference OOP lesson | Prerequisites and outcomes, bank-account example, output trace, vocabulary, practice, version-labelled internals | Planned |
 | 4. Executable examples | Compile/run examples on declared baseline; distinguish runnable programs, excerpts and deliberate failures | Planned |
 | 5. Curriculum metadata | Explicit prerequisite order and outcomes, consistent discovery/previous/next links; safe registration of new topics with coverage checks | Planned |
@@ -90,4 +90,4 @@ committing, wait for required CI, then merge. No package is complete merely beca
 
 Package 1 verification so far: all 68 lessons and 83 manifest entries pass; 53 backend
 tests pass; the published JSON text block compiles with `javac --release 17` and produces
-the documented JSON. Frontend/build and CI verification are still pending.
+the documented JSON. PR #39 passed frontend, backend, container and deployment checks before merge.

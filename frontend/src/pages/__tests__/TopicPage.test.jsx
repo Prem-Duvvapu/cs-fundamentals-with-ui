@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { MemoryRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import TopicPage from '../TopicPage'
 
 vi.mock('../../components/TopicViewer', () => ({
@@ -230,4 +230,40 @@ describe('TopicPage Component', () => {
     const stored = JSON.parse(window.localStorage.getItem('cs-fundamentals-progress'))
     expect(stored['dbms-indexing']).toEqual({ bookmarked: true, completed: true })
   })
+})
+
+
+function HistoryControls() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  return <><output data-testid="location">{location.pathname}{location.search}</output><button onClick={() => navigate(-1)}>Back in history</button></>
+}
+
+it('restores simulation from its URL and follows browser history without losing other parameters', async () => {
+  const { unmount } = render(<MemoryRouter initialEntries={['/topic/dbms-indexing?source=course&view=simulation']}>
+    <HistoryControls /><Routes><Route path="/topic/:topicId" element={<TopicPage />} /></Routes>
+  </MemoryRouter>)
+  expect(screen.getByRole('tab', { name: /simulation/i })).toHaveAttribute('aria-selected', 'true')
+  expect(document.title).toBe('B/B+ Tree Indexing & Storage Structures | CS Fundamentals')
+  fireEvent.click(screen.getByRole('tab', { name: /study/i }))
+  expect(screen.getByTestId('location')).toHaveTextContent('/topic/dbms-indexing?source=course')
+  fireEvent.click(screen.getByRole('button', { name: 'Back in history' }))
+  expect(screen.getByRole('tab', { name: /simulation/i })).toHaveAttribute('aria-selected', 'true')
+  unmount()
+  expect(document.title).not.toContain('B/B+ Tree Indexing')
+})
+
+it.each(['simulation', 'unknown'])('uses Study for an unsupported view %s', view => {
+  render(<MemoryRouter initialEntries={[`/topic/java-oop-pillars?view=${view}`]}>
+    <Routes><Route path="/topic/:topicId" element={<TopicPage />} /></Routes>
+  </MemoryRouter>)
+  expect(screen.getByTestId('topic-viewer')).toHaveTextContent('Study content for java-oop-pillars')
+  expect(screen.queryByRole('tab', { name: /simulation/i })).not.toBeInTheDocument()
+})
+
+it('defaults an unrecognised view to Study on a topic with a simulator', () => {
+  render(<MemoryRouter initialEntries={['/topic/dbms-indexing?view=unknown']}>
+    <Routes><Route path="/topic/:topicId" element={<TopicPage />} /></Routes>
+  </MemoryRouter>)
+  expect(screen.getByRole('tab', { name: /study/i })).toHaveAttribute('aria-selected', 'true')
 })

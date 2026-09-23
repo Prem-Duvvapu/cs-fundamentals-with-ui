@@ -5,7 +5,7 @@ COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
 COPY content/ /app/content/
-COPY scripts/render-diagrams.mjs /app/scripts/render-diagrams.mjs
+COPY scripts/render-diagrams.mjs scripts/diagram-charset.mjs /app/scripts/
 RUN npm run build
 
 # Stage 2: Nginx Web Server

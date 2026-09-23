@@ -209,3 +209,40 @@ unsupported state controlling whether the Simulation tab should appear.
 
 - Every optional feature route must model unsupported state explicitly.
 - Do not use a category default to satisfy a topic-specific contract.
+
+## RCA-2026-09-23-01 — Closed mobile table of contents remained visible
+
+- Evidence: the audit observed `aria-expanded=false` at 320px while the TOC still occupied
+  121.25px; toggling changed the attribute but not visibility.
+- Root cause: `.study-navigation nav { display: flex }` overrode the browser's default
+  display rule for the HTML `hidden` attribute. DOM tests checked semantics without CSS.
+- Resolution: apply the flex layout only to `nav:not([hidden])`.
+- Verification: the responsive browser gate now checks actual visibility before and after
+  toggling at every tested width/theme, and checks subsection coverage against rendered headings.
+- Prevention: retain DOM interaction tests and browser-computed visibility checks together.
+- Resolving change: reader-navigation package following PR #39; commit recorded after verification.
+
+## RCA-2026-09-23-02 — Diagram fingerprints differed between Windows and Linux
+
+- Evidence: all 295 diagram fingerprints were stale locally on a clean rendering baseline,
+  while the same main revision passed Linux CI. Renderer and CSS text inputs already normalized LF.
+- Root cause: the font subset's character set removed newline but retained carriage return
+  from CRLF Markdown sources, making its fingerprint depend on checkout line endings.
+- Resolution: exclude both line-ending characters in a shared font-character helper and include
+  that helper in rendering-input fingerprints; regenerate the complete diagram manifest.
+- Verification: regression tests compare CRLF/LF input and preserve non-ASCII glyphs, ASCII
+  coverage, deduplication and order independence. Build/decode verification follows regeneration.
+- Prevention: CI runs the charset regression tests; diagram checks validate the helper fingerprint.
+- Resolving change: reader-navigation package following PR #39; commit recorded after verification.
+
+## RCA-2026-09-23-03 — Container omitted the diagram font helper
+
+- Evidence: PR #40's container job failed after extracting the charset helper, while the
+  local build and Vercel deployment passed. Docker copied only `render-diagrams.mjs`.
+- Root cause: the new imported helper was available in full checkouts but missing from
+  the frontend image's explicitly selected script files.
+- Resolution: copy both renderer scripts into `/app/scripts/` in the builder stage.
+- Verification: rerun the PR's container build/start check before merging.
+- Prevention: treat renderer imports as container inputs and retain container CI alongside
+  full-checkout builds; a successful local build alone is not the release gate.
+- Resolving commit: recorded with the next verified package's merge record.

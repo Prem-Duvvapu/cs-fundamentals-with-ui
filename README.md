@@ -251,3 +251,12 @@ assume basic programming knowledge; Java, OOP and framework prerequisites must b
 taught explicitly. The [authoring contract](content/CONTENT_SPEC.md) defines the
 example, practice and version-labelling requirements. Existing bookmarks and completion
 tracking are the baseline for later learning-path improvements.
+
+Reader navigation includes rendered level-two and level-three headings with stable,
+unique IDs, including headings containing inline code. The mobile contents panel
+starts closed. Topic links can select a supported simulator with `?view=simulation`;
+Study is the default, browser history restores the view, and unrelated query parameters
+are preserved. Topic pages set a descriptive browser title.
+
+Diagram font inputs ignore CRLF/LF differences. `node --test scripts/diagram-charset.test.mjs`
+protects this portability rule; the font helper itself is included in asset fingerprints.

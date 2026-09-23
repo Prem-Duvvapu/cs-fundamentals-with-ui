@@ -42,7 +42,7 @@ jobs:
       - run: npm run diagrams:decode --prefix frontend
       - run: node scripts/validate-content.mjs
       - run: node scripts/audit-simulation-questions.mjs --check
-      - run: node --test scripts/validate-content.test.mjs scripts/audit-simulation-questions.test.mjs
+      - run: node --test scripts/validate-content.test.mjs scripts/audit-simulation-questions.test.mjs scripts/diagram-charset.test.mjs
       - run: bash scripts/test-start.sh
 
   backend:

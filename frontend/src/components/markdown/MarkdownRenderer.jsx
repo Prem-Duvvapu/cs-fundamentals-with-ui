@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef } from 'react'
+import { Children, isValidElement, useLayoutEffect, useRef } from 'react'
+import { rehypeHeadingIds } from '../../utils/markdownHeadings'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
@@ -23,7 +24,7 @@ import javascript from 'highlight.js/lib/languages/javascript'
 const HIGHLIGHT_LANGUAGES = { java, sql, c, python, bash, json, xml, javascript }
 
 function extractText(children) {
-  return String(children).replace(/\n$/, '')
+  return Children.toArray(children).map(child => isValidElement(child) ? extractText(child.props.children) : String(child)).join('').replace(/\n$/, '')
 }
 
 const TIER_DETAILS = {
@@ -38,13 +39,6 @@ function getTierHeading(children) {
   if (!tierEntry) return { text, tier: null }
   const [emoji, tier] = tierEntry
   return { text: text.slice(emoji.length).trim(), tier }
-}
-
-export function headingId(children) {
-  return extractText(children)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
 }
 
 /**
@@ -66,6 +60,7 @@ export default function MarkdownRenderer({ content, onReady }) {
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[
+        rehypeHeadingIds,
         rehypeKatex,
         [rehypeHighlight, { languages: HIGHLIGHT_LANGUAGES, detect: false }]
       ]}
@@ -75,10 +70,10 @@ export default function MarkdownRenderer({ content, onReady }) {
         h1() {
           return null
         },
-        h2({ children }) {
+        h2({ node, children }) {
           const { text, tier } = getTierHeading(children)
           return (
-            <h2 id={headingId(text)}>
+            <h2 id={node.properties.id} data-toc-title={text}>
               {tier && (
                 <span className={`tier-badge tier-badge--${tier.name}`} aria-hidden="true">
                   <span>{tier.glyph}</span> {tier.label}
@@ -88,8 +83,8 @@ export default function MarkdownRenderer({ content, onReady }) {
             </h2>
           )
         },
-        h3({ children }) {
-          return <h3 id={headingId(children)}>{children}</h3>
+        h3({ node, children }) {
+          return <h3 id={node.properties.id}>{children}</h3>
         },
         pre({ children }) {
           const child = Array.isArray(children) ? children[0] : children
