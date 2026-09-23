@@ -1,4 +1,4 @@
-c# OOP Pillars & Dynamic Method Dispatch
+# OOP Pillars & Dynamic Method Dispatch
 
 A program often needs to keep related information and operations together. An account, for example, has a balance and operations that change that balance. Object-oriented programming, or **OOP**, gives us a way to organise those responsibilities and control how other code uses them.
 
