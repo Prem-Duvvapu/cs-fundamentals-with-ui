@@ -246,3 +246,14 @@ unsupported state controlling whether the Simulation tab should appear.
 - Prevention: treat renderer imports as container inputs and retain container CI alongside
   full-checkout builds; a successful local build alone is not the release gate.
 - Resolving commit: `cdbc35a` (container helper copy, PR #40).
+
+## RCA-2026-09-23-04 — OOP title rendered as body text during review
+
+- Evidence: final mobile review of PR #41 displayed `c# OOP Pillars` in the article.
+- Root cause: a stray character prefixed the Markdown title during authoring. Existing
+  gates validated tiers and body rendering but did not require a valid first-line title.
+- Resolution: remove the prefix and check every curriculum file's document title.
+- Verification: the new inventory regression test passes across all 68 lessons; PR CI
+  reruns the full renderer suite before merge. The defect was caught before release.
+- Prevention: retain the title gate and visual review alongside structural validation.
+- Resolving commit: `5dd45cc`.

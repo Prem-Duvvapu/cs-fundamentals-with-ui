@@ -100,3 +100,8 @@ Packages 3–4: the reference OOP lesson retains four diagrams and 14 interview
 questions. Its marked account program compiles on Java 17 and produces the expected
 output. The initial executable-example gate deliberately covers only marked programs;
 existing unmarked snippets still need review as their lessons are rebuilt.
+
+Reference lesson and initial example gate: PR #41, commits `9a3407b` and `5dd45cc`.
+The lesson passes structural/coverage validation and its Java program/output check;
+196 renderer tests passed, followed by the added all-lesson title regression check.
+The broader foundation, Spring, learning-path and HLD packages remain planned.
