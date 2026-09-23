@@ -318,7 +318,7 @@ flowchart LR
 
 - **Monomorphic vs. Megamorphic Call Sites**:
   - If a call site always invokes the exact same concrete class method (**Monomorphic**), the HotSpot JIT performs **Devirtualization / Inline Caching**, replacing indirect vtable pointer lookups with a direct jump or inlined instructions.
-  - If > 2 concrete classes pass through the call site (**Megamorphic**), the JIT falls back to a full vtable pointer dereference.
+  - A call site with many receiver types (**Megamorphic**) may use a more general dispatch path. The threshold and generated code depend on the JVM and its profile; there is no Java guarantee that a third receiver type forces one particular vtable lookup.
 
 ### Key Interview Questions
 

@@ -48,7 +48,9 @@ public final class ServerConfig {
 Constructor chaining centralises validation.
 `this(...)` delegates to another constructor in the same class.
 `super(...)` delegates to a superclass constructor.
-Either call must be the first constructor statement, so both cannot appear directly in the same constructor.
+For Java 17 and 21, either call must be the first constructor statement.
+A constructor delegates through one route; it cannot call both directly.
+Java 25 permits restricted preparation or validation before delegation; see the [flexible constructor bodies guide](https://docs.oracle.com/en/java/javase/25/language/flexible-constructor-bodies.html).
 
 ```mermaid
 flowchart TD
@@ -465,7 +467,7 @@ It guarantees that the variable is assigned once and cannot later point to a dif
 
 **Q2. What is the difference between `this(...)` and `super(...)` in a constructor?** `[easy]`
 
-`this(...)` invokes another constructor in the same class, while `super(...)` invokes an accessible constructor in the direct superclass. Either must be the first statement so the construction chain has one unambiguous order. A constructor delegates through one route, although the delegated same-class constructor may subsequently invoke `super(...)`.
+`this(...)` invokes another constructor in the same class, while `super(...)` invokes an accessible constructor in the direct superclass. On Java 17 and 21, either must be the first statement; Java 25 permits restricted statements before delegation. A constructor delegates through one route, although the delegated same-class constructor may subsequently invoke `super(...)`.
 
 **Q3. Why is `String` immutable and final?** `[easy]`
 

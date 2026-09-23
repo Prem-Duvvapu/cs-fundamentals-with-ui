@@ -2,7 +2,7 @@
 
 **This is the single document you need to author or improve a curriculum topic.**
 If you are an agent assigned one topic file, read this file, read the exemplar named
-in §9, read your target file, and write. You do not need to read anything else.
+in §10, read your target file, and write. You do not need to read anything else.
 
 ---
 
@@ -14,9 +14,10 @@ the app's "Study" tab.
 
 The six categories are exactly: `os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`.
 
-Your reader is a software engineer preparing for technical interviews. They want to
-understand mechanisms deeply enough to answer follow-up questions, not to memorise
-definitions.
+Your reader knows basic programming: variables, conditions, loops and simple functions.
+Do not assume Java, object-oriented programming, the JVM, HTTP, databases or Spring knowledge
+unless the lesson lists a prerequisite that teaches it. Build toward interview depth by
+explaining the problem first, then a small example, then the mechanism and its trade-offs.
 
 ---
 
@@ -261,7 +262,7 @@ Rules:
   code, math, decimals and abbreviations first so they can't pad the count. Three clauses is
   the floor, not the target — the median answer runs closer to five.
 - **At least 2 must be scenario questions** — "Your service shows X, what do you check?" — not
-  definitions. *Human review criterion; see §10.*
+  definitions. *Human review criterion; see §11.*
 - **Migrate first:** if `frontend/src/data/` contains a JSON file for your topic, its
   `theoryData.interviewQA` and `quizData` entries are existing questions. Fold them in
   (improving the answers to meet the 3-sentence bar) before writing new ones. Do not
@@ -271,7 +272,8 @@ Rules:
 
 ## 8. Voice
 
-- Direct and technical. Assume a working engineer, not a beginner to programming.
+- Use plain language for a reader with basic programming knowledge. Define each new
+  technical term before relying on it; keep JVM and framework internals in later tiers.
 - Explain **why**, not just what. "Reads block writes" is weak; "readers hold a shared
   lock, so a writer requesting an exclusive lock queues behind them, which is how a
   long analytical query stalls an OLTP write path" is right.
@@ -281,17 +283,44 @@ Rules:
 
 ---
 
-## 9. Exemplar
+## 9. Learner journey and examples
+
+For Java and Spring lessons rebuilt under `JAVA_LEARNING_PLAN.md`:
+
+- Put **Before you start** and **After this lesson** before the first tier. Link the
+  prerequisites and state two to four observable outcomes, such as predicting output
+  or fixing a bug. Reading an earlier lesson's Expert tier must not be an implicit
+  prerequisite for the next lesson's Beginner tier.
+- Start with a problem the reader understands. Follow with the smallest useful example,
+  trace its behavior, name the concepts, then show a variation and a common failure.
+- Introduce one unfamiliar idea at a time. Explain syntax such as `this`, annotations,
+  type parameters and constructor calls when first used, or link its prerequisite.
+- Distinguish **runnable example**, **excerpt**, **pseudocode**, and **intentionally
+  failing example**. A runnable example includes the filename, imports, entry point,
+  required Java/framework version, execution command and expected output. Do not call
+  an isolated controller method a runnable application.
+- Verify runnable examples with the declared compiler/runtime. For framework examples,
+  provide a reproducible project and dependencies before promising copy-and-run behavior.
+- Include a short predict/change/debug exercise with an answer and an explanation.
+  Explain why an analogy helps and where it stops matching actual Java behavior.
+- Use Java 17 as the default executable baseline. Label features requiring Java 21 or
+  Java 25, and separate language guarantees from HotSpot implementation choices.
+  State the Spring Boot version used by any complete Spring example.
+- Review accuracy and clarity independently of line counts. The structural validator
+  cannot establish whether a novice understands an explanation or whether code compiles.
+
+## 10. Exemplar
 
 Before writing, read **`content/dbms/06-transactions-acid.md`**. It is the reference
 implementation of this contract. Match its depth, structure and voice.
 
 ---
 
-## 10. What the validator cannot check
+## 11. What the validator cannot check
 
-Every rule above is enforced by `scripts/validate-content.mjs` **except** the scenario-question
-requirement, and that exception is deliberate rather than an oversight.
+`scripts/validate-content.mjs` enforces the structural and answer-depth requirements.
+Learner clarity, example correctness, prerequisite quality and scenario questions require
+separate verification and human review. The scenario-question exception is deliberate:
 
 Detecting "is this a scenario question?" from the question text alone was attempted and
 abandoned. Three successive regex detectors — keyword lists, second-person phrasing, symptom
@@ -315,7 +344,7 @@ That judgement is yours.
 
 ---
 
-## 11. Verify before reporting done
+## 12. Verify before reporting done
 
 ```bash
 node scripts/validate-content.mjs content/<category>/<your-file>.md

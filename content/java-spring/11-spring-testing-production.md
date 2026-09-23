@@ -77,7 +77,7 @@ A **mock** is a generated test double with no real behaviour unless configured. 
 | `@Mock` | Mockito mock | No | Unit test with extension | Confused with a Spring bean |
 | `@Spy` | Partial real object | No | Controlled legacy seam | Real side effects run |
 | `@InjectMocks` | Real subject with mock injection | No | Constructor-based unit | Injection surprises with complex subjects |
-| `@MockBean` | Mock replacing/adding an application bean | Yes | Spring Boot slice/context test | Slow context used for unit logic |
+| `@MockitoBean` | Mock replacing/adding an application bean | Yes | Spring Boot slice/context test | Slow context used for unit logic |
 
 ```java
 @ExtendWith(MockitoExtension.class)
@@ -136,7 +136,7 @@ Metrics reveal rates and distributions: request count, error rate, latency perce
 
 ### MVC slice tests with WebMvcTest and MockMvc
 
-`@WebMvcTest` loads a focused MVC application context containing controllers, MVC configuration, converters, validation, and relevant security infrastructure. Collaborating service beans are replaced with test doubles, commonly through `@MockBean` in Spring Boot versions that provide it.
+`@WebMvcTest` loads a focused MVC application context containing controllers, MVC configuration, converters, validation, and relevant security infrastructure. Collaborating service beans are replaced with test doubles, through Spring Framework’s `@MockitoBean` (`org.springframework.test.context.bean.override.mockito.MockitoBean`). Older Boot 3 examples may use `@MockBean`, which was deprecated in Boot 3.4 and removed in Boot 4.
 
 `MockMvc` invokes the servlet stack without opening a network socket. It verifies request mapping, argument binding, validation, filters, exception handling, status, headers, and rendered response bodies.
 
@@ -162,7 +162,7 @@ sequenceDiagram
 class OrderControllerTest {
 
     @Autowired MockMvc mvc;
-    @MockBean OrderService service;
+    @MockitoBean OrderService service;
 
     @Test
     @WithMockUser(authorities = "order:write")
@@ -172,7 +172,9 @@ class OrderControllerTest {
         mvc.perform(post("/api/orders")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"sku":"BOOK-1","quantity":2}"""))
+                .content("""
+                        {"sku":"BOOK-1","quantity":2}
+                        """))
             .andExpect(status().isCreated())
             .andExpect(header().string("Location", "/api/orders/42"))
             .andExpect(jsonPath("$.status").value("CREATED"));
@@ -433,9 +435,9 @@ Use it when the test must cross a real embedded HTTP server boundary and verify 
 
 Testcontainers runs the real database engine and therefore exercises its dialect, constraints, locking, transactions, indexes, and extensions. An in-memory substitute can accept SQL or isolation behaviour that production rejects. Containers cost startup time and require a container runtime, so reuse and test scope should be designed deliberately.
 
-**Q7. What is the risk of using MockBean in every test?** `[medium]`
+**Q7. What is the risk of using MockitoBean in every test?** `[medium]`
 
-MockBean changes a Spring application context by replacing or adding a bean with a Mockito double. Many unique mock combinations fragment Spring's context cache and turn small logic tests into slow framework tests. It can also mask invalid real wiring, so use plain Mockito for units and reserve bean replacement for genuine slice or integration boundaries.
+MockitoBean changes a Spring application context by replacing or adding a bean with a Mockito double. Many unique mock combinations fragment Spring's context cache and turn small logic tests into slow framework tests. It can also mask invalid real wiring, so use plain Mockito for units and reserve bean replacement for genuine slice or integration boundaries.
 
 **Q8. Why are correlation IDs useful, and what must happen across async work?** `[medium]`
 
