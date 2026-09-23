@@ -16,6 +16,7 @@
  *            files without launching a browser. This structural check is deterministic; Mermaid
  *            can produce slightly different edge curves between otherwise identical renders.
  */
+import { subsetCharacters } from './diagram-charset.mjs'
 import fs from 'node:fs'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
@@ -43,7 +44,7 @@ const THEMES = ['dark', 'light']
 // committed content otherwise (CRLF vs LF), which made every fingerprint computed locally
 // mismatch CI's on the very next run regardless of how recently `diagrams:render` had been run —
 // not a staleness bug, a line-ending one. FONT_PATH is binary (woff2) and is hashed as raw bytes.
-const TEXT_INPUTS = [fileURLToPath(import.meta.url), APP_CSS]
+const TEXT_INPUTS = [fileURLToPath(import.meta.url), fileURLToPath(new URL('./diagram-charset.mjs', import.meta.url)), APP_CSS]
 const BINARY_INPUTS = [FONT_PATH]
 
 // Only two installed packages change what comes out of a render: mermaid draws the diagram, and
@@ -155,14 +156,6 @@ const FONT_WEIGHT_RANGE = { min: 400, max: 700 }
 
 // The corpus's own characters, plus printable ASCII as a floor so a label mermaid synthesises
 // rather than copying from the source (a count, an edge marker) can never hit a missing glyph.
-function subsetCharacters(diagrams) {
-  const chars = new Set()
-  for (let code = 0x20; code <= 0x7e; code++) chars.add(String.fromCharCode(code))
-  for (const diagram of diagrams) for (const char of diagram.code) chars.add(char)
-  chars.delete('\n')
-  return [...chars].sort().join('')
-}
-
 async function buildFontSubset(diagrams) {
   const full = fs.readFileSync(FONT_PATH)
   const subset = await subsetFont(full, subsetCharacters(diagrams), {

@@ -90,6 +90,16 @@ try {
         await page.goto(`${origin}${route}`, { waitUntil: 'domcontentloaded' })
         await page.locator('h1').first().waitFor({ timeout: 15_000 })
         if (route.startsWith('/topic/')) await page.locator('.topic-content h2').first().waitFor({ timeout: 15_000 })
+        if (route.startsWith('/topic/')) {
+          const toc = page.locator('#topic-table-of-contents')
+          if ((await toc.isVisible()) !== (width >= 1024)) failures.push(`${theme} ${width}px ${route}: incorrect initial TOC visibility`)
+          const toggle = page.locator('.toc-toggle')
+          await toggle.click()
+          if ((await toc.isVisible()) !== (width < 1024)) failures.push(`${theme} ${width}px ${route}: TOC toggle did not change visibility`)
+          await toggle.click()
+          const headingCount = await page.locator('.topic-content h2[id], .topic-content h3[id]').count()
+          if (await toc.locator('button').count() !== headingCount) failures.push(`${theme} ${width}px ${route}: missing subsection navigation`)
+        }
         const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }))
         if (dimensions.document > dimensions.viewport + 1) {
           failures.push(`${theme} ${width}px ${route}: document width ${dimensions.document}px`)
@@ -97,6 +107,16 @@ try {
       }
     }
   }
+
+  await page.goto(`${origin}/topic/process-management?source=course`, { waitUntil: 'domcontentloaded' })
+  await page.getByRole('tab', { name: 'Simulation' }).click()
+  if (!new URL(page.url()).searchParams.has('source')) failures.push('Tab selection lost an unrelated query parameter')
+  await page.reload()
+  if (await page.getByRole('tab', { name: 'Simulation' }).getAttribute('aria-selected') !== 'true') failures.push('Simulation selection did not survive refresh')
+  await page.getByRole('tab', { name: 'Study' }).click()
+  await page.goBack()
+  if (await page.getByRole('tab', { name: 'Simulation' }).getAttribute('aria-selected') !== 'true') failures.push('Simulation selection did not follow browser history')
+  if (!(await page.title()).includes('Process Management')) failures.push('Topic browser title is missing')
 } finally {
   await browser.close()
   await new Promise(resolve => server.close(resolve))

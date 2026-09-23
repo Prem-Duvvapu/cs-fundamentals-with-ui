@@ -365,7 +365,7 @@ body {
 .reading-progress-track { background: rgba(148, 163, 184, 0.18); border-radius: 999px; height: 4px; margin: 0 0 0.75rem; overflow: hidden; }
 .reading-progress-track span { background: var(--cat-os-base); display: block; height: 100%; transition: width 0.15s ease; }
 
-.study-navigation nav { display: flex; flex-direction: column; gap: 0.25rem; }
+.study-navigation nav:not([hidden]) { display: flex; flex-direction: column; gap: 0.25rem; }
 .study-navigation button, .tier-navigation button, .interview-deck button {
   border: 0;
   border-radius: 7px;
@@ -2079,6 +2079,7 @@ body {
 .main-tab-switcher.subnav-compact { margin: var(--space-4) 0; }
 .study-layout { grid-template-columns: var(--rail-width) minmax(0, 1fr); gap: var(--space-7); }
 .study-navigation { background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-md); max-height: calc(100vh - var(--nav-height) - var(--topic-toolbar-height) - var(--space-6)); overflow-y: auto; padding: var(--space-4); position: sticky; top: calc(var(--nav-height) + var(--topic-toolbar-height) + var(--space-3)); }
+.study-navigation .toc-subsection { padding-inline-start: var(--space-3); }
 .study-navigation ol { display: grid; gap: var(--space-1); list-style: none; }
 .study-navigation button, .tier-navigation button { border-radius: var(--radius-sm); min-height: 2.25rem; }
 .study-navigation button:hover, .study-navigation button.active { background: var(--cat-tint); color: var(--cat-base); }

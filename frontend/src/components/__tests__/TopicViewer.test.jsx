@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import TopicViewer from '../TopicViewer'
+import { useLayoutEffect } from 'react'
 
 // TopicViewer intentionally lazy-loads the sizeable Markdown stack. Its rendering
 // semantics have dedicated real-pipeline coverage in TopicViewer.markdown.test.jsx;
@@ -7,18 +8,16 @@ import TopicViewer from '../TopicViewer'
 // Keeping that boundary synchronous avoids filesystem-dependent dynamic-import
 // timeouts on WSL/OneDrive and makes these interaction tests deterministic.
 vi.mock('../markdown/MarkdownRenderer', () => ({
-  default: ({ content, onReady }) => (
-    <div ref={element => element && onReady?.()}>
+  default: function MockMarkdown({ content, onReady }) {
+    useLayoutEffect(() => { onReady?.() }, [content, onReady])
+    return <div>
       <div data-testid="markdown-content">{content}</div>
-      {[...content.matchAll(/^## (?!#)(.+)$/gm)].map(([, title]) => (
-        <span
-          hidden
-          key={title}
-          id={title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}
-        />
-      ))}
+      {[...content.matchAll(/^(#{2,3}) (.+)$/gm)].map(([, hashes, title]) => {
+        const Heading = hashes.length === 2 ? 'h2' : 'h3'
+        return <Heading key={title} id={title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}>{title}</Heading>
+      })}
     </div>
-  )
+  }
 }))
 
 beforeEach(() => {
@@ -291,4 +290,13 @@ Apply it.`
     expect(screen.getByTestId('markdown-content')).not.toHaveTextContent('Old lesson')
     expect(global.fetch.mock.calls[0][1].signal.aborted).toBe(true)
   })
+})
+
+it('includes rendered subsections in the table of contents and scrolls to them', async () => {
+  global.fetch.mockResolvedValueOnce(new Response('## 🟢 Beginner Level\n\n### Constructors\n\nBuild an object.'))
+  render(<TopicViewer topicId="java-oop-pillars" />)
+  const subsection = await screen.findByRole('button', { name: 'Read Constructors' })
+  expect(subsection.closest('li')).toHaveClass('toc-subsection')
+  fireEvent.click(subsection)
+  expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
 })

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, Suspense } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import TopicViewer from '../components/TopicViewer'
 import { hasTopicVisualizer, TopicVisualizer } from '../components/visualizers/topicVisualizerRegistry'
 import { CATEGORY_METADATA, getTopicCategory } from '../utils/topicCategories'
@@ -10,7 +10,8 @@ import NotFoundPage from './NotFoundPage'
 
 export default function TopicPage() {
   const { topicId } = useParams()
-  const [activeTab, setActiveTab] = useState('theory') // 'theory', 'simulator'
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get('view') === 'simulation' ? 'simulator' : 'theory'
   const [compactHeader, setCompactHeader] = useState(false)
   const tabRefs = useRef([])
 
@@ -105,12 +106,19 @@ export default function TopicPage() {
   }, [])
 
   useEffect(() => {
-    setActiveTab('theory')
-  }, [topicId])
+    const previousTitle = document.title
+    document.title = `${title} | CS Fundamentals`
+    return () => { document.title = previousTitle }
+  }, [title])
 
   const selectTab = (tab, focus = false) => {
     const index = tabs.indexOf(tab)
-    setActiveTab(tab)
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous)
+      if (tab === 'simulator') next.set('view', 'simulation')
+      else next.delete('view')
+      return next
+    })
     if (focus) tabRefs.current[index]?.focus()
   }
 
