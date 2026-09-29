@@ -18,6 +18,7 @@ export default function SearchPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const paramsKey = searchParams.toString()
   const lastWrittenParams = useRef(paramsKey)
 
@@ -79,7 +80,7 @@ export default function SearchPage() {
       controller.abort()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, category, paramsKey, searchParams, setSearchParams])
+  }, [query, category, paramsKey, searchParams, setSearchParams, attempt])
 
   const trimmedQuery = query.trim()
 
@@ -88,12 +89,13 @@ export default function SearchPage() {
       <header className="roadmap-header">
         <p className="eyebrow">Cross-topic search</p>
         <h1>Search the curriculum</h1>
-        <p>Search titles, headings, and lesson content across all 68 topics.</p>
+        <p>Search titles, headings, and lesson content across the curriculum.</p>
 
         <form className="search-form" role="search" onSubmit={event => event.preventDefault()}>
           <label htmlFor="curriculum-search-input" className="sr-only">Search query</label>
           <input
             id="curriculum-search-input"
+            autoFocus
             type="search"
             className="text-input search-input"
             placeholder="e.g. window functions, page replacement, CAP theorem…"
@@ -136,7 +138,7 @@ export default function SearchPage() {
         ) : error ? (
           <section className="roadmap-empty-state" role="alert">
             <h2>Search is unavailable</h2>
-            <p>The search API may be unavailable. Try again in a moment.</p>
+            <p>The search API may be unavailable. Your filters are preserved.</p><button onClick={() => setAttempt(value => value + 1)}>Retry</button>
           </section>
         ) : results.length === 0 ? (
           <section className="roadmap-empty-state" role="status">
@@ -148,6 +150,7 @@ export default function SearchPage() {
             <h2 id="search-results-heading">
               {total} result{total === 1 ? '' : 's'} for “{trimmedQuery}”
             </h2>
+            {total > results.length && <p>Showing the first {results.length} matching lessons. Narrow your search for more specific results.</p>}
             <ol className="topic-rows" aria-label="Search results">
               {results.map(result => (
                 <li key={result.topicId} className="topic-row" data-category={result.category}>
@@ -157,7 +160,7 @@ export default function SearchPage() {
                     {result.matchedHeading && <p className="topic-row-summary">In: {result.matchedHeading}</p>}
                     <p className="topic-row-summary">{result.excerpt || result.summary}</p>
                   </div>
-                  <Link to={`/topic/${result.topicId}`} className="roadmap-cta" aria-label={`Study ${result.title}`}>
+                  <Link to={`/topic/${result.topicId}${result.matchedHeading ? `?section=${encodeURIComponent(result.matchedHeading)}` : ''}`} className="roadmap-cta" aria-label={`Study ${result.title}`}>
                     Study topic <span aria-hidden="true">→</span>
                   </Link>
                 </li>

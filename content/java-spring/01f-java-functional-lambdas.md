@@ -4,7 +4,38 @@ Interfaces define behavioural contracts without coupling callers to a concrete c
 
 ---
 
+
+**Before you start:** understand interfaces from [OOP](/topic/java-oop-pillars) and type parameters from [Generics](/topic/java-generics).
+
+**After this lesson you can:** read a lambda as an implementation of a contract, predict its result, and distinguish captured values from ordinary parameters.
+
 ## 🟢 Beginner Level
+
+### Read the lambda as a small method
+
+A lambda supplies behavior where Java expects a functional interface: an interface with one abstract method. It is not a new thread or a command that automatically runs when declared.
+
+**Runnable example — Java 17.** Save as `LambdaDemo.java`; run `javac --release 17 LambdaDemo.java` and `java LambdaDemo`.
+
+```java runnable=LambdaDemo
+import java.util.function.Predicate;
+public class LambdaDemo {
+    public static void main(String[] args) {
+        Predicate<String> longTitle = title -> title.length() > 4;
+        System.out.println(longTitle.test("Read"));
+        System.out.println(longTitle.test("Practice"));
+    }
+}
+```
+
+```text output=LambdaDemo
+false
+true
+```
+
+`Predicate<String>` describes a test accepting text and returning true or false. Before the arrow is the parameter; after it is the expression that computes the result. Assigning `longTitle` creates the behavior; calling `test` executes it for a supplied value.
+**Predict:** `test("Debug")` returns true because five is greater than four. **Change:** use `>= 4`; `"Read"` now passes. **Debug:** a lambda needs a target interface type; `var f = title -> title.length() > 4` has insufficient type information. Keep an explicit `Predicate<String>` target.
+
 
 ### Interfaces as Behavioural Contracts
 

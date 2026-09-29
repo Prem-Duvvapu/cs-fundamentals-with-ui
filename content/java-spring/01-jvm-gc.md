@@ -4,7 +4,28 @@ The Java Virtual Machine executes bytecode while managing object memory, class m
 
 ---
 
+
+**Before you start:** understand references and reachability from [Java memory](/topic/java-memory-model); read [threads](/topic/java-multithreading-concurrency) before the virtual-thread sections.
+
+**After this lesson you can:** explain when an object becomes collectible, distinguish allocation from collection, and separate thread scheduling from garbage collection.
+
 ## 🟢 Beginner Level
+
+### A reference keeps an object reachable
+
+Imagine a task object reachable through two references: a local variable and a list stored by a long-lived service. Finishing the method removes the local variable's relevance, but the list still reaches the object. The object is still needed by the program's reachable state.
+
+| Change | Can the program still reach the task? | Consequence |
+|---|---|---|
+| Create task and put it in the list | Yes, through local reference and list | Object must remain usable |
+| Method returns | Yes, through the service's list | Return does not free the task |
+| Remove task from the list, with no other reachable references | No | Object is eligible for collection |
+| Collector eventually reclaims its storage | No | Space can be reused |
+
+A **garbage collector** finds objects no longer reachable from the running program's roots and reclaims storage. Eligible does not mean immediately reclaimed. Setting one reference to `null` does not force collection or close files/sockets owned by an object.
+**Predict:** keeping the task in a second reachable map prevents collection. **Change:** bound a cache and evict unused entries instead of storing every task forever. **Debug:** if memory grows, check retained references before changing collector flags. A different collector cannot reclaim objects your application still retains.
+The virtual-thread material later answers a different question: how to run many tasks. A thread is an execution path, not an object-storage region or a garbage collector.
+
 
 ### JVM runtime memory areas and allocation
 

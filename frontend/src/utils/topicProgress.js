@@ -96,6 +96,7 @@ function importProgress(input) {
   let importedCount = 0
 
   for (const [topicId, entry] of Object.entries(data.progress)) {
+    if (['__proto__', 'constructor', 'prototype'].includes(topicId)) continue
     const sanitized = sanitizeEntry(entry)
     if (!sanitized) continue
     const existing = merged[topicId] || {}

@@ -4,7 +4,29 @@ Jakarta Persistence defines a portable object-relational mapping API, while Hibe
 
 ---
 
+
+**Before you start:** understand objects, [SQL](/topic/sql-querying), and [transactions](/topic/transactions-acid) before following the entity lifecycle.
+
+**After this lesson you can:** trace a managed object into a database change, distinguish detached objects from stored rows, and identify extra queries.
+
 ## 🟢 Beginner Level
+
+### Separate the Java object from the database row
+
+A task row and a Java task object are two representations of information. Changing an ordinary Java object's field is not, by itself, an instruction to a database. JPA connects mapped objects to database operations inside a persistence context.
+A **persistence context** tracks managed entity objects and their identity. Hibernate is an implementation that can detect changes to those managed objects and translate them into SQL.
+
+| Step inside a transaction | Java-side observation | Database-side meaning |
+|---|---|---|
+| Load task 7 | Receive a managed entity | A lookup provides its stored values |
+| Set its title | The managed object's field changes | SQL need not run at that exact line |
+| Flush | Pending state is synchronized | An UPDATE may be issued |
+| Commit | Transaction finishes successfully | Changes become committed |
+| Roll back instead | Transaction fails | Flushed statements are not committed by that transaction |
+
+This is a conceptual trace; SQL timing depends on flush behavior, pending work, and the provider. A flush is not the same as a commit. The in-memory Task Tracker starter has no JPA yet, so its map operations must not be described as database transactions.
+**Predict:** changing a detached object is not automatically tracked by a former persistence context. **Change:** inspect the SQL emitted when accessing a collection on several loaded entities. **Debug:** if one list page issues many extra SELECTs, trace the lazy association accesses before adding a cache; choose a fetch plan for that use case.
+
 
 ### JPA, Hibernate, and the persistence context
 

@@ -1,3 +1,4 @@
+import useSimulationVisibility from '../../../hooks/useSimulationVisibility'
 import React, { useState, useEffect } from 'react'
 import { TcpCongestionEngine } from '../../../utils/simulationEngines/tcpCongestionEngine'
 import SimulationControlBar from '../../shared/SimulationControlBar'
@@ -12,6 +13,7 @@ export default function TcpCongestionVisualizer() {
   const [steps, setSteps] = useState([])
   const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const simulationVisible = useSimulationVisibility(setIsPlaying)
   const [speed, setSpeed] = useState(900)
 
   const handleAlgoChange = (newAlgo) => {
@@ -30,7 +32,7 @@ export default function TcpCongestionVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
+    if (simulationVisible && isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {
@@ -44,7 +46,7 @@ export default function TcpCongestionVisualizer() {
     return () => {
       if (timer) clearInterval(timer)
     }
-  }, [isPlaying, steps.length, speed])
+  }, [simulationVisible, isPlaying, steps.length, speed])
 
   const handleNextRtt = () => {
     const s = engine.nextRtt()

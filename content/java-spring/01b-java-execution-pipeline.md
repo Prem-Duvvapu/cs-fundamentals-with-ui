@@ -1,8 +1,19 @@
 # Java Execution Pipeline & JVM Architecture
 
-Java turns source code into portable class files, then lets a platform-specific JVM load, verify, interpret, and optimize those classes at runtime.
-The separation is why the same application bytecode can run on different operating systems and CPUs, while still reaching native-code performance after warmup.
-Interviewers ask about this pipeline because class loading, initialization, bytecode safety, and JIT behaviour explain many startup and production-only failures.
+You write a Java program as text, but your computer needs instructions it can execute.
+This lesson follows a tiny program from a saved file to printed output, then explains
+what the compiler and Java Virtual Machine do along the way.
+
+**Before you start:** know variables, basic arithmetic, and simple functions. Install a Java 17 JDK;
+run `java -version` and `javac -version` in a terminal to check that both commands are available.
+A terminal is the application where you type commands; run the commands below in the folder containing your file.
+
+**After this lesson you can:**
+
+- Save, compile, and run a complete Java program.
+- Distinguish a compiler error from a failure while running a program.
+- Explain source code, bytecode, the JDK, and the JVM using the same example.
+- Follow class loading and optimization when you reach the later tiers.
 
 ---
 
@@ -24,8 +35,9 @@ Modern distributions often ship a JDK as the main install, but the conceptual di
 | JRE | JVM plus runtime modules | run Java applications |
 | JDK | JRE plus compiler and tools | build, inspect, test, and run applications |
 
-Installing a JDK does not make a source file run directly.
-The compiler and runtime still follow distinct phases.
+Installing a JDK supplies the compiler and runtime tools.
+Java 17 also supports launching a single source file with `java Main.java`; that command compiles it in memory first.
+We use separate compilation and execution below so you can see both stages.
 Using a JDK at build time and a compatible runtime at deployment time is a deliberate dependency decision.
 
 ### Source becomes platform-neutral bytecode
@@ -47,19 +59,46 @@ This is the practical meaning of “write once, run anywhere.”
 It means the bytecode can run where a compatible JVM and library set exist.
 It does not mean native libraries, file paths, time zones, network policy, or Java-version APIs behave identically everywhere.
 
-```java
+**Runnable example — Java 17, no imports or external libraries.** Save this as `Main.java`.
+
+```java runnable=Main
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello, JVM");
+        int completed = 2;
+        int remaining = 3;
+        System.out.println(completed + remaining);
     }
 }
 ```
 
+`class Main` groups this program's code. The public class name matches the filename.
+`main` is the method the Java 17 launcher calls; treat its declaration as the starting template for now.
+`int` introduces a whole-number variable. `System.out.println(...)` prints a value followed by a new line.
+A semicolon ends each statement; braces group the class and method bodies.
+
 ```bash
-javac Main.java
+javac --release 17 Main.java
 java Main
-javap -c Main
 ```
+
+Expected output:
+
+```text output=Main
+5
+```
+
+| Step | What you provide | Observable result |
+|---|---|---|
+| Save | `Main.java` containing source text | A file exists; no code has executed yet |
+| Compile | `javac --release 17 Main.java` | `Main.class` appears if syntax and types are valid |
+| Run | `java Main` | The JVM calls `main`, adds 2 and 3, and prints 5 |
+| Inspect | `javap -c Main` | You see bytecode instructions, not a second program run |
+
+**Predict:** change `remaining` from 3 to 4. The output becomes 6 because addition happens when `main` runs.
+**Change:** print `completed` before the total. After recompiling, output is 2 and then 5 on separate lines.
+**Debug:** remove the semicolon after `int completed = 2`. Compilation fails, so fix the source and compile again.
+An old `Main.class` may still exist after a failed compile; running it would execute the previous successful build.
+Do not interpret that old output as evidence that the broken source compiled.
 
 `javap -c` reveals instructions such as `getstatic`, `ldc`, and `invokevirtual`.
 Those instructions use symbolic references that the JVM resolves as classes are linked.

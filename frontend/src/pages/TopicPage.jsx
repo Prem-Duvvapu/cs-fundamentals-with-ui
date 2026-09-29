@@ -1,5 +1,9 @@
+import { SimulationVisibility } from '../hooks/useSimulationVisibility'
+import { readLearning } from '../utils/learningState'
+import useCatalog from '../hooks/useCatalog'
+import { compareTopics } from '../utils/progressStats'
 import { useEffect, useRef, useState, Suspense } from 'react'
-import { useParams, useSearchParams, Link } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import TopicViewer from '../components/TopicViewer'
 import { hasTopicVisualizer, TopicVisualizer } from '../components/visualizers/topicVisualizerRegistry'
 import { CATEGORY_METADATA, getTopicCategory } from '../utils/topicCategories'
@@ -10,89 +14,28 @@ import NotFoundPage from './NotFoundPage'
 
 export default function TopicPage() {
   const { topicId } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = searchParams.get('view') === 'simulation' ? 'simulator' : 'theory'
+  const activeTab = searchParams.get('view') === 'simulation' ? 'simulator' : searchParams.get('view') === 'practice' ? 'practice' : 'theory'
   const [compactHeader, setCompactHeader] = useState(false)
   const tabRefs = useRef([])
 
-  const titleMap = {
-    'process-management': 'Process Management & Lifecycle',
-    'memory-management': 'Memory Management & Virtual Paging',
-    'cpu-scheduling': 'CPU Scheduling Algorithms',
-    'synchronization': 'Process Synchronization & Locks',
-    'deadlocks': 'Deadlocks & Banker\'s Algorithm',
-    'file-systems': 'File Systems & Inodes',
-    'io-systems': 'I/O Systems & Kernel Architecture',
-    'disk-scheduling': 'Disk Scheduling Algorithms & File Allocation',
-    'network-fundamentals': 'Computer Network Fundamentals, Devices & Topologies',
-    'physical-layer-media': 'Physical Layer: Transmission Media, Modes & Encoding',
-    'osi-model': 'OSI 7-Layer & TCP/IP Reference Model',
-    'data-link-layer': 'Data Link Layer, MAC & ARQ Protocols',
-    'ip-subnetting': 'IP Addressing, CIDR Subnetting & Protocols',
-    'routing-algorithms': 'Routing Algorithms & Link-State vs Distance Vector',
-    'tcp-ip': 'TCP vs UDP & Connection Management',
-    'tcp-congestion': 'TCP Flow & Congestion Control',
-    'transport-layer-protocols': 'Transport Protocols: QUIC, SCTP & TCP Segment Internals',
-    'application-layer': 'Application Layer: DNS, HTTP/3 & TLS 1.3',
-    'network-security': 'Network Security, Cryptography & Threat Prevention',
-    'network-performance-qos': 'Network QoS, Traffic Shaping & Modern Networking',
-    'dbms-introduction': 'DBMS Introduction, Architecture & Components',
-    'dbms-architecture': 'DBMS Architecture & 3-Schema ANSI-SPARC',
-    'er-model': 'ER Diagram Modeling & Relational Mapping',
-    'relational-algebra-calculus': 'Relational Algebra, Tuple Calculus & Joins',
-    'sql-querying': 'Practical SQL, Joins, CTEs & Window Functions',
-    'functional-dependencies-keys': 'Keys, Functional Dependencies & Canonical Cover',
-    'database-normalization': 'Database Normalization (1NF to BCNF) & Decompositions',
-    'dbms-indexing': 'B/B+ Tree Indexing & Storage Structures',
-    'storage-raid-indexing': 'File Organization, RAID Storage & Advanced Indexing',
-    'transactions-acid': 'Transactions, ACID States & Crash Recovery',
-    'concurrency-control': 'Concurrency Control, 2PL & Timestamp Ordering',
-    'query-optimization': 'Query Processing & Cost-Based Optimizer',
-    'distributed-databases-cap': 'Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem',
-    'embeddings-vector-db': 'Vector Embeddings, Similarity Search & Vector DBs',
-    'rag-architecture': 'Retrieval-Augmented Generation (RAG) Architecture',
-    'model-serving': 'LLM Model Serving & Low-Latency Inference',
-    'llm-parameters': 'LLM Sampling Parameters, Tokenization & ReAct Agents',
-    'feature-stores': 'Feature Stores, Data Drift & MLOps Architecture',
-    'recommendation-systems': '2-Stage Recommendation Engine Architecture',
-    'ml-fundamentals': 'Machine Learning Fundamentals & Evaluation',
-    'java-execution-pipeline': 'Java Execution Pipeline & JDK/JRE/JVM Architecture',
-    'java-memory-model': 'Java Memory Model: Primitives, References, Stack & Heap',
-    'java-oop-pillars': 'OOP Pillars & Dynamic Method Dispatch (vtable)',
-    'java-static-final-records': 'Static, Final, Immutability & Java Records',
-    'java-functional-lambdas': 'Interfaces, Functional Interfaces & Lambda Expressions',
-    'java-generics': 'Generics, Wildcards (PECS) & Type Erasure',
-    'java-collections-framework': 'Collections Framework: List, Set, Queue & PriorityQueue',
-    'java-hashmap-internals': 'HashMap Bucket Internals, Treeification & TreeMap',
-    'java-streams-optional': 'Java Streams API Lazy Pipeline & Optional',
-    'java-reflection-exceptions': 'Reflection API, Annotations & Exception Unwinding',
-    'java-multithreading-concurrency': 'Multithreading, Monitors, CAS & ThreadPool Executors',
-    'jvm-gc': 'JVM Memory Architecture, GC & Virtual Threads',
-    'spring-bean-lifecycle': 'Spring IoC Container & Bean Lifecycle',
-    'spring-mvc-lifecycle': 'Spring MVC Request Execution & Security Pipeline',
-    'jpa-hibernate-lifecycle': 'JPA / Hibernate Entity Lifecycle & N+1 Solver',
-    'spring-batch-lifecycle': 'Spring Batch Execution Architecture & Chunk Engine',
-    'quartz-scheduler': 'Quartz Scheduler Lifecycle & Clustered JobStoreTX',
-    'design-patterns-solid': 'SOLID Principles & Design Patterns',
-    'spring-boot-internals': 'Spring Boot Internals, Auto-configuration & Profiles',
-    'spring-rest-api-design': 'Spring REST API Design, Validation & Error Contracts',
-    'spring-security': 'Spring Security, JWT & OAuth2 Fundamentals',
-    'spring-caching-async': 'Spring Caching, Async Work & Scheduling',
-    'spring-testing-production': 'Spring Testing & Production Operations',
-    'docker-fundamentals': 'Docker & Container Fundamentals',
-    'kubernetes-fundamentals': 'Kubernetes Core Architecture, Networking & Deployments/Scaling',
-    'nginx-reverse-proxy': 'Nginx as Reverse Proxy & Load Balancer',
-    'cicd-pipelines-deployment-strategies': 'CI/CD Pipelines & Deployment Strategies',
-    'cloud-native-operations': 'Orchestration Trade-offs, Infrastructure as Code, Observability & Cloud Fundamentals',
-  }
-
-  const title = titleMap[topicId] || topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-  const category = getTopicCategory(topicId)
+  const { topics, status, retry } = useCatalog()
+  const topic = topics.find(item => item.id === topicId)
+  const title = topic?.title || 'Loading lesson…'
+  const category = topic?.category || getTopicCategory(topicId)
   const categoryMetadata = CATEGORY_METADATA[category]
+  const siblings = topics.filter(item => item.category === category).sort(compareTopics)
+  const position = siblings.findIndex(item => item.id === topicId)
+  const previous = siblings[position - 1]
+  const next = siblings[position + 1]
   const canSimulate = hasTopicVisualizer(topicId)
-  const tabs = canSimulate ? ['theory', 'simulator'] : ['theory']
-  const selectedTab = canSimulate ? activeTab : 'theory'
-  const isKnownTopic = Object.hasOwn(TOPIC_CATEGORY_MAP, topicId)
+  const tabs = canSimulate ? ['theory', 'simulator', 'practice'] : ['theory', 'practice']
+  const selectedTab = activeTab === 'simulator' && !canSimulate ? 'theory' : activeTab
+  const isKnownTopic = Boolean(topic)
+  const [visitedSimulation, setVisitedSimulation] = useState(null)
+  useEffect(() => { if (selectedTab === 'simulator') setVisitedSimulation(topicId) }, [selectedTab, topicId])
 
   const { progress, toggleBookmark, toggleCompleted } = useTopicProgress()
   const bookmarked = isBookmarked(topicId, progress)
@@ -113,12 +56,13 @@ export default function TopicPage() {
 
   const selectTab = (tab, focus = false) => {
     const index = tabs.indexOf(tab)
-    setSearchParams(previous => {
-      const next = new URLSearchParams(previous)
-      if (tab === 'simulator') next.set('view', 'simulation')
-      else next.delete('view')
-      return next
-    })
+    const params = new URLSearchParams(searchParams)
+    if (tab === 'simulator') params.set('view', 'simulation')
+    else if (tab === 'practice') params.set('view', 'practice')
+    else params.delete('view')
+    const savedHeading = tab === 'theory' ? readLearning().reading[topicId]?.headingId : null
+    const hash = savedHeading ? `#${encodeURIComponent(savedHeading)}` : location.hash
+    navigate({ pathname: location.pathname, search: params.toString(), hash })
     if (focus) tabRefs.current[index]?.focus()
   }
 
@@ -134,6 +78,8 @@ export default function TopicPage() {
     selectTab(tabs[nextIndex], true)
   }
 
+  if (status === 'loading') return <div className="reader-loading" role="status">Loading lesson…</div>
+  if (status === 'error') return <div className="reader-error" role="alert"><h1>Couldn't load this lesson</h1><p>Your saved progress is still on this device.</p><button onClick={retry}>Retry</button></div>
   if (!isKnownTopic) {
     return <NotFoundPage title="Topic not found" message="This topic is not part of the current curriculum." />
   }
@@ -144,9 +90,7 @@ export default function TopicPage() {
         <nav className="topic-breadcrumb" aria-label="Breadcrumb">
           <ol>
             <li><Link to="/">All topics</Link></li>
-            <li aria-current="page">
-              <span aria-hidden="true">{categoryMetadata.glyph}</span> {categoryMetadata.label}
-            </li>
+            <li><Link to={`/category/${category}`}><span aria-hidden="true">{categoryMetadata.glyph}</span> {categoryMetadata.label}</Link></li>
           </ol>
         </nav>
         <div className="topic-page-title-row">
@@ -173,55 +117,35 @@ export default function TopicPage() {
           </div>
         </div>
 
-        {canSimulate && (
-          <div className="main-tab-switcher" role="tablist" aria-label="Topic view">
-            <button
-              ref={element => { tabRefs.current[0] = element }}
-              id="topic-tab-theory"
-              type="button"
-              role="tab"
-              aria-selected={selectedTab === 'theory'}
-              aria-controls="topic-panel-theory"
-              tabIndex={selectedTab === 'theory' ? 0 : -1}
-              onClick={() => selectTab('theory')}
-              onKeyDown={handleTabKeyDown}
-              className={`main-tab-btn ${selectedTab === 'theory' ? 'active-tab' : ''}`}
-            >
-              <span aria-hidden="true">📖</span> Study
-            </button>
-            <button
-              ref={element => { tabRefs.current[1] = element }}
-              id="topic-tab-simulator"
-              type="button"
-              role="tab"
-              aria-selected={selectedTab === 'simulator'}
-              aria-controls="topic-panel-simulator"
-              tabIndex={selectedTab === 'simulator' ? 0 : -1}
-              onClick={() => selectTab('simulator')}
-              onKeyDown={handleTabKeyDown}
-              className={`main-tab-btn ${selectedTab === 'simulator' ? 'active-tab' : ''}`}
-            >
-              <span aria-hidden="true">⚡</span> Simulation
-            </button>
-          </div>
-        )}
+        {topic.outcomes?.length > 0 && <p className="lesson-outcome">{topic.outcomes[0]}</p>}
+        {topic.prerequisiteIds?.length > 0 && <details className="prerequisite-details"><summary>Before you start</summary><ul>{topic.prerequisiteIds.map(id => <li key={id}><Link to={`/topic/${id}`}>{topics.find(item => item.id === id)?.title || id}</Link></li>)}</ul></details>}
+        <div className="main-tab-switcher" role="tablist" aria-label="Topic view">
+          {tabs.map((tab, index) => <button key={tab} ref={element => { tabRefs.current[index] = element }} id={`topic-tab-${tab}`} type="button" role="tab" aria-selected={selectedTab === tab} aria-controls={`topic-panel-${selectedTab}`} tabIndex={selectedTab === tab ? 0 : -1} onClick={() => selectTab(tab)} onKeyDown={handleTabKeyDown} className={`main-tab-btn ${selectedTab === tab ? 'active-tab' : ''}`}>{tab === 'theory' ? 'Study' : tab === 'simulator' ? 'Simulation' : 'Practice'}</button>)}
+        </div>
       </div>
 
       <div
         className="tab-content-area"
-        id={canSimulate ? `topic-panel-${selectedTab}` : undefined}
-        role={canSimulate ? 'tabpanel' : undefined}
-        aria-labelledby={canSimulate ? `topic-tab-${selectedTab}` : undefined}
-        tabIndex={canSimulate ? '0' : undefined}
+        id={`topic-panel-${selectedTab}`}
+        role="tabpanel"
+        aria-labelledby={`topic-tab-${selectedTab}`}
+        tabIndex="0"
       >
-        {selectedTab === 'simulator' ? (
-          <Suspense fallback={<div className="viz-card"><h3>Loading visualizer…</h3></div>}>
-            <TopicVisualizer topicId={topicId} />
-          </Suspense>
-        ) : (
-          <TopicViewer topicId={topicId} category={category} />
-        )}
+        {(selectedTab === 'simulator' || visitedSimulation === topicId) && <div hidden={selectedTab !== 'simulator'} style={{ display: selectedTab === 'simulator' ? undefined : 'none' }}>
+          <SimulationVisibility.Provider value={selectedTab === 'simulator'}>
+            <Suspense fallback={<div className="viz-card"><h3>Loading visualizer…</h3></div>}>
+              <TopicVisualizer key={topicId} topicId={topicId} />
+            </Suspense>
+          </SimulationVisibility.Provider>
+        </div>}
+        <div hidden={selectedTab === 'simulator'} style={{ display: selectedTab === 'simulator' ? 'none' : undefined }}>
+          <TopicViewer key={topicId} topicId={topicId} category={category} mode={selectedTab === 'simulator' ? 'inactive' : selectedTab} />
+        </div>
       </div>
+      <nav className="lesson-navigation" aria-label="Learning path navigation">
+        {previous ? <Link to={`/topic/${previous.id}`}><span>← Previous lesson</span><strong>{previous.title}</strong></Link> : <Link to={`/category/${category}`}>Back to learning path</Link>}
+        {next && <Link to={`/topic/${next.id}`}><span>Next lesson →</span><strong>{next.title}</strong></Link>}
+      </nav>
     </div>
   )
 }

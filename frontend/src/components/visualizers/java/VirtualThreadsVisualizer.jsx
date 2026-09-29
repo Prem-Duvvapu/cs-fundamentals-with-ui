@@ -1,3 +1,4 @@
+import useSimulationVisibility from '../../../hooks/useSimulationVisibility'
 import React, { useState, useEffect } from 'react'
 import { VirtualThreadsEngine } from '../../../utils/simulationEngines/virtualThreadsEngine'
 import SimulationControlBar from '../../shared/SimulationControlBar'
@@ -11,6 +12,7 @@ export default function VirtualThreadsVisualizer() {
   const [steps, setSteps] = useState([])
   const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const simulationVisible = useSimulationVisibility(setIsPlaying)
   const [speed, setSpeed] = useState(1100)
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export default function VirtualThreadsVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
+    if (simulationVisible && isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {
@@ -34,7 +36,7 @@ export default function VirtualThreadsVisualizer() {
     return () => {
       if (timer) clearInterval(timer)
     }
-  }, [isPlaying, steps.length, speed])
+  }, [simulationVisible, isPlaying, steps.length, speed])
 
   const handleSpawn = () => {
     const spawnSteps = engine.spawnVirtualThreads(3)

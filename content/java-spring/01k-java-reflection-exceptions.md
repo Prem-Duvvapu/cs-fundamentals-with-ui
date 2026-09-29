@@ -6,7 +6,41 @@ This topic matters because good API boundaries preserve failures, while framewor
 
 ---
 
+
+**Before you start:** understand method calls from [OOP](/topic/java-oop-pillars). Study exceptions first; reflection and annotations are a separate later pass through this lesson.
+
+**After this lesson you can:** follow an exception to its handler, close resources reliably, and explain what reflective inspection adds beyond a normal method call.
+
 ## 🟢 Beginner Level
+
+### Follow the failure as carefully as the successful result
+
+A method can return a result or stop with an exception. A `try` block marks work whose failure we are prepared to handle; a compatible `catch` receives the failure. Catching an error does not mean the failed statement resumes.
+
+**Runnable example — Java 17, no imports.** Save as `FailureDemo.java`; run `javac --release 17 FailureDemo.java` and `java FailureDemo`.
+
+```java runnable=FailureDemo
+public class FailureDemo {
+    public static void main(String[] args) {
+        try {
+            int count = Integer.parseInt("three");
+            System.out.println(count);
+        } catch (NumberFormatException failure) {
+            System.out.println("Enter a whole number");
+        }
+        System.out.println("Ready for another attempt");
+    }
+}
+```
+
+```text output=FailureDemo
+Enter a whole number
+Ready for another attempt
+```
+
+`parseInt` cannot turn the word `three` into an integer, so assignment to `count` does not finish. Control jumps to the matching handler; after it finishes, execution continues after the entire try/catch.
+**Predict:** replace `"three"` with `"3"`; the program prints 3 and the final message. **Change:** move the final print into the try block after `println(count)`; it will not run for the invalid input. **Debug:** an empty catch makes the failure invisible; handle it meaningfully or pass it to a boundary that can. Do not convert every unexpected failure into a pretend successful result.
+
 
 ### Failure is a control path
 

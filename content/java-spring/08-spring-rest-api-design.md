@@ -4,7 +4,27 @@ A REST API turns domain capabilities into stable HTTP resource contracts that cl
 
 ---
 
+
+**Before you start:** follow the request trace in [Spring MVC](/topic/spring-mvc-lifecycle).
+
+**After this lesson you can:** design resource URLs, distinguish successful creation from invalid input and missing data, and write an error response a caller can use.
+
 ## 🟢 Beginner Level
+
+### Make success and failure observable
+
+The Task Tracker example in `examples/java-spring/task-tracker/` gives these ideas a complete Java 17 / Spring Boot 4.1.1 application. Start it using its README, then compare the following requests.
+
+| Request | Meaning | Expected outcome |
+|---|---|---|
+| POST `/api/tasks` with `{"title":"Read"}` | Create a task | 201, Location header, created task body |
+| POST `/api/tasks` with `{"title":" "}` | Invalid title | 400 with a title-validation explanation |
+| GET `/api/tasks/999999` | Look up an absent task in this example | 404 |
+| PUT `/api/tasks/1/completion` with `{"completed":true}` | Set an existing task's completion state | 200 with its updated representation |
+
+A **resource** is the thing identified by a URL; a **representation** is the data returned about it. JSON is one representation format. A status code summarizes the response outcome; it does not replace a useful body when the caller needs more detail.
+**Predict:** repeating the same completion PUT leaves the task completed; it does not toggle it back. **Change:** send false to express an explicit incomplete state. **Debug:** a client that receives HTTP 200 with a hidden error string cannot rely on status semantics; map invalid input to an appropriate error response and test the boundary. Keep transport behavior in the controller and reusable business rules in the service.
+
 
 ### REST API design, validation, and error contracts
 

@@ -4,7 +4,27 @@ A Spring Boot service is not production-ready merely because its controller retu
 
 ---
 
+
+**Before you start:** run the application from [Spring Boot](/topic/spring-boot-internals) and understand [request boundaries](/topic/spring-mvc-lifecycle).
+
+**After this lesson you can:** choose a test for a failure you care about, distinguish a plain Java unit test from a Spring integration test, and connect a runtime symptom to useful evidence.
+
 ## 🟢 Beginner Level
+
+### Choose the claim before choosing the test annotation
+
+The Task Tracker's `TaskServiceTest` constructs objects directly and checks title validation. Its `TaskApiTest` starts a Spring test context and sends requests through MockMvc, checking mappings and JSON conversion. Both are useful, but they prove different things.
+
+| Claim | Smallest useful verification | What it does not prove |
+|---|---|---|
+| Blank titles are rejected before storage | Plain service test | HTTP mapping and error conversion |
+| POST returns 201 with Location and a body | MVC integration test | An actual network listener works |
+| A request reaches a running server | Real HTTP smoke test | Every business edge case is correct |
+| Data survives a restart | Persistent-store integration test | An in-memory map cannot satisfy this claim |
+
+Run `mvn test -f examples/java-spring/task-tracker/pom.xml` for the repository's Java 17 / Spring Boot 4.1.1 example. Read the assertions and then deliberately break one relevant rule to understand why its test fails; restore the code afterward.
+**Predict:** removing the controller mapping may leave service tests green while breaking API tests. **Change:** assert that completing a task preserves its title. **Debug:** if production requests slow down while tests pass, inspect latency, errors, traffic, and dependency behavior; passing tests are evidence about tested conditions, not a guarantee about every deployment.
+
 
 ### Spring testing and production operations
 

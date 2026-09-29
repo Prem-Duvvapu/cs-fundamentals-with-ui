@@ -1,3 +1,4 @@
+import catalog from '../../test/catalog.json'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import App from '../../App'
@@ -27,7 +28,7 @@ beforeEach(() => {
   // state deep-link handling has to survive, and the state the tour must not interrupt.
   window.localStorage.clear()
   global.fetch = vi.fn().mockResolvedValue(
-    new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } })
+    new Response(JSON.stringify(catalog), { headers: { 'Content-Type': 'application/json' } })
   )
 })
 

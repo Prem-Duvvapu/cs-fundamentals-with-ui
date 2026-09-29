@@ -1,3 +1,6 @@
+import useLearningState from '../hooks/useLearningState'
+import { saveReading, updateLearning } from '../utils/learningState'
+import { prefersReducedMotion } from '../utils/motionPreference'
 import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
 import { getTopicCategory } from '../utils/topicCategories'
 import { parseInterviewQuestions } from '../utils/interviewQuestions'
@@ -26,10 +29,12 @@ function cleanSectionTitle(title) {
 }
 
 function scrollToSection(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion() ? 'instant' : 'smooth', block: 'start' })
 }
 
-export default function TopicViewer({ topicId, category }) {
+export default function TopicViewer({ topicId, category, mode = 'theory' }) {
+  const { state: learning } = useLearningState()
+  const [focusReading, setFocusReading] = useState(false)
   const [content, setContent] = useState('')
   const [loadError, setLoadError] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -139,6 +144,26 @@ export default function TopicViewer({ topicId, category }) {
     }
   }, [content, rendererReady])
 
+  useEffect(() => {
+    if (!rendererReady || sections.length === 0 || mode === 'inactive') return undefined
+    const restoreHash = () => {
+      let id
+      try { id = decodeURIComponent(window.location.hash.slice(1)) } catch { return }
+      const requestedSection = new URLSearchParams(window.location.search).get('section')
+      const normalizeSection = text => text.replace(/[*_~`|]/g, '').trim()
+      const matched = requestedSection && sections.find(section => normalizeSection(section.title) === normalizeSection(requestedSection))
+      const target = id || matched?.id
+      if (target) document.getElementById(target)?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    }
+    const frame = requestAnimationFrame(restoreHash)
+    window.addEventListener('hashchange', restoreHash)
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('hashchange', restoreHash) }
+  }, [rendererReady, sections, mode])
+
+  useEffect(() => {
+    if (mode !== 'inactive' && rendererReady && activeSection) saveReading(topicId, activeSection)
+  }, [topicId, rendererReady, activeSection, mode])
+
   const questions = useMemo(() => parseInterviewQuestions(content, topicId), [content, topicId])
 
   if (loading) {
@@ -167,8 +192,10 @@ export default function TopicViewer({ topicId, category }) {
   const currentSection = sections.find(section => section.id === activeSection) || sections[0]
   const currentLabel = currentSection ? cleanSectionTitle(currentSection.title) : 'the first section'
 
+  if (mode === 'practice') return questions.length ? <InterviewDeck key={topicId} scope={`topic:${topicId}`} questions={questions} /> : <p role="status">No interview questions are available for this lesson.</p>
+
   return (
-    <div className="study-layout">
+    <div className={`study-layout ${focusReading ? 'study-layout--focused' : ''}`} style={{ '--reader-font-size': `${learning.preferences.fontSize}px` }}>
       <aside className="study-navigation" aria-label="Study navigation">
         <div className="reading-progress-label"><p className="study-eyebrow">On this page</p><span>{readingProgress}% read</span></div>
         <div
@@ -193,38 +220,26 @@ export default function TopicViewer({ topicId, category }) {
           <ol>
             {sections.map(section => (
               <li key={section.id} className={section.level === 3 ? 'toc-subsection' : undefined}>
-                <button
-                  type="button"
+                <a
+                  href={`#${section.id}`}
                   onClick={() => scrollToSection(section.id)}
                   className={activeSection === section.id ? 'active' : ''}
                   aria-current={activeSection === section.id ? 'location' : undefined}
                   aria-label={`Read ${cleanSectionTitle(section.title)}`}
                 >
                   {cleanSectionTitle(section.title)}
-                </button>
+                </a>
               </li>
             ))}
           </ol>
         </nav>
       </aside>
       <div className="study-main">
-        <section className="reader-orientation" aria-labelledby="reader-orientation-title">
-          <div className="reader-orientation-copy">
-            <p className="study-eyebrow">Study guide</p>
-            <h2 id="reader-orientation-title">Read in three passes</h2>
-            <p>Start with the mental model, build the mechanism, then use the expert section to test trade-offs and interview reasoning.</p>
-          </div>
-          {currentSection && (
-            <button
-              type="button"
-              className="continue-reading"
-              onClick={() => scrollToSection(currentSection.id)}
-              aria-label={`Continue reading at ${currentLabel}`}
-            >
-              Continue: {currentLabel}
-            </button>
-          )}
-        </section>
+        <div className="reader-toolbar" aria-label="Reading preferences">
+          <details className="reader-settings"><summary>Reading settings</summary><label>Text size <select value={learning.preferences.fontSize} onChange={event => updateLearning(state => ({ ...state, preferences: { ...state.preferences, fontSize: Number(event.target.value) } }))}><option value="16">Small</option><option value="18">Standard</option><option value="20">Large</option></select></label></details>
+          <button type="button" aria-pressed={focusReading} onClick={() => setFocusReading(value => !value)}>{focusReading ? 'Exit focus reading' : 'Focus reading'}</button>
+          <details><summary>How to study</summary><p>Read the mental model, follow a worked example, then explain it in your own words. Explore the Expert section when you are ready for trade-offs.</p></details>
+        </div>
         <nav className="tier-navigation" aria-label="Jump to learning level">
           {TIER_HEADINGS.map(tier => (
             <button
@@ -248,7 +263,7 @@ export default function TopicViewer({ topicId, category }) {
             <MarkdownRenderer content={content} onReady={handleRendererReady} />
           </Suspense>
         </article>
-        <InterviewDeck key={topicId} questions={questions} />
+        {questions.length > 0 && <p className="practice-invitation">Ready to explain this? Open the Practice tab to test your recall.</p>}
       </div>
     </div>
   )

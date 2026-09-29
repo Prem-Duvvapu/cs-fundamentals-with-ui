@@ -1,3 +1,4 @@
+import useSimulationVisibility from '../../../hooks/useSimulationVisibility'
 import React, { useState, useEffect } from 'react'
 import { ConsistentHashingEngine } from '../../../utils/simulationEngines/consistentHashingEngine'
 import SimulationControlBar from '../../shared/SimulationControlBar'
@@ -11,6 +12,7 @@ export default function ConsistentHashingVisualizer() {
   const [steps, setSteps] = useState([])
   const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const simulationVisible = useSimulationVisibility(setIsPlaying)
   const [speed, setSpeed] = useState(1000)
 
   const [vNodeCount, setVNodeCount] = useState(1)
@@ -21,7 +23,7 @@ export default function ConsistentHashingVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
+    if (simulationVisible && isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {
@@ -35,7 +37,7 @@ export default function ConsistentHashingVisualizer() {
     return () => {
       if (timer) clearInterval(timer)
     }
-  }, [isPlaying, steps.length, speed])
+  }, [simulationVisible, isPlaying, steps.length, speed])
 
   const handleAddServer = () => {
     const sName = `Server-${String.fromCharCode(65 + engine.servers.length)}`

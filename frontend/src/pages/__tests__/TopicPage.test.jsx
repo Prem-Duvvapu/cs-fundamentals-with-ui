@@ -1,3 +1,5 @@
+import catalog from '../../test/catalog.json'
+vi.mock('../../hooks/useCatalog', () => ({ default: () => ({ topics: catalog, status: 'ready', retry: vi.fn() }) }))
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
@@ -148,7 +150,7 @@ describe('TopicPage Component', () => {
     )
 
     expect(screen.queryByRole('tab', { name: /simulation/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('tablist', { name: /topic view/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Practice' })).toBeInTheDocument()
     expect(screen.getByTestId('topic-viewer')).toHaveTextContent(topicId)
   })
 
@@ -188,7 +190,7 @@ describe('TopicPage Component', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: catalog.find(topic => topic.id === topicId).title })).toBeInTheDocument()
   })
 
   it('shows recovery actions instead of inventing metadata for an unknown topic', () => {

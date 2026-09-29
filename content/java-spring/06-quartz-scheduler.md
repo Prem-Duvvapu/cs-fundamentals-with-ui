@@ -6,7 +6,27 @@ Interviewers use Quartz to test whether a candidate distinguishes an execution s
 
 ---
 
+
+**Before you start:** understand a service method and its dependencies from [Spring beans](/topic/spring-bean-lifecycle).
+
+**After this lesson you can:** distinguish job logic from its schedule, explain a missed firing, and identify why an operation needs duplicate protection.
+
 ## 🟢 Beginner Level
+
+### Separate what should happen from when it happens
+
+A task reminder has two descriptions: what work sends a reminder, and when that work should be requested. Quartz calls the work contract a Job; a JobDetail supplies its identity and associated data; a Trigger describes scheduling.
+
+| Time | Event | Responsibility |
+|---|---|---|
+| 09:00 | Register reminder schedule | Store a job definition and trigger |
+| 10:00 | Trigger becomes due | Scheduler acquires the firing |
+| 10:00 onward | Execute reminder work | Job code performs the operation |
+| Later | Observe success/failure | Application and scheduler handle their respective policies |
+
+A persistent schedule helps survive a process restart; it does not prove that every remote notification happens exactly once. If a process fails after sending but before recording success, the business operation needs a duplicate-safe design.
+**Predict:** changing the trigger time need not change the reminder's Java logic. **Change:** choose a misfire policy for downtime that crosses the scheduled time: should a late reminder run or be skipped? **Debug:** if two notifications appear, trace acquisition, execution, retry, and the notification's business identifier instead of assuming a database-backed scheduler solves every duplication case.
+
 
 ### The Four Core Objects
 

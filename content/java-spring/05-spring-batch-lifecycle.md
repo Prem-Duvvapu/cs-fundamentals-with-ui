@@ -6,7 +6,26 @@ Interviewers use it to test whether a candidate understands throughput together 
 
 ---
 
+
+**Before you start:** understand [transactions](/topic/transactions-acid) and the [persistence lifecycle](/topic/jpa-hibernate-lifecycle).
+
+**After this lesson you can:** trace a chunk through reading/processing/writing, explain restart identity, and distinguish retry from a new business run.
+
 ## 🟢 Beginner Level
+
+### Import five rows before naming the infrastructure
+
+Suppose a file contains five tasks and the job writes them in chunks of two. The reader obtains rows, the processor validates or transforms them, and the writer stores the accepted output. These are different responsibilities even when a small example could place them in one loop.
+
+| Chunk | Input rows | Successful transaction outcome |
+|---|---|---|
+| 1 | 1 and 2 | Store both, then record progress consistently |
+| 2 | 3 and 4 | Store both, then record progress consistently |
+| 3 | 5 | Store the final row |
+
+If chunk 2 fails before commit, the earlier committed chunk does not automatically disappear. Restart behavior depends on saved execution state, reader configuration, transaction boundaries, and repeatable input. A restartable job needs explicit identity and metadata, not merely a loop that catches exceptions.
+**Predict:** a chunk size of three changes transaction boundaries to rows 1–3 and 4–5. **Change:** decide which invalid rows should fail the job and which can be skipped, recording the reason. **Debug:** retrying a network call that already produced an external side effect can duplicate that side effect; make it idempotent or coordinate it explicitly. The transaction protecting database writes does not automatically roll back a remote service.
+
 
 ### A job is an identifiable batch run
 

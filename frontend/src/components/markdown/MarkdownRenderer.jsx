@@ -1,3 +1,4 @@
+import CodeBlock from './CodeBlock'
 import { Children, isValidElement, useLayoutEffect, useRef } from 'react'
 import { rehypeHeadingIds } from '../../utils/markdownHeadings'
 import ReactMarkdown from 'react-markdown'
@@ -94,12 +95,7 @@ export default function MarkdownRenderer({ content, onReady }) {
           if (/language-mermaid/.test(childClassName)) {
             return children
           }
-          return (
-            <>
-              <pre className="u-scroll-x-hint">{children}</pre>
-              <p className="scroll-hint-caption">Scroll to see the full snippet →</p>
-            </>
-          )
+          return <CodeBlock>{children}</CodeBlock>
         },
         table({ children, ...props }) {
           tableCountRef.current += 1

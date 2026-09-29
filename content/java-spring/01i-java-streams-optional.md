@@ -6,52 +6,51 @@ The Streams API is Java's declarative way to describe a computation over values 
 
 ## 🟢 Beginner Level
 
-### A stream is a pipeline, not a container
+### A stream describes work over values
 
-A `List<Order>` owns and stores order references; a `Stream<Order>` describes how to visit values from some source.
+**Before you start:** use a list and read a lambda from [Collections](/topic/java-collections-framework) and [Lambdas](/topic/java-functional-lambdas).
+**After this lesson you can:** trace a pipeline, identify what triggers evaluation, and handle an absent result without guessing.
+A list stores values. A stream describes operations over a source of values; it is not a second collection automatically filled when the pipeline is declared.
 
-The stream normally does not copy every source value into another collection.
+**Runnable example — Java 17.** Save as `StreamDemo.java`; run `javac --release 17 StreamDemo.java` and `java StreamDemo`.
 
-Instead, it links a source, zero or more intermediate operations, and one terminal operation.
+```java runnable=StreamDemo
+import java.util.List;
+public class StreamDemo {
+    public static void main(String[] args) {
+        List<String> names = List.of("Ada", "Grace", "Alan");
+        var result = names.stream()
+            .filter(name -> name.length() >= 4)
+            .map(String::toUpperCase)
+            .toList();
+        System.out.println(result);
+        System.out.println(names);
+    }
+}
+```
 
-That distinction matters because the source may be a collection, an array, a file, a cursor, or an infinite generator.
+```text output=StreamDemo
+[GRACE, ALAN]
+[Ada, Grace, Alan]
+```
 
-The source remains responsible for its own mutation rules.
-
-The stream is responsible for traversal of that source.
+| Value | `filter`: at least four letters? | `map`: uppercase retained values |
+|---|---|---|
+| Ada | No | Not passed to the map operation |
+| Grace | Yes | GRACE |
+| Alan | Yes | ALAN |
 
 ```mermaid
 flowchart LR
-    S["Order list"] --> F["filter: paid orders"]
-    F --> M["map: order total"]
-    M --> R["reduce or collect"]
-    R --> O["List, number, or Optional"]
+    S["Name list"] --> F["filter: at least four letters"]
+    F --> M["map: uppercase name"]
+    M --> R["toList: collect results"]
+    R --> O["GRACE and ALAN"]
 ```
 
-The pipeline above has no useful result until a terminal operation asks for one.
-
-`filter` and `map` return another stream description.
-
-`toList`, `count`, `findFirst`, and `reduce` consume the description and return a result.
-
-Calling a terminal operation is therefore the point where application work begins.
-
-```java
-List<String> names = List.of("Ada", "Grace", "Alan", "Linus");
-
-List<String> longNames = names.stream()
-    .filter(name -> name.length() >= 4)
-    .map(String::toUpperCase)
-    .toList();
-```
-
-The source list is still `"Ada", "Grace", "Alan", "Linus"` after this code runs.
-
-`longNames` is a separate unmodifiable list in current JDK implementations of `Stream.toList()`.
-
-That result choice is important when a later caller expects to append to it.
-
-Use `collect(Collectors.toCollection(ArrayList::new))` if a mutable `ArrayList` is explicitly required.
+`name -> name.length() >= 4` tests one value. `String::toUpperCase` is a method reference: call that method on each retained string. `toList()` is the terminal operation that asks for results; intermediate operations describe the pipeline lazily. The source list is unchanged.
+`Stream.toList()` returns an unmodifiable list by contract; use `collect(Collectors.toCollection(ArrayList::new))` when a mutable result is required.
+**Predict:** changing the threshold to five leaves only GRACE. **Change:** write a loop with an `if` and a separate result list; compare its output. **Debug:** keeping a stream in a variable and calling two terminal operations on it is not two reusable queries; create a new stream for the second traversal.
 
 ### Stream operations, laziness, and parallelism
 

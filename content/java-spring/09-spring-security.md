@@ -4,7 +4,27 @@ Spring Security is the servlet and reactive security framework used to establish
 
 ---
 
+
+**Before you start:** understand HTTP requests and [REST responses](/topic/spring-rest-api-design).
+
+**After this lesson you can:** separate identity from permission, trace a rejected request, and explain why a client-supplied owner ID is not proof of ownership.
+
 ## 🟢 Beginner Level
+
+### Trace identity and permission as separate decisions
+
+Suppose task 7 belongs to Alice. Bob can be successfully logged in and still have no permission to read it. Being authenticated is not a universal pass to every record.
+
+| Request context | Identity decision | Permission decision |
+|---|---|---|
+| No accepted credentials | No trusted user established | Protected operation cannot proceed |
+| Valid credentials for Alice | Alice is authenticated | Check whether Alice can access task 7 |
+| Valid credentials for Bob | Bob is authenticated | Reject if only the owner may access task 7 |
+
+**Authentication** establishes the caller's identity through a configured mechanism. **Authorization** evaluates a rule about that identity, the operation, and the resource. A filter chain can enforce request rules before controller execution; resource-specific rules still need the correct business context.
+**Predict:** changing a URL from task 7 to task 8 must not bypass the ownership check. **Change:** add an explicitly defined support role and state exactly what it may do. **Debug:** never trust a request body that merely claims `ownerId = Alice`; derive trusted identity from the authenticated context and verify the resource relationship.
+The initial Task Tracker example intentionally has no security configuration. Use it for request/wiring practice, not as an authenticated deployment. Later session, token, CSRF, and OAuth2 sections describe different mechanisms and trade-offs rather than one interchangeable login recipe.
+
 
 ### Authentication, authorization, and the security filter chain
 

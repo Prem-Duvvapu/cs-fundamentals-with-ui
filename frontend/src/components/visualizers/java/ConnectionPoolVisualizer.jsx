@@ -1,3 +1,4 @@
+import useSimulationVisibility from '../../../hooks/useSimulationVisibility'
 import React, { useState, useEffect } from 'react'
 import { ConnectionPoolEngine } from '../../../utils/simulationEngines/connectionPoolEngine'
 import SimulationControlBar from '../../shared/SimulationControlBar'
@@ -11,6 +12,7 @@ export default function ConnectionPoolVisualizer() {
   const [steps, setSteps] = useState([])
   const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const simulationVisible = useSimulationVisibility(setIsPlaying)
   const [speed, setSpeed] = useState(1000)
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function ConnectionPoolVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
+    if (simulationVisible && isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {
@@ -36,7 +38,7 @@ export default function ConnectionPoolVisualizer() {
     return () => {
       if (timer) clearInterval(timer)
     }
-  }, [isPlaying, steps.length, speed])
+  }, [simulationVisible, isPlaying, steps.length, speed])
 
   const handleRequest = () => {
     const s = engine.requestConnection()

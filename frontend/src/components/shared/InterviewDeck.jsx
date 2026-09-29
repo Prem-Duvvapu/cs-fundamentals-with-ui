@@ -1,4 +1,6 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, lazy, Suspense, useId } from 'react'
+import useLearningState from '../../hooks/useLearningState'
+import { questionKey, savePractice, updateLearning } from '../../utils/learningState'
 
 // react-markdown + KaTeX + highlight.js are ~600KB and are only needed once an
 // answer is actually revealed, so they get their own chunk.
@@ -26,31 +28,39 @@ export default function InterviewDeck({
   questions,
   eyebrow = 'Interview practice',
   heading = 'Test your recall',
-  renderMeta
+  renderMeta,
+  scope
 }) {
-  const [index, setIndex] = useState(0)
+  const { state, durable } = useLearningState()
+  const [selectedId, setSelectedId] = useState(() => (scope && state.sessions[scope]) || (questions[0] ? questionKey(questions[0]) : null))
+  const instanceId = useId()
   const [revealed, setRevealed] = useState(false)
 
   if (questions.length === 0) return null
-  const safeIndex = Math.min(index, questions.length - 1)
+  const safeIndex = Math.max(0, questions.findIndex(question => questionKey(question) === selectedId))
   const current = questions[safeIndex]
-  const answerId = `interview-answer-${current.id}`
+  const answerId = `interview-answer-${instanceId}-${current.id}`
+  const saved = state.practice[questionKey(current)] || { draft: '', assessment: '' }
   const move = (nextIndex) => {
-    setIndex(nextIndex)
+    const key = questionKey(questions[nextIndex])
+    setSelectedId(key)
+    if (scope) updateLearning(state => ({ ...state, sessions: { ...state.sessions, [scope]: key } }))
     setRevealed(false)
   }
 
   return (
-    <section className="interview-deck" aria-labelledby="interview-practice-title">
+    <section className="interview-deck" aria-labelledby={`interview-practice-title-${instanceId}`}>
       <div className="interview-deck-heading">
         <div>
           <p className="study-eyebrow">{eyebrow}</p>
-          <h2 id="interview-practice-title">{heading}</h2>
+          <h2 id={`interview-practice-title-${instanceId}`}>{heading}</h2>
         </div>
         <span>{safeIndex + 1} / {questions.length}</span>
       </div>
       <p className="interview-question"><strong>{current.question}</strong> <code>[{current.difficulty}]</code></p>
       {renderMeta && <div className="interview-question-meta">{renderMeta(current)}</div>}
+      <label className="practice-draft">Your explanation <span>(optional)</span><textarea rows={5} maxLength={20000} value={saved.draft} placeholder="Explain the idea in your own words. What changes, and why?" onChange={event => savePractice(current, { draft: event.target.value })} /></label>
+      <p className="practice-save-status" role="status">{durable ? 'Drafts are saved in this browser.' : 'Storage is unavailable. Your draft is kept for this session only.'}</p>
       {revealed && (
         <div id={answerId} className="interview-answer">
           <Suspense fallback={<p>Loading answer…</p>}>
@@ -58,6 +68,7 @@ export default function InterviewDeck({
           </Suspense>
         </div>
       )}
+      {revealed && <fieldset className="practice-assessment"><legend>Your self-assessment</legend>{[['review', 'Needs review'], ['partial', 'Partly recalled'], ['confident', 'Recalled confidently']].map(([value, label]) => <button key={value} type="button" aria-pressed={saved.assessment === value} onClick={() => savePractice(current, { assessment: value })}>{label}</button>)}</fieldset>}
       <div className="interview-deck-actions">
         <button
           type="button"

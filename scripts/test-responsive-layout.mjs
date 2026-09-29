@@ -41,6 +41,8 @@ const playwright = await import(pathToFileURL(require.resolve('playwright')).hre
 const { chromium } = playwright.default ?? playwright
 const browser = await chromium.launch()
 const failures = []
+const screenshotDir = process.env.CS_SCREENSHOT_DIR
+if (screenshotDir) fs.mkdirSync(screenshotDir, { recursive: true })
 
 try {
   const page = await browser.newPage()
@@ -48,7 +50,7 @@ try {
   await page.route('**/api/v1/**', async route => {
     const url = new URL(route.request().url())
     if (url.pathname === '/api/v1/topics') {
-      await route.fulfill({ json: [] })
+      await route.fulfill({ json: JSON.parse(fs.readFileSync(path.join(repoRoot, 'frontend/src/test/catalog.json'), 'utf8')) })
       return
     }
     const contentMatch = url.pathname.match(/^\/api\/v1\/content\/([^/]+)\/([^/]+)$/)
@@ -78,6 +80,8 @@ try {
     '/topic/embeddings-vector-db',
     '/search?q=java',
     '/interview/all',
+    '/category/java-spring',
+    '/progress',
     '/not-a-real-route'
   ]
   const widths = [320, 375, 768, 1024, 1440]
@@ -87,6 +91,7 @@ try {
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 })
       for (const route of routes) {
+        if (page.url().startsWith(origin)) await page.evaluate(() => { localStorage.removeItem('cs-fundamentals-learning-v1'); localStorage.removeItem('cs-fundamentals-progress') })
         await page.goto(`${origin}${route}`, { waitUntil: 'domcontentloaded' })
         await page.locator('h1').first().waitFor({ timeout: 15_000 })
         if (route.startsWith('/topic/')) await page.locator('.topic-content h2').first().waitFor({ timeout: 15_000 })
@@ -98,7 +103,10 @@ try {
           if ((await toc.isVisible()) !== (width < 1024)) failures.push(`${theme} ${width}px ${route}: TOC toggle did not change visibility`)
           await toggle.click()
           const headingCount = await page.locator('.topic-content h2[id], .topic-content h3[id]').count()
-          if (await toc.locator('button').count() !== headingCount) failures.push(`${theme} ${width}px ${route}: missing subsection navigation`)
+          if (await toc.locator('a').count() !== headingCount) failures.push(`${theme} ${width}px ${route}: missing subsection navigation`)
+        }
+        if (screenshotDir && [375, 1440].includes(width) && ['/', '/topic/java-execution-pipeline', '/category/java-spring'].includes(route)) {
+          await page.screenshot({ path: path.join(screenshotDir, `${theme}-${width}-${route.replaceAll('/', '_') || 'home'}.png`), fullPage: false })
         }
         const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, document: document.documentElement.scrollWidth }))
         if (dimensions.document > dimensions.viewport + 1) {
@@ -128,4 +136,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('Responsive layout smoke passed: 8 route families × 5 widths × 2 themes.')
+console.log('Responsive layout smoke passed: 10 route families × 5 widths × 2 themes.')

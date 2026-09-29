@@ -6,7 +6,47 @@ The useful question is which representation preserves the required ordering, uni
 
 ---
 
+
+**Before you start:** understand objects and method calls from [OOP](/topic/java-oop-pillars). Here `String` means text; `<String>` says a collection accepts text values.
+
+**After this lesson you can:** choose between ordered items, unique membership, and key-based lookup, then explain the cost of the operations you need.
+
 ## 🟢 Beginner Level
+
+### Choose the question your data must answer
+
+A task title can occur twice in a checklist. A set of topic tags should contain each tag once. A task ID should retrieve one task directly. These are three different requirements, not three competing spellings of the same collection.
+
+**Runnable example — Java 17.** Save as `CollectionDemo.java`; run `javac --release 17 CollectionDemo.java` and `java CollectionDemo`.
+
+```java runnable=CollectionDemo
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.HashMap;
+public class CollectionDemo {
+    public static void main(String[] args) {
+        var titles = new ArrayList<String>();
+        titles.add("Read");
+        titles.add("Read");
+        var tags = new HashSet<String>(titles);
+        var byId = new HashMap<Integer, String>();
+        byId.put(7, "Read");
+        System.out.println(titles.size());
+        System.out.println(tags.size());
+        System.out.println(byId.get(7));
+    }
+}
+```
+
+```text output=CollectionDemo
+2
+1
+Read
+```
+
+`var` asks the compiler to infer the local variable's type from the expression; it does not remove type checking. `Integer` is the object form used for whole-number keys; Java converts the literal 7 for this call. The list retains both entries; constructing the set retains one unique string; the map associates key 7 with its value.
+**Predict:** `byId.put(7, "Practice")` replaces that key's value rather than adding a second entry for key 7. **Change:** add `"Debug"` to the list before constructing the set; the sizes become 3 and 2. **Debug:** do not use a `HashSet` when your answer depends on iteration order; select an ordered implementation or sort deliberately.
+
 
 ### Collection interfaces and implementation trade-offs
 

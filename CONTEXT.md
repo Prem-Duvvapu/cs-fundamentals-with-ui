@@ -338,3 +338,24 @@ exercises before introducing interfaces and dispatch. Run `node scripts/verify-j
 to compile and execute programs marked `java runnable=ClassName` and compare their
 `text output=ClassName` blocks. The backend CI job runs this gate with JDK 17 and its
 negative-case tests; unmarked excerpts are outside this initial gate.
+
+## Learning experience integration (2026-09-29)
+
+`TopicService` owns authored category order, prerequisite IDs and learning outcomes. Startup
+validation rejects duplicate positions, missing prerequisite references and dependency cycles.
+The frontend `CatalogProvider` shares the topic request across routes; catalog failures expose
+retry rather than a second hardcoded curriculum. Category pages consume this same registry.
+
+`learningState.js` stores versioned reading locations, practice drafts, self-assessments,
+selected questions and font preferences under `cs-fundamentals-learning-v1`. It broadcasts
+local changes and listens for cross-tab storage events. Practice identity uses topic and
+normalized question text rather than an array position. The progress page's version-2
+learning backup previews merges; legacy progress backups remain supported separately.
+
+Study/Simulation/Practice selection is URL-backed. Visited simulations remain mounted while
+switching views within the topic; `SimulationVisibility` pauses hidden timer-driven engines.
+Leaving the topic still discards simulator state. Reader resume uses rendered heading IDs;
+search links use a matched section label resolved against rendered headings.
+
+The isolated `examples/java-spring/task-tracker` Maven project illustrates the lesson request
+flow without changing the platform backend. See its README for run commands and limits.

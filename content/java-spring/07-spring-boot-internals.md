@@ -6,7 +6,40 @@ Interviewers ask about Boot internals because production failures often sit behi
 
 ---
 
+
+**Before you start:** understand [constructor injection](/topic/spring-bean-lifecycle). The runnable teaching project uses Java 17, Maven, and Spring Boot 4.1.1.
+
+**After this lesson you can:** run a small web application, change its configuration, and explain which framework work Boot assembles for you.
+
 ## 🟢 Beginner Level
+
+### Run one application before exploring startup internals
+
+Use `examples/java-spring/task-tracker/` in this repository as the complete application context for the Spring examples. From the repository root:
+
+```bash
+mvn test -f examples/java-spring/task-tracker/pom.xml
+mvn -f examples/java-spring/task-tracker/pom.xml spring-boot:run -Dspring-boot.run.arguments=--server.port=9191
+```
+
+The first command runs tests. The second starts a separate teaching server on port 9191; leave its terminal running and send requests from another terminal. Stop it with Ctrl+C. It stores tasks only in memory, so restarting clears them.
+
+```bash
+curl -i -H 'Content-Type: application/json' -d '{"title":"Read about objects"}' http://localhost:9191/api/tasks
+```
+
+A fresh process returns HTTP 201, a Location header ending in `/api/tasks/1`, and JSON describing task 1 with `completed: false`. JSON property order is not significant. Subsequent requests receive new IDs; use the ID actually returned.
+
+| Project piece | Its job |
+|---|---|
+| `pom.xml` | Declare the toolchain and dependencies |
+| `TaskTrackerApplication` | Start Boot and define the repository/service beans |
+| `TaskController` | Translate HTTP requests to service calls |
+| `TaskService` | Enforce the title rule and use the repository |
+| `MemoryTaskRepository` | Keep tasks for this process's lifetime |
+
+**Predict:** changing the port changes where you send requests, not the task validation rule. **Change:** launch with `--server.port=9192` and update the request URL. **Debug:** a connection failure means you have not yet reached the controller; check the process, port, and startup error before changing Java request mappings. The starter needs no external database, authentication service, or Docker setup.
+
 
 ### Spring Framework versus Spring Boot
 

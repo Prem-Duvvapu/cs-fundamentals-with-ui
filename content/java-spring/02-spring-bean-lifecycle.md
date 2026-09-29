@@ -1,12 +1,88 @@
 # Spring IoC Container, Bean Lifecycles & Auto-Configuration
 
-Spring's container creates application objects, supplies their dependencies, applies cross-cutting behaviour, and destroys managed resources in an ordered lifecycle.
-That lifecycle is where configuration becomes running services, where proxies make annotations such as `@Transactional` work, and where shutdown correctness is won or lost.
-Interviewers ask about it because lifecycle ordering explains real failures involving null dependencies, missing transactions, circular references, and leaked connections.
+A service often needs another object to do its work. Someone has to create those objects
+and connect them. Spring's container can do that job for you; first, we will do it ourselves
+with ordinary Java so that dependency injection has a concrete meaning.
+
+**Before you start:** understand classes, constructors, interfaces, and references from
+[the OOP lesson](/topic/java-oop-pillars). The first example needs only Java 17, not Spring.
+
+**After this lesson you can:**
+
+- Build the same service with either a real collaborator or a small test substitute.
+- Explain how Spring creates and connects objects through constructor injection.
+- Distinguish object construction, initialization, proxy creation, and destruction.
+- Diagnose a missing or ambiguous dependency without memorizing a callback list.
 
 ---
 
 ## 🟢 Beginner Level
+
+### First, connect two objects without Spring
+
+Suppose a task service needs to know how many tasks are stored. The service does not need
+to know whether they are in memory or in a database; it needs a collaborator that can count them.
+A **dependency** is simply another object that our object needs to do its work.
+
+**Runnable example — Java 17, no libraries or imports.** Save as `WiringDemo.java`.
+
+```java runnable=WiringDemo
+public class WiringDemo {
+    interface TaskRepository {
+        int count();
+    }
+    static class MemoryTasks implements TaskRepository {
+        public int count() { return 3; }
+    }
+    static class TaskService {
+        private final TaskRepository repository;
+        TaskService(TaskRepository repository) {
+            this.repository = repository;
+        }
+        int taskCount() { return repository.count(); }
+    }
+    public static void main(String[] args) {
+        TaskRepository repository = new MemoryTasks();
+        TaskService service = new TaskService(repository);
+        System.out.println(service.taskCount());
+    }
+}
+```
+
+```bash
+javac --release 17 WiringDemo.java
+java WiringDemo
+```
+
+Expected output:
+
+```text output=WiringDemo
+3
+```
+
+`TaskRepository` is an interface: it specifies an operation, not a storage implementation.
+`MemoryTasks` implements that operation. These types are nested inside the demo to keep
+one runnable file; production applications commonly put them in separate files.
+The constructor stores the supplied reference in `this.repository`. It does not create a second repository.
+`final` prevents replacing that field after construction; it does not make the repository immutable.
+
+| Step | Object or call | What happens |
+|---|---|---|
+| 1 | `new MemoryTasks()` | Create the collaborator |
+| 2 | `new TaskService(repository)` | Supply that collaborator through the constructor |
+| 3 | `service.taskCount()` | Delegate to `repository.count()` |
+| 4 | `println` | Print the returned number, 3 |
+
+This is **constructor dependency injection**, already working without a framework.
+Spring automates the creation and wiring; it does not invent a different kind of Java reference.
+**Predict:** creating a second service with the same repository passes the same object reference.
+**Change:** return 5 from `MemoryTasks.count()`; the service prints 5 without changing its own code.
+**Debug:** `new TaskService(null)` compiles, but `taskCount()` fails when it dereferences null.
+A required collaborator must be supplied; a container cannot infer an implementation that was never registered.
+
+In the framework excerpts below, `@Service` and related annotations are metadata Spring reads.
+They are not ordinary Java instructions that create an object by themselves. Those excerpts
+require a Spring application and dependencies; they are not standalone runnable Java programs.
 
 ### The container owns bean construction
 

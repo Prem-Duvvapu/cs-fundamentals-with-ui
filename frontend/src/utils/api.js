@@ -1,7 +1,7 @@
 const BASE = '/api/v1'
 
-export async function fetchTopics() {
-  const res = await fetch(`${BASE}/topics`)
+export async function fetchTopics({ signal } = {}) {
+  const res = await fetch(`${BASE}/topics`, { signal })
   if (!res.ok) throw new Error('Failed to fetch topics')
   return res.json()
 }

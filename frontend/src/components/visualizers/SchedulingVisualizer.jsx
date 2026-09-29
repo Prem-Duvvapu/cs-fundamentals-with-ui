@@ -1,3 +1,4 @@
+import useSimulationVisibility from '../../hooks/useSimulationVisibility'
 import { useState, useEffect } from 'react'
 import { fetchCpuSchedulingSimulation } from '../../utils/api'
 import { prefersReducedMotion } from '../../utils/motionPreference'
@@ -15,6 +16,7 @@ export default function SchedulingVisualizer() {
   const [timeQuantum, setTimeQuantum] = useState(2)
   const [currentTime, setCurrentTime] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const simulationVisible = useSimulationVisibility(setIsPlaying)
   const [speed, setSpeed] = useState(1000) // ms per tick
 
   // New process input state
@@ -48,7 +50,7 @@ export default function SchedulingVisualizer() {
   // Timer for auto-play
   useEffect(() => {
     let timer = null
-    if (isPlaying && !prefersReducedMotion()) {
+    if (simulationVisible && isPlaying && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentTime(prev => {
           if (prev >= timeline.length) {
@@ -60,7 +62,7 @@ export default function SchedulingVisualizer() {
       }, speed)
     }
     return () => clearInterval(timer)
-  }, [isPlaying, speed, timeline.length])
+  }, [simulationVisible, isPlaying, speed, timeline.length])
 
   const maxTime = timeline.length
 

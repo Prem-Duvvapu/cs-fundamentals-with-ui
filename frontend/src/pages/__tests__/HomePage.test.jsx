@@ -30,12 +30,13 @@ describe('HomePage', () => {
   beforeEach(() => {
     vi.mocked(fetchTopics).mockResolvedValue(topics)
     window.localStorage.clear()
+    window.history.replaceState({}, '', '/')
   })
 
   it('renders the prioritized roadmap with semantic category controls', async () => {
     renderPage()
 
-    expect(await screen.findByRole('heading', { name: 'CS Fundamentals Roadmap' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Understand the systems behind your code/  })).toBeInTheDocument()
     await screen.findByText('OOP Pillars')
     expect(screen.getByRole('navigation', { name: 'Curriculum categories' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Full roadmap, 5 topics' })).toHaveAttribute('aria-pressed', 'true')
@@ -92,24 +93,13 @@ describe('HomePage', () => {
     expect(screen.getByText('Deadlocks')).toBeInTheDocument()
   })
 
-  it('keeps fallback catalogue counts and study links in sync for planned topics', async () => {
-    vi.mocked(fetchTopics).mockRejectedValueOnce(new Error('API unavailable'))
+  it('shows a recoverable error instead of a fabricated fallback catalog', async () => {
+    vi.mocked(fetchTopics).mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce(topics)
     renderPage()
-
-    await screen.findByText('Spring Boot Internals & Auto-Configuration')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Java & Spring, 23 topics' }))
-    expect(screen.getByText(/23 topics in this path/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Study Spring Security, Authentication & Authorization' })).toHaveAttribute('href', '/topic/spring-security')
-    expect(screen.getByRole('link', { name: 'Study Spring Testing & Production Readiness' })).toHaveAttribute('href', '/topic/spring-testing-production')
-
-    fireEvent.click(screen.getByRole('button', { name: 'DBMS, 13 topics' }))
-    expect(screen.getByText(/13 topics in this path/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Study SQL Querying, Joins & Window Functions' })).toHaveAttribute('href', '/topic/sql-querying')
-
-    fireEvent.click(screen.getByRole('button', { name: 'AI/ML Systems, 7 topics' }))
-    expect(screen.getByText(/7 topics in this path/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Study Machine Learning Fundamentals & Evaluation' })).toHaveAttribute('href', '/topic/ml-fundamentals')
+    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load the curriculum")
+    expect(screen.queryByRole('link', { name: 'Study OOP Pillars' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByRole('link', { name: 'Study OOP Pillars' })).toBeInTheDocument()
   })
 
   it('bookmarks a topic from its row and filters the roadmap to bookmarked-only', async () => {

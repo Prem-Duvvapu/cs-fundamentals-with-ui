@@ -1,3 +1,4 @@
+import DiagramViewer from './DiagramViewer'
 import { useEffect, useState } from 'react'
 import diagramManifest from '../../generated/diagramManifest.json'
 import { diagramHash } from '../../utils/diagramHash'
@@ -132,6 +133,7 @@ export default function MermaidBlock({ code }) {
         />
       </a>
       <figcaption>
+        <DiagramViewer src={assetUrl} description={diagramDescription(code)} />
         <span className="scroll-hint-caption">Scroll to inspect the diagram, or open it full size →</span>
         <details className="diagram-text-alternative">
           <summary>Read diagram as text</summary>

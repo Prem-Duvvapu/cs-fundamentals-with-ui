@@ -436,3 +436,21 @@ exercises before introducing interfaces and dispatch. Run `node scripts/verify-j
 to compile and execute programs marked `java runnable=ClassName` and compare their
 `text output=ClassName` blocks. The backend CI job runs this gate with JDK 17 and its
 negative-case tests; unmarked excerpts are outside this initial gate.
+
+## September 29 learning experience checkpoint
+
+The current implementation is tracked in `UI_UX_REVAMP_PLAN.md`; it is not a completed
+release claim. Preserve the canonical metadata in `TopicService`, shared `CatalogProvider`,
+category routes and explicit Study/Simulation/Practice URL state. The catalog JSON under
+`frontend/src/test` is a test fixture only, never a production fallback.
+
+Reading/practice preferences live in `utils/learningState.js`, with versioned merge previews
+and a storage-denied fallback. Keep question identity stable across shuffle and pagination.
+Timer-driven simulators must observe `useSimulationVisibility` so hidden views pause while
+retaining their state. Existing theme and topic-completion stores remain separate.
+
+Twenty-two Java/Spring lessons received introductory teaching improvements; OOP retains
+its reference lesson. This does not complete all planned foundational curriculum packages.
+Run the marked Java example verifier plus `mvn -f examples/java-spring/task-tracker/pom.xml test`
+when changing the runnable teaching examples. The first Task Tracker milestone intentionally
+has no database or security.

@@ -1,3 +1,4 @@
+import useSimulationVisibility from '../../../hooks/useSimulationVisibility'
 import React, { useState, useEffect } from 'react'
 import { JvmMemoryEngine } from '../../../utils/simulationEngines/jvmEngine'
 import SimulationControlBar from '../../shared/SimulationControlBar'
@@ -11,6 +12,7 @@ export default function JvmMemoryVisualizer() {
   const [steps, setSteps] = useState([])
   const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const simulationVisible = useSimulationVisibility(setIsPlaying)
   const [speed, setSpeed] = useState(1000)
   const [customObjName, setCustomObjName] = useState('')
 
@@ -22,7 +24,7 @@ export default function JvmMemoryVisualizer() {
 
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
+    if (simulationVisible && isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {
@@ -36,7 +38,7 @@ export default function JvmMemoryVisualizer() {
     return () => {
       if (timer) clearInterval(timer)
     }
-  }, [isPlaying, steps.length, speed])
+  }, [simulationVisible, isPlaying, steps.length, speed])
 
   const handleAllocate = (e) => {
     if (e) e.preventDefault()

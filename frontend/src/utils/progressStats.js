@@ -7,7 +7,8 @@ function categoryOf(topic) {
   return topic.category || 'os'
 }
 
-function byLevelThenTitle(left, right) {
+export function compareTopics(left, right) {
+  if (left.order > 0 && right.order > 0) return left.order - right.order
   const levelDifference = (LEVEL_ORDER[left.level || 'beginner'] ?? 0) - (LEVEL_ORDER[right.level || 'beginner'] ?? 0)
   return levelDifference || left.title.localeCompare(right.title)
 }
@@ -19,7 +20,7 @@ function orderTopics(topics) {
   for (const topic of topics) {
     byCategory.get(categoryOf(topic))?.push(topic)
   }
-  return CATEGORY_ORDER.flatMap((id) => [...byCategory.get(id)].sort(byLevelThenTitle))
+  return CATEGORY_ORDER.flatMap((id) => [...byCategory.get(id)].sort(compareTopics))
 }
 
 function toStats(completed, total) {

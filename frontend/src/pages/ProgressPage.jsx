@@ -1,3 +1,7 @@
+import PracticeReview from '../components/shared/PracticeReview'
+import LearningBackup from '../components/shared/LearningBackup'
+import ResumeReading from '../components/shared/ResumeReading'
+import useCatalog from '../hooks/useCatalog'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchTopics } from '../utils/api'
@@ -36,20 +40,10 @@ function ProgressBar({ percent, label }) {
 }
 
 export default function ProgressPage() {
-  const [topics, setTopics] = useState([])
-  const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'error'
+  const { topics, status, retry } = useCatalog()
   const [importStatus, setImportStatus] = useState(null)
   const importInputRef = useRef(null)
   const { progress } = useTopicProgress()
-
-  useEffect(() => {
-    fetchTopics()
-      .then((data) => {
-        setTopics(data)
-        setStatus('ready')
-      })
-      .catch(() => setStatus('error'))
-  }, [])
 
   const handleExportProgress = () => {
     const file = exportProgress()
@@ -88,13 +82,14 @@ export default function ProgressPage() {
 
   return (
     <div className="progress-page roadmap-index">
+      <ResumeReading topics={topics} />
       <header className="roadmap-header">
         <p className="eyebrow">Your learning progress</p>
         <h1>Progress Dashboard</h1>
         {status === 'loading' ? (
           <p role="status">Loading your progress…</p>
         ) : status === 'error' ? (
-          <p role="alert">Couldn&apos;t load your progress right now. Try again in a moment.</p>
+          <div role="alert"><p>Couldn't load your progress right now.</p><button onClick={retry}>Retry</button></div>
         ) : (
           <>
             <p role="status">
@@ -131,7 +126,7 @@ export default function ProgressPage() {
         <div aria-live="polite">
           {nextTopic && (
             <section className="category-overview progress-next-up" aria-labelledby="progress-next-heading">
-              <h2 id="progress-next-heading">Continue where you left off</h2>
+              <h2 id="progress-next-heading">Next recommended lesson</h2>
               <div className="progress-next-up-body">
                 <p className="topic-row-title">{nextTopic.title}</p>
                 <Link to={`/topic/${nextTopic.id}`} className="roadmap-cta" aria-label={`Study ${nextTopic.title}`}>
@@ -199,6 +194,8 @@ export default function ProgressPage() {
           </section>
         </div>
       )}
+      <PracticeReview topics={topics} />
+      <LearningBackup />
     </div>
   )
 }

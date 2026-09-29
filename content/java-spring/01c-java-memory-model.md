@@ -7,7 +7,52 @@ with atomicity—causes subtle correctness failures in ordinary backend services
 
 ---
 
+
+**Before you start:** compile a small Java program using [Java execution](/topic/java-execution-pipeline). We explain array and reference notation below.
+
+**After this lesson you can:** trace a copied reference, distinguish mutation from reassignment, and explain why Java passes values to methods.
+
 ## 🟢 Beginner Level
+
+### Follow one value before drawing memory regions
+
+Start with two names for the same array. An array holds several values; `int[]` means an array of whole numbers, and index `0` selects its first element. `new int[] {2}` creates a new array containing 2.
+
+**Runnable example — Java 17, no imports.** Save as `ReferenceDemo.java`; run `javac --release 17 ReferenceDemo.java` followed by `java ReferenceDemo`.
+
+```java runnable=ReferenceDemo
+public class ReferenceDemo {
+    static void change(int[] values) {
+        values[0] = 7;
+        values = new int[] {99};
+    }
+    public static void main(String[] args) {
+        int[] first = new int[] {2};
+        int[] second = first;
+        change(second);
+        System.out.println(first[0]);
+        System.out.println(first == second);
+    }
+}
+```
+
+```text output=ReferenceDemo
+7
+true
+```
+
+| Operation | Reference being changed | Shared array content |
+|---|---|---|
+| `second = first` | Copy the reference into another variable | Still 2; no array is copied |
+| `change(second)` | Copy that reference into parameter `values` | Still 2 |
+| `values[0] = 7` | None; change the reached object | Now 7 for both caller variables |
+| `values = new int[] {99}` | Replace only the method's local reference | Original array remains 7 |
+
+`==` compares these references: both caller variables still reach the same array. The new array containing 99 was never assigned to either caller variable.
+**Predict:** remove `values[0] = 7`; the first output becomes 2. **Change:** assign `second = new int[] {8}` before calling `change`; `first[0]` stays 2 and reference equality becomes false. **Debug:** a method cannot replace the caller's reference by assigning its own parameter; return the new reference and assign the result in the caller.
+
+This lesson's first use of memory model describes values, objects, and method calls. The formal concurrency Java Memory Model also defines visibility and ordering across threads; that is a separate later topic, not something this single-thread example proves.
+
 
 ### Primitives, references, and variables
 

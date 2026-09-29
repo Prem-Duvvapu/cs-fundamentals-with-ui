@@ -1,3 +1,4 @@
+import useSimulationVisibility from '../../../hooks/useSimulationVisibility'
 import React, { useState, useEffect, useRef } from 'react'
 import { BPlusTree, calculateTreeLayout } from '../../../utils/simulationEngines/bplusTreeEngine'
 import SimulationControlBar from '../../shared/SimulationControlBar'
@@ -14,6 +15,7 @@ export default function BPlusTreeVisualizer() {
   const [steps, setSteps] = useState([])
   const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const simulationVisible = useSimulationVisibility(setIsPlaying)
   const [speed, setSpeed] = useState(1200)
 
   // Input states
@@ -47,7 +49,7 @@ export default function BPlusTreeVisualizer() {
   // Auto-play timer
   useEffect(() => {
     let timer = null
-    if (isPlaying && steps.length > 0 && !prefersReducedMotion()) {
+    if (simulationVisible && isPlaying && steps.length > 0 && !prefersReducedMotion()) {
       timer = setInterval(() => {
         setCurrentStepIdx(prev => {
           if (prev >= steps.length - 1) {
@@ -61,7 +63,7 @@ export default function BPlusTreeVisualizer() {
     return () => {
       if (timer) clearInterval(timer)
     }
-  }, [isPlaying, steps.length, speed])
+  }, [simulationVisible, isPlaying, steps.length, speed])
 
   // Handle single key insert
   const handleInsert = (e) => {

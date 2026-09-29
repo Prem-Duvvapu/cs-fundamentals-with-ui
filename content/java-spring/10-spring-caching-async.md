@@ -4,7 +4,27 @@ Caching, asynchronous execution, and scheduling all move work away from the imme
 
 ---
 
+
+**Before you start:** understand [Spring beans and proxies](/topic/spring-bean-lifecycle) and basic [thread coordination](/topic/java-multithreading-concurrency).
+
+**After this lesson you can:** trace a cache hit and stale result, locate an asynchronous boundary, and identify a capacity or invalidation failure.
+
 ## 🟢 Beginner Level
+
+### Change one boundary at a time
+
+Imagine reading task 7 from a database takes 20 ms. A cache can retain its result so a later lookup avoids that database work. But if the task changes, the earlier cached value may be wrong.
+
+| Operation | Stored value | Cache observation |
+|---|---|---|
+| First read | Title is Read | Miss; load and cache Read |
+| Second read | Title is Read | Hit; return cached Read |
+| Update title | Title becomes Practice | Old cached Read is stale unless updated or invalidated |
+| Read after correct invalidation | Title is Practice | Miss; load current value |
+
+Caching trades fresh work for reuse; asynchronous execution moves work to another execution context; scheduling decides when work is initiated. These mechanisms solve different problems. Submitting work asynchronously does not make it faster or remove its failure modes.
+**Predict:** a cache hit cannot reveal a database update it never learns about. **Change:** evict the task's cache entry after a successful update and test the next read. **Debug:** if `@Async` or `@Cacheable` appears ignored, check whether the call crosses the relevant Spring proxy. Also inspect executor capacity and error handling: accepting work without bounds can move overload into memory.
+
 
 ### Caching, asynchronous work, and scheduled execution
 

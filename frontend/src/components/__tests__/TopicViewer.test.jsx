@@ -100,7 +100,7 @@ describe('TopicViewer', () => {
     })
   })
 
-  it('renders tier navigation and an interview-practice deck for structured content', async () => {
+  it('renders tier navigation and invites recall practice for structured content', async () => {
     const md = `## 🟢 Beginner Level
 
 Begin here.
@@ -124,9 +124,9 @@ Check the observable symptoms, identify the responsible subsystem, and validate 
 
     await waitFor(() => {
       expect(screen.getByRole('navigation', { name: /jump to learning level/i })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: /test your recall/i })).toBeInTheDocument()
+      expect(screen.getByText(/Open the Practice tab/)).toBeInTheDocument()
     })
-    expect(screen.getByRole('button', { name: /reveal answer/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /reveal answer/i })).not.toBeInTheDocument()
   })
 
   it('renders answer Markdown without leaking the following section', async () => {
@@ -143,7 +143,7 @@ Use **structured reasoning**, \`inline code\`, and a [primary source](https://ex
 - This must stay outside the answer.`
     global.fetch.mockResolvedValueOnce(new Response(md))
 
-    render(<TopicViewer topicId="process-management" />)
+    render(<TopicViewer topicId="process-management" mode="practice" />)
 
     const reveal = await screen.findByRole('button', { name: /reveal answer/i }, { timeout: 15000 })
     expect(reveal).toHaveAttribute('aria-expanded', 'false')
@@ -174,14 +174,14 @@ Apply it.`
     render(<TopicViewer topicId="process-management" />)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /read in three passes/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Focus reading' })).toBeInTheDocument()
       expect(screen.getByRole('navigation', { name: /table of contents/i })).toBeInTheDocument()
       expect(screen.getByTestId('markdown-content')).toHaveTextContent('Beginner Level')
     })
 
-    const continueButton = screen.getByRole('button', { name: /continue reading at beginner level/i })
+    const continueButton = screen.getByRole('link', { name: /Read Beginner Level/i })
     fireEvent.click(continueButton)
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'instant', block: 'start' })
 
     const toggle = screen.getByRole('button', { name: /hide table of contents/i })
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
@@ -295,8 +295,8 @@ Apply it.`
 it('includes rendered subsections in the table of contents and scrolls to them', async () => {
   global.fetch.mockResolvedValueOnce(new Response('## 🟢 Beginner Level\n\n### Constructors\n\nBuild an object.'))
   render(<TopicViewer topicId="java-oop-pillars" />)
-  const subsection = await screen.findByRole('button', { name: 'Read Constructors' })
+  const subsection = await screen.findByRole('link', { name: 'Read Constructors' })
   expect(subsection.closest('li')).toHaveClass('toc-subsection')
   fireEvent.click(subsection)
-  expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+  expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'instant', block: 'start' })
 })

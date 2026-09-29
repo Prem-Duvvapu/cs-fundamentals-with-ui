@@ -6,7 +6,41 @@ Interviewers ask about generics because a correct `extends` or `super` choice re
 
 ---
 
+
+**Before you start:** know basic list operations from [Collections](/topic/java-collections-framework).
+
+**After this lesson you can:** read a generic type declaration, catch an element-type mistake at compile time, and reason about wildcard read/write restrictions.
+
 ## 🟢 Beginner Level
+
+### Put the type promise beside the container
+
+Imagine passing a list of task titles between two methods. Without a declared element type, every reader must guess whether the next value is text. `List<String>` makes the promise explicit: this list exposes string elements.
+
+**Runnable example — Java 17.** Save as `GenericDemo.java`; run `javac --release 17 GenericDemo.java` and `java GenericDemo`.
+
+```java runnable=GenericDemo
+import java.util.ArrayList;
+import java.util.List;
+public class GenericDemo {
+    public static void main(String[] args) {
+        List<String> titles = new ArrayList<>();
+        titles.add("Read");
+        String first = titles.get(0);
+        System.out.println(first.length());
+    }
+}
+```
+
+```text output=GenericDemo
+4
+```
+
+`String` between angle brackets is the element type. The empty `<>` on the right lets the compiler infer it from the assignment. `get(0)` returns a string, so no cast is needed before calling `length()`.
+**Predict:** replacing `"Read"` with `"Practice"` prints 8. **Change:** try `titles.add(42)`; this intentionally fails compilation because an integer does not meet the string contract. **Debug:** replacing `List<String>` with raw `List` hides the promise rather than solving the mismatch; keep the type and correct the value.
+
+Generics are type constraints, not a guarantee about mutability, thread safety, or element uniqueness. Learn ordinary typed lists first; then the wildcard sections explain why being able to read a value does not always mean being allowed to insert one.
+
 
 ### Type safety moves failures earlier
 

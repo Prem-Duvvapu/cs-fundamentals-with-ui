@@ -6,7 +6,41 @@ Interviewers ask about it because the same details explain surprising missing ke
 
 ---
 
+
+**Before you start:** know map operations and generic types from [Collections](/topic/java-collections-framework) and [Generics](/topic/java-generics).
+
+**After this lesson you can:** trace a lookup, distinguish replacement from collision, and explain why changing a key's equality-relevant fields is dangerous.
+
 ## 🟢 Beginner Level
+
+### Understand replacement before investigating buckets
+
+Start with the map's public contract: one key maps to one current value. A hash collision is a different event: distinct keys can have the same hash and must still be distinguished using equality.
+
+**Runnable example — Java 17.** Save as `MapDemo.java`; run `javac --release 17 MapDemo.java` and `java MapDemo`.
+
+```java runnable=MapDemo
+import java.util.HashMap;
+public class MapDemo {
+    public static void main(String[] args) {
+        var tasks = new HashMap<Integer, String>();
+        tasks.put(7, "Read");
+        tasks.put(7, "Practice");
+        tasks.put(8, "Read");
+        System.out.println(tasks.size());
+        System.out.println(tasks.get(7));
+    }
+}
+```
+
+```text output=MapDemo
+2
+Practice
+```
+
+The second insertion replaces the value for key 7; key 8 creates a separate entry. We print a specific lookup, not the whole map, because `HashMap` does not promise a display order.
+**Predict:** removing key 8 leaves size 1 and does not change key 7's value. **Change:** use key 9 for the second insertion; size becomes 3 and key 7 still maps to `"Read"`. **Debug:** if a custom mutable key cannot be found after an update, inspect fields used by `equals` and `hashCode`; the map did not automatically reindex the key when those fields changed.
+
 
 ### A map finds a value by its key
 

@@ -4,7 +4,27 @@ SOLID principles and design patterns are vocabulary for managing change, depende
 
 ---
 
+
+**Before you start:** understand classes and interfaces from [OOP](/topic/java-oop-pillars).
+
+**After this lesson you can:** explain the requirement behind an abstraction, choose a small pattern when it helps, and describe its added complexity.
+
 ## 🟢 Beginner Level
+
+### Let a changing requirement motivate the design
+
+A task service initially sends email reminders. Later it must also send text messages. If every service method constructs an email client directly, the delivery choice is mixed into unrelated task rules.
+An interface such as `ReminderSender.send(message)` gives the service one operation to call. An email implementation and a text-message implementation each fulfill that contract. Construction code supplies the chosen implementation.
+
+| Requirement | Simple starting design | Why it helps |
+|---|---|---|
+| Support a second delivery channel | Inject a sender interface | Task rules do not choose transport details |
+| Test without sending real messages | Supply a recording fake sender | Observe intended behavior without external effects |
+| Choose behavior at runtime | Select a compatible sender strategy | Selection is explicit and separate from the task rule |
+
+The useful change is separating responsibilities, not collecting pattern names. An interface with only one implementation can be useful at a test or external-system boundary; an interface around every tiny helper can create unnecessary indirection.
+**Predict:** a service using the interface can call either implementation without changing its method body. **Change:** add a fake that records messages and assert the message content. **Debug:** if adding a sender still requires changing every caller, inspect where callers depend on the concrete implementation or transport-specific assumptions.
+
 
 ### Patterns describe recurring forces
 

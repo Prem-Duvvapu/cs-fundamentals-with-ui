@@ -16,3 +16,6 @@ Thumbs.db
 
 # Generated reports
 content-gap-report.md
+
+# Isolated teaching-project build output
+examples/**/target/

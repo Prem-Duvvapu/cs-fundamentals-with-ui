@@ -1,3 +1,5 @@
+import { CatalogProvider } from './hooks/useCatalog'
+import CategoryPage from './pages/CategoryPage'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -17,6 +19,7 @@ function RoutedContent() {
     <AppErrorBoundary key={location.pathname}>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/category/:categoryId" element={<CategoryPage />} />
         <Route path="/topic/:topicId" element={<TopicPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/interview/:category" element={<InterviewPage />} />
@@ -33,13 +36,14 @@ export default function App() {
   const tour = useProductTour()
 
   return (
-    <div className="app">
+    <CatalogProvider><div className="app">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <Navbar onStartTour={tour.start} />
-      <main className="main-content">
+      <main id="main-content" className="main-content" tabIndex={-1}>
         <RoutedContent />
       </main>
       <Footer />
       <ProductTour tour={tour} />
-    </div>
+    </div></CatalogProvider>
   )
 }

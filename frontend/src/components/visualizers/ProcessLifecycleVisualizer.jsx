@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import useSimulationVisibility from '../../hooks/useSimulationVisibility'
+import React, { useState, useEffect, useRef } from 'react'
 
 export default function ProcessLifecycleVisualizer() {
   const [activeState, setActiveState] = useState('READY')
@@ -36,9 +37,17 @@ export default function ProcessLifecycleVisualizer() {
     ])
   }
 
+  const switchTimer = useRef(null)
+  const simulationVisible = useSimulationVisibility(setIsSwitching)
+  useEffect(() => {
+    if (!simulationVisible) clearTimeout(switchTimer.current)
+    return () => clearTimeout(switchTimer.current)
+  }, [simulationVisible])
+
   const handleContextSwitch = () => {
     setIsSwitching(true)
-    setTimeout(() => {
+    clearTimeout(switchTimer.current)
+    switchTimer.current = setTimeout(() => {
       setContextProcess(prev => prev === 'P1' ? 'P2' : 'P1')
       setIsSwitching(false)
     }, 1200)

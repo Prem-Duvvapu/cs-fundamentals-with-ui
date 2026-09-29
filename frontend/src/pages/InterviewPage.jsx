@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { fetchInterviewQuestions } from '../utils/api'
 import { CATEGORY_METADATA, CATEGORY_ORDER } from '../utils/topicCategories'
 import InterviewDeck from '../components/shared/InterviewDeck'
@@ -16,7 +16,9 @@ export default function InterviewPage() {
   const isKnownCategory = categoryParam === 'all' || Object.hasOwn(CATEGORY_METADATA, categoryParam)
   const apiCategory = categoryParam === 'all' ? null : categoryParam
 
-  const [difficulty, setDifficulty] = useState('all')
+  const [params, setParams] = useSearchParams()
+  const difficulty = DIFFICULTY_FILTERS.includes(params.get('difficulty')) ? params.get('difficulty') : 'all'
+  const setDifficulty = value => setParams(previous => { const next = new URLSearchParams(previous); if (value === 'all') next.delete('difficulty'); else next.set('difficulty', value); return next })
   const [questions, setQuestions] = useState([])
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
@@ -191,11 +193,12 @@ export default function InterviewPage() {
             <div className="interview-deck-toolbar">
               <p>{total} question{total === 1 ? '' : 's'} · {questions.length} loaded</p>
               <button type="button" className="btn btn-secondary is-snug" onClick={shuffle}>
-                🔀 Shuffle deck
+                Shuffle loaded questions
               </button>
             </div>
             <InterviewDeck
-              key={`${categoryParam}-${difficulty}-${shuffleNonce}`}
+              key={`${categoryParam}-${difficulty}`}
+              scope={`interview:${categoryParam}:${difficulty}`}
               questions={questions}
               eyebrow={categoryLabel(categoryParam)}
               heading="Interview Mode"

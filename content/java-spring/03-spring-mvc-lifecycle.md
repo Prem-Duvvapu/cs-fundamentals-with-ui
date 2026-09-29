@@ -6,7 +6,29 @@ Understanding the boundary between these stages makes controllers thinner, error
 
 ---
 
+
+**Before you start:** understand constructor injection from [Spring beans](/topic/spring-bean-lifecycle), startup from [Spring Boot](/topic/spring-boot-internals), and basic HTTP from [application protocols](/topic/application-layer).
+
+**After this lesson you can:** follow one request into application code, explain how JSON becomes Java data, and locate an error along the request path.
+
 ## 🟢 Beginner Level
+
+### Follow a request you can send yourself
+
+An HTTP request contains a method, a path, headers, and sometimes a body. In the teaching Task Tracker, `GET /api/tasks/1` asks for a task; it does not call a Java method by name over the network.
+Run the repository example at `examples/java-spring/task-tracker/` using its README, then create a task before requesting its returned ID. The example uses Java 17 and Spring Boot 4.1.1.
+
+| Stage | Concrete behavior | What to inspect |
+|---|---|---|
+| Server receives request | HTTP method is GET, path is `/api/tasks/1` | Method/path in the request |
+| MVC selects handler | Match `@GetMapping("/{id}")` under `/api/tasks` | Controller mapping |
+| Resolve argument | Convert path text `1` to Java `long` | Parameter value |
+| Application call | Controller asks the service for task 1 | Service/repository result |
+| Response conversion | Turn the returned record into JSON | Status, content type, body |
+
+A **controller** translates between HTTP and the application's operations. A **message converter** translates a request or response body between formats such as JSON and Java values. Neither term requires memorizing every internal framework class first.
+**Predict:** a nonexistent numeric ID reaches the lookup and returns 404. **Change:** send `GET /api/tasks/not-a-number`; converting the path to `long` fails before a successful lookup. **Debug:** if the breakpoint in your controller never runs, first check method/path matching and input conversion, then inspect filters and security. The layers below explain those boundaries in detail.
+
 
 ### The Front-Controller Mental Model
 

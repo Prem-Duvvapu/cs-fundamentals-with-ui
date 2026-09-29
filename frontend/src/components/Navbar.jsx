@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import useTheme from '../hooks/useTheme'
 import { getTopicCategory } from '../utils/topicCategories'
 
@@ -13,22 +14,35 @@ const CATEGORY_LINKS = [
 
 function getActiveCategory(pathname) {
   const topicId = pathname.match(/^\/topic\/([^/]+)/)?.[1]
-  return getTopicCategory(topicId, null) ?? undefined
+  return pathname.match(/^\/category\/([^/]+)/)?.[1] || getTopicCategory(topicId, null) || undefined
 }
 
 export default function Navbar({ onStartTour }) {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const [expanded, setExpanded] = useState(false)
+  const menuRef = useRef(null)
+  useEffect(() => { setExpanded(false) }, [pathname])
+  useEffect(() => {
+    const shortcut = event => {
+      if (event.isComposing || event.target.closest?.('input, textarea, select, [contenteditable="true"]')) return
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); navigate('/search') }
+    }
+    window.addEventListener('keydown', shortcut)
+    return () => window.removeEventListener('keydown', shortcut)
+  }, [navigate])
   const { theme, toggleTheme } = useTheme()
   const activeCategory = getActiveCategory(pathname)
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
 
   return (
-    <nav className="navbar" aria-label="Primary navigation">
+    <nav className={`navbar ${expanded ? 'navbar--expanded' : ''}`} aria-label="Primary navigation" onKeyDown={event => { if (event.key === 'Escape' && expanded) { setExpanded(false); menuRef.current?.focus() } }}>
       <div className="navbar-top-row">
         <Link to="/" className="logo" aria-label="CS Fundamentals home">
           <span className="logo-glyph" aria-hidden="true">◆</span>
           <span className="logo-text">CS Fundamentals</span>
         </Link>
+        <button className="mobile-menu-toggle" type="button" ref={menuRef} aria-expanded={expanded} aria-controls="curriculum-menu" onClick={() => setExpanded(value => !value)}>Menu</button>
         <div className="navbar-actions">
           <Link
             to="/search"
@@ -78,13 +92,13 @@ export default function Navbar({ onStartTour }) {
         </div>
       </div>
 
-      <ul className="nav-links u-scroll-x" aria-label="Curriculum categories">
+      <ul id="curriculum-menu" className="nav-links u-scroll-x" aria-label="Curriculum categories">
         {CATEGORY_LINKS.map(({ id, glyph, label, firstTopic }) => {
           const isActive = activeCategory === id
           return (
             <li key={id} data-category={id}>
               <Link
-                to={`/topic/${firstTopic}`}
+                to={`/category/${id}`}
                 className={isActive ? 'active' : undefined}
                 aria-current={isActive ? 'page' : undefined}
               >

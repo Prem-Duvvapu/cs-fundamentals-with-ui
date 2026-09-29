@@ -267,3 +267,19 @@ exercises before introducing interfaces and dispatch. Run `node scripts/verify-j
 to compile and execute programs marked `java runnable=ClassName` and compare their
 `text output=ClassName` blocks. The backend CI job runs this gate with JDK 17 and its
 negative-case tests; unmarked excerpts are outside this initial gate.
+
+## Learning experience update (2026-09-29)
+
+Browse ordered learning paths at `/category/:categoryId`. Lessons expose Study, Practice,
+and Simulation where supported. Reading includes font size, focus mode, code copy/wrap,
+diagram zoom, and a resume link to your last saved heading. Practice supports optional
+written explanations and self-assessment; the progress page offers review and learning-data
+backup. These records stay in your browser, with session-only fallback when storage fails.
+
+Twenty-two Java/Spring lessons now introduce prerequisites, outcomes and concrete traces
+before advanced terminology; the existing OOP reference lesson remains. The runnable
+[Task Tracker example](examples/java-spring/task-tracker/README.md) connects plain Java
+dependency injection to a small Spring REST application. It uses in-memory storage.
+
+The [revamp plan](UI_UX_REVAMP_PLAN.md) remains in progress: comprehensive accessibility
+verification, simulator presentation work and the larger curriculum expansion are pending.

@@ -4,7 +4,42 @@ Java class design connects object construction, inheritance boundaries, shared s
 
 ---
 
+
+**Before you start:** understand objects, fields, constructors, and references from [OOP](/topic/java-oop-pillars).
+
+**After this lesson you can:** predict which state objects share, explain what `final` restricts, and identify a mutable component inside a record.
+
 ## 🟢 Beginner Level
+
+### Ask which thing is allowed to change
+
+A final variable and an immutable object answer different questions. The variable may be fixed while the object it refers to still changes. Start with a small array before combining this rule with classes and records.
+
+**Runnable example — Java 17, no imports.** Save as `FinalDemo.java`; run `javac --release 17 FinalDemo.java` and `java FinalDemo`.
+
+```java runnable=FinalDemo
+public class FinalDemo {
+    static int created = 0;
+    FinalDemo() { created++; }
+    public static void main(String[] args) {
+        final int[] scores = new int[] {1};
+        scores[0] = 4;
+        new FinalDemo();
+        new FinalDemo();
+        System.out.println(scores[0]);
+        System.out.println(FinalDemo.created);
+    }
+}
+```
+
+```text output=FinalDemo
+4
+2
+```
+
+`scores` keeps the same array reference. Assigning its element changes array contents, not the reference. `created` belongs to the class, so both constructor calls increment the same counter. This counter example is single-threaded; `static` does not make increments thread-safe.
+**Predict:** a third `new FinalDemo()` makes the counter 3. **Change:** replace `scores[0] = 4` with `scores = new int[] {4}`; compilation fails because the final variable cannot be reassigned. **Debug:** a record containing a mutable list is not deeply immutable just because its component field is final; copy the list appropriately and consider whether its elements are mutable too.
+
 
 ### Static, final, and constructors
 

@@ -1,0 +1,953 @@
+[
+  {
+    "id": "process-management",
+    "title": "Process Management",
+    "category": "os",
+    "level": "beginner",
+    "summary": "Process states, PCB, threads, context switching",
+    "order": 1,
+    "prerequisiteIds": [],
+    "outcomes": [
+      "Trace a process from creation to completion"
+    ]
+  },
+  {
+    "id": "memory-management",
+    "title": "Memory Management",
+    "category": "os",
+    "level": "beginner",
+    "summary": "Paging, segmentation, virtual memory, page replacement",
+    "order": 2,
+    "prerequisiteIds": [
+      "process-management"
+    ],
+    "outcomes": [
+      "Translate a virtual address and explain a page fault"
+    ]
+  },
+  {
+    "id": "cpu-scheduling",
+    "title": "CPU Scheduling",
+    "category": "os",
+    "level": "intermediate",
+    "summary": "FCFS, SJF, RR, MLFQ, Linux CFS",
+    "order": 3,
+    "prerequisiteIds": [
+      "process-management"
+    ],
+    "outcomes": [
+      "Compare waiting time under different scheduling policies"
+    ]
+  },
+  {
+    "id": "synchronization",
+    "title": "Synchronization",
+    "category": "os",
+    "level": "intermediate",
+    "summary": "Semaphores, monitors, RCU, lock-free programming",
+    "order": 4,
+    "prerequisiteIds": [
+      "process-management"
+    ],
+    "outcomes": [
+      "Explain and prevent a race between shared-state operations"
+    ]
+  },
+  {
+    "id": "deadlocks",
+    "title": "Deadlocks",
+    "category": "os",
+    "level": "intermediate",
+    "summary": "Banker's algorithm, detection, prevention, recovery",
+    "order": 5,
+    "prerequisiteIds": [
+      "synchronization"
+    ],
+    "outcomes": [
+      "Identify a dependency cycle and choose a prevention strategy"
+    ]
+  },
+  {
+    "id": "file-systems",
+    "title": "File Systems",
+    "category": "os",
+    "level": "expert",
+    "summary": "Inodes, Ext4, Btrfs, ZFS, VFS architecture",
+    "order": 6,
+    "prerequisiteIds": [
+      "memory-management"
+    ],
+    "outcomes": [
+      "Trace a file lookup from path to stored blocks"
+    ]
+  },
+  {
+    "id": "io-systems",
+    "title": "I/O Systems",
+    "category": "os",
+    "level": "expert",
+    "summary": "DMA, interrupts, epoll, io_uring, kernel bypass",
+    "order": 7,
+    "prerequisiteIds": [
+      "process-management",
+      "memory-management"
+    ],
+    "outcomes": [
+      "Compare blocking I/O with event-driven I/O"
+    ]
+  },
+  {
+    "id": "disk-scheduling",
+    "title": "Disk Scheduling Algorithms & File Allocation",
+    "category": "os",
+    "level": "intermediate",
+    "summary": "FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK seek algorithms, contiguous vs linked vs indexed file allocation",
+    "order": 8,
+    "prerequisiteIds": [
+      "file-systems"
+    ],
+    "outcomes": [
+      "Calculate head movement for a concrete request queue"
+    ]
+  },
+  {
+    "id": "network-fundamentals",
+    "title": "Computer Network Fundamentals, Devices & Topologies",
+    "category": "networking",
+    "level": "beginner",
+    "summary": "Network types (LAN/WAN/MAN), devices (router, switch, hub, modem), star/ring/bus/mesh topologies, packet switching vs circuit switching",
+    "order": 1,
+    "prerequisiteIds": [],
+    "outcomes": [
+      "Explain how devices move a packet across a network"
+    ]
+  },
+  {
+    "id": "physical-layer-media",
+    "title": "Physical Layer: Transmission Media, Modes & Encoding",
+    "category": "networking",
+    "level": "beginner",
+    "summary": "Guided (coaxial, twisted pair, fiber) vs unguided (radio, microwave, infrared) media, NRZ/Manchester encoding, multiplexing",
+    "order": 2,
+    "prerequisiteIds": [
+      "network-fundamentals"
+    ],
+    "outcomes": [
+      "Relate signal encoding and bandwidth to transmission limits"
+    ]
+  },
+  {
+    "id": "osi-model",
+    "title": "OSI & TCP/IP Reference Models",
+    "category": "networking",
+    "level": "beginner",
+    "summary": "7-Layer OSI model vs 4-Layer TCP/IP, PDU headers, encapsulation/decapsulation",
+    "order": 3,
+    "prerequisiteIds": [
+      "network-fundamentals"
+    ],
+    "outcomes": [
+      "Follow encapsulation through the network layers"
+    ]
+  },
+  {
+    "id": "data-link-layer",
+    "title": "Data Link Layer, MAC & ARQ Protocols",
+    "category": "networking",
+    "level": "beginner",
+    "summary": "Framing, CRC error detection, Stop-and-Wait, Go-Back-N, Selective Repeat ARQ, CSMA/CD",
+    "order": 4,
+    "prerequisiteIds": [
+      "osi-model"
+    ],
+    "outcomes": [
+      "Trace frame delivery and recovery after a lost frame"
+    ]
+  },
+  {
+    "id": "ip-subnetting",
+    "title": "IP Addressing, CIDR Subnetting & Protocols",
+    "category": "networking",
+    "level": "intermediate",
+    "summary": "IPv4 vs IPv6, CIDR subnet bitmasks, ARP, DHCP DORA, NAT translation",
+    "order": 5,
+    "prerequisiteIds": [
+      "network-fundamentals"
+    ],
+    "outcomes": [
+      "Calculate a subnet and explain address translation"
+    ]
+  },
+  {
+    "id": "routing-algorithms",
+    "title": "Routing Algorithms & Link-State vs Distance Vector",
+    "category": "networking",
+    "level": "intermediate",
+    "summary": "Distance Vector (Bellman-Ford), Link State (Dijkstra), OSPF, RIP, BGP path vectors",
+    "order": 6,
+    "prerequisiteIds": [
+      "ip-subnetting"
+    ],
+    "outcomes": [
+      "Choose a route from a small topology"
+    ]
+  },
+  {
+    "id": "tcp-ip",
+    "title": "TCP vs UDP & Connection Management",
+    "category": "networking",
+    "level": "intermediate",
+    "summary": "TCP vs UDP, 3-Way Handshake, 4-Way Teardown, Port multiplexing, Sockets",
+    "order": 7,
+    "prerequisiteIds": [
+      "osi-model",
+      "ip-subnetting"
+    ],
+    "outcomes": [
+      "Trace connection setup and compare TCP with UDP"
+    ]
+  },
+  {
+    "id": "tcp-congestion",
+    "title": "TCP Flow & Congestion Control",
+    "category": "networking",
+    "level": "intermediate",
+    "summary": "Sliding window, Receiver window (rwnd), Slow Start, Congestion Avoidance, cwnd, Reno/CUBIC",
+    "order": 8,
+    "prerequisiteIds": [
+      "tcp-ip"
+    ],
+    "outcomes": [
+      "Explain how a sender changes its sending window"
+    ]
+  },
+  {
+    "id": "transport-layer-protocols",
+    "title": "Transport Protocols: QUIC, SCTP & TCP Segment Internals",
+    "category": "networking",
+    "level": "intermediate",
+    "summary": "TCP segment structure (20-byte header fields), UDP datagram format, QUIC 0-RTT, SCTP multi-streaming, port multiplexing",
+    "order": 9,
+    "prerequisiteIds": [
+      "tcp-ip"
+    ],
+    "outcomes": [
+      "Compare transport protocols for a concrete application"
+    ]
+  },
+  {
+    "id": "application-layer",
+    "title": "Application Layer: DNS, HTTP/3 & TLS 1.3",
+    "category": "networking",
+    "level": "expert",
+    "summary": "DNS recursive lookup hierarchy, HTTP/1.1 vs HTTP/2 vs HTTP/3 (QUIC), TLS 1.3 1-RTT Handshake",
+    "order": 10,
+    "prerequisiteIds": [
+      "tcp-ip"
+    ],
+    "outcomes": [
+      "Trace a browser request through DNS and HTTP"
+    ]
+  },
+  {
+    "id": "network-security",
+    "title": "Network Security, Cryptography & Threat Prevention",
+    "category": "networking",
+    "level": "expert",
+    "summary": "Symmetric (AES) vs Asymmetric (RSA), Digital Certificates, Firewalls, SYN Flood, DDoS",
+    "order": 11,
+    "prerequisiteIds": [
+      "application-layer"
+    ],
+    "outcomes": [
+      "Explain the purpose of encryption and certificate verification"
+    ]
+  },
+  {
+    "id": "network-performance-qos",
+    "title": "Network QoS, Traffic Shaping & Modern Networking",
+    "category": "networking",
+    "level": "expert",
+    "summary": "Token Bucket vs Leaky Bucket traffic shaping, IntServ vs DiffServ QoS, CDN architecture, SDN/NFV, IoT networking, 5G slicing",
+    "order": 12,
+    "prerequisiteIds": [
+      "tcp-congestion"
+    ],
+    "outcomes": [
+      "Compare traffic-shaping policies under a burst"
+    ]
+  },
+  {
+    "id": "dbms-introduction",
+    "title": "DBMS Introduction & Architecture",
+    "category": "dbms",
+    "level": "beginner",
+    "summary": "What is DBMS, types, components, database languages, file system problems",
+    "order": 1,
+    "prerequisiteIds": [],
+    "outcomes": [
+      "Explain why an application uses a database"
+    ]
+  },
+  {
+    "id": "dbms-architecture",
+    "title": "DBMS Architecture & 3-Schema ANSI-SPARC",
+    "category": "dbms",
+    "level": "beginner",
+    "summary": "DBMS vs File Systems, 3-Schema ANSI-SPARC architecture, physical and logical data independence",
+    "order": 2,
+    "prerequisiteIds": [
+      "dbms-introduction"
+    ],
+    "outcomes": [
+      "Distinguish logical data design from physical storage"
+    ]
+  },
+  {
+    "id": "er-model",
+    "title": "ER Diagram Modeling & Relational Mapping",
+    "category": "dbms",
+    "level": "beginner",
+    "summary": "Entity sets, attributes, cardinalities, weak entities, Generalization, Specialization, ER-to-Table mapping rules",
+    "order": 3,
+    "prerequisiteIds": [
+      "dbms-introduction"
+    ],
+    "outcomes": [
+      "Translate an entity relationship into tables"
+    ]
+  },
+  {
+    "id": "relational-algebra-calculus",
+    "title": "Relational Algebra, Tuple Calculus & Joins",
+    "category": "dbms",
+    "level": "intermediate",
+    "summary": "Selection (\u03c3), Projection (\u03c0), Cartesian Product (\u00d7), Joins (Inner, Theta, Outer), Tuple Relational Calculus (TRC)",
+    "order": 5,
+    "prerequisiteIds": [
+      "sql-querying"
+    ],
+    "outcomes": [
+      "Trace a query through relational operations"
+    ]
+  },
+  {
+    "id": "functional-dependencies-keys",
+    "title": "Keys, Functional Dependencies & Canonical Cover",
+    "category": "dbms",
+    "level": "intermediate",
+    "summary": "Super, Candidate, Primary and Foreign keys, Armstrong's Axioms, Attribute Closure, Minimal Canonical Cover",
+    "order": 6,
+    "prerequisiteIds": [
+      "er-model"
+    ],
+    "outcomes": [
+      "Compute an attribute closure and identify candidate keys"
+    ]
+  },
+  {
+    "id": "database-normalization",
+    "title": "Database Normalization (1NF to BCNF) & Decompositions",
+    "category": "dbms",
+    "level": "intermediate",
+    "summary": "Insertion/Deletion/Update Anomalies, 1NF, 2NF, 3NF, BCNF, Lossless Join Decomposition, Dependency Preservation",
+    "order": 7,
+    "prerequisiteIds": [
+      "functional-dependencies-keys"
+    ],
+    "outcomes": [
+      "Decompose a relation without losing its meaning"
+    ]
+  },
+  {
+    "id": "dbms-indexing",
+    "title": "B/B+ Tree Indexing & Storage Structures",
+    "category": "dbms",
+    "level": "intermediate",
+    "summary": "Clustered vs Secondary indexes, Dense vs Sparse, B+ Tree search, dynamic node splits, leaf linked-list range scans",
+    "order": 8,
+    "prerequisiteIds": [
+      "sql-querying"
+    ],
+    "outcomes": [
+      "Trace index lookup and a B+ tree split"
+    ]
+  },
+  {
+    "id": "storage-raid-indexing",
+    "title": "File Organization, RAID Storage & Advanced Indexing",
+    "category": "dbms",
+    "level": "intermediate",
+    "summary": "Heap vs Sequential vs Hash files, RAID 0/1/5/6/10, Bitmap Indexing, Inverted Indexes for search engines",
+    "order": 9,
+    "prerequisiteIds": [
+      "dbms-indexing"
+    ],
+    "outcomes": [
+      "Compare storage and index choices for a workload"
+    ]
+  },
+  {
+    "id": "transactions-acid",
+    "title": "Transactions, ACID States & Crash Recovery",
+    "category": "dbms",
+    "level": "intermediate",
+    "summary": "ACID guarantees, Transaction State Machine, Write-Ahead Logging (WAL), Checkpoints, ARIES crash recovery",
+    "order": 10,
+    "prerequisiteIds": [
+      "sql-querying"
+    ],
+    "outcomes": [
+      "Explain what survives a failed transaction"
+    ]
+  },
+  {
+    "id": "concurrency-control",
+    "title": "Concurrency Control, 2PL & Timestamp Ordering",
+    "category": "dbms",
+    "level": "expert",
+    "summary": "Conflict serializability, Precedence Graphs, Shared/Exclusive locks, Strict 2PL, Thomas Write Rule, Wait-For Deadlock graphs",
+    "order": 11,
+    "prerequisiteIds": [
+      "transactions-acid"
+    ],
+    "outcomes": [
+      "Check whether concurrent operations form a valid schedule"
+    ]
+  },
+  {
+    "id": "query-optimization",
+    "title": "Query Processing, Relational Trees & Cost-Based Optimizer",
+    "category": "dbms",
+    "level": "expert",
+    "summary": "Relational algebra query trees, Predicate pushdown, Hash Join vs Nested Loop vs Sort-Merge, EXPLAIN ANALYZE",
+    "order": 12,
+    "prerequisiteIds": [
+      "relational-algebra-calculus",
+      "dbms-indexing"
+    ],
+    "outcomes": [
+      "Explain why two equivalent queries can have different costs"
+    ]
+  },
+  {
+    "id": "sql-querying",
+    "title": "SQL Querying, Joins & Practical Data Access",
+    "category": "dbms",
+    "level": "intermediate",
+    "summary": "SQL filtering, joins, grouping, window functions, transactions, query plans and safe data access",
+    "order": 4,
+    "prerequisiteIds": [
+      "er-model"
+    ],
+    "outcomes": [
+      "Write and check a join and an aggregate query"
+    ]
+  },
+  {
+    "id": "distributed-databases-cap",
+    "title": "Distributed DBMS, 2-Phase Commit (2PC) & CAP Theorem",
+    "category": "dbms",
+    "level": "expert",
+    "summary": "Synchronous vs Asynchronous replication, 2-Phase Commit (2PC), 3PC, CAP Theorem, Paxos/Raft consensus",
+    "order": 13,
+    "prerequisiteIds": [
+      "transactions-acid"
+    ],
+    "outcomes": [
+      "Reason about consistency when a network partition occurs"
+    ]
+  },
+  {
+    "id": "java-execution-pipeline",
+    "title": "Java Execution Pipeline & JVM Architecture",
+    "category": "java-spring",
+    "level": "beginner",
+    "summary": "javac bytecode compilation, ClassLoader Parent Delegation Model, Bytecode Verifier, Interpreter & JIT Compiler",
+    "order": 1,
+    "prerequisiteIds": [],
+    "outcomes": [
+      "Compile a Java program and trace how it runs"
+    ]
+  },
+  {
+    "id": "java-memory-model",
+    "title": "Java Memory Model: Primitives, References, Stack & Heap",
+    "category": "java-spring",
+    "level": "beginner",
+    "summary": "Primitive types vs Reference pointers, Stack frames, Method call stack, Heap object allocation",
+    "order": 2,
+    "prerequisiteIds": [
+      "java-execution-pipeline"
+    ],
+    "outcomes": [
+      "Predict how assigning and passing references changes objects"
+    ]
+  },
+  {
+    "id": "java-oop-pillars",
+    "title": "OOP Pillars & Dynamic Method Dispatch (vtable)",
+    "category": "java-spring",
+    "level": "beginner",
+    "summary": "Encapsulation, Abstraction, Inheritance, Polymorphism, Method overloading vs overriding, vtable lookup",
+    "order": 3,
+    "prerequisiteIds": [
+      "java-memory-model"
+    ],
+    "outcomes": [
+      "Create an object and explain an interface-based call"
+    ]
+  },
+  {
+    "id": "java-static-final-records",
+    "title": "Static, Final, Immutable Classes & Java Records",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Class-level state, final fields/methods, immutable class patterns, and Java Records",
+    "order": 4,
+    "prerequisiteIds": [
+      "java-oop-pillars"
+    ],
+    "outcomes": [
+      "Distinguish a final reference from an immutable object"
+    ]
+  },
+  {
+    "id": "jvm-gc",
+    "title": "JVM Memory Architecture, GC & Virtual Threads",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Heap, Young/Old Gen, Metaspace, G1GC vs ZGC, Thread 6-State Lifecycle, Virtual Threads Project Loom",
+    "order": 21,
+    "prerequisiteIds": [
+      "java-memory-model",
+      "java-multithreading-concurrency"
+    ],
+    "outcomes": [
+      "Explain reachability and compare thread execution models"
+    ]
+  },
+  {
+    "id": "java-functional-lambdas",
+    "title": "Interfaces, Functional Interfaces & Lambda Expressions",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Default/static methods, @FunctionalInterface, Lambda syntax, Method references, invokedynamic opcode",
+    "order": 8,
+    "prerequisiteIds": [
+      "java-oop-pillars",
+      "java-generics"
+    ],
+    "outcomes": [
+      "Replace an interface implementation with a lambda"
+    ]
+  },
+  {
+    "id": "java-generics",
+    "title": "Generics, Wildcards (PECS) & Type Erasure",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Type bounds, Producer Extends Consumer Super (PECS), Bytecode Type Erasure & Bridge methods",
+    "order": 7,
+    "prerequisiteIds": [
+      "java-collections-framework"
+    ],
+    "outcomes": [
+      "Explain which values a generic collection accepts"
+    ]
+  },
+  {
+    "id": "java-collections-framework",
+    "title": "Collections Framework: List, Set, Queue & PriorityQueue",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "ArrayList dynamic growth (1.5x), LinkedList nodes, HashSet, PriorityQueue Min-Heap sift-up/down",
+    "order": 6,
+    "prerequisiteIds": [
+      "java-oop-pillars"
+    ],
+    "outcomes": [
+      "Choose a collection for a concrete access pattern"
+    ]
+  },
+  {
+    "id": "java-hashmap-internals",
+    "title": "HashMap Bucket Internals, Treeification & TreeMap",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Bitwise hash & (n-1), bucket chaining, treeification at 8 nodes to Red-Black Tree, load factor 0.75",
+    "order": 19,
+    "prerequisiteIds": [
+      "java-generics",
+      "java-collections-framework"
+    ],
+    "outcomes": [
+      "Trace a key lookup and explain a collision"
+    ]
+  },
+  {
+    "id": "java-streams-optional",
+    "title": "Java Streams API Lazy Pipeline & Optional",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Stream source -> lazy filter/map operations -> terminal collect/reduce flow, Optional safe null checks",
+    "order": 9,
+    "prerequisiteIds": [
+      "java-functional-lambdas",
+      "java-collections-framework"
+    ],
+    "outcomes": [
+      "Trace a lazy stream and handle an absent result"
+    ]
+  },
+  {
+    "id": "java-reflection-exceptions",
+    "title": "Reflection API, Annotations & Exception Unwinding",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "Class<?> introspection, setAccessible(true), custom annotations, try-with-resources, stack unwinding",
+    "order": 5,
+    "prerequisiteIds": [
+      "java-oop-pillars"
+    ],
+    "outcomes": [
+      "Trace exception handling and safe resource cleanup"
+    ]
+  },
+  {
+    "id": "java-multithreading-concurrency",
+    "title": "Multithreading, Monitors, CAS & ThreadPool Executors",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "Thread 6-State lifecycle, synchronized Object Monitor entry/wait sets, volatile barrier, CAS, ThreadPoolExecutor",
+    "order": 20,
+    "prerequisiteIds": [
+      "java-memory-model",
+      "synchronization"
+    ],
+    "outcomes": [
+      "Distinguish atomicity from visibility in concurrent code"
+    ]
+  },
+  {
+    "id": "spring-bean-lifecycle",
+    "title": "Spring IoC Container & Bean Lifecycle",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Bean instantiation, Aware interfaces, @PostConstruct, BeanPostProcessor, @PreDestroy, Auto-Configuration",
+    "order": 11,
+    "prerequisiteIds": [
+      "design-patterns-solid"
+    ],
+    "outcomes": [
+      "Compare manual construction with constructor injection"
+    ]
+  },
+  {
+    "id": "spring-mvc-lifecycle",
+    "title": "Spring MVC Request Execution & Security Pipeline",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "DispatcherServlet, HandlerMapping, HandlerAdapter, HttpMessageConverter, Security Filter Chain",
+    "order": 13,
+    "prerequisiteIds": [
+      "spring-boot-internals",
+      "application-layer"
+    ],
+    "outcomes": [
+      "Trace an HTTP request into a controller and back"
+    ]
+  },
+  {
+    "id": "jpa-hibernate-lifecycle",
+    "title": "JPA / Hibernate Entity Lifecycle & N+1 Solver",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "Entity States (Transient, Managed, Detached, Removed), Dirty checking, N+1 Query Problem, Entity Graphs",
+    "order": 15,
+    "prerequisiteIds": [
+      "spring-rest-api-design",
+      "sql-querying",
+      "transactions-acid"
+    ],
+    "outcomes": [
+      "Trace entity changes inside a transaction"
+    ]
+  },
+  {
+    "id": "spring-batch-lifecycle",
+    "title": "Spring Batch Execution Architecture & Chunk Engine",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "JobLauncher, Job, Step, Chunk-oriented ItemReader/Processor/Writer, JobRepository, Skip & Retry",
+    "order": 22,
+    "prerequisiteIds": [
+      "jpa-hibernate-lifecycle"
+    ],
+    "outcomes": [
+      "Trace a chunk transaction and a restart after failure"
+    ]
+  },
+  {
+    "id": "quartz-scheduler",
+    "title": "Quartz Scheduler Lifecycle & Clustered JobStoreTX",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "Scheduler, JobDetail, Trigger, @DisallowConcurrentExecution, Misfire Instructions, QRTZ_LOCKS clustering",
+    "order": 23,
+    "prerequisiteIds": [
+      "spring-bean-lifecycle"
+    ],
+    "outcomes": [
+      "Explain how a persisted job and trigger cause execution"
+    ]
+  },
+  {
+    "id": "design-patterns-solid",
+    "title": "SOLID Principles & Design Patterns",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "SOLID principles, Singleton, Factory, Builder, Observer, Strategy, Adapter, Decorator patterns",
+    "order": 10,
+    "prerequisiteIds": [
+      "java-oop-pillars"
+    ],
+    "outcomes": [
+      "Refactor a dependency when a requirement changes"
+    ]
+  },
+  {
+    "id": "spring-boot-internals",
+    "title": "Spring Boot Internals & Production Configuration",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Auto-configuration, externalized configuration, actuator, startup, profiles and production diagnostics",
+    "order": 12,
+    "prerequisiteIds": [
+      "spring-bean-lifecycle"
+    ],
+    "outcomes": [
+      "Explain application startup and configuration selection"
+    ]
+  },
+  {
+    "id": "spring-rest-api-design",
+    "title": "Spring REST API Design & Error Handling",
+    "category": "java-spring",
+    "level": "intermediate",
+    "summary": "Resource design, validation, pagination, versioning, problem details and API contracts",
+    "order": 14,
+    "prerequisiteIds": [
+      "spring-mvc-lifecycle"
+    ],
+    "outcomes": [
+      "Design a validated request and a useful error response"
+    ]
+  },
+  {
+    "id": "spring-security",
+    "title": "Spring Security, Authentication & Authorization",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "Security filter chain, sessions, JWT, OAuth2, method security, CSRF and secure defaults",
+    "order": 16,
+    "prerequisiteIds": [
+      "spring-rest-api-design"
+    ],
+    "outcomes": [
+      "Distinguish authentication from permission checks"
+    ]
+  },
+  {
+    "id": "spring-caching-async",
+    "title": "Spring Caching, Async Work & Resilience",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "Cache abstraction, async execution, retries, timeouts, scheduling and resilient service boundaries",
+    "order": 18,
+    "prerequisiteIds": [
+      "spring-bean-lifecycle"
+    ],
+    "outcomes": [
+      "Explain stale cache data and asynchronous execution boundaries"
+    ]
+  },
+  {
+    "id": "spring-testing-production",
+    "title": "Spring Testing & Production Readiness",
+    "category": "java-spring",
+    "level": "expert",
+    "summary": "Slice tests, integration tests, test containers, observability, deployment checks and incident-safe operations",
+    "order": 17,
+    "prerequisiteIds": [
+      "spring-rest-api-design"
+    ],
+    "outcomes": [
+      "Choose a test boundary and explain what it verifies"
+    ]
+  },
+  {
+    "id": "ml-fundamentals",
+    "title": "Machine Learning Fundamentals & Model Evaluation",
+    "category": "aiml",
+    "level": "beginner",
+    "summary": "Supervised learning, features, train-validation-test splits, metrics, overfitting and responsible evaluation",
+    "order": 1,
+    "prerequisiteIds": [],
+    "outcomes": [
+      "Choose an evaluation metric for a learning task"
+    ]
+  },
+  {
+    "id": "embeddings-vector-db",
+    "title": "Vector Embeddings, Similarity Search & Vector DBs",
+    "category": "aiml",
+    "level": "beginner",
+    "summary": "Embedding vectors, cosine similarity, HNSW ANN search, pgvector/Qdrant",
+    "order": 2,
+    "prerequisiteIds": [
+      "ml-fundamentals"
+    ],
+    "outcomes": [
+      "Compare vectors and explain approximate retrieval"
+    ]
+  },
+  {
+    "id": "rag-architecture",
+    "title": "Retrieval-Augmented Generation (RAG) Architecture",
+    "category": "aiml",
+    "level": "intermediate",
+    "summary": "Chunking, retrieval, context assembly, grounded generation pipeline",
+    "order": 3,
+    "prerequisiteIds": [
+      "embeddings-vector-db"
+    ],
+    "outcomes": [
+      "Trace a question through retrieval and answer generation"
+    ]
+  },
+  {
+    "id": "model-serving",
+    "title": "LLM Model Serving & Low-Latency Inference",
+    "category": "aiml",
+    "level": "expert",
+    "summary": "vLLM PagedAttention, KV cache management, batching, GPU memory allocation",
+    "order": 4,
+    "prerequisiteIds": [
+      "ml-fundamentals"
+    ],
+    "outcomes": [
+      "Explain how batching and caching affect inference latency"
+    ]
+  },
+  {
+    "id": "llm-parameters",
+    "title": "LLM Sampling Parameters, Tokenization & ReAct Agents",
+    "category": "aiml",
+    "level": "intermediate",
+    "summary": "Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops",
+    "order": 5,
+    "prerequisiteIds": [
+      "model-serving"
+    ],
+    "outcomes": [
+      "Explain how sampling changes generated output"
+    ]
+  },
+  {
+    "id": "feature-stores",
+    "title": "Feature Stores, Data Drift & MLOps Architecture",
+    "category": "aiml",
+    "level": "expert",
+    "summary": "Online vs offline feature stores, PSI drift detection, retraining pipelines",
+    "order": 6,
+    "prerequisiteIds": [
+      "ml-fundamentals"
+    ],
+    "outcomes": [
+      "Distinguish training features from online feature access"
+    ]
+  },
+  {
+    "id": "recommendation-systems",
+    "title": "2-Stage Recommendation Engine Architecture",
+    "category": "aiml",
+    "level": "expert",
+    "summary": "Two-Tower candidate retrieval, deep ranking models, pCTR x pCVR scoring",
+    "order": 7,
+    "prerequisiteIds": [
+      "embeddings-vector-db"
+    ],
+    "outcomes": [
+      "Trace candidate retrieval and ranking"
+    ]
+  },
+  {
+    "id": "docker-fundamentals",
+    "title": "Docker & Container Fundamentals",
+    "category": "devops",
+    "level": "beginner",
+    "summary": "Namespaces, cgroups, image layers, multi-stage builds, networking modes, the containerd/runc runtime stack",
+    "order": 1,
+    "prerequisiteIds": [],
+    "outcomes": [
+      "Explain how a container runs an application"
+    ]
+  },
+  {
+    "id": "kubernetes-fundamentals",
+    "title": "Kubernetes Core Architecture, Networking & Deployments/Scaling",
+    "category": "devops",
+    "level": "intermediate",
+    "summary": "Control plane and node architecture, Pods, Deployments and rolling updates, Services and kube-proxy, HPA",
+    "order": 2,
+    "prerequisiteIds": [
+      "docker-fundamentals"
+    ],
+    "outcomes": [
+      "Trace traffic to a deployed application Pod"
+    ]
+  },
+  {
+    "id": "nginx-reverse-proxy",
+    "title": "Nginx as Reverse Proxy & Load Balancer",
+    "category": "devops",
+    "level": "intermediate",
+    "summary": "Event-driven worker architecture, load balancing algorithms, TLS termination, caching, rate limiting",
+    "order": 3,
+    "prerequisiteIds": [
+      "application-layer"
+    ],
+    "outcomes": [
+      "Explain how a reverse proxy forwards a request"
+    ]
+  },
+  {
+    "id": "cicd-pipelines-deployment-strategies",
+    "title": "CI/CD Pipelines & Deployment Strategies",
+    "category": "devops",
+    "level": "intermediate",
+    "summary": "CI vs CD, build-once/promote, rolling/blue-green/canary deploys, feature flags, progressive delivery, GitOps",
+    "order": 4,
+    "prerequisiteIds": [
+      "docker-fundamentals"
+    ],
+    "outcomes": [
+      "Compare rollout strategies and a rollback plan"
+    ]
+  },
+  {
+    "id": "cloud-native-operations",
+    "title": "Orchestration Trade-offs, Infrastructure as Code, Observability & Cloud Fundamentals",
+    "category": "devops",
+    "level": "expert",
+    "summary": "When to use Kubernetes, Terraform state/plan/apply, the three pillars of observability, IaaS/PaaS/SaaS, shared responsibility",
+    "order": 5,
+    "prerequisiteIds": [
+      "kubernetes-fundamentals"
+    ],
+    "outcomes": [
+      "Choose operational tools for a workload"
+    ]
+  }
+]

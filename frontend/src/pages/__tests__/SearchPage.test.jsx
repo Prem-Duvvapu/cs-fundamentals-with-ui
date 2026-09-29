@@ -70,7 +70,7 @@ describe('SearchPage', () => {
     expect(global.fetch.mock.calls[0][0]).toContain('/api/v1/search?q=window+functions')
 
     expect(await screen.findByText(/1 result for/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /SQL Querying, Joins & Window Functions/i })).toHaveAttribute('href', '/topic/sql-querying')
+    expect(screen.getByRole('link', { name: /SQL Querying, Joins & Window Functions/i })).toHaveAttribute('href', '/topic/sql-querying?section=Window%20functions%20preserve%20row%20detail')
     expect(screen.getByText(/Window functions preserve row detail/i)).toBeInTheDocument()
   })
 

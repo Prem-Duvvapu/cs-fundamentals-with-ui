@@ -26,11 +26,11 @@ describe('Navbar', () => {
     renderNavbar()
 
     expect(screen.getByRole('link', { name: 'CS Fundamentals home' })).toHaveAttribute('href', '/')
-    expect(screen.getByRole('link', { name: /OS/ })).toHaveAttribute('href', '/topic/process-management')
-    expect(screen.getByRole('link', { name: /NET/ })).toHaveAttribute('href', '/topic/network-fundamentals')
-    expect(screen.getByRole('link', { name: /DB/ })).toHaveAttribute('href', '/topic/dbms-introduction')
-    expect(screen.getByRole('link', { name: /JAVA/ })).toHaveAttribute('href', '/topic/java-execution-pipeline')
-    expect(screen.getByRole('link', { name: /AI\/ML/ })).toHaveAttribute('href', '/topic/embeddings-vector-db')
+    expect(screen.getByRole('link', { name: /OS/ })).toHaveAttribute('href', '/category/os')
+    expect(screen.getByRole('link', { name: /NET/ })).toHaveAttribute('href', '/category/networking')
+    expect(screen.getByRole('link', { name: /DB/ })).toHaveAttribute('href', '/category/dbms')
+    expect(screen.getByRole('link', { name: /JAVA/ })).toHaveAttribute('href', '/category/java-spring')
+    expect(screen.getByRole('link', { name: /AI\/ML/ })).toHaveAttribute('href', '/category/aiml')
   })
 
   it('marks the link for the current topic category', () => {

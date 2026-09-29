@@ -64,7 +64,7 @@ describe('ProgressPage', () => {
 
   it('suggests the first not-completed topic in curriculum order to continue with', async () => {
     renderPage()
-    const nextSection = await screen.findByRole('heading', { name: 'Continue where you left off' })
+    const nextSection = await screen.findByRole('heading', { name: 'Next recommended lesson' })
     expect(nextSection.closest('section')).toHaveTextContent('OOP Pillars')
     expect(within(nextSection.closest('section')).getByRole('link', { name: 'Study OOP Pillars' })).toHaveAttribute('href', '/topic/java-oop-pillars')
   })
@@ -74,7 +74,7 @@ describe('ProgressPage', () => {
     renderPage()
 
     await screen.findByText('3 of 3 topics completed (100%)')
-    expect(screen.queryByRole('heading', { name: 'Continue where you left off' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Next recommended lesson' })).not.toBeInTheDocument()
   })
 
   it('shows an empty state when nothing is bookmarked', async () => {

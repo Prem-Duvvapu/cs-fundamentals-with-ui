@@ -6,7 +6,29 @@ Good concurrency design starts by minimizing shared mutable state, then choosing
 
 ---
 
+
+**Before you start:** trace references from [Java memory](/topic/java-memory-model) and read [synchronization](/topic/synchronization).
+
+**After this lesson you can:** recognize a lost update, separate atomicity from visibility, and choose a coordination mechanism for a concrete invariant.
+
 ## 🟢 Beginner Level
+
+### See the wrong result before learning the lock
+
+Suppose two request threads each record one completed task. The shared counter starts at 0, so the desired final value is 2. An increment looks like one line, but it involves reading a value, calculating a new value, and writing it back.
+
+| Moment | Thread A | Thread B | Shared counter |
+|---|---|---|---|
+| 1 | Reads 0 | — | 0 |
+| 2 | — | Reads 0 | 0 |
+| 3 | Calculates 1 and writes 1 | — | 1 |
+| 4 | — | Calculates 1 and writes 1 | 1 |
+
+Both requests finished, but one update was lost. This trace is an allowed problematic interleaving, not a claim that a runnable race prints the wrong result every time.
+**Atomicity** would make the whole increment indivisible relative to competing increments. **Visibility** concerns which writes another thread can observe. Making the field `volatile` does not turn this read/calculate/write sequence into one atomic operation.
+A synchronized critical section or an appropriate atomic counter can protect this counter; a multi-field business rule may require a larger coordinated operation.
+**Predict:** reversing which thread writes last still yields 1 in this trace. **Change:** let A finish before B reads; the result is 2. **Debug:** a test that happens to print 2 is not proof of thread safety. Explain which rule prevents the harmful interleaving.
+
 
 ### Why Threads Create a Correctness Problem
 
