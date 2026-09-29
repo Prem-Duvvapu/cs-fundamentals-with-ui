@@ -195,7 +195,7 @@ export default function ProgressPage() {
         </div>
       )}
       <PracticeReview topics={topics} />
-      <LearningBackup />
+      <LearningBackup topics={topics} />
     </div>
   )
 }

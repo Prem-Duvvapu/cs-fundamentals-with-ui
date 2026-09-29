@@ -3,12 +3,30 @@ const PROGRESS_EVENT = 'cs-fundamentals:progress-change'
 const PROGRESS_FILE_APP_ID = 'cs-fundamentals-with-ui'
 const PROGRESS_FILE_VERSION = 1
 
+const UNSAFE_KEYS = ['__proto__', 'constructor', 'prototype']
+
+// Used only after a write has failed, so successive toggles keep working for this session
+// instead of every read falling back to an empty map.
+let sessionOnlyProgress = null
+
+function sanitizeProgress(value) {
+  const result = {}
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return result
+  for (const [topicId, entry] of Object.entries(value)) {
+    if (UNSAFE_KEYS.includes(topicId) || topicId.length > 200) continue
+    const sanitized = sanitizeEntry(entry)
+    if (sanitized) result[topicId] = sanitized
+  }
+  return result
+}
+
 function readAll() {
   if (typeof window === 'undefined') return {}
+  if (sessionOnlyProgress) return { ...sessionOnlyProgress }
 
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : {}
+    return raw ? sanitizeProgress(JSON.parse(raw)) : {}
   } catch {
     return {}
   }
@@ -17,11 +35,32 @@ function readAll() {
 function writeAll(progress) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
+    sessionOnlyProgress = null
   } catch {
-    // Storage can be unavailable in privacy modes; the in-memory update below still applies.
+    sessionOnlyProgress = { ...progress }
   }
   window.dispatchEvent(new CustomEvent(PROGRESS_EVENT, { detail: progress }))
   return progress
+}
+
+function isProgressDurable() {
+  return sessionOnlyProgress === null
+}
+
+// Another tab wrote the same key; drop any session-only copy so this tab reads the shared state.
+function subscribeProgress(listener) {
+  const handleLocal = event => listener(event.detail ? { ...event.detail } : readAll())
+  const handleStorage = event => {
+    if (event.key !== STORAGE_KEY && event.key !== null) return
+    sessionOnlyProgress = null
+    listener(readAll())
+  }
+  window.addEventListener(PROGRESS_EVENT, handleLocal)
+  window.addEventListener('storage', handleStorage)
+  return () => {
+    window.removeEventListener(PROGRESS_EVENT, handleLocal)
+    window.removeEventListener('storage', handleStorage)
+  }
 }
 
 function isBookmarked(topicId, progress = readAll()) {
@@ -96,7 +135,7 @@ function importProgress(input) {
   let importedCount = 0
 
   for (const [topicId, entry] of Object.entries(data.progress)) {
-    if (['__proto__', 'constructor', 'prototype'].includes(topicId)) continue
+    if (UNSAFE_KEYS.includes(topicId) || topicId.length > 200) continue
     const sanitized = sanitizeEntry(entry)
     if (!sanitized) continue
     const existing = merged[topicId] || {}
@@ -116,6 +155,8 @@ export {
   PROGRESS_EVENT,
   PROGRESS_FILE_VERSION,
   readAll,
+  isProgressDurable,
+  subscribeProgress,
   isBookmarked,
   isCompleted,
   toggleBookmark,
