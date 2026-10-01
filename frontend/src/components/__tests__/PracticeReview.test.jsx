@@ -18,6 +18,7 @@ it('links to the exact question and makes later and imported answers reachable',
     return { ...state, practice }
   })
   render(<MemoryRouter><PracticeReview topics={[{ id: 'java-execution-pipeline', title: 'Java Execution' }]} /></MemoryRouter>)
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
   expect(screen.getByText('Imported answer')).toBeInTheDocument()
   const links = screen.getAllByRole('link', { name: 'Practice this exact question' })
   expect(links[0].getAttribute('href')).toContain('question=java-execution-pipeline%3AQuestion')

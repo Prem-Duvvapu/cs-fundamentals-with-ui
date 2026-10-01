@@ -47,7 +47,7 @@ export default function PracticeReview({ topics }) {
       <button type="button" aria-pressed={filter === 'review'} onClick={() => changeFilter('review')}>Needs review ({review.length})</button>
       <button type="button" aria-pressed={filter === 'all'} onClick={() => changeFilter('all')}>All answers ({all.length})</button>
     </div>
-    <p ref={statusRef} role="status" tabIndex={-1}>{message}</p>
+    {message && <p ref={statusRef} role="status" tabIndex={-1}>{message}</p>}
     {entries.length === 0 ? <p>{all.length === 0 ? 'No saved interview answers yet. Save an answer in Interview Mode to see it here.' : filter === 'review' ? 'No answers need review. Choose All answers to see everything you saved.' : 'No saved answers to show.'}</p> : <ul className="saved-answers-list">{entries.slice(0, visibleCount).map(([key, entry]) => {
       const imported = isImportedCopyKey(key)
       const base = basePracticeKey(key)
