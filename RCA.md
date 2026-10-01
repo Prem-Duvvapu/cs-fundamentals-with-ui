@@ -310,7 +310,7 @@ unsupported state controlling whether the Simulation tab should appear.
 +- Recurrence prevention: inspect all migration-ledger references before editing a target lesson;
 +  synchronize evidence as an integration unit and run the gate before committing. Never restore
 +  an inaccurate sentence merely to satisfy a literal evidence check.
-+- DBMS resolving commit: recorded in the follow-up commit after the verified accuracy package.
++- DBMS resolving commit: `8931526`; the follow-up documentation commit records this hash.
 +
 +## RCA-2026-10-01-04 — Browser accessibility scan could miss a lazy simulator and selected theme
 
