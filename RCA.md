@@ -322,3 +322,19 @@ unsupported state controlling whether the Simulation tab should appear.
   the requested theme is applied before axe runs; contrast failures should report actual
   foreground/background colors and ratios.
 - Resolving commit: `8b2c4f3`.
+
+## RCA-2026-10-01-05 — Empty saved-answer status made progress loading ambiguous
+
+- Evidence: the first complete frontend run after the saved-answer manager landed reported
+  `ProgressPage`'s loading-state test failing because the page contained more than one
+  `role="status"` element. The manager rendered an empty live status before any action.
+- Root cause: the manager kept a focus target mounted at all times so it could focus the
+  result of an adoption or deletion, but assigned `role="status"` to that empty element.
+  This created an unnecessary live region alongside the legitimate loading status.
+- Resolution: render the focusable status only after an action produces a message. Keep
+  the manager's empty section mounted so deleting the last answer still has a focus target.
+- Verification: the Progress and saved-answer focused suites pass 14/14 tests; the
+  full frontend suite, production build and browser journey are rerun against the fix.
+- Prevention: action announcements should be absent before an action and tests should
+  assert that loading and post-action statuses remain distinguishable.
+- Resolving commit: `903d126`.
