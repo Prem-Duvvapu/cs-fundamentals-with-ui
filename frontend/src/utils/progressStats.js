@@ -54,8 +54,24 @@ function computeLevelStats(topics, progress) {
 
 // The first not-yet-completed topic in curriculum order — null once everything is completed
 // (or there are no topics at all).
-function getNextTopic(topics, progress) {
-  return orderTopics(topics).find((topic) => !isCompleted(topic.id, progress)) || null
+function getNextTopic(topics, progress, preferredCategory = null) {
+  const ordered = orderTopics(topics)
+  const preferred = preferredCategory ? ordered.filter(topic => topic.category === preferredCategory) : ordered
+  const next = preferred.find(topic => !isCompleted(topic.id, progress))
+    || ordered.find(topic => !isCompleted(topic.id, progress))
+  if (!next) return null
+
+  const byId = new Map(topics.map(topic => [topic.id, topic]))
+  const findUnmet = (topic, visiting = new Set()) => {
+    if (visiting.has(topic.id)) return topic
+    const path = new Set(visiting).add(topic.id)
+    for (const id of topic.prerequisiteIds || []) {
+      const prerequisite = byId.get(id)
+      if (prerequisite && !isCompleted(id, progress)) return findUnmet(prerequisite, path)
+    }
+    return topic
+  }
+  return findUnmet(next)
 }
 
 function getBookmarkedTopics(topics, progress) {

@@ -21,7 +21,7 @@
         "optionB": "Column Store: Reads only relevant join key columns into memory, achieving 5x-10x compression in OLAP."
       }
     ],
-    "productionScenario": "In high-throughput e-commerce microservices, an unindexed LEFT JOIN between 10M Orders and 50M OrderItems caused 100% database CPU exhaustion. By pushing the predicate down (σ_created_at > '2026-01-01') before the join, the optimizer reduced intermediate joined tuples from 50M to 2,000, reducing query latency from 14s to 12ms.",
+    "productionScenario": "Illustrative scenario: a large join does more work than necessary when a selective filter is applied too late. Predicate pushdown can reduce rows entering a join when semantics permit it; inspect EXPLAIN ANALYZE to see whether the optimizer already performs that rewrite and whether outer-join semantics are preserved.",
     "codeSnippet": "-- Equivalent SQL Formulation:\nSELECT e.emp_id, e.name, d.dept_name\nFROM Employees e\nLEFT JOIN Departments d ON e.dept_id = d.dept_id\nWHERE e.salary > 65000;\n\n-- Relational Algebra Formulation:\n-- π_{emp_id, name, dept_name} ( σ_{salary > 65000}(Employees) ⟕_{dept_id} Departments )",
     "interviewQA": [
       {

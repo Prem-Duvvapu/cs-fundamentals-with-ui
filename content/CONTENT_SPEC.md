@@ -35,8 +35,8 @@ router, the category hub and the home page. Adding content requires **zero**
 registration work. If you believe a registration change is needed, stop and report it
 instead of making it.
 
-Do not rename the file. The `NN` numeric prefix controls curriculum ordering and the
-suffix after it must keep matching the registered topic id.
+Do not rename the file. The backend `TopicService` metadata controls curriculum ordering. The `NN` prefix
+still identifies the content file, and the suffix must keep matching the registered topic id.
 
 ---
 

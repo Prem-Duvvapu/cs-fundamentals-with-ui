@@ -1,7 +1,7 @@
 import useLearningState from '../hooks/useLearningState'
-import { saveReading, updateLearning } from '../utils/learningState'
+import { readLearning, saveReading, updateLearning } from '../utils/learningState'
 import { prefersReducedMotion } from '../utils/motionPreference'
-import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
 import { getTopicCategory } from '../utils/topicCategories'
 import { parseInterviewQuestions } from '../utils/interviewQuestions'
 import InterviewDeck from './shared/InterviewDeck'
@@ -32,7 +32,7 @@ function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion() ? 'instant' : 'smooth', block: 'start' })
 }
 
-export default function TopicViewer({ topicId, category, mode = 'theory' }) {
+export default function TopicViewer({ topicId, category, mode = 'theory', practiceQuestion }) {
   const { state: learning } = useLearningState()
   const [focusReading, setFocusReading] = useState(false)
   const [content, setContent] = useState('')
@@ -45,15 +45,16 @@ export default function TopicViewer({ topicId, category, mode = 'theory' }) {
   const [readingProgress, setReadingProgress] = useState(0)
   const [tocExpanded, setTocExpanded] = useState(prefersExpandedToc)
   const articleRef = useRef(null)
+  const restoringRef = useRef(true)
   const handleRendererReady = useCallback(() => setRendererReady(true), [])
 
   useEffect(() => {
-    if (!rendererReady) return
+    if (!rendererReady || mode !== 'theory') return
     const headings = [...(articleRef.current?.querySelectorAll('h2[id], h3[id]') || [])]
       .map(heading => ({ id: heading.id, title: heading.dataset.tocTitle || heading.textContent, level: Number(heading.tagName[1]) }))
     setSections(headings)
-    setActiveSection(current => current || headings[0]?.id || '')
-  }, [content, rendererReady])
+    setActiveSection(current => headings.some(heading => heading.id === current) ? current : '')
+  }, [content, rendererReady, mode])
 
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return undefined
@@ -110,12 +111,15 @@ export default function TopicViewer({ topicId, category, mode = 'theory' }) {
   }, [topicId, category, retryNonce])
 
   useEffect(() => {
-    if (!content || !rendererReady || typeof IntersectionObserver === 'undefined') return undefined
+    if (!content || !rendererReady || mode !== 'theory' || typeof IntersectionObserver === 'undefined') return undefined
     const sectionIds = sections.map(section => section.id)
     const observer = new IntersectionObserver(
       entries => {
         const visible = entries.find(entry => entry.isIntersecting)
-        if (visible) setActiveSection(visible.target.id)
+        if (visible && !restoringRef.current) {
+          setActiveSection(visible.target.id)
+          if (readLearning().reading[topicId]?.headingId !== visible.target.id) saveReading(topicId, visible.target.id)
+        }
       },
       { rootMargin: '-20% 0px -70% 0px' }
     )
@@ -124,7 +128,7 @@ export default function TopicViewer({ topicId, category, mode = 'theory' }) {
       if (element) observer.observe(element)
     })
     return () => observer.disconnect()
-  }, [content, rendererReady, sections])
+  }, [content, rendererReady, sections, mode, topicId])
 
   useEffect(() => {
     const updateProgress = () => {
@@ -144,25 +148,27 @@ export default function TopicViewer({ topicId, category, mode = 'theory' }) {
     }
   }, [content, rendererReady])
 
-  useEffect(() => {
-    if (!rendererReady || sections.length === 0 || mode === 'inactive') return undefined
+  useLayoutEffect(() => {
+    if (!rendererReady || sections.length === 0 || mode !== 'theory') return undefined
+    restoringRef.current = true
     const restoreHash = () => {
       let id
       try { id = decodeURIComponent(window.location.hash.slice(1)) } catch { return }
       const requestedSection = new URLSearchParams(window.location.search).get('section')
       const normalizeSection = text => text.replace(/[*_~`|]/g, '').trim()
       const matched = requestedSection && sections.find(section => normalizeSection(section.title) === normalizeSection(requestedSection))
-      const target = id || matched?.id
-      if (target) document.getElementById(target)?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      const saved = readLearning().reading[topicId]?.headingId
+      const target = [id, matched?.id, saved].find(value => value && sections.some(section => section.id === value))
+      if (target) {
+        document.getElementById(target)?.scrollIntoView({ block: 'start', behavior: 'instant' })
+        setActiveSection(target)
+      }
     }
-    const frame = requestAnimationFrame(restoreHash)
+    restoreHash()
+    const frame = requestAnimationFrame(() => { restoringRef.current = false })
     window.addEventListener('hashchange', restoreHash)
     return () => { cancelAnimationFrame(frame); window.removeEventListener('hashchange', restoreHash) }
-  }, [rendererReady, sections, mode])
-
-  useEffect(() => {
-    if (mode !== 'inactive' && rendererReady && activeSection) saveReading(topicId, activeSection)
-  }, [topicId, rendererReady, activeSection, mode])
+  }, [rendererReady, sections, mode, topicId])
 
   const questions = useMemo(() => parseInterviewQuestions(content, topicId), [content, topicId])
 
@@ -192,7 +198,7 @@ export default function TopicViewer({ topicId, category, mode = 'theory' }) {
   const currentSection = sections.find(section => section.id === activeSection) || sections[0]
   const currentLabel = currentSection ? cleanSectionTitle(currentSection.title) : 'the first section'
 
-  if (mode === 'practice') return questions.length ? <InterviewDeck key={topicId} scope={`topic:${topicId}`} questions={questions} /> : <p role="status">No interview questions are available for this lesson.</p>
+  if (mode === 'practice') return questions.length ? <InterviewDeck key={`${topicId}:${practiceQuestion || ''}`} scope={`topic:${topicId}`} requestedKey={practiceQuestion} questions={questions} /> : <p role="status">No interview questions are available for this lesson.</p>
 
   return (
     <div className={`study-layout ${focusReading ? 'study-layout--focused' : ''}`} style={{ '--reader-font-size': `${learning.preferences.fontSize}px` }}>

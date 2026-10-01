@@ -42,7 +42,7 @@ symptom or component before repeating an investigation.
    - Multi-stage build (Maven 3.9 + Temurin JDK 17 builder $\rightarrow$ Temurin JRE 17 Alpine runtime).
    - Serves API on host port `9190` by default (container port `8080`).
 2. **`frontend/Dockerfile`**:
-   - Multi-stage build (Node 20 Alpine builder $\rightarrow$ Nginx Alpine web server).
+   - Multi-stage build (Node 26 Alpine builder $\rightarrow$ Nginx Alpine web server).
    - Uses the repository root as its build context so the prebuild diagram gate can read
      `content/` and `scripts/render-diagrams.mjs`; `.dockerignore` excludes host build output.
    - Implements `nginx.conf` reverse proxy routing `/api` requests to `http://backend:8080`.
@@ -359,3 +359,7 @@ search links use a matched section label resolved against rendered headings.
 
 The isolated `examples/java-spring/task-tracker` Maven project illustrates the lesson request
 flow without changing the platform backend. See its README for run commands and limits.
+
+## October 1 reader and practice follow-up
+
+`MarkdownRenderer` memoizes the component map passed to react-markdown so normal parent updates do not remount stateful code and diagram controls. `TopicViewer` reconnects its heading observer after returning from Practice and records a heading only while Study is visible; it restores URL or saved headings before observing. `App` owns titles for non-topic routes. `InterviewDeck` represents a saved question missing from the current page explicitly; `InterviewPage` can fetch subsequent pages until that stable question key appears. `PracticeReview` pages through saved answers and links to `?view=practice&question=<encoded-key>`; imported alternative drafts remain visible as snapshots. The responsive browser harness includes these journeys and a WCAG 2.2 tagged axe check for key routes in both themes.

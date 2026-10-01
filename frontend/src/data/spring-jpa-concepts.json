@@ -12,7 +12,7 @@
       "tradeOffs": [
         "Fixed Pool Size vs Dynamic Sizing: HikariCP recommends a FIXED pool size (`maximumPoolSize == minimumIdle`) to eliminate latency spikes caused by on-demand connection creation."
       ],
-      "productionScenario": "An API Gateway crashed under peak load with 30-second HTTP timeouts. Diagnostics showed HikariCP pool size was set to 10 connections for 200 Tomcat worker threads. Tuning pool size to `(CPU cores * 2) + effective_spindle_count` = 32 and setting `leakDetectionThreshold=2000ms` resolved the bottleneck.",
+      "productionScenario": "Illustrative scenario: request threads wait for database connections while the pool is saturated. Inspect active, idle and pending connection metrics, query times and database capacity before changing pool size. A fixed formula or leak threshold is not a universal tuning rule.",
       "codeSnippet": "# HikariCP Production Configuration\nspring.datasource.hikari.maximum-pool-size=32\nspring.datasource.hikari.minimum-idle=32\nspring.datasource.hikari.connection-timeout=3000\nspring.datasource.hikari.idle-timeout=600000\nspring.datasource.hikari.leak-detection-threshold=2000",
       "interviewQA": [
         {

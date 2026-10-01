@@ -29,15 +29,20 @@ export default function InterviewDeck({
   eyebrow = 'Interview practice',
   heading = 'Test your recall',
   renderMeta,
-  scope
+  scope,
+  requestedKey,
+  onFindSavedQuestion
 }) {
   const { state, durable } = useLearningState()
-  const [selectedId, setSelectedId] = useState(() => (scope && state.sessions[scope]) || (questions[0] ? questionKey(questions[0]) : null))
+  const [selectedId, setSelectedId] = useState(() => requestedKey || (scope && state.sessions[scope]) || (questions[0] ? questionKey(questions[0]) : null))
   const instanceId = useId()
   const [revealed, setRevealed] = useState(false)
+  const [finding, setFinding] = useState(false)
+  const [findError, setFindError] = useState('')
 
   if (questions.length === 0) return null
-  const safeIndex = Math.max(0, questions.findIndex(question => questionKey(question) === selectedId))
+  const selectedIndex = questions.findIndex(question => questionKey(question) === selectedId)
+  const safeIndex = Math.max(0, selectedIndex)
   const current = questions[safeIndex]
   const answerId = `interview-answer-${instanceId}-${current.id}`
   const saved = state.practice[questionKey(current)] || { draft: '', assessment: '' }
@@ -46,7 +51,23 @@ export default function InterviewDeck({
     setSelectedId(key)
     if (scope) updateLearning(state => ({ ...state, sessions: { ...state.sessions, [scope]: key } }))
     setRevealed(false)
+    setFindError('')
   }
+
+  if (selectedIndex < 0) return <section className="interview-deck" aria-labelledby={`interview-practice-title-${instanceId}`}>
+    <div className="interview-deck-heading"><div><p className="study-eyebrow">{eyebrow}</p><h2 id={`interview-practice-title-${instanceId}`}>{heading}</h2></div></div>
+    <p role="status">Your saved question is not among the {questions.length} questions loaded yet.</p>
+    {onFindSavedQuestion && <button type="button" disabled={finding} onClick={async () => {
+      setFinding(true)
+      setFindError('')
+      try {
+        if (!await onFindSavedQuestion(selectedId)) setFindError('That question is no longer in this selection. Your saved answer remains in your learning backup.')
+      } catch { setFindError('Could not load the saved question. Try again or start from the first question.') }
+      finally { setFinding(false) }
+    }}>{finding ? 'Finding saved question…' : 'Find saved question'}</button>}
+    {findError && <p role="alert">{findError}</p>}
+    <button type="button" onClick={() => move(0)}>Start from the first question</button>
+  </section>
 
   return (
     <section className="interview-deck" aria-labelledby={`interview-practice-title-${instanceId}`}>
@@ -68,6 +89,7 @@ export default function InterviewDeck({
           </Suspense>
         </div>
       )}
+      {revealed && <details className="practice-guidance"><summary>How to compare your answer</summary><ol><li>Did you state the main idea directly?</li><li>Did you explain the mechanism or sequence, not just name it?</li><li>Could you give a concrete example and say when the answer changes?</li><li>Did you mention an important limit or trade-off?</li></ol><p>Use the model answer to check your reasoning. These prompts are a guide, not an automatic score.</p></details>}
       {revealed && <fieldset className="practice-assessment"><legend>Your self-assessment</legend>{[['review', 'Needs review'], ['partial', 'Partly recalled'], ['confident', 'Recalled confidently']].map(([value, label]) => <button key={value} type="button" aria-pressed={saved.assessment === value} onClick={() => savePractice(current, { assessment: value })}>{label}</button>)}</fieldset>}
       <div className="interview-deck-actions">
         <button

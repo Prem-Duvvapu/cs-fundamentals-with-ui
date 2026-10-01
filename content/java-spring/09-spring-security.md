@@ -433,7 +433,7 @@ BCrypt is salted, one-way, and deliberately expensive, which raises the cost of 
 
 **Q4. Why does Spring distinguish HTTP 401 from HTTP 403?** `[easy]`
 
-HTTP 401 means the request lacks acceptable authentication and should be handled by an authentication entry point. HTTP 403 means Spring knows the principal but an authorization decision denied the operation. Conflating them harms clients and can also leak inconsistent resource-existence information.
+HTTP 401 means the request lacks acceptable authentication and should be handled by an authentication entry point. HTTP 403 usually means an authenticated caller lacks permission, but the status alone does not prove authentication: a missing or invalid CSRF token can also cause a 403 before the controller runs. Inspect which filter rejected the request and test the configured response contract rather than inferring the cause from the number alone.
 
 **Q5. How do roles differ from authorities in Spring Security?** `[medium]`
 

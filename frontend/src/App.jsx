@@ -12,6 +12,26 @@ import NotFoundPage from './pages/NotFoundPage'
 import AppErrorBoundary from './components/AppErrorBoundary'
 import ProductTour from './components/shared/ProductTour'
 import useProductTour from './hooks/useProductTour'
+import { useEffect } from 'react'
+import { CATEGORY_METADATA } from './utils/topicCategories'
+
+function RouteTitle() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    if (pathname.startsWith('/topic/')) return
+    const categoryId = pathname.startsWith('/category/') ? pathname.slice('/category/'.length) : null
+    const titles = {
+      '/': 'Learning paths',
+      '/search': 'Search',
+      '/progress': 'Your progress'
+    }
+    const page = titles[pathname]
+      || (categoryId ? CATEGORY_METADATA[categoryId]?.label || 'Category not found' : null)
+      || (pathname.startsWith('/interview/') ? 'Interview practice' : 'Page not found')
+    document.title = `${page} | CS Fundamentals`
+  }, [pathname])
+  return null
+}
 
 function RoutedContent() {
   const location = useLocation()
@@ -37,6 +57,7 @@ export default function App() {
 
   return (
     <CatalogProvider><div className="app">
+      <RouteTitle />
       <a className="skip-link" href="#main-content">Skip to content</a>
       <Navbar onStartTour={tour.start} />
       <main id="main-content" className="main-content" tabIndex={-1}>

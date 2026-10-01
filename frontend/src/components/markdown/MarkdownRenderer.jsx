@@ -1,5 +1,5 @@
 import CodeBlock from './CodeBlock'
-import { Children, isValidElement, useLayoutEffect, useRef } from 'react'
+import { Children, isValidElement, memo, useLayoutEffect, useMemo, useRef } from 'react'
 import { rehypeHeadingIds } from '../../utils/markdownHeadings'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -47,7 +47,7 @@ function getTierHeading(children) {
  * content/. Replaces the previous 68-line regex renderer in TopicViewer —
  * see content/CONTENT_SPEC.md for what topic authors may rely on here.
  */
-export default function MarkdownRenderer({ content, onReady }) {
+function MarkdownRenderer({ content, onReady }) {
   // A lesson can render several tables; each needs a distinct accessible name
   // so assistive tech doesn't announce identical "Scrollable table" regions.
   const tableCountRef = useRef(0)
@@ -57,6 +57,39 @@ export default function MarkdownRenderer({ content, onReady }) {
     onReady?.()
   }, [content, onReady])
 
+  // ReactMarkdown treats a changed renderer function as a new component type.
+  // Keep these functions stable so reader updates do not reset code/diagram controls.
+  const components = useMemo(() => ({
+    h1() { return null },
+    h2({ node, children }) {
+      const { text, tier } = getTierHeading(children)
+      return <h2 id={node.properties.id} data-toc-title={text}>
+        {tier && <span className={`tier-badge tier-badge--${tier.name}`} aria-hidden="true"><span>{tier.glyph}</span> {tier.label}</span>}
+        {text}
+      </h2>
+    },
+    h3({ node, children }) { return <h3 id={node.properties.id}>{children}</h3> },
+    pre({ children }) {
+      const child = Array.isArray(children) ? children[0] : children
+      if (/language-mermaid/.test(child?.props?.className || '')) return children
+      return <CodeBlock>{children}</CodeBlock>
+    },
+    table({ children, ...props }) {
+      tableCountRef.current += 1
+      return <>
+        <div className="table-scroll u-scroll-x-hint" tabIndex="0" role="region" aria-label={`Scrollable table ${tableCountRef.current}`}>
+          <table {...props}>{children}</table>
+        </div>
+        <p className="scroll-hint-caption">Scroll to see the full table →</p>
+      </>
+    },
+    code({ className, children, ...rest }) {
+      const lang = /language-(\w+)/.exec(className || '')?.[1]
+      if (lang === 'mermaid') return <MermaidBlock code={extractText(children)} />
+      return <code className={className} {...rest}>{children}</code>
+    }
+  }), [])
+
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
@@ -65,64 +98,11 @@ export default function MarkdownRenderer({ content, onReady }) {
         rehypeKatex,
         [rehypeHighlight, { languages: HIGHLIGHT_LANGUAGES, detect: false }]
       ]}
-      components={{
-        // TopicPage owns the document's single h1. Curriculum files retain
-        // their title as authoring metadata, but the reader does not repeat it.
-        h1() {
-          return null
-        },
-        h2({ node, children }) {
-          const { text, tier } = getTierHeading(children)
-          return (
-            <h2 id={node.properties.id} data-toc-title={text}>
-              {tier && (
-                <span className={`tier-badge tier-badge--${tier.name}`} aria-hidden="true">
-                  <span>{tier.glyph}</span> {tier.label}
-                </span>
-              )}
-              {text}
-            </h2>
-          )
-        },
-        h3({ node, children }) {
-          return <h3 id={node.properties.id}>{children}</h3>
-        },
-        pre({ children }) {
-          const child = Array.isArray(children) ? children[0] : children
-          const childClassName = child?.props?.className || ''
-          // A mermaid fence renders its own container — skip the <pre> wrapper
-          // so MermaidBlock isn't nested inside one.
-          if (/language-mermaid/.test(childClassName)) {
-            return children
-          }
-          return <CodeBlock>{children}</CodeBlock>
-        },
-        table({ children, ...props }) {
-          tableCountRef.current += 1
-          return (
-            <>
-              <div className="table-scroll u-scroll-x-hint" tabIndex="0" role="region" aria-label={`Scrollable table ${tableCountRef.current}`}>
-                <table {...props}>{children}</table>
-              </div>
-              <p className="scroll-hint-caption">Scroll to see the full table →</p>
-            </>
-          )
-        },
-        code({ className, children, ...rest }) {
-          const match = /language-(\w+)/.exec(className || '')
-          const lang = match?.[1]
-          if (lang === 'mermaid') {
-            return <MermaidBlock code={extractText(children)} />
-          }
-          return (
-            <code className={className} {...rest}>
-              {children}
-            </code>
-          )
-        }
-      }}
+      components={components}
     >
       {content}
     </ReactMarkdown>
   )
 }
+
+export default memo(MarkdownRenderer)

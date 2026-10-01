@@ -21,7 +21,7 @@
         "optionB": "On-demand Closure: Evaluates single dependency validity dynamically."
       }
     ],
-    "productionScenario": "A healthcare provider table PatientVisits(patient_id, doctor_id, clinic_id, appointment_time, doctor_specialty) experienced data corruption because doctor_specialty depended only on doctor_id (Partial Dependency). Decomposing into Doctors(doctor_id, doctor_specialty) and Appointments(patient_id, doctor_id, clinic_id, appointment_time) eliminated 100,000 duplicate specialty updates per day.",
+    "productionScenario": "Illustrative scenario: a patient visit table repeats a doctor specialty for every visit. A specialty change can leave rows inconsistent. Separating doctor details from visits removes that update anomaly when doctor_id determines specialty; test the functional dependency and joins for the real schema.",
     "codeSnippet": "// Armstrong's Axioms Applied in Code:\n// 1. Reflexivity: If Y ⊆ X => X -> Y\n// 2. Augmentation: If X -> Y => XZ -> YZ\n// 3. Transitivity: If X -> Y and Y -> Z => X -> Z",
     "interviewQA": [
       {

@@ -4,6 +4,7 @@ import React from 'react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import InterviewPage from '../InterviewPage'
 import { CATEGORY_METADATA } from '../../utils/topicCategories'
+import { questionKey, saveSession } from '../../utils/learningState'
 
 function makeQuestion(n, overrides = {}) {
   return {
@@ -20,6 +21,8 @@ function makeQuestion(n, overrides = {}) {
 }
 
 beforeEach(() => {
+  localStorage.clear()
+  window.dispatchEvent(new StorageEvent('storage', { key: null }))
   global.fetch = vi.fn()
 })
 
@@ -38,6 +41,18 @@ function renderPage(initialEntry = '/interview/dbms') {
 }
 
 describe('InterviewPage', () => {
+  it('finds a saved question on a later page instead of silently starting at question one', async () => {
+    saveSession('interview:dbms:all', questionKey(makeQuestion(2)))
+    global.fetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({ category: 'dbms', total: 2, offset: 0, limit: 50, questions: [makeQuestion(1)] })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ category: 'dbms', total: 2, offset: 1, limit: 50, questions: [makeQuestion(2)] })))
+    renderPage()
+    expect(await screen.findByText(/saved question is not among/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Find saved question' }))
+    expect(await screen.findByText(/Question number 2\?/)).toBeInTheDocument()
+    expect(screen.getByText('2 / 2')).toBeInTheDocument()
+  })
+
   it('fetches and renders the first page of questions for the routed category', async () => {
     global.fetch.mockResolvedValue(new Response(JSON.stringify({
       category: 'dbms',

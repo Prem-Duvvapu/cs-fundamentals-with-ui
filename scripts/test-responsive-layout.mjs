@@ -125,6 +125,47 @@ try {
   await page.goBack()
   if (await page.getByRole('tab', { name: 'Simulation' }).getAttribute('aria-selected') !== 'true') failures.push('Simulation selection did not follow browser history')
   if (!(await page.title()).includes('Process Management')) failures.push('Topic browser title is missing')
+
+  await page.goto(`${origin}/category/java-spring`)
+  await page.getByRole('heading', { level: 1, name: 'Java & Spring' }).waitFor()
+  await page.getByRole('link', { name: /All learning paths/ }).first().click()
+  await page.waitForFunction(() => document.title.startsWith('Learning paths'))
+
+  await page.goto(`${origin}/topic/java-execution-pipeline`)
+  await page.locator('.topic-content h3').first().waitFor()
+  await page.getByRole('button', { name: 'Wrap code' }).first().evaluate(element => element.click())
+  if (await page.getByRole('button', { name: 'Wrap code' }).first().getAttribute('aria-pressed') !== 'true') failures.push('Code wrap did not turn on')
+  await page.getByRole('button', { name: 'Focus reading' }).evaluate(element => element.click())
+  if (await page.getByRole('button', { name: 'Wrap code' }).first().getAttribute('aria-pressed') !== 'true') failures.push('Code wrap reset after a reader setting changed')
+  await page.getByRole('tab', { name: 'Practice' }).click()
+  await page.getByRole('textbox').waitFor()
+  await page.getByRole('tab', { name: 'Study' }).click()
+  await page.locator('#intermediate-level').evaluate(element => window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.25))
+  try {
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('cs-fundamentals-learning-v1') || '{}').reading?.['java-execution-pipeline']?.headingId === 'intermediate-level', null, { timeout: 3000 })
+  } catch { failures.push('Reading position did not update after returning from Practice') }
+
+  await page.evaluate(() => localStorage.setItem('cs-fundamentals-learning-v1', JSON.stringify({ version: 1, reading: {}, practice: {}, sessions: { 'interview:all:all': 'java-oop-pillars:Saved question on another page' }, preferences: { fontSize: 18 } })))
+  await page.goto(`${origin}/interview/all`)
+  await page.getByText(/saved question is not among/).waitFor()
+  await page.getByRole('button', { name: 'Start from the first question' }).click()
+  await page.locator('.interview-question').waitFor()
+
+  const axeSource = require('axe-core').source
+  for (const theme of ['dark', 'light']) {
+    await page.evaluate(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
+    for (const route of ['/', '/category/java-spring', '/topic/java-execution-pipeline', '/topic/process-management?view=simulation', '/search?q=java', '/interview/all', '/progress']) {
+      await page.goto(`${origin}${route}`)
+      await page.locator('h1').first().waitFor()
+      if (route.startsWith('/topic/') && !route.includes('view=simulation')) await page.locator('.topic-content h2').first().waitFor()
+      await page.addScriptTag({ content: axeSource })
+      const violations = await page.evaluate(async () => {
+        const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } })
+        return result.violations.map(item => ({ id: item.id, targets: item.nodes.map(node => node.target.join(' ')) }))
+      })
+      for (const violation of violations) failures.push(`${theme} ${route}: accessibility ${violation.id} at ${violation.targets.join(', ')}`)
+    }
+  }
 } finally {
   await browser.close()
   await new Promise(resolve => server.close(resolve))
@@ -136,4 +177,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('Responsive layout smoke passed: 10 route families × 5 widths × 2 themes.')
+console.log('Responsive layout smoke passed: 10 route families × 5 widths × 2 themes; 14 axe scans.')

@@ -139,7 +139,7 @@ export default function TopicPage() {
           </SimulationVisibility.Provider>
         </div>}
         <div hidden={selectedTab === 'simulator'} style={{ display: selectedTab === 'simulator' ? 'none' : undefined }}>
-          <TopicViewer key={topicId} topicId={topicId} category={category} mode={selectedTab === 'simulator' ? 'inactive' : selectedTab} />
+          <TopicViewer key={topicId} topicId={topicId} category={category} mode={selectedTab === 'simulator' ? 'inactive' : selectedTab} practiceQuestion={searchParams.get('question')} />
         </div>
       </div>
       <nav className="lesson-navigation" aria-label="Learning path navigation">

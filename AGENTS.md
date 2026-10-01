@@ -4,7 +4,7 @@
 Educational platform for Computer Science fundamentals, structured for **beginner → expert** learning paths with interactive visualizations. Purpose: interview preparation and deep understanding through visual flows across Operating Systems, Computer Networks, Database Management Systems, and Java / Spring Boot.
 
 ## Tech Stack
-- **Backend**: Java 17+, Spring Boot 3.x, Maven
+- **Backend**: Java 17+, Spring Boot 4.1.x, Maven
 - **Frontend**: React 19, Vite, React Router v7
 - **Data**: Static content-driven (`content/<category>/`); JSON for animations/configs
 - **Styling**: Vanilla CSS in one global `frontend/src/App.css`, driven by `:root` and
@@ -454,3 +454,7 @@ its reference lesson. This does not complete all planned foundational curriculum
 Run the marked Java example verifier plus `mvn -f examples/java-spring/task-tracker/pom.xml test`
 when changing the runnable teaching examples. The first Task Tracker milestone intentionally
 has no database or security.
+
+## October 1 learning audit remediation
+
+`PROJECT_LEARNING_UX_AUDIT_2026-10-01.md` records the dated evidence and remaining learning-quality work. Current reader controls keep stable Markdown renderer identities; reading position is restored before visibility-based saves and tracked only in Study. Practice resumes by stable question identity; category practice can fetch later pages, and progress review links target the exact question. Home/progress suggestions prefer the most recently read category and surface an unmet prerequisite first. Retained simulator `productionScenario` examples are illustrative, not measured incidents. Keep the browser journey and axe checks in `scripts/test-responsive-layout.mjs` when changing these flows.

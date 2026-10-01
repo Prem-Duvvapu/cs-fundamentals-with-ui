@@ -50,7 +50,7 @@ Success, warning, danger, and informational feedback includes text or a glyph as
 The standard breakpoints are 480px, 768px, 1024px, and 1280px. At desktop widths the topic header
 condenses to a one-line sticky toolbar after scrolling, and the TOC rail accounts for both navbar
 and toolbar offsets. Below 1024px the TOC moves above the article and defaults collapsed. Below
-768px the topic header remains in document flow, navigation becomes a horizontal category strip,
+768px the topic header remains in document flow, navigation uses a compact Menu control for category links,
 topic actions become full-width touch targets, and panel grids reflow to one column. Intrinsically
 wide teaching surfaces scroll horizontally with an affordance; functionality is never hidden
 without an equivalent view.

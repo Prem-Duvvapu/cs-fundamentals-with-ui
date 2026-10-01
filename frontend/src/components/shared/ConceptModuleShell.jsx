@@ -125,7 +125,7 @@ export default function ConceptModuleShell({
 
                 {theoryData.productionScenario && (
                   <Panel className="theory-panel theory-panel-success">
-                    <h3><span aria-hidden="true">🏭</span> Production war story &amp; real scenario</h3>
+                    <h3><span aria-hidden="true">🏭</span> Illustrative production scenario</h3>
                     <p>{theoryData.productionScenario}</p>
                   </Panel>
                 )}

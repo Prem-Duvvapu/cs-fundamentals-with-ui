@@ -686,21 +686,21 @@ Copy this prompt into the implementation session:
 
 | Step | Status | Commit / PR | Tests and browser evidence | Remaining issues |
 |---|---|---|---|---|
-| 1. Baseline | Not started | — | — | — |
-| 2. Catalog | Not started | — | — | — |
-| 3. Visual system | Not started | — | — | — |
-| 4. Shell/category | Not started | — | — | — |
-| 5. Home | Not started | — | — | — |
-| 6. Reader | Not started | — | — | — |
-| 7. Continuity | Not started | — | — | — |
-| 8. Teaching surfaces | Not started | — | — | — |
-| 9. Search | Not started | — | — | — |
-| 10. Topic practice | Not started | — | — | — |
-| 11. Interview | Not started | — | — | — |
-| 12. Progress/backups | Not started | — | — | — |
-| 13. Simulators | Not started | — | — | — |
-| 14. Hardening | Not started | — | — | — |
-| 15. Release review | Not started | — | — | — |
+| 1. Baseline | Partial | — | — | — |
+| 2. Catalog | Implemented | — | — | — |
+| 3. Visual system | Partial | — | — | — |
+| 4. Shell/category | Implemented | — | — | — |
+| 5. Home | Implemented | — | — | — |
+| 6. Reader | Partial | — | — | — |
+| 7. Continuity | Partial | — | — | — |
+| 8. Teaching surfaces | Implemented | — | — | — |
+| 9. Search | Partial | — | — | — |
+| 10. Topic practice | Partial | — | — | — |
+| 11. Interview | Partial | — | — | — |
+| 12. Progress/backups | Partial | — | — | — |
+| 13. Simulators | Partial | — | — | — |
+| 14. Hardening | In progress | — | — | — |
+| 15. Release review | Pending | — | — | — |
 
 ## 10. Standards and supporting references
 
@@ -902,14 +902,14 @@ from permission; explain why a plain increment is not a safe concurrent counter.
 
 | Package | Status | Lessons / project milestones changed | Verification / remaining issues |
 |---|---|---|---|
-| C1. Audit | Not started | — | — |
-| C2. Path | Not started | — | — |
-| C3. Foundations | Not started | — | — |
-| C4. Everyday Java | Not started | — | — |
-| C5. First Spring app | Not started | — | — |
-| C6. Data/production | Not started | — | — |
-| C7. Advanced/specialist | Not started | — | — |
-| C8. Verification | Not started | — | — |
+| C1. Audit | Completed, dated snapshot | `PROJECT_LEARNING_UX_AUDIT_2026-10-01.md` | Representative source/browser audit; not a full factual review |
+| C2. Path | Partially implemented | Authored order, prerequisites, outcomes and category pages | More learner-goal guidance remains |
+| C3. Foundations | Partially implemented | Java lesson introductions and runnable examples | Focused prerequisite coverage remains |
+| C4. Everyday Java | Partially implemented | Collections/generics/lambda/stream examples | End-to-end beginner verification remains |
+| C5. First Spring app | Partially implemented | Runnable in-memory Task Tracker | Persistent data and security milestones remain |
+| C6. Data/production | Partially implemented | Introductory explanations | Runnable/lab verification remains |
+| C7. Advanced/specialist | Partially implemented | Introductory explanations | Specialist labs and version review remain |
+| C8. Verification | In progress | Structural validator and current focused checks | Learner study and complete content accuracy audit remain |
 
 ## Integration checkpoint — September 29
 
@@ -930,3 +930,7 @@ polish; consistent simulator presentation and scenario guidance; documentation c
 new foundational lessons and later Task Tracker persistence/security milestones. Content
 packages C3–C7 are partially implemented, not complete. Preserve the detailed acceptance
 criteria above when continuing.
+
+## October 1 remediation wave
+
+The dated `PROJECT_LEARNING_UX_AUDIT_2026-10-01.md` is the active findings ledger. The first implementation wave addresses reader control remounts, heading resume, route titles, saved interview question recovery, exact review links, misleading Spring Security 403 wording and unsupported simulator incident figures. It also starts prerequisite-aware next-lesson selection and adds browser accessibility checks. Treat these as implementation work subject to verification, not as completion of all 18 audit findings.

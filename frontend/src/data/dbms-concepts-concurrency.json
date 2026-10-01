@@ -21,7 +21,7 @@
         "optionB": "Wound-Wait (Preemptive): Older transaction preempts ('wounds') younger transaction immediately, minimizing overall transaction abort counts."
       }
     ],
-    "productionScenario": "A flash sale ticket reservation system suffered severe locking contention when 20,000 users attempted to reserve the same seat concurrently using SELECT ... FOR UPDATE. Migrating from pessimistic row locking to Optimistic Concurrency with version counters (WHERE seat_id = 10 AND version = 3) reduced p99 latency from 8.2s to 45ms.",
+    "productionScenario": "Illustrative scenario: many buyers contend for a small set of tickets. A row lock may serialize updates; a version-checked update may instead fail fast and require retry. Measure contention, retries and correctness on the same workload before comparing latency.",
     "codeSnippet": "-- Strict 2-Phase Locking SQL Simulation:\nBEGIN TRANSACTION; -- Growing Phase Starts\nSELECT * FROM Accounts WHERE id = 101 FOR UPDATE; -- Exclusive Lock X(101) Granted\nUPDATE Accounts SET balance = balance - 100 WHERE id = 101;\nCOMMIT; -- Shrinking Phase: All Exclusive Locks Released Atomically!",
     "interviewQA": [
       {

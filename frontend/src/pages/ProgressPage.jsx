@@ -1,6 +1,8 @@
 import PracticeReview from '../components/shared/PracticeReview'
 import LearningBackup from '../components/shared/LearningBackup'
 import ResumeReading from '../components/shared/ResumeReading'
+import useLearningState from '../hooks/useLearningState'
+import { latestReading } from '../utils/learningState'
 import useCatalog from '../hooks/useCatalog'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -44,6 +46,7 @@ export default function ProgressPage() {
   const [importStatus, setImportStatus] = useState(null)
   const importInputRef = useRef(null)
   const { progress } = useTopicProgress()
+  const { state: learning } = useLearningState()
 
   const handleExportProgress = () => {
     const file = exportProgress()
@@ -77,7 +80,7 @@ export default function ProgressPage() {
   const overall = computeOverallStats(topics, progress)
   const categoryStats = computeCategoryStats(topics, progress)
   const levelStats = computeLevelStats(topics, progress)
-  const nextTopic = getNextTopic(topics, progress)
+  const nextTopic = getNextTopic(topics, progress, latestReading(topics, learning)?.category)
   const bookmarked = getBookmarkedTopics(topics, progress)
 
   return (

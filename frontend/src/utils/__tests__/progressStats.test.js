@@ -58,6 +58,18 @@ describe('progressStats', () => {
   })
 
   describe('getNextTopic', () => {
+    it('continues the recent category and recommends an unmet prerequisite first', () => {
+      const lessons = [
+        { id: 'os-start', title: 'OS', category: 'os', level: 'beginner', order: 1, prerequisiteIds: [] },
+        { id: 'java-start', title: 'Java', category: 'java-spring', level: 'beginner', order: 1, prerequisiteIds: [] },
+        { id: 'spring', title: 'Spring', category: 'java-spring', level: 'intermediate', order: 2, prerequisiteIds: ['java-start', 'os-start'] }
+      ]
+      expect(getNextTopic(lessons, { 'java-start': { completed: true } }, 'java-spring').id).toBe('os-start')
+      expect(getNextTopic(lessons, { 'java-start': { completed: true }, 'os-start': { completed: true } }, 'java-spring').id).toBe('spring')
+      expect(getNextTopic(lessons, {}, 'java-spring').id).toBe('java-start')
+      expect(getNextTopic(lessons, { 'os-start': { completed: true } }, 'java-spring').id).toBe('java-start')
+    })
+
     it('returns the first not-completed topic in curriculum order', () => {
       const next = getNextTopic(TOPICS, {})
       expect(next.id).toBe('java-oop-pillars')

@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { fetchInterviewQuestions } from '../utils/api'
 import { CATEGORY_METADATA, CATEGORY_ORDER } from '../utils/topicCategories'
 import InterviewDeck from '../components/shared/InterviewDeck'
+import { questionKey } from '../utils/learningState'
 
 const PAGE_SIZE = 50
 const DIFFICULTY_FILTERS = ['all', 'easy', 'medium', 'hard']
@@ -26,7 +27,6 @@ export default function InterviewPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [loadMoreError, setLoadMoreError] = useState(false)
   const [error, setError] = useState(false)
-  const [shuffleNonce, setShuffleNonce] = useState(0)
   const [retryNonce, setRetryNonce] = useState(0)
   const loadMoreControllerRef = useRef(null)
   const requestScope = `${categoryParam}:${difficulty}`
@@ -92,6 +92,37 @@ export default function InterviewPage() {
       })
   }, [apiCategory, difficulty, offset, requestScope])
 
+  const findSavedQuestion = useCallback(async savedKey => {
+    if (questions.some(question => questionKey(question) === savedKey)) return true
+    loadMoreControllerRef.current?.abort()
+    const controller = new AbortController()
+    loadMoreControllerRef.current = controller
+    const capturedScope = requestScope
+    let nextOffset = offset
+    let found = false
+    setLoadingMore(true)
+    setLoadMoreError(false)
+    try {
+      while (nextOffset < total && !found) {
+        const data = await fetchInterviewQuestions({
+          category: apiCategory,
+          difficulty: difficulty === 'all' ? null : difficulty,
+          offset: nextOffset,
+          limit: PAGE_SIZE
+        }, { signal: controller.signal })
+        if (controller.signal.aborted || requestScopeRef.current !== capturedScope) return false
+        if (!data.questions.length) break
+        nextOffset += data.questions.length
+        found = data.questions.some(question => questionKey(question) === savedKey)
+        setQuestions(previous => [...previous, ...data.questions])
+        setOffset(nextOffset)
+      }
+      return found
+    } finally {
+      if (!controller.signal.aborted && requestScopeRef.current === capturedScope) setLoadingMore(false)
+    }
+  }, [questions, offset, total, requestScope, apiCategory, difficulty])
+
   const shuffle = useCallback(() => {
     setQuestions(prev => {
       const shuffled = [...prev]
@@ -101,11 +132,6 @@ export default function InterviewPage() {
       }
       return shuffled
     })
-    // Bump the deck's key (below) so it remounts at card 1 of the new order — a plain
-    // useEffect keyed on `questions` would work most of the time, but effects run after
-    // paint and can still be pending when the reader's very next click lands, silently
-    // reverting it. See the note on InterviewDeck for the full race.
-    setShuffleNonce(nonce => nonce + 1)
   }, [])
 
   if (!isKnownCategory) {
@@ -199,6 +225,7 @@ export default function InterviewPage() {
             <InterviewDeck
               key={`${categoryParam}-${difficulty}`}
               scope={`interview:${categoryParam}:${difficulty}`}
+              onFindSavedQuestion={findSavedQuestion}
               questions={questions}
               eyebrow={categoryLabel(categoryParam)}
               heading="Interview Mode"

@@ -12,7 +12,7 @@
       "tradeOffs": [
         "Single-Level vs Multi-Level Page Tables: Single-level page tables require a contiguous array per process (4MB per process for 32-bit), whereas Multi-Level (2-level/4-level x86_64) page tables allocate directory pages on-demand, saving vast RAM."
       ],
-      "productionScenario": "A high-performance C++ cache service experienced intermittent 50ms memory latency spikes. Profiling revealed huge page table overhead. Enabling Linux Transparent Huge Pages (THP 2MB pages vs standard 4KB pages) reduced TLB entries by 500x and boosted cache lookup throughput by 22%.",
+      "productionScenario": "Illustrative scenario: a workload shows many translation-lookaside-buffer misses. Huge pages can reduce page-table pressure for suitable access patterns, but transparent huge pages can also add allocation or compaction latency. Measure with the target kernel and workload before enabling them.",
       "codeSnippet": "// x86_64 4-Level Page Table Structure\n// Virtual Address (64-bit): [Sign Ext 16b | PML4 9b | Directory 9b | Page Table 9b | Offset 12b]\n\nuint64_t translateAddress(uint64_t virtualAddress) {\n    uint64_t pml4_index = (virtualAddress >> 39) & 0x1FF;\n    uint64_t pdpt_index = (virtualAddress >> 30) & 0x1FF;\n    uint64_t offset     = virtualAddress & 0xFFF;\n    return (physicalFrameBase << 12) | offset;\n}",
       "interviewQA": [
         {

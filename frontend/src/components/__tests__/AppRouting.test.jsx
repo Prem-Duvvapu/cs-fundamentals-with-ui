@@ -37,6 +37,13 @@ afterEach(() => {
 })
 
 describe('application route recovery', () => {
+  it('updates the browser title when returning from a category path to home', async () => {
+    renderApp('/category/java-spring')
+    await waitFor(() => expect(document.title).toBe('Java & Spring | CS Fundamentals'))
+    fireEvent.click(screen.getByRole('link', { name: /all learning paths/i }))
+    await waitFor(() => expect(document.title).toBe('Learning paths | CS Fundamentals'))
+  })
+
   it('renders actionable recovery links for an unknown route', () => {
     renderApp('/not-a-real-route')
 

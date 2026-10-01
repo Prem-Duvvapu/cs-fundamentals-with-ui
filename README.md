@@ -283,3 +283,7 @@ dependency injection to a small Spring REST application. It uses in-memory stora
 
 The [revamp plan](UI_UX_REVAMP_PLAN.md) remains in progress: comprehensive accessibility
 verification, simulator presentation work and the larger curriculum expansion are pending.
+
+### Learning continuity and review
+
+The home and progress pages suggest a next lesson in your recently used category, following unmet prerequisites first. Your reading location and practice answers stay in browser storage and can be exported from Progress. Category interview practice can find a saved question on a later page, and review links open the exact question. The [dated learning and UX audit](PROJECT_LEARNING_UX_AUDIT_2026-10-01.md) tracks further improvements to interview feedback, learning labs and accessibility.

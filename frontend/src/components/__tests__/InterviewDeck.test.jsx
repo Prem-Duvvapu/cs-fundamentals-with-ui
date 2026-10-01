@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
 import InterviewDeck from '../shared/InterviewDeck'
+import { questionKey } from '../../utils/learningState'
 
 // The real Markdown pipeline is exercised exhaustively by
 // TopicViewer.markdown.test.jsx. Keep this deck-level suite focused on reveal,
@@ -48,6 +49,8 @@ describe('InterviewDeck', () => {
     await waitFor(() => expect(answer).toHaveTextContent('trap'))
     expect(answer.querySelector('[data-testid="markdown-content"]')).toHaveTextContent('A **trap** into the kernel.')
     expect(screen.getByRole('button', { name: /hide answer/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByText('How to compare your answer'))
+    expect(screen.getByText(/mechanism or sequence/)).toBeInTheDocument()
   })
 
   it('steps forward, resets reveal state, and disables Next on the last card', () => {
@@ -72,13 +75,26 @@ describe('InterviewDeck', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument()
   })
 
-  it('clamps the index defensively if a same-keyed list shrinks past the current position', () => {
+  it('explains when the selected question is no longer loaded instead of silently replacing it', () => {
     const { rerender } = render(<InterviewDeck questions={QUESTIONS} />)
     fireEvent.click(screen.getByRole('button', { name: /next/i }))
     expect(screen.getByText('2 / 2')).toBeInTheDocument()
 
     rerender(<InterviewDeck questions={[QUESTIONS[0]]} />)
+    expect(screen.getByText(/saved question is not among/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Start from the first question' }))
     expect(screen.getByText('1 / 1')).toBeInTheDocument()
+  })
+
+  it('resumes a question after its later page loads', async () => {
+    const laterKey = questionKey(QUESTIONS[1])
+    const onFindSavedQuestion = vi.fn(async () => true)
+    const { rerender } = render(<InterviewDeck questions={[QUESTIONS[0]]} requestedKey={laterKey} onFindSavedQuestion={onFindSavedQuestion} />)
+    expect(screen.getByText(/saved question is not among/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Find saved question' }))
+    expect(onFindSavedQuestion).toHaveBeenCalledWith(laterKey)
+    rerender(<InterviewDeck questions={QUESTIONS} requestedKey={laterKey} onFindSavedQuestion={onFindSavedQuestion} />)
+    expect(screen.getByText('2 / 2')).toBeInTheDocument()
   })
 
   it('a new key starts a fresh deck at question 1 with the answer hidden', () => {

@@ -12,7 +12,7 @@
       "tradeOffs": [
         "Virtual Threads vs Reactive Programming (WebFlux): Virtual Threads allow writing standard imperative blocking code (`Thread.sleep()`, JDBC) while achieving reactive-level throughput without callback hell or Mono/Flux complexity."
       ],
-      "productionScenario": "An enterprise payment gateway operating 200 platform threads hit 100% CPU and socket exhaustion at 500 RPS. Migrating to Java 21 Virtual Threads (`Executors.newVirtualThreadPerTaskExecutor()`) allowed the system to serve 15,000 concurrent RPS using only 8 Carrier OS Threads.",
+      "productionScenario": "Illustrative scenario: a request service has many threads blocked on I/O. Virtual threads may reduce the cost of waiting threads, but cannot make CPU work faster or remove database, socket and connection-pool limits. Compare throughput and latency under a specified workload before claiming an improvement.",
       "codeSnippet": "// Java 21 Virtual Thread Per Task Executor\ntry (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n    IntStream.range(0, 10_000).forEach(i -> {\n        executor.submit(() -> {\n            // Blocking DB/HTTP call - JVM unmounts virtual thread automatically!\n            HttpResponse<String> res = httpClient.send(req, BodyHandlers.ofString());\n            return res.body();\n        });\n    });\n}",
       "interviewQA": [
         {
@@ -42,7 +42,7 @@
       "tradeOffs": [
         "CallerRunsPolicy vs AbortPolicy: `CallerRunsPolicy` degrades throughput gracefully by forcing the submitting thread (e.g. Tomcat HTTP thread) to run the task, providing natural backpressure; `AbortPolicy` throws `RejectedExecutionException` immediately."
       ],
-      "productionScenario": "During a black Friday traffic spike, an asynchronous log exporter flooded its thread pool. Because it used `AbortPolicy`, thousands of order requests failed with `RejectedExecutionException`. Switching to `CallerRunsPolicy` throttled incoming HTTP requests safely without dropping orders.",
+      "productionScenario": "Illustrative scenario: an asynchronous exporter fills its bounded queue. AbortPolicy rejects additional tasks; CallerRunsPolicy may slow the submitting thread, but that backpressure can also delay requests. Choose a rejection policy only after deciding whether losing logs or increasing request latency is acceptable.",
       "codeSnippet": "// Production ThreadPoolExecutor Configuration\nThreadPoolExecutor pool = new ThreadPoolExecutor(\n    4,                      // corePoolSize\n    16,                     // maximumPoolSize\n    60L, TimeUnit.SECONDS,  // keepAliveTime\n    new ArrayBlockingQueue<>(500), // bounded work queue\n    new ThreadPoolExecutor.CallerRunsPolicy() // rejection handler\n);",
       "interviewQA": [
         {

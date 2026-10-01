@@ -1,4 +1,6 @@
 import ResumeReading from '../components/shared/ResumeReading'
+import useLearningState from '../hooks/useLearningState'
+import { latestReading } from '../utils/learningState'
 import useCatalog from '../hooks/useCatalog'
 import { Link, useSearchParams } from 'react-router-dom'
 import { compareTopics } from '../utils/progressStats'
@@ -65,6 +67,7 @@ function topicCountLabel(count) {
 
 export default function HomePage() {
   const { topics, status, retry } = useCatalog()
+  const { state: learning } = useLearningState()
   const [params, setParams] = useSearchParams()
   const selectedCategory = Object.hasOwn(CATEGORY_DETAILS, params.get('category')) ? params.get('category') : 'all'
   const selectedLevel = LEVEL_FILTERS.includes(params.get('level')) ? params.get('level') : 'all'
@@ -102,7 +105,8 @@ export default function HomePage() {
 
   // Same helper the progress dashboard uses for "Continue where you left off", so both pages agree
   // on what comes next instead of each deciding for themselves.
-  const nextTopic = getNextTopic(topics, progress)
+  const recentCategory = latestReading(topics, learning)?.category
+  const nextTopic = getNextTopic(topics, progress, recentCategory)
   // Kept visible while the filter is on, even at zero bookmarks: otherwise un-bookmarking your last
   // topic hides the control while the filter stays active, with no way left to switch it off.
   const showBookmarkFilter = bookmarkedOnly || getBookmarkedTopics(topics, progress).length > 0

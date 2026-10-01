@@ -1934,7 +1934,7 @@
       "disposition": "migrated",
       "evidence": {
         "type": "lesson-content",
-        "contains": "`private`: Not visible to subclasses; thus cannot be overridden."
+        "contains": "`private` methods are not inherited and therefore cannot be overridden."
       }
     },
     {

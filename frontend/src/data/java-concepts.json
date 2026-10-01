@@ -14,7 +14,7 @@
         "Generational Heap vs Flat Memory: Generational hypothesis assumes 'most objects die young' (90%+), making Eden Minor GC fast by only copying surviving objects to Survivor space.",
         "Metaspace vs legacy PermGen: Metaspace expands dynamically in native RAM (bounded by -XX:MaxMetaspaceSize) avoiding fixed PermGen allocation caps."
       ],
-      "productionScenario": "A high-throughput notification service crashed every 6 hours with OutOfMemoryError. JVM heap dump analysis showed 1.2M uncollected UserContext instances pinned inside a static ThreadLocal registry that was never cleared after HTTP requests completed.",
+      "productionScenario": "Illustrative scenario: request context stored in a ThreadLocal is not cleared after a request. Reused worker threads may retain references and raise heap use. Verify with heap dumps and clear values in a finally block.",
       "codeSnippet": "// JVM Memory Sizing Flags\n// java -Xms2g -Xmx4g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m -Xss512k -jar app.jar\n\npublic class MemoryAllocationDemo {\n    private static final List<byte[]> memoryLeakList = new ArrayList<>();\n\n    public void allocateEden() {\n        byte[] shortLived = new byte[1024 * 100]; // 100KB allocated in Eden\n    }\n}",
       "interviewQA": [
         {
@@ -53,7 +53,7 @@
       "tradeOffs": [
         "G1GC vs ZGC: G1 targets predictable pause times (<200ms) with high throughput. ZGC (Z Garbage Collector) achieves sub-millisecond (<1ms) pause times using colored pointers and load barriers at slightly higher CPU usage."
       ],
-      "productionScenario": "An API Gateway experienced 1200ms p99 latency spikes. GC logs showed frequent 'To-Space Exhaustion'. Increasing -XX:G1HeapRegionSize=16m and raising -XX:InitiatingHeapOccupancyPercent=45 triggered concurrent marking earlier, bringing pause times down to <40ms.",
+      "productionScenario": "Illustrative scenario: GC logs show evacuation pressure and long pauses. Examine allocation rate, live set, heap size and collector diagnostics before changing G1 region size or marking thresholds; no single flag value guarantees shorter pauses.",
       "codeSnippet": "// G1GC Production Configuration Parameters\n// java -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:G1HeapRegionSize=16m -XX:InitiatingHeapOccupancyPercent=45 -jar app.jar",
       "interviewQA": [
         {
@@ -83,7 +83,7 @@
       "tradeOffs": [
         "Hashtable vs Collections.synchronizedMap vs ConcurrentHashMap: Hashtable locks the entire map on every operation. ConcurrentHashMap uses fine-grained CAS for empty buckets and locks only the specific bucket head during updates."
       ],
-      "productionScenario": "A caching service using HashMap in a multi-threaded web application experienced random server hangs. Replacing unsafe HashMap with ConcurrentHashMap eliminated multi-threaded race conditions during bucket insertion.",
+      "productionScenario": "Illustrative scenario: multiple threads mutate a HashMap without coordination. The map has no thread-safety guarantee, so results can be incorrect. Use ConcurrentHashMap for suitable concurrent operations or a lock for a larger multi-step invariant.",
       "codeSnippet": "// HashMap Treeification Threshold Constants\nstatic final int DEFAULT_INITIAL_CAPACITY = 1 << 4;\nstatic final float DEFAULT_LOAD_FACTOR = 0.75f;\nstatic final int TREEIFY_THRESHOLD = 8;\nstatic final int UNTREEIFY_THRESHOLD = 6;",
       "interviewQA": [
         {

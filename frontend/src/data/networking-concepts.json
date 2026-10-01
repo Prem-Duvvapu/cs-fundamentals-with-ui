@@ -12,7 +12,7 @@
       "tradeOffs": [
         "TCP Reno vs CUBIC vs BBR: Reno/CUBIC use loss-based congestion detection (collapsing cwnd on packet loss). Google's BBR (Bottleneck Bandwidth and RTT) uses delay-based pacing, maximizing throughput without filling router buffers."
       ],
-      "productionScenario": "A cross-region microservice communication pipeline experienced throughput degradation over 100ms RTT links. Tuning Linux TCP socket buffers (`sysctl -w net.ipv4.tcp_rmem='4096 87380 16777216'`) allowed the sliding receiver window (rwnd) to scale to 16MB, utilizing full 10Gbps link capacity.",
+      "productionScenario": "Illustrative scenario: a long-RTT link underuses available bandwidth when the receive window is too small. Estimate the bandwidth-delay product, then inspect sender congestion window, receiver window, application rate and OS buffer limits before changing TCP settings.",
       "codeSnippet": "// Linux Kernel TCP Congestion Control Configuration\n// sysctl net.ipv4.tcp_congestion_control=cubic\n// sysctl -w net.ipv4.tcp_wmem='4096 65536 16777216'\n// sysctl -w net.ipv4.tcp_rmem='4096 87380 16777216'",
       "interviewQA": [
         {
@@ -42,7 +42,7 @@
       "tradeOffs": [
         "Naive Modulo Hashing `hash(key) % N` vs Consistent Hashing: Modulo hashing remaps ~100% of keys whenever N changes (catastrophic for distributed caches like Redis/Memcached). Consistent hashing remaps only $K/N$ keys."
       ],
-      "productionScenario": "A distributed caching cluster with 20 nodes experienced database outages whenever a node was added. Switching from modulo hashing to Consistent Hashing with 150 Virtual Nodes per physical server reduced key cache invalidations from 95% to 4.8%.",
+      "productionScenario": "Illustrative scenario: adding a cache node with modulo hashing remaps many keys. Consistent hashing usually remaps a smaller portion; virtual nodes can improve balance. The actual remapping and cache-miss rate depend on key distribution, node count and replication.",
       "codeSnippet": "// Consistent Hash Ring Virtual Node Routing\npublic class ConsistentHashRing {\n    private final TreeMap<Long, String> ring = new TreeMap<>();\n    private final int virtualNodes = 150;\n\n    public void addServer(String server) {\n        for (int i = 0; i < virtualNodes; i++) {\n            long hash = md5Hash(server + \"-vnode-\" + i);\n            ring.put(hash, server);\n        }\n    }\n\n    public String getServer(String key) {\n        if (ring.isEmpty()) return null;\n        long hash = md5Hash(key);\n        Map.Entry<Long, String> entry = ring.ceilingEntry(hash);\n        return (entry != null) ? entry.getValue() : ring.firstEntry().getValue();\n    }\n}",
       "interviewQA": [
         {

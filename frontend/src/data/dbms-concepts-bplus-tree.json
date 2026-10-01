@@ -14,7 +14,7 @@
         "B-Tree vs B+ Tree: B+ Trees store data pointers exclusively in leaves, allowing higher fan-out (more keys per internal node) and fast sequential leaf scans via linked pointers.",
         "B+ Tree vs LSM-Tree: B+ Trees offer faster read lookups ($O(\\log N)$ in-place pages), while LSM-Trees (used in Cassandra/RocksDB) offer faster append-only write throughput at the cost of read amplification."
       ],
-      "productionScenario": "A multi-tenant e-commerce database saw query latency spike from 4ms to 4.2 seconds during Flash Sale events. Diagnosing `EXPLAIN ANALYZE` revealed `Seq Scan` on `orders (tenant_id, status)` because the index was created as `(status, tenant_id)`. Re-ordering the composite index prefix to high-cardinality `tenant_id` first reduced disk page reads from 45,000 to 3 pages per query.",
+      "productionScenario": "Illustrative scenario: a multi-tenant order query filters by tenant and status but still scans many rows. Inspect its actual predicate, selectivity, sort order, table statistics and EXPLAIN plan before choosing a composite index. The best column order depends on the workload; high cardinality alone is not a universal rule.",
       "codeSnippet": "-- PostgreSQL Composite B+ Tree Index Creation\nCREATE INDEX idx_orders_tenant_status ON orders (tenant_id, status);\n\n-- Inspect Query Execution Plan\nEXPLAIN ANALYZE \nSELECT * FROM orders \nWHERE tenant_id = 'tenant_9821' AND status = 'PENDING';\n\n/* Output:\n Index Scan using idx_orders_tenant_status on orders \n   (cost=0.42..8.44 rows=1 width=128) (actual time=0.031..0.034ms)\n   Index Cond: ((tenant_id = 'tenant_9821'::text) AND (status = 'PENDING'::text))\n*/",
       "interviewQA": [
         {
