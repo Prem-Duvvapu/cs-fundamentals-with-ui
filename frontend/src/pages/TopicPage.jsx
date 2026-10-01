@@ -23,7 +23,7 @@ export default function TopicPage() {
 
   const { topics, status, retry } = useCatalog()
   const topic = topics.find(item => item.id === topicId)
-  const title = topic?.title || 'Loading lesson…'
+  const title = topic?.title || (status === 'ready' ? 'Topic not found' : status === 'error' ? "Couldn't load this lesson" : 'Loading lesson…')
   const category = topic?.category || getTopicCategory(topicId)
   const categoryMetadata = CATEGORY_METADATA[category]
   const siblings = topics.filter(item => item.category === category).sort(compareTopics)

@@ -549,8 +549,7 @@ The October 1 AI/ML and DevOps pass adds a beginner outcome and practical backen
 The browser accessibility gate now waits for the applied theme and the lazy OS simulator before scanning. That exposed low-contrast simulator controls in the light theme and an active-state badge in the dark theme; their text/fill tokens were corrected and both themes are checked again in Chromium.
 
 The saved-answer manager now covers the remaining A05 actions: review/all filters, comparison,
-non-destructive adoption and confirmed deletion. The remaining work is material: keyboard route
-announcements and focus policy (A04); a corpus-wide, sourced accuracy review (A06); author-reviewed question rubrics and
+non-destructive adoption and confirmed deletion. Named main-landmark focus on pathname changes, with query/hash and guided-tour focus preserved, completes the A04 route policy. The remaining work is material: a corpus-wide, sourced accuracy review (A06); author-reviewed question rubrics and
 follow-ups (A08); review sessions/history (A09); explained learner goals and prerequisites
 (A10); Spring lab milestones (A11); broader teaching-pattern work (A12); guided simulator
 learning tasks (A13); manual accessibility/zoom review (A14); section-stable search and relevance

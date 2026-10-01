@@ -133,6 +133,8 @@ try {
   await page.getByRole('heading', { level: 1, name: 'Java & Spring' }).waitFor()
   await page.getByRole('link', { name: /All learning paths/ }).first().click()
   await page.waitForFunction(() => document.title.startsWith('Learning paths'))
+  if (!(await page.locator('#main-content').evaluate(element => document.activeElement === element))) failures.push('Pathname navigation did not focus the main landmark')
+  if ((await page.locator('#main-content').getAttribute('aria-label')) !== 'Learning paths') failures.push('Main landmark does not name the destination page')
 
   await page.goto(`${origin}/topic/java-execution-pipeline`)
   await page.locator('.topic-content h3').first().waitFor()
@@ -142,7 +144,9 @@ try {
   if (await page.getByRole('button', { name: 'Wrap code' }).first().getAttribute('aria-pressed') !== 'true') failures.push('Code wrap reset after a reader setting changed')
   await page.getByRole('tab', { name: 'Practice' }).click()
   await page.getByRole('textbox').waitFor()
+  if (!(await page.getByRole('tab', { name: 'Practice' }).evaluate(element => document.activeElement === element))) failures.push('Study to Practice changed keyboard focus')
   await page.getByRole('tab', { name: 'Study' }).click()
+  if (!(await page.getByRole('tab', { name: 'Study' }).evaluate(element => document.activeElement === element))) failures.push('Practice to Study changed keyboard focus')
   await page.locator('#intermediate-level').evaluate(element => window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.25))
   try {
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('cs-fundamentals-learning-v1') || '{}').reading?.['java-execution-pipeline']?.headingId === 'intermediate-level', null, { timeout: 3000 })
