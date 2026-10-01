@@ -302,3 +302,23 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: the migration gate passes with 109/109 items resolved and zero pending.
 - Prevention: run the migration gate after any rewrite of a lesson named as a ledger target.
 - Resolving commit: `93d059d`.
+
+## RCA-2026-10-01-04 — Browser accessibility scan could miss a lazy simulator and selected theme
+
+- Evidence: the responsive check first passed, then an identical run reported low contrast in
+  the process simulator. A stricter run found the active-state badge also failed in dark mode.
+  The old scan waited for the page heading but did not wait for the lazy simulator or the
+  applied theme, so it could scan a different DOM or theme on different runs.
+- Root cause: the harness accumulated `addInitScript` theme setters across navigations and
+  used page-heading readiness as a proxy for theme and simulator readiness. The simulator
+  also used a light info fill with white text and an active badge with fixed white text.
+- Resolution: set theme storage in the current page, wait for `html[data-theme]` and the
+  simulator action buttons, include contrast details on failure, darken the light warning
+  text and action fill, and use theme-aware inverse text on the active badge.
+- Verification: final responsive run covers 10 route families at five widths in both themes
+  and 14 axe scans, including the mounted simulator; the generated 590 diagram assets pass
+  XML and Chromium decode checks, and the production build succeeds.
+- Prevention: accessibility checks for lazy routes must assert the feature is mounted and
+  the requested theme is applied before axe runs; contrast failures should report actual
+  foreground/background colors and ratios.
+- Resolving commit: `8b2c4f3`.
