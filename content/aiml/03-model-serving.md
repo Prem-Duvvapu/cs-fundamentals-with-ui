@@ -2,6 +2,14 @@
 
 Model serving turns a trained model into a reliable online system that accepts requests, manages scarce accelerators, generates outputs, and reports quality and cost. Large-language-model inference is unusual because prompt processing and token generation stress hardware differently, and each active request retains state in the KV cache. Interviewers ask this topic to see whether a candidate can connect latency, throughput, batching, memory, and safety rather than describing a model as a stateless HTTP handler.
 
+**Before you start:** Read [ML fundamentals](07-ml-fundamentals.md) and the
+Beginner tier of [LLM parameters](04-llm-parameters.md). This lesson's later
+GPU details are optional if you only integrate a managed model API.
+
+**After this lesson, you should be able to:** distinguish training from inference,
+explain the difference between first-token and total latency, budget input/output
+tokens, and decide when a backend team needs managed inference or self-hosting.
+
 ---
 
 ## 🟢 Beginner Level
@@ -43,6 +51,27 @@ Training updates model parameters using large datasets and long-running jobs.
 Serving usually holds fixed model weights in memory and runs forward passes for individual requests.
 
 The operational goal is predictable latency, availability, throughput, quality, and cost.
+
+### What a backend engineer usually owns
+
+There are two deployment choices. With a **managed model API**, a provider runs the
+model workers; your team still owns authentication, data minimisation, prompt and
+schema versions, quotas, deadlines, retries, evaluation, and user-visible fallbacks.
+With **self-hosting**, your team also owns model loading, GPU capacity, batching,
+worker health, security updates and runtime upgrades. Neither choice makes the
+model's answer automatically correct.
+
+Start by measuring one ordinary request: how many input and output tokens did it
+use, how long until the first token, how long until completion, and what happens
+when the provider times out? A rough cost estimate multiplies measured token
+counts by the deployed provider's current price; do not hard-code a price into
+the architecture. If the task does not need streaming, a complete response can
+be easier to validate before showing it to users.
+
+**Try it:** a team sees slow first tokens but fast generation afterward. Should
+it immediately buy a larger GPU? **Answer:** first separate queueing and prefill
+time from decode time. Long prompts, request admission or a shared provider queue
+may explain the delay; a larger GPU is only one possible remedy after measurement.
 
 ### Prefill and decode have different shapes
 

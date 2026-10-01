@@ -9,6 +9,14 @@ vocabulary of the cloud platforms all of this typically runs on. Interviewers as
 these because picking the right tool for the job — and knowing when *not* to reach for the
 heaviest one — is a more senior signal than knowing any single tool's flags.
 
+**Before you start:** Read [Docker fundamentals](01-docker-fundamentals.md) and
+[CI/CD](04-cicd-pipelines-deployment-strategies.md) at Beginner level. You need only
+the ideas of a process, an HTTP request, and a database to follow this lesson.
+
+**After this lesson, you should be able to:** choose a simple hosting option for a
+small service, explain what a Terraform plan proposes, trace one failing request
+across logs/metrics/traces, and say how a service gets cloud permissions safely.
+
 ---
 
 ## 🟢 Beginner Level
@@ -59,8 +67,23 @@ resource "aws_instance" "web" {
 
 This single block, applied by a tool like Terraform, creates (and from then on, continues
 to manage) exactly one EC2 instance matching this description — re-running the same
-configuration again does nothing further, because the described state already matches
-reality, which is the **idempotency** property IaC depends on entirely.
+configuration again normally proposes no change when configuration, provider behaviour and
+real resources still agree. This is the intended **idempotency** property, not a promise
+that every provider operation is side-effect-free or that outside changes never occur.
+
+### Follow one request through a deployed service
+
+A user sends an HTTP request to a public address. A load balancer or reverse proxy
+forwards it to the application. The application may read a database, call another service,
+and return a response. In cloud terminology, the application runs on a **compute**
+service, the database is often a managed **data** service, and network rules decide
+which connections are allowed. These are separate components with separate failure modes.
+
+If the endpoint returns HTTP 500, first find the request ID in the application log.
+Then check whether the failure happened before the database call, during it, or after it.
+A healthy VM or container only proves that a process is running; it does not prove the
+user's request succeeds. This request path is the bridge between the Docker, proxy,
+deployment and observability lessons.
 
 ### Cloud Fundamentals: IaaS, PaaS, and SaaS
 
@@ -101,8 +124,9 @@ flowchart LR
     E --> S
 ```
 
-`terraform plan` computes and displays the diff between desired configuration and the last
-known state — *without changing anything* — specifically so a human can review exactly what
+`terraform plan` refreshes managed resource information and computes a proposed diff
+between desired configuration and the known infrastructure — *without applying changes* —
+so a human can review exactly what
 is about to happen (a resource being destroyed and recreated instead of updated in place is
 a common, sometimes destructive surprise this step exists to catch) before `terraform
 apply` actually executes it. This separation of "compute the diff" from "execute the diff"
@@ -150,6 +174,30 @@ the direct cloud-level analog of Kubernetes' Horizontal Pod Autoscaler, one laye
 out: it scales the number of *machines* available to a fleet, not the number of *Pods*
 scheduled onto a fixed set of machines, and both mechanisms are frequently used together in
 a real deployment.
+
+### Cloud identity and a small reliability target
+
+**Identity and access management (IAM)** answers two questions: who is making a call,
+and which action on which resource are they allowed to perform? A backend process that
+reads one storage bucket should receive a workload identity with that permission, not
+a long-lived administrator key embedded in its image. On AWS, for example, official
+[IAM guidance](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
+recommends temporary workload credentials and least privilege. The same principle
+applies to other cloud providers, although their role names differ.
+
+An **SLI** is a measured indicator, such as the fraction of valid requests answered
+successfully. An **SLO** is a chosen target over a stated period. If a service receives
+one million eligible requests in four weeks and targets 99.9% success, the corresponding
+error budget is 1,000 failed requests during that window. Decide in advance which
+requests count, because a metric that excludes a broken route can look green while users
+fail. [Google's SRE guidance](https://sre.google/workbook/error-budget-policy/)
+uses error budgets to connect release pace with reliability.
+
+**Try it:** the API shows 100% process uptime while 1,200 of one million user requests
+failed. Does it meet that 99.9% request-success SLO? **Answer:** no; at most 998,800
+requests succeeded, or 99.88%. Check the error route and downstream trace first, then
+decide whether to pause rollout or roll back. Process uptime and user success measure
+different things.
 
 ---
 

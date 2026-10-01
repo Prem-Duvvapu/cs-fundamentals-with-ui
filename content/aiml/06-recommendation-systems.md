@@ -4,6 +4,13 @@ A recommendation system selects a small, useful set of items for a user from a c
 Production systems separate fast candidate retrieval from richer ranking, then apply policy and diversity rules before serving the final list.
 Interviewers ask about this architecture because it combines machine learning, information retrieval, experimentation, and low-latency backend design.
 
+### Start here: what you should be able to do
+
+**Before:** Know that an application can show items to a user, even if you have never trained a model.
+**After:** Explain a popular-items baseline, the retrieval → ranking → policy flow, and one reason a seemingly good click metric can mislead.
+
+Imagine a learning site recommending the next lesson. Start with “popular lessons in the reader’s category” and measure whether readers complete them. Add personalized retrieval only when this baseline and its limits are understood; then rank the small candidate set, remove already-completed lessons, and record which suggestions were shown. Without impression logging, later clicks alone cannot tell you what the user had a chance to choose.
+
 ---
 
 ## 🟢 Beginner Level

@@ -2,6 +2,14 @@
 
 Machine learning builds programs whose behaviour is fitted from data rather than expressed entirely as hand-written rules. It sits between data pipelines and production inference services: training estimates model parameters, evaluation measures generalisation, and serving applies the frozen model to new examples. Backend interviews increasingly test this vocabulary because engineers integrating models must recognise invalid evaluation, choose useful metrics, and reason about model behaviour even when they are not training specialists.
 
+**Before you start:** You only need variables, functions, and the idea of an HTTP request.
+If "model" means nothing to you yet, begin here; later AI lessons assume the words introduced
+below. No calculus or prior Python experience is required for the Beginner tier.
+
+**After this lesson, you should be able to:** distinguish rules, predictive ML and a
+generative model; explain features, labels, training and inference with one request;
+calculate precision and recall from a small confusion matrix; and spot a leaked test result.
+
 ---
 
 ## 🟢 Beginner Level
@@ -100,6 +108,40 @@ A regressor produces a numeric estimate. Its error has magnitude and direction, 
 A clustering algorithm assigns groups based on a similarity notion. Cluster numbers are arbitrary labels, and a mathematically compact cluster is not automatically meaningful to a business domain.
 
 The model output is only one component of a product decision. Policy constraints, uncertainty, manual review capacity, and the cost of mistakes determine how predictions are used.
+
+### Where generative AI fits in a backend application
+
+A **model** is a function with learned parameters. Training adjusts those parameters using
+examples; **inference** runs the trained function on a new input. A backend service usually
+performs inference through an API or a hosted model and does not train a foundation model
+for each feature. The service still owns authentication, data access, validation, timeouts,
+logging and the final business decision.
+
+| Approach | Input | Output | Good first use |
+|---|---|---|---|
+| Hand-written rule | Order total and a threshold | Allow or reject | A policy that must be exact and auditable |
+| Predictive classifier | Historical features | Fraud probability | Ranking cases for human review |
+| Generative language model | Prompt and context | Text or a proposed tool call | Drafting a support explanation |
+
+A **large language model (LLM)** is a generative model trained to predict tokens in context.
+That objective teaches useful language patterns, but it does not give the model a live database,
+prove a claim, or authorize an action. A **foundation model** is a broad pretrained model that
+can be adapted to many tasks. Prompting changes the current input, retrieval supplies current
+evidence, and fine-tuning changes model parameters; those are different engineering choices.
+
+Imagine a support endpoint that receives "Where is order 1042?" A reliable first design calls
+the order service using the authenticated user's identity, then lets a model explain the returned
+status in plain language. It does **not** ask the model to guess the order status from memory.
+If the lookup times out, the endpoint reports an unavailable status or offers a retry; fluent
+text is not a substitute for missing evidence.
+
+**Try it before reading the answer:** a teammate proposes training a custom LLM so a support
+bot can read today's shipping status. What is the smaller first step?
+
+**Answer:** keep shipping data in the order system and retrieve the authorized record at
+request time. Use a model only for wording if that adds value, and compare it with a template.
+Training a new model would be expensive, could make the status stale, and would not solve
+per-customer authorization.
 
 ---
 

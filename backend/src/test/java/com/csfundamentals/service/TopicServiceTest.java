@@ -142,6 +142,27 @@ class TopicServiceTest {
     }
 
     @Test
+    void aiMlPath_reachesEverydayLlmAndRagBeforeExpertServing() {
+        List<Topic> topics = topicService.getTopicsByCategory("aiml");
+        assertEquals(List.of("ml-fundamentals", "llm-parameters", "embeddings-vector-db",
+                "rag-architecture", "model-serving", "feature-stores", "recommendation-systems"),
+                topics.stream().map(Topic::id).toList());
+        assertEquals(List.of("ml-fundamentals"), topicService.getTopicById("llm-parameters").prerequisiteIds());
+        assertEquals(List.of("embeddings-vector-db", "llm-parameters"),
+                topicService.getTopicById("rag-architecture").prerequisiteIds());
+    }
+
+    @Test
+    void devOpsPath_placesDeliveryBeforeOrchestration() {
+        List<Topic> topics = topicService.getTopicsByCategory("devops");
+        assertEquals(List.of("docker-fundamentals", "cicd-pipelines-deployment-strategies",
+                "nginx-reverse-proxy", "kubernetes-fundamentals", "cloud-native-operations"),
+                topics.stream().map(Topic::id).toList());
+        assertEquals(List.of("network-fundamentals"),
+                topicService.getTopicById("nginx-reverse-proxy").prerequisiteIds());
+    }
+
+    @Test
     void getTopicById_shouldReturnCorrectTopic_whenExists() {
         Topic topic = topicService.getTopicById("dbms-introduction");
         assertNotNull(topic);

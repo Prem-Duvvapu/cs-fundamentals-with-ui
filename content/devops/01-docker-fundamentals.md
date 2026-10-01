@@ -1,12 +1,20 @@
 # Docker & Container Fundamentals
 
 Docker packages an application with everything it needs to run — code, runtime, libraries,
-configuration — into a single portable unit that behaves identically on a laptop, a CI
-runner, and a production host. Interviewers probe this topic because "just use Docker" is
+configuration — into a portable image that makes application dependencies repeatable
+across a laptop, a CI runner, and a production host. Host kernels, CPU architecture,
+external services, and runtime configuration can still differ. Interviewers probe this topic because "just use Docker" is
 easy to say and genuinely tricky to reason about correctly: what a container actually
 isolates, why image layers matter for build speed and security, and what happens when a
 container is killed or runs out of memory all come up constantly in both trivia-style and
 system-design interviews.
+
+### Start here: what you should be able to do
+
+**Before:** Know how to start a backend application locally. No container experience is needed.
+**After:** Explain image versus container, build and run a small service, and debug a failed start using logs, ports, and environment variables.
+
+Think of an **image** as the packaged recipe and a **container** as one running instance of that recipe. A container restart does not fix a wrong image or missing secret; check the application logs and runtime settings first.
 
 ---
 
@@ -85,7 +93,7 @@ flowchart LR
 
 ### Writing a Dockerfile
 
-A Dockerfile is a linear script of build instructions, each producing exactly one layer:
+A Dockerfile is a sequence of build instructions; filesystem-changing steps contribute to image layers:
 
 ```dockerfile
 FROM node:20-alpine

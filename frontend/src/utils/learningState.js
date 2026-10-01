@@ -210,3 +210,25 @@ export function mergeLearningImport(incoming) {
 export function isImportedCopyKey(key) {
   return / \[imported \d+\]( \d+)?$/.test(key)
 }
+
+export function basePracticeKey(key) {
+  return key.replace(/ \[imported \d+\]( \d+)?$/, '')
+}
+
+// Swap drafts rather than overwrite one. An adopted alternative becomes the answer opened by
+// Practice, while the previous answer remains available (and exportable) under the copy key.
+export function adoptPracticeAlternative(key) {
+  if (!isImportedCopyKey(key)) return false
+  const base = basePracticeKey(key)
+  const entries = readLearning().practice
+  if (!entries[base] || !entries[key]) return false
+  updateLearning(state => ({
+    ...state,
+    practice: {
+      ...state.practice,
+      [base]: { ...state.practice[key], updatedAt: Date.now() },
+      [key]: { ...state.practice[base], updatedAt: Date.now() }
+    }
+  }))
+  return true
+}

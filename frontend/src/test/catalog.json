@@ -799,12 +799,26 @@
     ]
   },
   {
+    "id": "llm-parameters",
+    "title": "LLM Sampling Parameters, Tokenization & ReAct Agents",
+    "category": "aiml",
+    "level": "intermediate",
+    "summary": "Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops",
+    "order": 2,
+    "prerequisiteIds": [
+      "ml-fundamentals"
+    ],
+    "outcomes": [
+      "Explain how sampling changes generated output"
+    ]
+  },
+  {
     "id": "embeddings-vector-db",
     "title": "Vector Embeddings, Similarity Search & Vector DBs",
     "category": "aiml",
     "level": "beginner",
     "summary": "Embedding vectors, cosine similarity, HNSW ANN search, pgvector/Qdrant",
-    "order": 2,
+    "order": 3,
     "prerequisiteIds": [
       "ml-fundamentals"
     ],
@@ -818,9 +832,10 @@
     "category": "aiml",
     "level": "intermediate",
     "summary": "Chunking, retrieval, context assembly, grounded generation pipeline",
-    "order": 3,
+    "order": 4,
     "prerequisiteIds": [
-      "embeddings-vector-db"
+      "embeddings-vector-db",
+      "llm-parameters"
     ],
     "outcomes": [
       "Trace a question through retrieval and answer generation"
@@ -832,26 +847,12 @@
     "category": "aiml",
     "level": "expert",
     "summary": "vLLM PagedAttention, KV cache management, batching, GPU memory allocation",
-    "order": 4,
+    "order": 5,
     "prerequisiteIds": [
-      "ml-fundamentals"
+      "llm-parameters"
     ],
     "outcomes": [
       "Explain how batching and caching affect inference latency"
-    ]
-  },
-  {
-    "id": "llm-parameters",
-    "title": "LLM Sampling Parameters, Tokenization & ReAct Agents",
-    "category": "aiml",
-    "level": "intermediate",
-    "summary": "Temperature, Top-P nucleus sampling, tokenization, ReAct agent loops",
-    "order": 5,
-    "prerequisiteIds": [
-      "model-serving"
-    ],
-    "outcomes": [
-      "Explain how sampling changes generated output"
     ]
   },
   {
@@ -895,17 +896,17 @@
     ]
   },
   {
-    "id": "kubernetes-fundamentals",
-    "title": "Kubernetes Core Architecture, Networking & Deployments/Scaling",
+    "id": "cicd-pipelines-deployment-strategies",
+    "title": "CI/CD Pipelines & Deployment Strategies",
     "category": "devops",
     "level": "intermediate",
-    "summary": "Control plane and node architecture, Pods, Deployments and rolling updates, Services and kube-proxy, HPA",
+    "summary": "CI vs CD, build-once/promote, rolling/blue-green/canary deploys, feature flags, progressive delivery, GitOps",
     "order": 2,
     "prerequisiteIds": [
       "docker-fundamentals"
     ],
     "outcomes": [
-      "Trace traffic to a deployed application Pod"
+      "Compare rollout strategies and a rollback plan"
     ]
   },
   {
@@ -916,24 +917,24 @@
     "summary": "Event-driven worker architecture, load balancing algorithms, TLS termination, caching, rate limiting",
     "order": 3,
     "prerequisiteIds": [
-      "application-layer"
+      "network-fundamentals"
     ],
     "outcomes": [
       "Explain how a reverse proxy forwards a request"
     ]
   },
   {
-    "id": "cicd-pipelines-deployment-strategies",
-    "title": "CI/CD Pipelines & Deployment Strategies",
+    "id": "kubernetes-fundamentals",
+    "title": "Kubernetes Core Architecture, Networking & Deployments/Scaling",
     "category": "devops",
     "level": "intermediate",
-    "summary": "CI vs CD, build-once/promote, rolling/blue-green/canary deploys, feature flags, progressive delivery, GitOps",
+    "summary": "Control plane and node architecture, Pods, Deployments and rolling updates, Services and kube-proxy, HPA",
     "order": 4,
     "prerequisiteIds": [
       "docker-fundamentals"
     ],
     "outcomes": [
-      "Compare rollout strategies and a rollback plan"
+      "Trace traffic to a deployed application Pod"
     ]
   },
   {

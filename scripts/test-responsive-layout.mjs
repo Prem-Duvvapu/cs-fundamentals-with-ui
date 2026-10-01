@@ -72,6 +72,8 @@ try {
     await route.fulfill({ status: 404, body: '' })
   })
 
+  await page.goto(origin)
+
   const routes = [
     '/',
     '/topic/java-execution-pipeline',
@@ -87,13 +89,14 @@ try {
   const widths = [320, 375, 768, 1024, 1440]
 
   for (const theme of ['dark', 'light']) {
-    await page.addInitScript(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
+    await page.evaluate(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 })
       for (const route of routes) {
         if (page.url().startsWith(origin)) await page.evaluate(() => { localStorage.removeItem('cs-fundamentals-learning-v1'); localStorage.removeItem('cs-fundamentals-progress') })
         await page.goto(`${origin}${route}`, { waitUntil: 'domcontentloaded' })
         await page.locator('h1').first().waitFor({ timeout: 15_000 })
+        await page.locator(`html[data-theme="${theme}"]`).waitFor({ timeout: 15_000 })
         if (route.startsWith('/topic/')) await page.locator('.topic-content h2').first().waitFor({ timeout: 15_000 })
         if (route.startsWith('/topic/')) {
           const toc = page.locator('#topic-table-of-contents')
@@ -157,11 +160,16 @@ try {
     for (const route of ['/', '/category/java-spring', '/topic/java-execution-pipeline', '/topic/process-management?view=simulation', '/search?q=java', '/interview/all', '/progress']) {
       await page.goto(`${origin}${route}`)
       await page.locator('h1').first().waitFor()
+      await page.locator(`html[data-theme="${theme}"]`).waitFor()
       if (route.startsWith('/topic/') && !route.includes('view=simulation')) await page.locator('.topic-content h2').first().waitFor()
+      if (route.includes('view=simulation')) await page.locator('.action-buttons-grid .btn-action').first().waitFor()
       await page.addScriptTag({ content: axeSource })
       const violations = await page.evaluate(async () => {
         const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } })
-        return result.violations.map(item => ({ id: item.id, targets: item.nodes.map(node => node.target.join(' ')) }))
+        return result.violations.map(item => ({
+          id: item.id,
+          targets: item.nodes.map(node => `${node.target.join(' ')} ${node.any.map(check => JSON.stringify(check.data)).join(' ')}`)
+        }))
       })
       for (const violation of violations) failures.push(`${theme} ${route}: accessibility ${violation.id} at ${violation.targets.join(', ')}`)
     }

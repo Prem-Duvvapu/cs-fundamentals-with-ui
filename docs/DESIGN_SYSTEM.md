@@ -73,3 +73,12 @@ scroll at 320px, 375px, 768px, 1024px, or 1440px.
 Primary references: [WCAG 2.2](https://www.w3.org/WAI/WCAG22/quickref/),
 [MDN media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using), and
 [Mermaid theming](https://mermaid.js.org/config/theming.html).
+
+Simulator action buttons use a high-contrast light-theme fill, warning text uses a darker light-theme token on inset surfaces, and the active OS state badge uses the theme-aware inverse text color. The browser axe harness waits for the applied theme and lazy simulation to prevent a false pass.
+
+## Saved-answer manager
+
+The Progress page's `.saved-answers` section uses the existing surface, border, focus and
+spacing tokens. Keep review/all filters, each question's exact Practice link, alternate-draft
+comparison, and two-step destructive-action confirmation visible and keyboard operable. The
+current and alternative drafts stay separate in storage and remain exportable after adoption.

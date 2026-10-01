@@ -7,6 +7,13 @@ pipeline" hides real engineering decisions: how much is automated versus gated b
 how a bad release is caught before it reaches every user, and how a rollback actually
 happens when something does slip through.
 
+**Before you start:** You only need to know what a code change, a test, and a server are.
+Read the Docker lesson's Beginner tier if an image or container is unfamiliar.
+
+**After this lesson, you should be able to:** explain a commit-to-production path,
+name what CI checks before merge, distinguish build from deploy, and describe how
+you would stop or reverse a release that harms users.
+
 ---
 
 ## 🟢 Beginner Level
@@ -88,6 +95,26 @@ instance's exact source code is one `docker inspect` away, and rolling back mean
 redeploying a specific prior SHA rather than hoping a mutable tag still points at what it
 used to.
 
+### Your first safe release, from pull request to rollback
+
+On a small team, a developer creates a branch, changes one API endpoint, and opens a
+pull request (PR). A PR is a proposed change for teammates to review before it enters
+the shared branch. CI checks that it compiles, tests pass, and the application still
+builds. After review and merge, the pipeline produces a versioned artifact. Deployment
+places that artifact in a test environment, verifies the endpoint, and then promotes
+the **same artifact** to production.
+
+If users see more errors after release, identify the deployed artifact's commit or digest,
+check the new error rate, and restore the last known-good version. A database migration
+can complicate rollback: old application code may not understand the new schema. Plan
+compatible schema changes and a data recovery path *before* deploying.
+
+**Try it:** the test environment passed, but 5% of production requests fail after
+the release. Is "tests passed" a reason to keep rolling out? **Answer:** no. Pause
+promotion, compare errors by version and request route, then roll back or disable
+the feature if the new artifact caused the failure. Tests reduce risk but cannot
+reproduce every real user and dependency state.
+
 ---
 
 ## 🟡 Intermediate Level
@@ -155,13 +182,11 @@ Worked example, real numbers: a pipeline with three independent test suites (uni
 minutes, integration: 6 minutes, end-to-end: 8 minutes) run **sequentially** takes 18
 minutes total. Run in **parallel** across three runners, the pipeline's wall-clock time is
 bounded by the slowest suite alone — 8 minutes — plus fixed overhead (checkout, dependency
-install) each runner pays independently. **Dependency caching** (keying a cache on a
-lockfile's hash, restoring it on a cache hit instead of reinstalling from scratch) commonly
-cuts a multi-minute `npm ci`/`mvn dependency:go-offline` step down to a few seconds when
-the lockfile hasn't changed since the last run — the combined effect of parallelization and
-caching is routinely the difference between an 18-20 minute pipeline and one under 10
-minutes, which matters enormously for how many times per day a team can realistically
-iterate.
+install) each runner pays independently. **Dependency caching** keys downloaded packages
+to a lockfile or dependency manifest; it may shorten network downloads, but commands such
+as `npm ci` still install packages and cache restore itself costs time. Measure cache-hit
+rates and total pipeline time before claiming a gain. Parallelization and caching help
+only when their saved work exceeds runner startup, restore and coordination overhead.
 
 ### Secrets Management in Pipelines
 
@@ -175,6 +200,15 @@ an external secrets manager the pipeline authenticates to at runtime. A secret t
 into build logs is effectively public within the organization the moment it's printed,
 regardless of how carefully it was stored — this is why disabling shell command echoing
 around any step handling a secret is a standard, non-optional precaution.
+
+For cloud deployment, prefer a short-lived identity obtained through the CI provider's
+OpenID Connect (OIDC) federation where supported, scoped to the repository, branch and
+deployment environment. This avoids keeping a long-lived cloud key in CI secrets.
+Restrict workflow permissions and protect production environments separately from tests.
+Build provenance can link a published artifact back to the workflow and source revision;
+[GitHub artifact attestations](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations)
+are one concrete implementation. Provenance helps verify *what was built and where*;
+it does not prove the application is free of bugs or vulnerabilities.
 
 ---
 

@@ -110,6 +110,8 @@ id, only manual click.
 - **HikariCP Connection Pool (`java/ConnectionPoolVisualizer.jsx`)** at `spring-testing-production`: pool exhaustion and wait-queue behaviour.
 
 ### 🤖 AI/ML Systems (`AiMlVisualizer.jsx`)
+
+`TopicService` orders the AI/ML path as ML fundamentals → practical LLM usage → embeddings → RAG → serving → feature stores → recommendations; RAG depends on both embeddings and LLM usage. DevOps is Docker → CI/CD → Nginx → Kubernetes → cloud operations. The `frontend/src/test/catalog.json` fixture mirrors this catalog metadata. The Progress saved-answer manager keeps its empty section mounted after deletion so its live status remains focusable. The responsive browser harness waits for the applied theme and lazy simulation before axe checks, catching theme-specific contrast regressions. All twelve lessons now have a novice starting point and a concrete backend exercise.
 6 sub-tabs, all inline step-through UI state (no dedicated `simulationEngines/` file, same pattern
 as the Java hub's Spring MVC/Quartz tabs — the mechanism is a fixed worked example, not a
 configurable algorithm).
@@ -185,7 +187,7 @@ interview-Q&A format and permitted syntax. Raw HTML is not permitted in content.
 all 68 files in `content/` and asserts no unparsed Markdown leaks into prose, that math files
 produce real KaTeX output, and that blockquote files produce real `<blockquote>` elements.
 The content gate currently passes all 68 lessons and all 83 coverage-manifest entries, covering
-31,240 curriculum lines, 295 Mermaid diagrams, and 953 interview Q&As.
+32,309 curriculum lines, 295 Mermaid diagrams, and 953 interview Q&As.
 
 ### Reading Experience
 
@@ -362,4 +364,4 @@ flow without changing the platform backend. See its README for run commands and 
 
 ## October 1 reader and practice follow-up
 
-`MarkdownRenderer` memoizes the component map passed to react-markdown so normal parent updates do not remount stateful code and diagram controls. `TopicViewer` reconnects its heading observer after returning from Practice and records a heading only while Study is visible; it restores URL or saved headings before observing. `App` owns titles for non-topic routes. `InterviewDeck` represents a saved question missing from the current page explicitly; `InterviewPage` can fetch subsequent pages until that stable question key appears. `PracticeReview` pages through saved answers and links to `?view=practice&question=<encoded-key>`; imported alternative drafts remain visible as snapshots. The responsive browser harness includes these journeys and a WCAG 2.2 tagged axe check for key routes in both themes.
+`MarkdownRenderer` memoizes the component map passed to react-markdown so normal parent updates do not remount stateful code and diagram controls. `TopicViewer` reconnects its heading observer after returning from Practice and records a heading only while Study is visible; it restores URL or saved headings before observing. `App` owns titles for non-topic routes. `InterviewDeck` represents a saved question missing from the current page explicitly; `InterviewPage` can fetch subsequent pages until that stable question key appears. `PracticeReview` pages through review and all-answer filters and links to `?view=practice&question=<encoded-key>`. Imported alternatives can be compared, adopted by swapping drafts without losing either version, or deleted after an inline confirmation. The responsive browser harness includes these journeys and a WCAG 2.2 tagged axe check for key routes in both themes.

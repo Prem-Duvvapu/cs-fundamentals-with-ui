@@ -9,6 +9,13 @@ its architecture — a small number of event-driven worker processes instead of 
 thread/process per connection — is a genuinely different concurrency model from most
 application servers, with its own failure modes.
 
+### Start here: what you should be able to do
+
+**Before:** Know that a browser calls an HTTP endpoint. No Nginx configuration experience is needed.
+**After:** Trace browser → reverse proxy → backend → response, explain why the backend sees proxy headers, and locate a 502 error.
+
+For a small Spring Boot service, send one request directly to `localhost:8080`, then through Nginx on another port. If the direct call works but the proxied call returns 502, inspect the upstream address, whether the backend is listening, and Nginx's error log. A reverse proxy is another network hop with its own configuration and failure modes.
+
 ---
 
 ## 🟢 Beginner Level
@@ -95,7 +102,8 @@ requests to that pool. The `proxy_set_header` lines matter more than they look: 
 them, the backend sees every request as coming from Nginx's own IP on the `Host` header
 Nginx chooses, losing the real client's address and the original hostname entirely —
 `X-Forwarded-For` and `X-Real-IP` are how the backend recovers the actual client IP for
-logging, rate limiting, or geo-based logic.
+logging, rate limiting, or geo-based logic. Trust these headers only when requests
+arrive through a known proxy; a direct client can forge them.
 
 ---
 

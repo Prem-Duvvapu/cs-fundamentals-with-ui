@@ -74,7 +74,7 @@ new Java-example execution, live API end-to-end run, diagram browser-decode swee
 manual screen-reader audit, performance profiling, security penetration test or real learner study.
 Earlier test totals are historical evidence, not fresh passes from this audit.
 
-### Current content inventory
+### Content inventory at audit start (October 1)
 
 | Category | Lessons | Source lines | Mermaid diagrams | Interview Q&As | Marked runnable Java programs |
 |---|---:|---:|---:|---:|---:|
@@ -86,9 +86,9 @@ Earlier test totals are historical evidence, not fresh passes from this audit.
 | DevOps | 5 | 2,500 | 18 | 70 | 0 |
 | **Total** | **68** | **31,976** | **295** | **953** | **11** |
 
-Counts are literal source measurements, not educational-quality scores. Zero Java markers outside
-Java is expected and does not mean those categories lack examples. All 23 Java/Spring files contain
-“Before you start”; the other categories do not use that exact label. That is a consistency signal,
+These are the audit-start source measurements; the October 1 content pass raised the live total to 32,309 lines. Counts are not educational-quality scores. Zero Java markers outside
+Java is expected and does not mean those categories lack examples. At audit start, all 23 Java/Spring files contained
+“Before you start”; the other categories did not use that exact label. That is a consistency signal,
 not proof that no prerequisites are explained elsewhere. Six lessons lack the exact `### Further
 Reading` heading: all five DevOps lessons and one DBMS lesson; this does not prove they contain no links.
 
@@ -544,9 +544,13 @@ prerequisites (part of A10); interview practice offers general comparison prompt
 The simulation-question migration gate also needed one evidence quote updated after the earlier
 OOP lesson rewrite; the migrated question and its explanation remain in the lesson.
 
-The remaining work is material: keyboard route announcements and focus policy (A04); compare,
-adopt and delete controls for imported answer conflicts plus a complete saved-answer manager
-(A05); a corpus-wide, sourced accuracy review (A06); author-reviewed question rubrics and
+The October 1 AI/ML and DevOps pass adds a beginner outcome and practical backend scenario to all twelve lessons, reorders their catalog prerequisites for a usable path, and updates Kubernetes Service networking and LLM tool-interface guidance against primary documentation. This improves the entry point and factual freshness but does not substitute for a learner study or corpus-wide expert review.
+
+The browser accessibility gate now waits for the applied theme and the lazy OS simulator before scanning. That exposed low-contrast simulator controls in the light theme and an active-state badge in the dark theme; their text/fill tokens were corrected and both themes are checked again in Chromium.
+
+The saved-answer manager now covers the remaining A05 actions: review/all filters, comparison,
+non-destructive adoption and confirmed deletion. The remaining work is material: keyboard route
+announcements and focus policy (A04); a corpus-wide, sourced accuracy review (A06); author-reviewed question rubrics and
 follow-ups (A08); review sessions/history (A09); explained learner goals and prerequisites
 (A10); Spring lab milestones (A11); broader teaching-pattern work (A12); guided simulator
 learning tasks (A13); manual accessibility/zoom review (A14); section-stable search and relevance

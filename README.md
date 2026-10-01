@@ -114,6 +114,8 @@ just don't be surprised by a slow first click.
 - **⏱ Quartz Scheduler**: Trigger, misfire, and clustered `JobStoreTX` behavior.
 
 ### 🤖 AI/ML Systems
+
+The [AI/ML and DevOps learning path](AI_ML_DEVOPS_LEARNING_PATH.md) gives the full study order, capstones, and interview checks. The suggested beginner-to-backend path is ML fundamentals → LLM usage and tool calling → embeddings → RAG → serving. Feature stores and recommendations are later specializations. Each lesson now starts with a plain-language outcome and a small backend scenario; the LLM lesson covers current tool interfaces and human-reviewed integration decisions. The DevOps path starts with Docker, then CI/CD, Nginx, Kubernetes, and cloud operations, with a first practical debugging task in each lesson.
 - **📐 Embeddings & Vector Search**: 2D vector coordinate and cosine-distance calculator with similarity-search result ranking.
 - **🧩 RAG Pipeline**: Step-through of the retrieval-augmented-generation request path end to end.
 - **⚡ vLLM PagedAttention**: Traditional contiguous GPU allocation vs. PagedAttention's block-based virtual paging, side by side.
@@ -125,7 +127,7 @@ just don't be surprised by a slow first click.
 
 ## 📚 68 Curriculum Topics Covered
 
-All 68 lessons satisfy the authoring contract and coverage manifest: 31,240 curriculum lines,
+All 68 lessons satisfy the authoring contract and coverage manifest: 32,309 curriculum lines,
 295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
 
 | Category | Topics Count | Key Areas Covered |
@@ -286,4 +288,4 @@ verification, simulator presentation work and the larger curriculum expansion ar
 
 ### Learning continuity and review
 
-The home and progress pages suggest a next lesson in your recently used category, following unmet prerequisites first. Your reading location and practice answers stay in browser storage and can be exported from Progress. Category interview practice can find a saved question on a later page, and review links open the exact question. The [dated learning and UX audit](PROJECT_LEARNING_UX_AUDIT_2026-10-01.md) tracks further improvements to interview feedback, learning labs and accessibility.
+The home and progress pages suggest a next lesson in your recently used category, following unmet prerequisites first. Your reading location and practice answers stay in browser storage and can be exported from Progress. Category interview practice can find a saved question on a later page. On Progress, the saved-answer manager opens the exact question, reaches answers beyond the first page, compares imported alternatives, swaps an alternative into Practice without losing the previous draft, and confirms deletion; its empty state remains visible after the last deletion so keyboard focus can land on the result. The responsive browser check now waits for the selected theme and lazy simulator before scanning contrast in both themes. The [dated learning and UX audit](PROJECT_LEARNING_UX_AUDIT_2026-10-01.md) tracks further improvements to interview feedback, learning labs and accessibility.

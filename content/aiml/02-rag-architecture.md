@@ -2,6 +2,14 @@
 
 Retrieval-augmented generation connects a language model to an external knowledge source at request time. It is useful when facts change, answers must be traceable, or a model needs private domain context without fine-tuning on every document revision. A convincing response is not evidence that retrieval, permissions, or freshness works.
 
+**Before you start:** Read [ML fundamentals](07-ml-fundamentals.md) and the Beginner
+part of [embeddings](01-embeddings-vector-db.md). You need only a basic idea of
+an API, a document, and a search result; you do not need vector math yet.
+
+**After this lesson, you should be able to:** draw ingestion and answer paths,
+explain where permissions are checked, choose a simple search baseline before
+a vector database, and diagnose whether a bad answer began in retrieval or generation.
+
 ---
 
 ## 🟢 Beginner Level
@@ -53,6 +61,28 @@ flowchart LR
     P --> L["Language model"]
     L --> A["Answer with citations or abstention"]
 ```
+
+### Build the smallest useful RAG prototype first
+
+Start with three short policy documents, each with an ID, version, owner and effective
+date. For one authenticated user, filter out documents they cannot read. Search the
+remaining text using exact words, select the section that actually answers the question,
+and pass that section with its ID to the model. This is already retrieval-augmented
+generation; vectors are an optional search improvement, not a requirement for RAG.
+
+Keep the first evaluation set small and visible. For example, write ten questions:
+some answerable from the documents, some ambiguous, and some requiring a newer
+policy. Record the expected source ID and whether the system should answer, ask
+for clarification, or abstain. A retrieval hit on a forbidden document is a
+security failure even if the final text sounds right. A correct document with a
+fabricated citation is a generation or citation-checking failure.
+
+**Try it:** the model says refunds are allowed after 30 days but cites an old
+30-day policy; the current policy says 14 days. What should be fixed first?
+
+**Answer:** inspect ingestion freshness and the selected source version. Make the
+current policy retrievable and retire the old one; then verify the answer cites the
+effective policy. Rewording the prompt alone cannot make stale evidence current.
 
 ---
 

@@ -5,8 +5,15 @@ do you run hundreds of containers across many machines, keep them running when a
 dies, route traffic to whichever instances are healthy right now, and roll out a new
 version without downtime? Interviewers probe this because "we run it on Kubernetes" is easy
 to say and hides a genuinely deep system — a declarative control loop, a networking model
-built entirely on virtual IPs and iptables/IPVS rules, and failure modes that only show up
+built around virtual Services and replaceable Pods, and failure modes that only show up
 under real load.
+
+**Before you start:** Read [Docker fundamentals](01-docker-fundamentals.md) at
+Beginner level. A Pod runs containers, so learn that single-container model first.
+
+**After this lesson, you should be able to:** distinguish Pod, Deployment and Service;
+explain desired versus observed state; identify why a Pod is pending or restarting;
+and trace a request from a Service name to a ready application instance.
 
 ---
 
@@ -53,8 +60,9 @@ flowchart TB
 
 The **control plane** makes decisions but runs no application workloads itself:
 
-- **API server** is the single front door. Every read and write — `kubectl`, a controller,
-  a kubelet — goes through it as a REST/gRPC call. Nothing else talks to `etcd` directly.
+- **API server** is the single front door. Clients such as `kubectl`, controllers and
+  kubelets use the Kubernetes HTTP API; the API server persists cluster data in
+  `etcd`. Application traffic does not flow through the API server.
 - **etcd** is a distributed, strongly consistent key-value store holding the entire
   cluster's desired and observed state. It is the only source of truth; lose it without a
   backup and the cluster's history and configuration are gone even if every workload
@@ -74,8 +82,9 @@ Each **worker node** runs the actual containers:
   underneath it — pulling images, creating containers via the OCI runtime — talked to
   through the **Container Runtime Interface (CRI)**, a standard contract that decouples
   Kubernetes from any specific runtime implementation.
-- **kube-proxy** programs the node's networking rules so that traffic to a Service's
-  virtual IP reaches one of the right backend Pods, covered in depth below.
+- **kube-proxy**, when used, programs node networking rules so traffic to a Service's
+  virtual IP reaches an eligible backend Pod. Some clusters replace it with another
+  Service data plane; check the actual cluster before debugging its implementation.
 
 ### The Pod: Kubernetes' Atomic Scheduling Unit
 
@@ -195,36 +204,41 @@ changes.
 | `ExternalName` | Returns a CNAME, no proxying at all | Pointing at an external service by DNS |
 
 A Service does not sit in the data path itself doing the load balancing — it is a policy
-object. The actual traffic redirection happens on every node via **kube-proxy**.
+object. A node's Service data plane redirects packets to eligible Pods; many clusters
+use **kube-proxy**, while some networking add-ons replace it.
 
-### kube-proxy and Service Routing: iptables vs IPVS
+### kube-proxy and Service Routing: iptables, nftables, and legacy IPVS
 
-kube-proxy watches the API server for Services and their matching **Endpoints** (the
-current set of healthy Pod IP:port pairs behind a Service) and programs the node's kernel
-networking rules accordingly, in one of two modes:
+kube-proxy watches Services and **EndpointSlices**, which describe the current
+eligible Pod IP:port pairs, and updates node networking rules. On Linux it can use
+these implementations:
 
-- **iptables mode** (the long-time default): kube-proxy writes a chain of `iptables` NAT
-  rules per Service. A packet destined for the Service's virtual IP is matched against a
-  list of rules, each with an equal probability weight, and randomly rewritten (DNAT'd) to
-  one backend Pod IP. Rule evaluation is roughly linear in the number of rules, so with
-  thousands of Services this lookup can become a measurable bottleneck.
-- **IPVS mode**: uses the kernel's IP Virtual Server module, a purpose-built layer-4 load
-  balancer with real hash-table lookups instead of a linear rule chain, and supports actual
-  load-balancing algorithms (round-robin, least-connection) instead of pure random
-  selection. It scales far better at high Service counts and is the recommended mode for
-  large clusters.
+- **iptables** writes netfilter forwarding/NAT rules. It remains the default mode
+  in Kubernetes 1.37; large clusters may notice slower rule updates as Service and
+  endpoint counts grow.
+- **nftables** uses the newer netfilter API and can update large rule sets more
+  efficiently. It is the recommended replacement for legacy IPVS where supported;
+  check kernel and NodePort behaviour before migrating.
+- **IPVS** uses kernel IPVS plus some iptables rules. It was introduced for scale,
+  but cannot implement every Service edge case cleanly. Kubernetes marks this mode
+  deprecated; it is no longer a recommendation for a new large cluster.
+
+These facts are version-sensitive. The [Kubernetes 1.37 Service proxy reference](https://kubernetes.io/docs/reference/networking/virtual-ips/)
+documents the current default and migration limits. An eBPF-based networking add-on
+may replace kube-proxy entirely, so the first debugging question is which data plane
+your cluster actually runs.
 
 ```mermaid
 flowchart LR
     C["Client Pod"] --> VIP["Service virtual IP:port"]
-    VIP -->|"kube-proxy rule (iptables/IPVS)"| P1["Pod A"]
-    VIP -->|"kube-proxy rule"| P2["Pod B"]
-    VIP -->|"kube-proxy rule"| P3["Pod C"]
+    VIP -->|"Service data plane"| P1["Pod A"]
+    VIP -->|"eligible endpoint"| P2["Pod B"]
+    VIP -->|"eligible endpoint"| P3["Pod C"]
 ```
 
-Either way, the Service IP itself is virtual — it exists only as kernel rules on every
-node, never as an address any real network interface answers to directly, which is why a
-Service works identically no matter which node a client Pod happens to run on.
+The Service IP is a virtual destination, not the address of one durable Pod. The
+cluster's data plane implements forwarding to an eligible endpoint; its exact
+kernel rules and edge behaviour depend on the configured implementation.
 
 ### DNS-Based Service Discovery
 
@@ -327,12 +341,25 @@ their requests up to their limits, right up until the node's actual resources ru
 
 ### Production Failure Modes
 
-**`CrashLoopBackOff`.** A container keeps exiting shortly after starting. The kubelet
-restarts it with an exponential backoff delay (10s, 20s, 40s... capped at 5 minutes) rather
-than restarting immediately forever — immediate infinite restart would mask the real signal
+**`CrashLoopBackOff`.** A container keeps exiting shortly after starting. By default in
+Kubernetes 1.37, the kubelet backs off from 10 seconds up to 300 seconds; feature gates
+and kubelet configuration can change those values. The delay avoids restarting
+immediately forever — an infinite rapid loop would mask the real signal
 (check exit code and logs) and hammer any downstream dependency the container fails against
-on every attempt. The fix is always in the application or its config, never in the backoff
-itself.
+on every attempt. Investigate the exit reason, application configuration, dependencies, and resource
+limits before changing restart-delay settings; the backoff is a symptom, not a diagnosis.
+
+**A five-minute diagnostic path.** When a deployment is unavailable, start with
+`kubectl get pods,svc -n <namespace>` to see whether Pods exist and the Service
+exists. Use `kubectl describe pod <name> -n <namespace>` for scheduling, pull and
+probe events. For a restarting container, read
+`kubectl logs <name> -n <namespace> --previous` to capture the last crashed
+instance. For a running but unready Pod, check readiness failures and whether the
+Service has EndpointSlices for it. Then test the application port inside the
+cluster before blaming the external load balancer. These are read-only observations;
+avoid deleting Pods until you know what failed. The official
+[Pod debugging guide](https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/)
+shows the command sequence and what each result means.
 
 **Readiness probe misconfigured as liveness.** Using the same aggressive check for both
 means a Pod under temporary load that fails what should be a "stop sending traffic" signal
@@ -355,13 +382,14 @@ serious misunderstanding.
 
 ### Common Misconceptions
 
-- **"Kubernetes load-balances traffic itself, like a proxy in the data path."** It does
-  not — a Service is a policy object; kube-proxy programs kernel-level `iptables`/IPVS
-  rules on every node, and the actual packet rewriting happens in the kernel, not in any
-  running Kubernetes process sitting in the request path.
-- **"Restarting a crashed Pod brings back the same Pod."** A new Pod is created with a new
-  name and (usually) a new IP — nothing should depend on Pod identity surviving a restart;
-  that stability belongs to Services, not Pods.
+- **"A Service means the API server proxies every application request."** The API
+  server manages Service objects and EndpointSlices; a node data plane, often
+  kube-proxy's kernel rules, forwards application traffic. Some clusters use a
+  different Service implementation, so inspect the actual cluster before debugging.
+- **"Every restart creates a new Pod."** A container that crashes may restart inside the
+  **same Pod**, retaining its Pod name and IP while the Pod exists. A Deployment replacing a
+  failed or deleted Pod creates a **new Pod** with a new identity and usually a new IP.
+  Clients should depend on the Service rather than either Pod identity.
 - **"`kubectl delete pod` is how you scale down."** Deleting a Pod managed by a ReplicaSet
   just triggers the ReplicaSet controller to create a replacement immediately, since desired
   count did not change — scaling down means changing the Deployment's `replicas` field.
@@ -406,15 +434,14 @@ to the public internet.
 
 **Q4. Why does a Service keep working even though the Pods behind it are constantly being replaced?** `[easy]`
 
-A Service is a stable virtual IP and DNS name decoupled from any specific Pod; it
-load-balances across whatever Pods currently match its label selector via the Endpoints
-object, which the API server updates automatically as Pods come and go. Clients only ever
+A Service is a stable virtual IP and DNS name decoupled from any specific Pod; its
+EndpointSlices track eligible, ready backends as Pods come and go. Clients only ever
 talk to the Service's stable address, never to an individual Pod's IP directly, so Pod
 churn underneath is invisible to them.
 
 **Q5. What does a readiness probe actually do when it fails, and how is that different from a liveness probe failing?** `[medium]`
 
-A failing readiness probe removes the Pod from the Service's Endpoints list — it stops
+A failing readiness probe marks the Pod unready in EndpointSlices — it stops
 receiving new traffic — without restarting the container, which is the correct behavior for
 temporary unavailability like a slow startup warm-up or a long GC pause. A failing liveness
 probe instead causes the kubelet to restart the container entirely, which should be
@@ -444,18 +471,15 @@ became Ready, which is the deliberate safety mechanism preventing the controller
 scaling down more of the known-good old Pods; the fix is either fixing the new version or
 running `kubectl rollout undo` to revert to the last working ReplicaSet.
 
-**Q8. Explain the difference between iptables mode and IPVS mode in kube-proxy.** `[medium]`
+**Q8. How do iptables, nftables and IPVS modes differ in kube-proxy today?** `[medium]`
 
-Both program the node's kernel to redirect Service virtual-IP traffic to backend Pod IPs,
-but iptables mode does it as a linear chain of NAT rules with roughly O(n) lookup cost in
-the number of Services, evaluated with equal-probability random selection among backends.
-IPVS mode uses the kernel's IP Virtual Server module, a purpose-built layer-4 load balancer
-with hash-table lookups and real load-balancing algorithms like least-connection, which
-scales meaningfully better on clusters with thousands of Services and is the recommended
-mode at that scale. IPVS is not a clean replacement, though: it still relies on iptables
-for packet marking and masquerading, and it needs the `ip_vs` kernel modules present on
-every node — when they are missing, kube-proxy silently falls back to iptables mode, so a
-cluster can believe it is running IPVS while one node is not.
+All three forward Service traffic to eligible endpoints, but use different Linux
+kernel rule APIs. In Kubernetes 1.37, iptables remains the default; nftables has
+better large-rule-set update behaviour and is recommended when moving away from
+legacy IPVS, subject to kernel and NodePort compatibility checks. IPVS combines
+IPVS and iptables rules and is deprecated because its API cannot implement all
+Kubernetes Service semantics cleanly. A cluster may replace kube-proxy with another
+data plane entirely, so identify the running implementation before proposing a fix.
 
 **Q9. A Deployment's HPA target is 50% CPU. It's running 4 replicas at 90% average CPU utilization. What does the HPA compute as the new replica count, and why isn't it a round number?** `[medium]`
 
@@ -533,5 +557,5 @@ and [Services](https://kubernetes.io/docs/concepts/services-networking/service/)
 object model referenced throughout; the
 [Horizontal Pod Autoscaler walkthrough](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/)
 works through the scaling formula in more depth; the
-[kube-proxy IPVS design proposal](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/network/ipvs-proxy.md)
-explains the iptables-vs-IPVS trade-off from the implementers' own reasoning.
+[Kubernetes Service proxy reference](https://kubernetes.io/docs/reference/networking/virtual-ips/)
+documents the current iptables, nftables and deprecated IPVS behaviour.

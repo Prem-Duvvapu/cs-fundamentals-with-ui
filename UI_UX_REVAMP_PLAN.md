@@ -934,3 +934,9 @@ criteria above when continuing.
 ## October 1 remediation wave
 
 The dated `PROJECT_LEARNING_UX_AUDIT_2026-10-01.md` is the active findings ledger. The first implementation wave addresses reader control remounts, heading resume, route titles, saved interview question recovery, exact review links, misleading Spring Security 403 wording and unsupported simulator incident figures. It also starts prerequisite-aware next-lesson selection and adds browser accessibility checks. Treat these as implementation work subject to verification, not as completion of all 18 audit findings.
+
+## October 1 saved-answer follow-up
+
+The Progress saved-answer manager completes the audit's A05 recovery actions: review/all
+filters, all-page access, exact question links, side-by-side conflict inspection, draft-preserving
+adoption and inline confirmed deletion.

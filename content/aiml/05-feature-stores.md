@@ -2,6 +2,13 @@
 
 A feature store is the consistency layer between raw production data, reproducible model training, and low-latency inference. It makes feature definitions, historical values, online values, ownership, and freshness observable so a model can be trained and served with the same meaning. Interviewers use this topic to test whether a backend engineer can reason about event time, distributed serving, data quality, and safe model operations rather than treating deployment as a single prediction endpoint.
 
+**Before you start:** Read [ML fundamentals](07-ml-fundamentals.md) first.
+The Beginner tier only needs the idea of a database row and a time-stamped event.
+
+**After this lesson, you should be able to:** identify a feature and its entity key,
+explain online versus offline values, recognize future-data leakage, and choose
+a safe response when a serving feature is missing or stale.
+
 ---
 
 ## 🟢 Beginner Level
@@ -80,6 +87,23 @@ These paths can meet in one inference vector. The serving layer may fetch stored
 A feature contract should declare a freshness service-level objective, for example: “99.9% of `failed_logins_10m` values are no more than 60 seconds behind event time.” Monitoring needs both the feature timestamp and pipeline watermark to verify that promise.
 
 If a feature is missing or stale, the service needs an explicit policy. Options include a safe default, the last known value with a staleness indicator, a reduced-feature fallback model, or failing closed for high-risk decisions.
+
+### When a feature store is useful, and when it is not
+
+Do not install a feature platform merely because a service calls an AI API.
+If a support endpoint sends a user question and authorized policy text to an
+LLM, it needs prompt/evaluation versioning, source access control and request
+observability; it may have no reusable predictive features at all. A feature
+store becomes useful when multiple trained models depend on time-correct,
+reusable values such as "orders in the last hour" that must agree between
+historical training and live requests.
+
+**Try it:** a fraud model was trained on the number of failed logins in the
+ten minutes *before* each payment, but its online service reads the current
+counter five minutes after the payment. Is that the same feature? **Answer:**
+no. The entity key, event-time window and prediction-time cutoff are part of
+the definition. Rebuild training examples with point-in-time joins and make
+the live lookup use the same cutoff semantics before comparing model quality.
 
 ---
 

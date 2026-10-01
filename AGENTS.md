@@ -350,7 +350,7 @@ All 68 topics are registered at all integration points, so content work requires
 
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
-- **Verified** — 31,240 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
+- **Verified** — 32,309 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
   (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
@@ -457,4 +457,8 @@ has no database or security.
 
 ## October 1 learning audit remediation
 
-`PROJECT_LEARNING_UX_AUDIT_2026-10-01.md` records the dated evidence and remaining learning-quality work. Current reader controls keep stable Markdown renderer identities; reading position is restored before visibility-based saves and tracked only in Study. Practice resumes by stable question identity; category practice can fetch later pages, and progress review links target the exact question. Home/progress suggestions prefer the most recently read category and surface an unmet prerequisite first. Retained simulator `productionScenario` examples are illustrative, not measured incidents. Keep the browser journey and axe checks in `scripts/test-responsive-layout.mjs` when changing these flows.
+`AI_ML_DEVOPS_LEARNING_PATH.md` is the learner-facing study order and capstone guide. The October 1 AI/ML and DevOps content pass gives all twelve lessons a zero-prerequisite reading entry, a stated outcome, and a backend example. `TopicService` orders AI/ML as fundamentals → LLM usage → embeddings → RAG → serving → feature stores → recommendations and DevOps as Docker → CI/CD → Nginx → Kubernetes → cloud operations. Keep `frontend/src/test/catalog.json` in sync with catalog metadata and preserve the content validator. Kubernetes networking text follows current upstream Service proxy documentation.
+
+`PROJECT_LEARNING_UX_AUDIT_2026-10-01.md` records the dated evidence and remaining learning-quality work. Current reader controls keep stable Markdown renderer identities; reading position is restored before visibility-based saves and tracked only in Study. Practice resumes by stable question identity; category practice can fetch later pages, and progress review links target the exact question. Home/progress suggestions prefer the most recently read category and surface an unmet prerequisite first. Retained simulator `productionScenario` examples are illustrative, not measured incidents. Keep the browser journey and axe checks in `scripts/test-responsive-layout.mjs` when changing these flows; the harness must wait for the selected theme and lazy simulator before scanning.
+
+The Progress saved-answer manager lists review and all saved answers, including imported conflict copies. `adoptPracticeAlternative()` in `learningState.js` swaps the current and alternate entries so neither draft nor its self-assessment disappears; deletion requires a second explicit click in the UI. Keep the empty section mounted after the final deletion so the status message remains a keyboard focus target. Preserve that merge/export behavior when changing practice storage.

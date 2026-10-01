@@ -4,6 +4,13 @@ An LLM produces a probability distribution over tokens, not a finished answer in
 Sampling controls turn that distribution into text, while an agent loop turns selected text into bounded calls to tools and services.
 Interviewers ask about this topic because a production failure can come from either side: an unstable decoding policy can make an answer unreliable, and an unguarded tool loop can make an unreliable answer cause a real side effect.
 
+**Before you start:** Read [ML fundamentals](07-ml-fundamentals.md) first. You only need
+the ideas of a function, an API request, and a JSON object for the Beginner tier.
+
+**After this lesson, you should be able to:** trace one model call from input to validated
+output, choose between a formatted answer and a tool call, explain why low temperature
+does not make an answer true, and keep model-proposed actions inside backend authorization.
+
 ---
 
 ## 🟢 Beginner Level
@@ -115,6 +122,41 @@ sequenceDiagram
 The distinction between proposing and executing is essential.
 Natural-language instructions can be malicious, mistaken, incomplete, or stale.
 An application must keep authentication, authorization, input validation, audit logging, and irreversible-action confirmation outside the model.
+
+### Your first backend AI feature: classify a support ticket
+
+Suppose a queue needs one of three labels: billing, delivery, or other. A useful first
+baseline is a hand-written keyword rule; it is cheap and predictable. If real examples
+show it misses too many cases, compare a model against those same examples. The model
+receives the ticket text and an allowed-label schema, then proposes a label.
+
+The backend's request path is concrete: authenticate the user, remove data the model
+does not need, call the model with a deadline, parse the complete response, check that
+the label is allowed, and store the original ticket plus the accepted label. A model
+response is untrusted input to this path. A structurally valid label can still be
+semantically wrong, so a human can correct it and the correction becomes an evaluation
+case. Provider schema support differs; pin the model/API version and test the deployed
+combination.
+
+| Failure | Backend response |
+|---|---|
+| Model call times out | Keep the ticket, mark it unclassified, and retry within a bound |
+| Output is not an allowed label | Reject the output; do not silently invent a category |
+| Ticket contains "ignore your instructions" | Treat that text as ticket data, not authority |
+| Model labels a billing ticket delivery | Record the correction and add it to the evaluation set |
+
+**Try it:** Should the model be allowed to call `refund_order` merely because a ticket
+says "refund me"? **Answer:** no. Classification and a money-moving operation are separate
+tasks. The authenticated application's policy, order ownership, amount limits, and explicit
+approval determine whether a refund can happen.
+
+### A day-to-day AI workflow for a backend engineer
+
+A coding assistant can help explain unfamiliar code, draft a test, or compare design options. Give it the smallest relevant code and a clear acceptance criterion; avoid pasting production secrets or customer records. Review generated code as you would a human contribution: run tests, inspect authorization and failure paths, and verify dependency versions against primary documentation. The assistant's confident explanation is a hypothesis until the repository or a test supports it.
+
+For an AI feature in a product, begin with a measurable baseline and a fixed evaluation set. Record the task, model/API version, prompt template, schema, retrieval settings if any, and the expected output for representative and adversarial cases. Measure quality, invalid output rate, latency, token use, and cost per accepted result. Compare a cheaper or smaller model before adding a larger one; different tasks justify different choices. Pin changes and rerun the evaluation set before rollout.
+
+**Interview answer:** “I treat model output as untrusted data, use a constrained output shape, validate it server-side, bound time and cost, and keep authorization and side effects in application code. I compare against a simple baseline with a versioned evaluation set, then monitor real failures and feed corrected examples back into that set.”
 
 ---
 
@@ -342,6 +384,22 @@ Protect logs with the same tenant and retention controls as the underlying tool 
 Use circuit breakers for failing dependencies.
 Use rate limits and concurrency limits to prevent a single agent workload from exhausting a downstream system.
 Use allowlists rather than broad URL, SQL, shell, or internal-service access.
+
+### Direct tools, agents, and MCP are different choices
+
+A single model call can return a final answer. A **tool call** is a structured proposal
+for the application to invoke an approved function. An **agent** is a loop that may make
+several such proposals. Start with one direct tool when the task needs only one lookup;
+an agent adds latency, failure states, cost, and a need for turn limits.
+
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/specification/2026-07-28/server)
+standardizes how an application can discover tools, resources, and prompt templates from
+an external server. It is an integration protocol, not a reasoning model or a permission
+system. The backend still authenticates users, maps their permissions to each tool,
+validates arguments, limits calls, and audits side effects. Prefer a direct internal API
+for one known operation; use a protocol integration when multiple clients and tool
+providers genuinely need a shared contract. Pin the protocol/SDK version because these
+interfaces evolve.
 
 ### Common Misconceptions
 
