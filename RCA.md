@@ -257,3 +257,48 @@ unsupported state controlling whether the Simulation tab should appear.
   reruns the full renderer suite before merge. The defect was caught before release.
 - Prevention: retain the title gate and visual review alongside structural validation.
 - Resolving commit: `5dd45cc`.
+
+## RCA-2026-10-01-01 — Reader controls and reading location reset across view changes
+
+- Evidence: the browser audit reproduced a code block's Wrap state changing from pressed to
+  unpressed after Focus reading, and a saved heading remaining at `beginner-level` after
+  Study → Practice → Study and a later scroll. These are regressions in the agent-built reader.
+- Root cause: inline React Markdown renderer functions changed identity on parent renders,
+  remounting their stateful descendants. Heading observation was tied to fetched content rather
+  than the mounted Study article, while an active-section effect could save an old/default heading
+  before restoration finished.
+- Resolution: stabilize and memoize Markdown rendering; restore the requested/saved heading before
+  observing; reconnect observation when Study mounts and save only visible Study headings.
+- Verification: parent-rerender control regression, full frontend suite (663 tests), and the
+  Chromium Study/Practice/Study plus code-wrap journey passed.
+- Prevention: test stateful child controls through parent updates and reading continuity through
+  real route/view transitions, not only isolated controls.
+- Resolving commit: `93d059d`.
+
+## RCA-2026-10-01-02 — Saved interview session silently opened a different question
+
+- Evidence: a saved category-session key outside the first 50 loaded questions displayed Q1
+  without warning. Progress review also linked to the topic Practice tab without targeting the
+  named question.
+- Root cause: `Math.max(0, findIndex(...))` converted a missing stable question key into index
+  zero; the review URL omitted that key.
+- Resolution: show an explicit missing-question state with a fetch-later-pages action or a safe
+  first-question choice, and encode exact question keys in progress-review links.
+- Verification: later-page resume, missing-key, exact-link and browser recovery tests passed;
+  the full frontend suite passed 663/663.
+- Prevention: model an absent persisted identifier as an explicit state; test restoration when the
+  target lies beyond initial pagination and when content changes.
+- Resolving commit: `93d059d`.
+
+## RCA-2026-10-01-03 — OOP rewrite left one migration-ledger quote stale
+
+- Evidence: `node scripts/audit-simulation-questions.mjs --check` found that migrated quiz
+  `5572a6d7bb74` referenced wording no longer present in `01d-java-oop-pillars.md`.
+- Root cause: the prior agent-authored OOP lesson rewrite preserved the explanation that private
+  methods cannot be overridden but changed its wording without updating the literal evidence
+  quote in `SIMULATION_QUESTION_MIGRATION.json`.
+- Resolution: point the ledger at the lesson's current, equivalent sentence. The source question
+  and migrated explanation remain intact.
+- Verification: the migration gate passes with 109/109 items resolved and zero pending.
+- Prevention: run the migration gate after any rewrite of a lesson named as a ledger target.
+- Resolving commit: `93d059d`.
