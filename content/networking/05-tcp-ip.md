@@ -381,6 +381,14 @@ TCP provides an ordered reliable byte stream with connection state. It uses sequ
 
 Both peers must exchange initial sequence numbers and confirm reachability. The final ACK confirms the client received the server's sequence number. This prevents stale connection attempts from creating a fully established session alone.
 
+**Answer rubric**
+- **Say it:** The three-way handshake synchronizes sequence numbers and confirms both directions can exchange control segments.
+- **Mechanism:** Walk through SYN, SYN-ACK, and final ACK, including which side learns and acknowledges each initial sequence number.
+- **Example:** A client sends SYN, the server answers SYN-ACK, and the client acknowledges before both treat the connection as established.
+- **Limit:** The handshake establishes transport state; it does not authenticate application users or guarantee future delivery.
+- **Watch for:** Do not say the third message exists only to make the connection slower or more reliable by repetition.
+- **Follow-up:** What resource pressure arises if many clients send SYN but never finish the handshake?
+
 **Q3. Why are ports required?** `[easy]`
 
 Ports multiplex traffic to applications on one IP address. They let a host distinguish HTTPS, DNS, and many concurrent client sessions. A port is local endpoint information, not a globally unique connection identifier.
@@ -388,6 +396,14 @@ Ports multiplex traffic to applications on one IP address. They let a host disti
 **Q4. Why is TCP a byte stream?** `[easy]`
 
 TCP exposes ordered bytes rather than sender write boundaries. One read can return part of a message or several messages. Protocols must define lengths or delimiters before parsing.
+
+**Answer rubric**
+- **Say it:** TCP preserves byte order but does not preserve application write boundaries.
+- **Mechanism:** The receiver can get any prefix of available bytes on each read, so application framing must define message boundaries.
+- **Example:** Two JSON records may arrive in one read, or one record may require several reads.
+- **Limit:** Framing choices such as length prefixes or delimiters need size limits and malformed-input handling.
+- **Watch for:** Do not assume one `send` call corresponds to one `recv` call.
+- **Follow-up:** How would you frame variable-length messages safely?
 
 **Q5. What is the TCP four-tuple?** `[medium]`
 
@@ -405,6 +421,14 @@ It normally identifies the next byte the receiver expects. It cumulatively confi
 
 The network can fail after a server acted but before a client saw a response. TCP reconnection cannot reveal that business outcome automatically. A durable idempotency key resolves the ambiguity.
 
+**Answer rubric**
+- **Say it:** A timed-out request may have completed on the server even when its response was lost.
+- **Mechanism:** TCP confirms byte delivery at transport level, but it does not resolve whether a business operation committed before the client retry.
+- **Example:** A payment API stores one idempotency key with the completed result and returns that result on a retry.
+- **Limit:** A key must be scoped, persisted, and checked transactionally with the effect; an in-memory cache alone can fail on restart.
+- **Watch for:** Do not equate a new TCP connection with a new business transaction.
+- **Follow-up:** What should the server return if the same key is reused with different request parameters?
+
 **Q9. What is TIME_WAIT for?** `[medium]`
 
 It lets delayed old segments expire before a tuple is reused. It also permits retransmission of the final ACK if the peer repeats FIN. Removing it unsafely risks old traffic entering a new connection.
@@ -420,6 +444,14 @@ It suits small independent messages or latency-sensitive data where an applicati
 **Q12. Scenario: a client receives occasional duplicate payment confirmations after retries. What changes?** `[hard]`
 
 Treat the request as ambiguous after timeout rather than assuming TCP failure means no server action. Include one idempotency key and persist its outcome transactionally. Return the stored result for a repeated key.
+
+**Answer rubric**
+- **Say it:** Make payment retries idempotent and treat timeout outcomes as uncertain.
+- **Mechanism:** Persist a stable request key and outcome with the payment effect, then replay the recorded result for matching retries.
+- **Example:** The first charge commits but the response is lost; the second request gets the original confirmation.
+- **Limit:** The design needs a conflict rule for the same key with a different payload and a retention policy for old keys.
+- **Watch for:** Do not solve duplicate charges by disabling all retries or relying on TCP alone.
+- **Follow-up:** Where must the idempotency record be committed relative to the payment effect?
 
 **Q13. Scenario: a server has thousands of TIME_WAIT sockets. What do you inspect?** `[hard]`
 

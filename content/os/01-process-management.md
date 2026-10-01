@@ -415,9 +415,25 @@ The kernel must save the outgoing execution context and restore another before a
 
 `fork` creates a child with a new PID and an initially similar process image, while the parent receives the child PID. The child commonly calls `exec`, which replaces its program image with a new executable while retaining its PID and selected inherited resources. The parent may call `waitpid` to collect the child's exit status and prevent a zombie.
 
+**Answer rubric**
+- **Say it:** `fork` creates a child process; `exec` replaces the calling process image with a new program.
+- **Mechanism:** Explain parent and child return paths, copied or shared initial state, the child's `exec`, and the parent's `waitpid`.
+- **Example:** A shell forks, the child executes a command, and the shell waits for its exit status.
+- **Limit:** `exec` preserves the process identity but can change which file descriptors remain open according to descriptor flags.
+- **Watch for:** Do not describe `exec` as creating a second child process.
+- **Follow-up:** What happens if the child exits and its parent never calls `waitpid`?
+
 **Q6. How does copy-on-write reduce fork cost?** `[medium]`
 
 Parent and child initially share physical pages with mappings that cause a write fault when either attempts modification. The kernel copies only the page being written, so a child that immediately calls `exec` avoids copying the parent's whole address space. Copy-on-write still requires page-table work and can become costly when either side writes many pages.
+
+**Answer rubric**
+- **Say it:** Copy-on-write postpones physical page copying until a shared page is written.
+- **Mechanism:** Parent and child start with mappings to shared pages; a write fault makes the kernel create a private copy.
+- **Example:** A child that immediately calls `exec` need not copy the parent's whole heap.
+- **Limit:** `fork` still has page-table and process setup costs, and widespread writes reduce the saving.
+- **Watch for:** Do not claim that `fork` is free or that parent and child permanently share writable memory.
+- **Follow-up:** What changes if the child modifies most of the inherited address space?
 
 **Q7. What is a zombie process and how do you prevent it?** `[medium]`
 
@@ -439,9 +455,25 @@ Shared memory can avoid copying large payloads through a kernel transport path. 
 
 Inspect the process tree and confirm whether the container's PID 1 or an intermediate supervisor is failing to handle `SIGCHLD` and call `waitpid`. Ensure the parent reaps every completed child, or run a minimal init that forwards signals and reaps descendants when the application cannot. Do not repeatedly restart the container without fixing the reaping owner, because the PID limit can be exhausted again quickly.
 
+**Answer rubric**
+- **Say it:** The parent or container init is failing to reap exited children.
+- **Mechanism:** Inspect process ancestry and `SIGCHLD` handling; ensure the responsible parent calls `waitpid` for every exited child.
+- **Example:** A service launches short-lived helpers, but PID 1 never collects their exit statuses.
+- **Limit:** A minimal init can help with descendant reaping, but the direct parent still needs sound child-lifecycle handling.
+- **Watch for:** Do not mistake zombies for CPU-consuming processes or treat restarts as a lasting fix.
+- **Follow-up:** How would you verify the fix under sustained helper-process churn?
+
 **Q12. A service has high latency but low CPU utilization. How does process state help your investigation?** `[hard]`
 
 Check whether threads are blocked on disk, network sockets, locks, or rate limits rather than merely looking at aggregate CPU. A large runnable queue suggests scheduling pressure, whereas many waiting tasks point to the resource they await. Combine state inspection with traces and I/O metrics because process state alone does not identify the exact blocking call.
+
+**Answer rubric**
+- **Say it:** Low CPU with high latency points toward waiting rather than useful computation.
+- **Mechanism:** Compare runnable tasks with those blocked on network, disk, locks, or limits, then correlate traces and resource metrics.
+- **Example:** Workers wait for a saturated database pool while host CPU remains mostly idle.
+- **Limit:** A state snapshot is only a clue; it cannot identify the exact bottleneck without timing evidence.
+- **Watch for:** Do not infer that adding CPU capacity will resolve a waiting queue.
+- **Follow-up:** Which wait state dominates slow requests, and what measurement confirms it?
 
 **Q13. Why is one-process-per-request usually a poor server design?** `[hard]`
 

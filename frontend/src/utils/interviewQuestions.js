@@ -1,6 +1,27 @@
 const INTERVIEW_HEADING = /^ {0,3}###[\t ]+Interview Questions[\t ]*$/
 const SECTION_BOUNDARY = /^ {0,3}#{1,3}(?:[\t ]+|$)/
 const QUESTION_LINE = /^ {0,3}\*\*Q(\d+)\.[\t ]+(.+?)\*\*[\t ]*`?\[(easy|medium|hard)\]`?[\t ]*$/i
+const RUBRIC_MARKER = '**Answer rubric**'
+const RUBRIC_FIELDS = ['Say it', 'Mechanism', 'Example', 'Limit', 'Watch for', 'Follow-up']
+
+/** Optional rubric lives in the same Markdown answer used by both practice routes. */
+export function splitInterviewAnswer(answerMarkdown) {
+  if (typeof answerMarkdown !== 'string') return { answerMarkdown: '', rubric: null }
+  const marker = `\n\n${RUBRIC_MARKER}\n`
+  const markerIndex = answerMarkdown.lastIndexOf(marker)
+  if (markerIndex < 0) return { answerMarkdown, rubric: null }
+
+  const rubricLines = answerMarkdown.slice(markerIndex + marker.length).trim().split('\n')
+  if (rubricLines.length !== RUBRIC_FIELDS.length) return { answerMarkdown, rubric: null }
+  const rubric = {}
+  for (let index = 0; index < RUBRIC_FIELDS.length; index += 1) {
+    const field = RUBRIC_FIELDS[index]
+    const match = rubricLines[index].match(new RegExp(`^- \\*\\*${field}:\\*\\* (.+)$`))
+    if (!match) return { answerMarkdown, rubric: null }
+    rubric[field] = match[1]
+  }
+  return { answerMarkdown: answerMarkdown.slice(0, markerIndex).trim(), rubric }
+}
 
 function openingFence(line) {
   const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)

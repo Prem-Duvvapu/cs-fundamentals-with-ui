@@ -494,6 +494,14 @@ Composition reuses a capability without inheriting unrelated methods and implici
 
 Overloading chooses among methods with different parameter lists at compile time. Overriding replaces an inherited instance-method implementation and is selected from the receiver's runtime class. The distinction explains why an `Object` reference can choose an `Object` overload while still dispatching an override later.
 
+**Answer rubric**
+- **Say it:** Overloading picks a signature from compile-time argument types; overriding picks an implementation from the runtime receiver.
+- **Mechanism:** Describe the two decisions in order: compile the call against a signature, then dispatch an overridable instance method.
+- **Example:** An `Object` variable holding a `String` can select an `Object` overload while a `String` override executes.
+- **Limit:** Static methods are hidden rather than overridden, so runtime receiver dispatch does not apply to them.
+- **Watch for:** Do not claim that the runtime argument class chooses an overload.
+- **Follow-up:** What changes if the invoked method is static or private?
+
 **Q4. Can a static method be overridden?** `[easy]`
 
 No, static methods are hidden because they belong to a class rather than an instance. Their target is selected from the compile-time reference or class name. Reusing a static method name in a subclass can confuse readers, so prefer an unambiguous name when behaviour differs.
@@ -514,6 +522,14 @@ When two unrelated interfaces provide the same default method, Java refuses to g
 
 Any subtype should work wherever its parent is expected without surprising callers. It must not strengthen input requirements, weaken promised results, or break invariants. A subtype that rejects ordinary parent operations is often a composition candidate rather than a true subtype.
 
+**Answer rubric**
+- **Say it:** A subtype must preserve the promises that callers of its parent rely on.
+- **Mechanism:** Check accepted inputs, results, invariants, and failure behavior when the subtype is substituted.
+- **Example:** A read-only subtype that rejects a promised `add` operation breaks a mutable collection contract.
+- **Limit:** Shared implementation alone is not enough reason to inherit; composition can reuse behavior without promising substitutability.
+- **Watch for:** Do not reduce Liskov substitution to matching method signatures.
+- **Follow-up:** How would you redesign an interface if one implementation cannot support an operation?
+
 **Q9. Why are calls to overridable methods in constructors risky?** `[medium]`
 
 Java dispatches the override even while the parent constructor is running. Subclass fields and dependencies may not yet be initialised, so the override can observe invalid state or throw. Constructors should initialise state directly and delay extension hooks until construction completes.
@@ -530,6 +546,14 @@ A monomorphic site receives one concrete class repeatedly; a megamorphic site re
 
 First measure with a profiler and inspect whether the hot draw call became megamorphic or allocation-heavy. Compare profiles before and after plugins, including JIT compilation and deoptimisation events. Fix the actual bottleneck, which may be rendering I/O rather than dispatch; do not replace polymorphism with unsafe type switches without evidence.
 
+**Answer rubric**
+- **Say it:** Profile the regression before blaming polymorphism.
+- **Mechanism:** Compare call-site receiver types, inlining and deoptimisation, allocation, and rendering or I/O time.
+- **Example:** A plugin adds several `Shape` implementations; a profiler shows whether draw dispatch or rendering dominates.
+- **Limit:** Megamorphic dispatch can matter in a hot loop, but changing the class design without measured evidence can make code worse.
+- **Watch for:** Do not replace a virtual call with a type switch merely because the call has many implementations.
+- **Follow-up:** What evidence would justify a targeted dispatch optimisation?
+
 **Q13. Scenario: a subclass throws `UnsupportedOperationException` from a parent method used by callers. What is wrong?** `[hard]`
 
 The subtype likely violates the parent contract because callers reasonably expect the inherited operation to work. Split the interface, use composition, or model a narrower capability so clients do not depend on unsupported behaviour. Documenting the exception does not repair a broken substitution relation.
@@ -537,6 +561,14 @@ The subtype likely violates the parent contract because callers reasonably expec
 **Q14. Scenario: an overridden hook reads null configuration during object creation. How do you fix it?** `[hard]`
 
 The parent constructor called an overridable method before subclass construction completed. Remove the virtual call from construction and use a factory, explicit post-construction method, or constructor-supplied strategy. This makes initialisation order explicit and avoids relying on partially built objects.
+
+**Answer rubric**
+- **Say it:** The parent constructor called a virtual method before the subclass finished initialising.
+- **Mechanism:** Java dispatches using the runtime receiver even while the parent constructor is executing.
+- **Example:** An overridden hook reads a subclass config field before its constructor assigns it.
+- **Limit:** A post-construction hook or factory adds lifecycle discipline that callers must respect.
+- **Watch for:** Do not assume subclass fields are ready while a parent constructor runs.
+- **Follow-up:** How would you guarantee the hook runs exactly once after construction?
 
 ### Further Reading
 

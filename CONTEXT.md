@@ -284,6 +284,17 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 - `GET /api/v1/interview/questions?category=&difficulty=&offset=&limit=` — Paginated interview Q&A
   parsed directly from each lesson's `### Interview Questions` section, answers returned as
   Markdown. Frontend: `InterviewPage.jsx` at `/interview/:category` (`:category` may be `all`).
+  An optional six-line `**Answer rubric**` block stays inside that Markdown answer; the shared
+  frontend deck splits it into a collapsed checklist and follow-up after revealing the model
+  answer. The API and topic page therefore use one canonical authored source, and old answers
+  without a rubric keep the general comparison prompts. The responsive browser smoke walks a
+  piloted question to verify answer separation, inline-code rendering and the follow-up.
+
+The [core CS content audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) inventories the 56 OS,
+networking, DBMS and Java/Spring lessons separately from the platform audit. It records
+26,382 curriculum lines, 241 diagrams and 785 interview questions in these categories,
+then identifies prerequisite/outcome, reproducible lab, SQL fixture, Task Tracker milestone
+and technical accuracy work without treating structural validation as learning evidence.
 - `POST /api/v1/simulation/{cpu-scheduling,page-replacement,subnet-calculator,bankers-algorithm}` —
   the four legacy server-side simulations (`SimulationController`/`SimulationService`); every
   newer simulator runs client-side instead. Request bodies are validated (empty/oversized process

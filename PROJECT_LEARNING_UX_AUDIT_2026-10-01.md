@@ -253,6 +253,14 @@ contract, not a second hand-maintained question bank.
 **Accept:** learners can compare their own explanation against concrete criteria; model answers
 remain available immediately; self-ratings are never labelled objectively graded mastery.
 
+**October 1 checkpoint:** the 20-question pilot is implemented: four questions each in Java
+OOP, Spring MVC, process management, TCP, and transactions/ACID carry six authored checks
+(spoken opening, mechanism, example, limit, misconception, follow-up). The deck reveals the
+model answer immediately and keeps the rubric in optional details; unrubriced questions keep
+general prompts. The rubric remains in the lesson Markdown and flows through the existing
+interview API. This meets the pilot scope, while partial-credit examples and wider editorial
+coverage still need review before claiming A08 complete across the curriculum.
+
 ### A09 — Recall practice lacks attempts, delayed review and mixed-question sessions
 
 **P2 · Source + hypothesis · L**
@@ -549,9 +557,15 @@ The October 1 AI/ML and DevOps pass adds a beginner outcome and practical backen
 The browser accessibility gate now waits for the applied theme and the lazy OS simulator before scanning. That exposed low-contrast simulator controls in the light theme and an active-state badge in the dark theme; their text/fill tokens were corrected and both themes are checked again in Chromium.
 
 The saved-answer manager now covers the remaining A05 actions: review/all filters, comparison,
-non-destructive adoption and confirmed deletion. Its action announcement now appears only after a change, leaving Progress loading status unambiguous. Named main-landmark focus on pathname changes, with query/hash and guided-tour focus preserved, completes the A04 route policy. The remaining work is material: a corpus-wide, sourced accuracy review (A06); author-reviewed question rubrics and
-follow-ups (A08); review sessions/history (A09); explained learner goals and prerequisites
+non-destructive adoption and confirmed deletion. Its action announcement now appears only after a change, leaving Progress loading status unambiguous. Named main-landmark focus on pathname changes, with query/hash and guided-tour focus preserved, completes the A04 route policy. The 20-question A08 rubric pilot now gives five core subjects answer-specific comparison criteria. The DBMS pilot also corrected Q1, Q3, Q9, Q13, and Q14 using PostgreSQL and MySQL manuals, including the distinction between vacuum bloat and WAL retention. The remaining work is material: a corpus-wide, sourced accuracy review (A06); broader rubrics and
+partial-credit examples (A08); review sessions/history (A09); explained learner goals and prerequisites
 (A10); Spring lab milestones (A11); broader teaching-pattern work (A12); guided simulator
 learning tasks (A13); manual accessibility/zoom review (A14); section-stable search and relevance
 evaluation (A15); a live-backend learning journey (A17); and performance and learner evidence
 (A18). The checklist above stays open until those acceptance criteria are met.
+
+The [core CS content audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) now inventories all
+56 OS, networking, DBMS and Java/Spring lessons, with a topic-by-topic work queue and
+separate evidence for the missing beginner openings, reproducible network/OS labs,
+seeded SQL examples, and later runnable Spring milestones. It explicitly leaves full
+expert accuracy review and learner validation open.

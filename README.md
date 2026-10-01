@@ -127,8 +127,17 @@ The [AI/ML and DevOps learning path](AI_ML_DEVOPS_LEARNING_PATH.md) gives the fu
 
 ## 📚 68 Curriculum Topics Covered
 
-All 68 lessons satisfy the authoring contract and coverage manifest: 32,309 curriculum lines,
+All 68 lessons satisfy the authoring contract and coverage manifest: 32,476 curriculum lines,
 295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
+
+Twenty high-value questions across Java, Spring MVC, OS processes, TCP, and DBMS now include
+an optional six-point answer rubric. Reveal the model answer first, then open **Answer checklist
+and follow-up** to compare your own explanation against the core claim, mechanism, example,
+limitation, common mistake, and transfer question. Other questions retain the general comparison
+prompts while the rubric is expanded through editorial review.
+The [core CS content audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) inventories all 56 OS,
+networking, DBMS, and Java/Spring lessons and sets out the remaining prerequisite,
+hands-on lab, runnable example, technical accuracy, and interview-feedback work.
 
 | Category | Topics Count | Key Areas Covered |
 | :--- | :--- | :--- |

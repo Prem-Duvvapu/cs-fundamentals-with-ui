@@ -350,7 +350,7 @@ All 68 topics are registered at all integration points, so content work requires
 
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
-- **Verified** — 32,309 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
+- **Verified** — 32,476 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
   (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
@@ -462,3 +462,22 @@ has no database or security.
 `PROJECT_LEARNING_UX_AUDIT_2026-10-01.md` records the dated evidence and remaining learning-quality work. Current reader controls keep stable Markdown renderer identities; reading position is restored before visibility-based saves and tracked only in Study. Practice resumes by stable question identity; category practice can fetch later pages, and progress review links target the exact question. Home/progress suggestions prefer the most recently read category and surface an unmet prerequisite first. Retained simulator `productionScenario` examples are illustrative, not measured incidents. `AppLayout` focuses the named main landmark on real pathname changes and labels unknown, malformed and failed-load topic paths, plus category-specific interview pages as errors, while initial loads, query/hash-only changes, and guided-tour navigation keep their own focus behavior. Keep the browser journey and axe checks in `scripts/test-responsive-layout.mjs` when changing these flows; the harness must wait for the selected theme and lazy simulator before scanning and assert focus on pathname versus Study/Practice view changes.
 
 The Progress saved-answer manager lists review and all saved answers, including imported conflict copies. `adoptPracticeAlternative()` in `learningState.js` swaps the current and alternate entries so neither draft nor its self-assessment disappears; deletion requires a second explicit click in the UI. Keep the empty section mounted after the final deletion so the status message remains a keyboard focus target; do not render an empty live status before an action. Preserve that merge/export behavior when changing practice storage.
+
+The A08 interview-feedback pilot adds four authored answer rubrics each to OOP, Spring MVC,
+process management, TCP, and transactions/ACID (20 total). Keep each rubric immediately after
+its model answer in the topic Markdown, using the six exact labels in `CONTENT_SPEC.md` §7.
+`splitInterviewAnswer()` in `frontend/src/utils/interviewQuestions.js` separates the optional
+block for the shared `InterviewDeck`; both topic and category practice still use the same source.
+Unrubriced answers retain the generic comparison prompts. Extend rubrics only after reviewing
+the model answer and its factual sources; DBMS Q1, Q3, Q9, Q13, and Q14 were corrected during this
+pilot against PostgreSQL and MySQL documentation. The responsive browser harness opens an
+authored rubric, checks that it stays separate from the model answer, renders inline Markdown,
+and includes its follow-up; keep this journey when changing the shared practice deck.
+
+`CORE_CS_CONTENT_AUDIT_2026-10-01.md` inventories all 56 OS, networking, DBMS and
+Java/Spring lessons. It records verified structural strengths and concrete teaching gaps,
+with topic-by-topic next actions. It is a triage audit, not a corpus-wide expert accuracy
+sign-off. Its high-priority tracks are explicit beginner outcomes in the 33 non-Java core
+lessons, reproducible network/OS diagnosis, a seeded SQL lab, and extensions to the
+existing runnable Task Tracker. `JAVA_LEARNING_PLAN.md` now recognizes that first
+in-memory application as shipped while later persistence/security milestones remain open.

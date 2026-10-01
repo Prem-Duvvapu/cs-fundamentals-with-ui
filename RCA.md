@@ -334,7 +334,22 @@ unsupported state controlling whether the Simulation tab should appear.
 - Resolution: render the focusable status only after an action produces a message. Keep
   the manager's empty section mounted so deleting the last answer still has a focus target.
 - Verification: the Progress and saved-answer focused suites pass 14/14 tests; the
-  full frontend suite, production build and browser journey are rerun against the fix.
+  full frontend suite passed 669/669, and the production build and browser journey passed.
 - Prevention: action announcements should be absent before an action and tests should
   assert that loading and post-action statuses remain distinguishable.
 - Resolving commit: `903d126`.
+
+## RCA-2026-10-01-06 — Pilot rubric browser assertion raced lazy Markdown
+
+- Evidence: the first responsive-browser run after adding the interview-rubric journey
+  reported missing inline code and follow-up immediately after opening the checklist.
+  The rerun passed when those rendered elements were awaited.
+- Root cause: the assertion read the `<details>` body before the lazy Markdown renderer
+  completed its Suspense boundary. It treated an intermediate loading state as final content.
+- Resolution: wait for the rendered inline code and follow-up text, with a bounded timeout
+  and the observed checklist text in the failure message.
+- Verification: the final browser run passed 10 route families at five widths in both
+  themes, 14 axe scans, and the rubric-specific journey.
+- Prevention: browser assertions for lazy content must wait for the content itself,
+  not only the control that opens it.
+- Resolving commit: pending this branch's implementation commit.

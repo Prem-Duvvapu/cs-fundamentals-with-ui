@@ -375,13 +375,29 @@ To understand ARIES deterministically, trace the following concrete log sequence
 ### Interview Questions
 
 **Q1. Why must the Write-Ahead Log (WAL) record be flushed to disk before the dirty data page is written?** `[easy]`
-The log represents the sole source of truth for crash recovery. If a dirty data page were flushed to disk before its corresponding log record and the server suffered a power loss, the disk would contain uncommitted changes with no undo log to reverse them and no redo log to replay them. This violates both Atomicity and Durability, rendering clean crash recovery impossible.
+Write-ahead logging requires a change's log record to be durable before the dirty page containing that change is flushed. After a crash, recovery can then reconstruct or reverse changes even if data pages reached storage in a different order. If the page preceded its log record, disk could contain a change recovery has no durable record for; acknowledged commit durability also depends on the configured commit-record flush policy.
+
+**Answer rubric**
+- **Say it:** Flush the WAL record before a dirty data page that depends on it reaches disk.
+- **Mechanism:** Recovery needs a durable record of a page change before it can safely redo or undo that change after a crash.
+- **Example:** A page flush contains an uncommitted update; the matching WAL record lets recovery identify and reverse it.
+- **Limit:** The rule orders log and page writes; commit durability also requires the commit record to meet the configured flush policy.
+- **Watch for:** Do not say every modified data page must be flushed before `COMMIT` returns.
+- **Follow-up:** What happens if the WAL record is durable but the changed data page is not?
 
 **Q2. In which transaction state have all SQL statements finished executing but changes are not yet durable?** `[easy]`
 The transaction is in the **Partially Committed** state. All queries have executed in volatile memory buffers, but the `<COMMIT>` log record has not yet been physically flushed and acknowledged by non-volatile storage via `fsync`. If the database crashes while in this state, recovery handles the transaction as a loser and rolls it back.
 
 **Q3. What is the fundamental difference between a Dirty Read and a Phantom Read?** `[easy]`
-A Dirty Read occurs when a transaction reads uncommitted row modifications from another transaction that might subsequently abort. A Phantom Read occurs when a transaction executes a range query (e.g., `WHERE status = 'ACTIVE'`) and re-executes the exact same query later, finding newly inserted rows that were committed by another transaction in the interim. The practical distinction is what it takes to prevent each: a dirty read is stopped by row-level read locks, while a phantom needs a lock over the *range* — a next-key or predicate lock — because the offending row did not exist to be locked when the first query ran.
+A Dirty Read occurs when a transaction reads uncommitted row modifications from another transaction that might subsequently abort. A Phantom Read occurs when a transaction executes a range query (e.g., `WHERE status = 'ACTIVE'`) and re-executes the exact same query later, finding newly inserted rows that were committed by another transaction in the interim. The practical distinction is what must stay invisible or stable: isolation rules prevent uncommitted writes from being read, while repeated predicate queries need a stable result set. Engines may use locking, MVCC snapshots, or serializable conflict detection; for example, PostgreSQL's Repeatable Read prevents phantoms without taking blocking range locks for every read.
+
+**Answer rubric**
+- **Say it:** A dirty read sees uncommitted data; a phantom is a changed result set on a repeated predicate query.
+- **Mechanism:** Explain the visibility rule for uncommitted versions and the stability of a range or predicate result across reads.
+- **Example:** One transaction inserts a matching row and commits between another transaction's two `WHERE status = 'ACTIVE'` queries.
+- **Limit:** Prevention is engine- and isolation-level-specific: MVCC snapshots, locks, or serializable conflict checks may be involved.
+- **Watch for:** Do not claim every engine must take a blocking range lock to prevent a phantom.
+- **Follow-up:** Why can PostgreSQL Repeatable Read prevent phantoms yet still allow a serialization anomaly?
 
 **Q4. What is the difference between the STEAL and NO-STEAL buffer pool policies?** `[easy]`
 Under a STEAL policy, the buffer manager is permitted to evict dirty pages modified by uncommitted active transactions to disk to free up RAM for other queries, which requires UNDO logging during crash recovery. Under a NO-STEAL policy, uncommitted pages can never be written to disk, which eliminates the need for undo logs but limits transaction size to physical buffer memory capacity. Essentially every production engine picks STEAL and pays for the undo log, because the alternative caps a single transaction's working set at available buffer memory — a bulk update touching more pages than fit in RAM simply could not run.
@@ -398,8 +414,16 @@ An individual `fsync` system call forces a physical storage sync, which takes $\
 **Q8. Why is Write Skew possible under Snapshot Isolation but prevented under Serializable isolation?** `[medium]`
 Snapshot Isolation ensures that every transaction reads from a private, consistent snapshot and only checks for conflicts when two transactions attempt to update the *exact same row* (first-committer-wins). Write Skew occurs when two concurrent transactions read overlapping data sets but modify disjoint rows to violate a global constraint (like two on-call doctors simultaneously taking leave). Because different rows were mutated, Snapshot Isolation permits both commits, whereas Serializable isolation tracks read-write predicate dependencies and aborts one transaction.
 
+**Answer rubric**
+- **Say it:** Snapshot Isolation can allow write skew when concurrent transactions read shared conditions but update different rows.
+- **Mechanism:** Show the read dependencies, non-overlapping writes, both successful commits, and the missing serial order.
+- **Example:** Two doctors each see the other on call and independently mark themselves off duty.
+- **Limit:** Serializable isolation may abort one transaction, so the application needs a safe retry path.
+- **Watch for:** Do not equate the absence of dirty reads or phantoms with full serializability.
+- **Follow-up:** Which read-write dependency would a serializable engine need to detect?
+
 **Q9. What specific data loss does `innodb_flush_log_at_trx_commit = 2` risk in MySQL?** `[medium]`
-With setting `2`, MySQL writes transaction log records to the operating system file cache on every commit but only flushes them to physical disk storage roughly once per second. If the MySQL server process crashes, zero data is lost because the OS page cache survives and flushes normally. However, if the entire host operating system crashes or hardware power fails, up to one second of recently committed transactions can be permanently lost.
+With setting `2`, MySQL writes redo log records at commit but normally flushes them to durable storage on a periodic schedule rather than for every transaction. An operating-system crash or power loss can therefore lose acknowledged recent commits; MySQL also cautions that an unexpected server-process exit can lose transactions in the flush interval. The interval is not an exact one-second guarantee, so use setting `1` when acknowledged commits must survive a crash.
 
 **Q10. How does a database implement Savepoints and partial rollbacks under the hood?** `[medium]`
 When an application executes `SAVEPOINT <name>`, the transaction manager records the current Log Sequence Number (LSN). When `ROLLBACK TO SAVEPOINT <name>` is requested, the engine reads its log records backward from the current position to that saved LSN, undoes each intermediate operation, and emits CLRs for every reversed action. The outer transaction remains active, allowing subsequent SQL statements to execute and commit normally.
@@ -410,8 +434,23 @@ Naive Checkpoints require freezing all incoming transaction execution while ever
 **Q12. What causes a "Torn Page" and how do PostgreSQL and MySQL InnoDB defend against it?** `[hard]`
 A Torn Page occurs when a power loss or crash interrupts the writing of an 8 KB (Postgres) or 16 KB (InnoDB) database page across smaller 4 KB or 512-byte hardware disk sectors, leaving the page in a corrupted half-written state. PostgreSQL defends against this via `full_page_writes`, which writes the entire 8 KB page image to WAL on its first modification after a checkpoint so recovery can overwrite torn pages. MySQL InnoDB utilizes a physical **Doublewrite Buffer**, writing dirty pages sequentially to contiguous disk slots before writing to table files, allowing recovery to restore clean pages if a write fails.
 
-**Q13. Scenario: A payments microservice reports that after an abrupt OOM kill and reboot, several hundred completed orders vanished from the database despite returning HTTP 200 OK to users. What configuration issue caused this?** `[hard]`
-The database was configured with relaxed durability settings, such as PostgreSQL `synchronous_commit = off` or MySQL `innodb_flush_log_at_trx_commit = 2` (or `0`). In these modes, the database acknowledges transaction commits immediately after writing them to volatile RAM buffers rather than waiting for physical disk `fsync`. When the Linux kernel killed the process due to out-of-memory pressure, buffered commit records in RAM were destroyed before reaching persistent storage, causing ARIES recovery to treat those transactions as uncommitted losers on reboot.
+**Q13. Scenario: A payments service returned HTTP 200, then an OOM kill or host reboot was followed by missing orders. How do you investigate before naming a cause?** `[hard]`
+First establish whether only the database process died or the host rebooted, and inspect the database's durability settings and WAL or redo logs. PostgreSQL `synchronous_commit = off` can lose recently acknowledged commits after a database or operating-system crash; MySQL `innodb_flush_log_at_trx_commit = 2` may lose recent commits because redo is not flushed at each commit. A process OOM kill alone does not prove that the operating system lost its page cache, and the scenario also needs investigation of application acknowledgment order, replica reads, and storage health before one setting is named as the cause.
 
-**Q14. Scenario: A high-throughput PostgreSQL cluster experiences sudden severe transaction stall spikes and disk space exhaustion. You notice WAL generation has skyrocketed to hundreds of gigabytes. What is the root cause and remediation?** `[hard]`
-A long-running uncommitted transaction (such as an orphaned analytics query or uncommitted migration) is holding open the transaction horizon. Because PostgreSQL cannot truncate WAL segments or purge dead row versions past the oldest active transaction's `xmin` LSN, WAL files accumulate on disk until storage is exhausted, and bloated tables degrade buffer pool hit rates. The immediate remediation is to identify and terminate the blocking PID using `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE state != 'idle' ORDER BY xact_start ASC LIMIT 1;` and configure `idle_in_transaction_session_timeout` to automatically kill abandoned connections in the future.
+**Q14. Scenario: A PostgreSQL cluster has transaction stalls and a full `pg_wal` directory. How do you distinguish high WAL generation from WAL retention and remediate the cause?** `[hard]`
+Do not infer a single cause from a WAL spike. Measure WAL generation and retained WAL separately: heavy writes create WAL, while a lagging replication slot, failed archiving, or configured retention can keep old segments in `pg_wal`. Inspect `pg_replication_slots.restart_lsn`, replication lag, archive status, checkpoints, and the write workload before changing any setting. A long-lived transaction can prevent vacuum from removing dead tuples and cause table bloat, but that is a separate diagnosis; terminate a session only after identifying its owner and impact. Restore the failing consumer or archive path and set a suitable `max_slot_wal_keep_size` where losing a lagging slot is an acceptable trade-off.
+
+**Answer rubric**
+- **Say it:** Separate high WAL generation from retention before naming a cause.
+- **Mechanism:** Compare write rate and checkpoints with replication-slot `restart_lsn`, archive status, standby lag, and retention settings.
+- **Example:** A disconnected standby's slot keeps old WAL segments even when the primary's writes are otherwise normal.
+- **Limit:** Limiting slot retention can save primary disk but may force a lagging standby to be rebuilt; investigate before dropping a slot.
+- **Watch for:** Do not blame a long transaction's `xmin` for WAL retention without evidence; that is more directly a vacuum-bloat clue.
+- **Follow-up:** Which metric shows whether the problem is new WAL production or old WAL that cannot be recycled?
+
+### Further Reading
+
+- [PostgreSQL transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html) explains dirty reads, phantoms and serializable conflict detection.
+- [PostgreSQL WAL settings](https://www.postgresql.org/docs/current/runtime-config-wal.html) explains durability and full-page writes.
+- [PostgreSQL replication retention](https://www.postgresql.org/docs/current/runtime-config-replication.html) explains slot and WAL retention limits.
+- [MySQL InnoDB durability settings](https://dev.mysql.com/doc/refman/8.4/en/innodb-parameters.html) explains redo flush policy and crash risk.

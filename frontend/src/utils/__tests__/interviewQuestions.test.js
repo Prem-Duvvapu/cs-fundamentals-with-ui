@@ -1,6 +1,21 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { parseInterviewQuestions } from '../interviewQuestions'
+import { parseInterviewQuestions, splitInterviewAnswer } from '../interviewQuestions'
+
+describe('splitInterviewAnswer', () => {
+  it('separates the six authored checks from the model answer', () => {
+    const answer = 'A direct model answer.\n\n**Answer rubric**\n- **Say it:** State the contract.\n- **Mechanism:** Explain the sequence.\n- **Example:** Give a backend request.\n- **Limit:** Name a trade-off.\n- **Watch for:** Avoid a common mistake.\n- **Follow-up:** What changes at scale?'
+    expect(splitInterviewAnswer(answer)).toEqual({
+      answerMarkdown: 'A direct model answer.',
+      rubric: { 'Say it': 'State the contract.', Mechanism: 'Explain the sequence.', Example: 'Give a backend request.', Limit: 'Name a trade-off.', 'Watch for': 'Avoid a common mistake.', 'Follow-up': 'What changes at scale?' }
+    })
+  })
+
+  it('preserves an answer if its optional rubric is incomplete', () => {
+    const answer = 'A direct model answer.\n\n**Answer rubric**\n- **Say it:** State the contract.'
+    expect(splitInterviewAnswer(answer)).toEqual({ answerMarkdown: answer, rubric: null })
+  })
+})
 
 describe('parseInterviewQuestions', () => {
   it('reads only the exact interview section and stops before Further Reading', () => {
@@ -197,5 +212,21 @@ describe('curriculum interview-question parsing', () => {
     expect(topicFiles).toHaveLength(68)
     expect(questions).toHaveLength(953)
     expect(new Set(questions.map(({ id }) => id)).size).toBe(questions.length)
+  })
+
+  it('provides twenty complete authored rubrics across five core interview subjects', () => {
+    const pilotFiles = [
+      'java-spring/01d-java-oop-pillars.md',
+      'java-spring/03-spring-mvc-lifecycle.md',
+      'os/01-process-management.md',
+      'networking/05-tcp-ip.md',
+      'dbms/06-transactions-acid.md'
+    ]
+    const rubricCounts = pilotFiles.map(file => {
+      const content = fs.readFileSync(path.join(contentDirectory, file), 'utf8')
+      const topicId = path.basename(file).match(topicFilename)[1]
+      return parseInterviewQuestions(content, topicId).filter(question => splitInterviewAnswer(question.answerMarkdown).rubric).length
+    })
+    expect(rubricCounts).toEqual([4, 4, 4, 4, 4])
   })
 })

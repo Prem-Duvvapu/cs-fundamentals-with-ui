@@ -85,4 +85,16 @@ class DiscoveryServiceTest {
         assertTrue(response.questions().stream().allMatch(question -> question.id().equals(question.topicId() + "-q" + question.number())));
         assertEquals(response.questions().size(), response.questions().stream().map(question -> question.id()).distinct().count());
     }
+
+    @Test
+    void interviewQuestions_preserveAuthoredRubricInCanonicalMarkdownAnswer() {
+        InterviewQuestionResponse response = service.getInterviewQuestions("java-spring", null, 0, 500);
+        var rubricQuestion = response.questions().stream()
+                .filter(question -> question.id().equals("java-oop-pillars-q3"))
+                .findFirst().orElseThrow();
+
+        assertTrue(rubricQuestion.answerMarkdown().contains("**Answer rubric**"));
+        assertTrue(rubricQuestion.answerMarkdown().contains("- **Follow-up:**"));
+        assertFalse(rubricQuestion.answerMarkdown().contains("### Further Reading"));
+    }
 }

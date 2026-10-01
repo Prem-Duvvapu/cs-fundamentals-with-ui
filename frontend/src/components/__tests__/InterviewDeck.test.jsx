@@ -53,6 +53,18 @@ describe('InterviewDeck', () => {
     expect(screen.getByText(/mechanism or sequence/)).toBeInTheDocument()
   })
 
+  it('shows authored checks after the model answer without counting them as the answer', async () => {
+    const answer = 'The concise answer.\n\n**Answer rubric**\n- **Say it:** State the contract.\n- **Mechanism:** Explain the sequence.\n- **Example:** Give a backend request.\n- **Limit:** Name a trade-off.\n- **Watch for:** Avoid a common mistake.\n- **Follow-up:** What changes at scale?'
+    render(<InterviewDeck questions={[{ ...QUESTIONS[0], answerMarkdown: answer }]} />)
+    fireEvent.click(screen.getByRole('button', { name: /reveal answer/i }))
+    await waitFor(() => expect(screen.getAllByTestId('markdown-content')).toHaveLength(2))
+    expect(screen.getAllByTestId('markdown-content')[0]).toHaveTextContent('The concise answer.')
+    expect(screen.getAllByTestId('markdown-content')[0]).not.toHaveTextContent('Answer rubric')
+    fireEvent.click(screen.getByText('Answer checklist and follow-up'))
+    expect(screen.getAllByTestId('markdown-content')[1]).toHaveTextContent('State the contract.')
+    expect(screen.getAllByTestId('markdown-content')[1]).toHaveTextContent('What changes at scale?')
+  })
+
   it('steps forward, resets reveal state, and disables Next on the last card', () => {
     render(<InterviewDeck questions={QUESTIONS} />)
     fireEvent.click(screen.getByRole('button', { name: /reveal answer/i }))

@@ -361,6 +361,14 @@ Document the normalization policy so clients and gateway maintainers do not inve
 
 `DispatcherServlet` is the front controller that coordinates routing, handler invocation, exception resolution, and response rendering for MVC requests. It delegates matching to `HandlerMapping` and invocation to a suitable `HandlerAdapter`. This centralization makes common web concerns configurable without placing them in each controller.
 
+**Answer rubric**
+- **Say it:** `DispatcherServlet` coordinates Spring MVC request handling as its front controller.
+- **Mechanism:** Trace handler mapping, argument binding, handler invocation, return-value handling, and exception resolution.
+- **Example:** A JSON `GET` request reaches a mapped controller and its return value is serialized by a message converter.
+- **Limit:** Filters and the servlet container can reject a request before MVC receives it.
+- **Watch for:** Do not say `DispatcherServlet` itself contains every controller or security rule.
+- **Follow-up:** Where would you inspect a request that never reaches the controller?
+
 **Q2. What is the difference between a servlet filter and a Spring MVC interceptor?** `[easy]`
 
 A filter surrounds the servlet-level request and can run before Spring MVC is entered. An interceptor runs after MVC has selected a handler and can therefore use handler-aware context. Security and low-level request policies usually belong at the filter boundary, while handler timing or MVC-specific metadata can suit an interceptor.
@@ -376,6 +384,14 @@ DTOs define the HTTP contract independently of persistence mappings and lazy rel
 **Q5. How does Spring MVC select and invoke an annotation controller method?** `[medium]`
 
 A `HandlerMapping` matches the request against method, path, headers, parameters, and media conditions and returns a handler method. `RequestMappingHandlerAdapter` resolves method arguments, performs binding and validation, and invokes that method. It then applies return-value handling and message conversion or view resolution according to the result type.
+
+**Answer rubric**
+- **Say it:** Spring matches a handler method, resolves its inputs, invokes it, and converts its result.
+- **Mechanism:** Name `HandlerMapping`, `RequestMappingHandlerAdapter`, argument resolvers, validation, and return-value handlers in sequence.
+- **Example:** A `POST` with JSON is mapped by path and method, deserialized into a DTO, validated, then returned as JSON.
+- **Limit:** A media-type or binding failure can stop invocation before business code runs.
+- **Watch for:** Do not credit annotation scanning alone with runtime request dispatch.
+- **Follow-up:** How does a malformed body become an HTTP error without entering the handler?
 
 **Q6. What does `@RestControllerAdvice` provide?** `[medium]`
 
@@ -405,9 +421,25 @@ It should reject or apply controlled backpressure according to the endpoint's co
 
 Start at the outer filter chain, including CORS preflight handling, Spring Security authentication, request-size limits, and proxy behavior. A rejection at those stages never reaches handler mapping or an MVC interceptor that times controllers. Correlate proxy and security logs with a request ID, then test the exact method, origin, and headers of the failing request.
 
+**Answer rubric**
+- **Say it:** Investigate the request path before the MVC controller.
+- **Mechanism:** Check proxy and servlet filters, CORS preflight, security chain, size limits, then handler mapping using a request ID.
+- **Example:** A browser `OPTIONS` preflight fails in the security chain while the matching `POST` controller is healthy.
+- **Limit:** A missing controller log does not prove the client sent no request; it only narrows the observed boundary.
+- **Watch for:** Do not add controller timing and expect it to capture an earlier rejection.
+- **Follow-up:** Which log or trace span first shows the failing request, and what status does it produce?
+
 **Q13. Scenario: an endpoint has a 250 ms p95 target but p95 rises to 800 ms while controller code reports only 20 ms. What is likely missing from the measurement?** `[hard]`
 
 The controller timer probably excludes queue wait, filters, security calls, connection-pool acquisition, proxy time, or asynchronous completion. Measure a full request span and break it down by each boundary, including database and outbound HTTP waits. Fix the dominant queue or dependency constraint rather than optimizing the already-small controller body.
+
+**Answer rubric**
+- **Say it:** The controller timer covers only a slice of end-to-end latency.
+- **Mechanism:** Break down proxy, queue, filter, security, pool acquisition, dependency, and async completion time in one trace.
+- **Example:** A 20 ms handler can still follow 500 ms waiting for a database connection.
+- **Limit:** Percentiles of separate components cannot simply be added to get the request p95; inspect correlated requests.
+- **Watch for:** Do not optimize the already-small handler before measuring the missing wait.
+- **Follow-up:** Which boundary consumes the longest time for the slow requests?
 
 **Q14. Scenario: an error response exposes SQL fragments and class names to clients after a database exception. What changes are required?** `[hard]`
 

@@ -268,6 +268,24 @@ Rules:
   (improving the answers to meet the 3-sentence bar) before writing new ones. Do not
   delete or edit the JSON file — just copy from it.
 
+For a question with an author-reviewed comparison rubric, append this optional block
+after the model answer and before the next question. Keep the six labels and their order
+exactly; the shared interview deck separates the block from the immediate model answer
+and exposes it as optional detail. The rubric is part of the same Markdown source used
+by topic and category practice, not a separate question bank.
+
+```markdown
+**Answer rubric**
+- **Say it:** One sentence a candidate could say aloud first.
+- **Mechanism:** The causal sequence or evidence the answer needs.
+- **Example:** A concrete case that demonstrates the mechanism.
+- **Limit:** A condition, trade-off or failure mode.
+- **Watch for:** A plausible but wrong answer to avoid.
+- **Follow-up:** One question that tests transfer beyond the model answer.
+```
+
+The model answer must still stand alone and meet the clause-depth rule without the rubric.
+
 ---
 
 ## 8. Voice

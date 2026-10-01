@@ -158,6 +158,22 @@ try {
   await page.getByRole('button', { name: 'Start from the first question' }).click()
   await page.locator('.interview-question').waitFor()
 
+  await page.evaluate(() => localStorage.removeItem('cs-fundamentals-learning-v1'))
+  await page.goto(`${origin}/topic/java-oop-pillars`)
+  await page.getByRole('tab', { name: 'Practice' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Reveal answer' }).click()
+  await page.locator('.interview-answer').waitFor()
+  if ((await page.locator('.interview-answer').innerText()).includes('Answer rubric')) failures.push('Pilot rubric leaked into the immediate model answer')
+  await page.getByText('Answer checklist and follow-up').click()
+  try {
+    await page.locator('.practice-guidance code').first().waitFor({ timeout: 5_000 })
+    await page.getByText('What changes if the invoked method is static or private?').waitFor({ timeout: 5_000 })
+  } catch {
+    failures.push(`Pilot rubric did not render its inline code and follow-up: ${await page.locator('.practice-guidance').innerText()}`)
+  }
+
   const axeSource = require('axe-core').source
   for (const theme of ['dark', 'light']) {
     await page.evaluate(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
