@@ -1282,7 +1282,7 @@
       "disposition": "migrated",
       "evidence": {
         "type": "lesson-content",
-        "contains": "At the moment of a crash, data pages on disk may contain an arbitrary mixture of older and newer changes due to background buffer page eviction."
+        "contains": "STEAL means disk may contain changes from transactions that never committed."
       }
     },
     {
@@ -1353,7 +1353,7 @@
       "disposition": "migrated",
       "evidence": {
         "type": "lesson-content",
-        "contains": "Furthermore, the transaction's `<COMMIT>` log record must be flushed before the commit call returns success to the client application."
+        "contains": "Log records describing a database change MUST be flushed to non-volatile storage BEFORE the corresponding dirty data page in the buffer pool is permitted to overwrite disk storage."
       }
     },
     {
@@ -1379,7 +1379,7 @@
       "disposition": "migrated",
       "evidence": {
         "type": "lesson-content",
-        "contains": "All queries have executed in volatile memory buffers, but the `<COMMIT>` log record has not yet been physically flushed and acknowledged by non-volatile storage via `fsync`."
+        "contains": "The final statement has finished, but durable commit processing has not completed; some earlier pages or log records may already be on disk."
       }
     },
     {

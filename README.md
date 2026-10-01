@@ -127,8 +127,10 @@ The [AI/ML and DevOps learning path](AI_ML_DEVOPS_LEARNING_PATH.md) gives the fu
 
 ## 📚 68 Curriculum Topics Covered
 
-All 68 lessons satisfy the authoring contract and coverage manifest: 32,476 curriculum lines,
+All 68 lessons satisfy the authoring contract and coverage manifest: 32,507 curriculum lines,
 295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
+
+The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records the first sourced DBMS recovery/isolation review, including a PostgreSQL two-session lab and a durable queue-claim example. Broader accuracy review remains open.
 
 Twenty high-value questions across Java, Spring MVC, OS processes, TCP, and DBMS now include
 an optional six-point answer rubric. Reveal the model answer first, then open **Answer checklist

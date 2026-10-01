@@ -290,7 +290,7 @@ unsupported state controlling whether the Simulation tab should appear.
   target lies beyond initial pagination and when content changes.
 - Resolving commit: `93d059d`.
 
-## RCA-2026-10-01-03 — OOP rewrite left one migration-ledger quote stale
+## RCA-2026-10-01-03 — Lesson rewrites left migration-ledger quotes stale
 
 - Evidence: `node scripts/audit-simulation-questions.mjs --check` found that migrated quiz
   `5572a6d7bb74` referenced wording no longer present in `01d-java-oop-pillars.md`.
@@ -301,9 +301,18 @@ unsupported state controlling whether the Simulation tab should appear.
   and migrated explanation remain intact.
 - Verification: the migration gate passes with 109/109 items resolved and zero pending.
 - Prevention: run the migration gate after any rewrite of a lesson named as a ledger target.
-- Resolving commit: `93d059d`.
-
-## RCA-2026-10-01-04 — Browser accessibility scan could miss a lazy simulator and selected theme
+- Resolving commit: `93d059d` (initial OOP occurrence).
++- DBMS recurrence: the October 1 accuracy review changed three transaction-lesson evidence
++  sentences. The migration gate identified interview `51ef3c150fa5` and quiz `4acd99ff6bb9` /
++  `e296148a8b37` as stale. Their source payloads remain archived unchanged; current lesson
++  explanations retain the concepts while correcting the legacy overclaims. The three evidence
++  quotes now point to the revised WAL ordering, partial-commit and ARIES explanations.
++- Recurrence prevention: inspect all migration-ledger references before editing a target lesson;
++  synchronize evidence as an integration unit and run the gate before committing. Never restore
++  an inaccurate sentence merely to satisfy a literal evidence check.
++- DBMS resolving commit: recorded in the follow-up commit after the verified accuracy package.
++
++## RCA-2026-10-01-04 — Browser accessibility scan could miss a lazy simulator and selected theme
 
 - Evidence: the responsive check first passed, then an identical run reported low contrast in
   the process simulator. A stricter run found the active-state badge also failed in dark mode.

@@ -350,7 +350,7 @@ All 68 topics are registered at all integration points, so content work requires
 
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
-- **Verified** — 32,476 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
+- **Verified** — 32,507 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
   (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
@@ -481,3 +481,7 @@ sign-off. Its high-priority tracks are explicit beginner outcomes in the 33 non-
 lessons, reproducible network/OS diagnosis, a seeded SQL lab, and extensions to the
 existing runnable Task Tracker. `JAVA_LEARNING_PLAN.md` now recognizes that first
 in-memory application as shipped while later persistence/security milestones remain open.
+
+## Technical accuracy review
+
+`CONTENT_ACCURACY_REVIEW_2026-10-01.md` is the source/version/correction ledger for A06/C05. The first package scopes recovery and isolation review to the transactions and concurrency lessons; it does not certify the entire corpus. Keep PostgreSQL tuple visibility and subtransactions separate from ARIES undo and InnoDB undo records. Commit durability needs explicit flush/storage/replication assumptions, and hypothetical throughput calculations must be labelled. The concurrency lesson includes a disposable two-session PostgreSQL lab and a queue claim that persists status before releasing locks. Any future change to those SQL examples should rerun them on the declared engine and verify waiting, rollback/commit, empty claims, and cleanup. The previous live checks used PostgreSQL 16.15; primary-source review used PostgreSQL 18 and MySQL 8.4.

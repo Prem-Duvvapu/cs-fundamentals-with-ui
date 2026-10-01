@@ -292,7 +292,7 @@ and [Mermaid theme configuration](https://mermaid.js.org/config/theming.html).
 
 The [core CS content audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) inventories the 56 OS,
 networking, DBMS and Java/Spring lessons separately from the platform audit. It records
-26,382 curriculum lines, 241 diagrams and 785 interview questions in these categories,
+an initial snapshot of 26,382 curriculum lines, 241 diagrams and 785 interview questions in these categories,
 then identifies prerequisite/outcome, reproducible lab, SQL fixture, Task Tracker milestone
 and technical accuracy work without treating structural validation as learning evidence.
 - `POST /api/v1/simulation/{cpu-scheduling,page-replacement,subnet-calculator,bankers-algorithm}` —
@@ -376,3 +376,7 @@ flow without changing the platform backend. See its README for run commands and 
 ## October 1 reader and practice follow-up
 
 `MarkdownRenderer` memoizes the component map passed to react-markdown so normal parent updates do not remount stateful code and diagram controls. `TopicViewer` reconnects its heading observer after returning from Practice and records a heading only while Study is visible; it restores URL or saved headings before observing. `App` owns titles for non-topic routes. `InterviewDeck` represents a saved question missing from the current page explicitly; `InterviewPage` can fetch subsequent pages until that stable question key appears. `PracticeReview` pages through review and all-answer filters and links to `?view=practice&question=<encoded-key>`. Imported alternatives can be compared, adopted by swapping drafts without losing either version, or deleted after an inline confirmation. The responsive browser harness includes these journeys and a WCAG 2.2 tagged axe check for key routes in both themes.
+
+## Source-backed content review
+
+[The technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records a scoped review of the transactions and concurrency lessons against PostgreSQL 18, MySQL 8.4, and the original ARIES paper. It distinguishes engine contracts, configuration assumptions, and textbook recovery models. A disposable PostgreSQL 16.15 database verified the authored read/lock lab and transactional SKIP LOCKED queue claim; this is not a cross-engine crash test. Two corrected Mermaid sources were regenerated in both themes. The API continues to serve canonical lesson Markdown with the same topic and question identities.

@@ -569,3 +569,5 @@ The [core CS content audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) now inventories
 separate evidence for the missing beginner openings, reproducible network/OS labs,
 seeded SQL examples, and later runnable Spring milestones. It explicitly leaves full
 expert accuracy review and learner validation open.
+
+The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records further A06 progress: the DBMS transaction/recovery lesson and concurrency lesson now distinguish PostgreSQL, InnoDB, and ARIES mechanisms, with configuration-aware durability advice and matching interview answers. A reproducible PostgreSQL read/lock exercise and a transactional queue-claim example were verified in independent sessions. A06 remains open for the broader source-review queue, and this content package does not close the lab, learner-validation, or UI acceptance criteria.

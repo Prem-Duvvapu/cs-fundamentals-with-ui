@@ -14,7 +14,7 @@ A serial database runs one transaction to completion before starting the next.
 That is easy to reason about, but it wastes CPU while one transaction waits for a page, network response, or storage flush.
 Real engines therefore interleave operations from many transactions.
 
-Interleaving is safe only when the result still matches an allowed sequential execution.
+Serializable interleaving must match some sequential execution; weaker isolation can permit additional histories, so the application must protect its actual business invariant.
 Without coordination, two requests can both read the same old value and overwrite one another.
 This is the **lost update** anomaly.
 
@@ -26,7 +26,7 @@ Assume an inventory row starts with `quantity = 10`:
 4. $T_2$ writes 6 from its stale calculation.
 5. The correct quantity is $10 - 3 - 4 = 3$, but the stored value is 6.
 
-Concurrency control prevents this outcome by blocking, validating, versioning, or aborting conflicting work.
+A suitable concurrency strategy prevents this outcome by blocking or detecting conflicting work. A plain read followed by a stale overwrite can still lose an update at weaker isolation, even when the database uses MVCC.
 
 ```mermaid
 sequenceDiagram
@@ -94,7 +94,7 @@ This protects uncommitted state, but waiting introduces latency and can create d
 
 **Lock granularity** describes the size of the protected resource.
 A row lock gives high concurrency but creates more lock-manager entries.
-A table lock is cheap to track but blocks unrelated rows.
+A coarse table lock uses less metadata, but conflicting lock modes can block operations on otherwise unrelated rows.
 
 Hierarchical engines use **intention locks** to coordinate those levels:
 
@@ -259,19 +259,22 @@ WHERE sku = 'BOOK-42'
 COMMIT;
 ```
 
-Queue consumers can avoid waiting behind work another consumer already claimed:
+In PostgreSQL, claim a queue item and persist its new status in one transaction. Assume `jobs(id, payload, status, created_at)` exists; this statement both skips locked candidates and records the claim:
 
 ```sql
-SELECT id, payload
-FROM jobs
-WHERE status = 'pending'
-ORDER BY created_at
-FOR UPDATE SKIP LOCKED
-LIMIT 1;
+BEGIN;
+WITH candidate AS (
+  SELECT id FROM jobs WHERE status = 'pending'
+  ORDER BY created_at, id LIMIT 1 FOR UPDATE SKIP LOCKED
+)
+UPDATE jobs AS j SET status = 'running'
+FROM candidate WHERE j.id = candidate.id
+RETURNING j.id, j.payload;
+COMMIT;
 ```
 
 `NOWAIT` fails immediately instead of waiting, while `SKIP LOCKED` omits locked rows.
-Both change application semantics, so callers need explicit empty-result or retry handling.
+Both change application semantics, so callers need empty-result handling. A bare locking `SELECT` in autocommit releases its lock before later processing; persist the claim and use leases or recovery for abandoned jobs.
 An atomic `UPDATE ... SET quantity = quantity - 1` often beats a separate read-modify-write pair.
 
 ### Timestamp Ordering and the Thomas Write Rule
@@ -281,10 +284,10 @@ Each item records the largest read timestamp and write timestamp it has accepted
 
 - A read by $T$ is rejected if a younger transaction has already written the item.
 - A write by $T$ is rejected if a younger transaction has already read or written the item.
-- Rejected transactions abort and restart, normally retaining priority to prevent starvation.
+- Rejected transactions abort; basic timestamp ordering normally assigns a new timestamp on restart. Retaining an original age is a separate starvation-control technique in Wait-Die and Wound-Wait, not a universal timestamp-ordering rule.
 
 The **Thomas Write Rule** relaxes obsolete writes.
-If an older transaction tries to write an item already written by a younger transaction, the old write may be ignored rather than aborting because no valid reader should observe it.
+First reject a write if the transaction timestamp is older than the item's read timestamp: a later reader may already depend on the existing value. Only after that check can an obsolete write, older than the item's write timestamp, be ignored. This can admit view-serializable histories that are not conflict-serializable.
 
 Timestamp ordering is deadlock-free because transactions abort rather than wait.
 Its cost is repeated work when conflicts are frequent, and long transactions are especially vulnerable to restarts.
@@ -316,11 +319,12 @@ Prevention schemes avoid cycles by age:
 Timeouts bound waits but do not prove a deadlock exists.
 A timeout may abort an innocent transaction behind a slow query, whereas cycle detection targets an actual circular dependency.
 
-### MVCC: Readers Never Block Writers
+### MVCC: Readers Never Block Writers — Scope of the Slogan
 
+The slogan refers to ordinary snapshot reads and row updates; the exceptions below matter in production.
 **Multi-Version Concurrency Control (MVCC)** creates a new logical row version for an update rather than making every reader wait on an in-place overwrite.
 A reader uses its snapshot to choose the newest version visible at the relevant isolation boundary.
-Writers still coordinate with other writers, so MVCC does not eliminate all locks.
+Writers still coordinate with other writers, locking reads can wait, and schema-level locks can even block a plain `SELECT`. MVCC avoids many row-update waits, not every possible wait.
 
 ```mermaid
 flowchart LR
@@ -345,12 +349,12 @@ The resulting dead tuples or undo growth consume storage, increase scan cost, an
 ### MVCC Visibility and Engine Differences
 
 PostgreSQL stores row versions as separate heap tuples.
-`READ COMMITTED` takes a fresh snapshot for each statement, while `REPEATABLE READ` normally keeps one transaction-level snapshot.
+`READ COMMITTED` takes a fresh snapshot for each statement, while `REPEATABLE READ` keeps the snapshot established by its first non-transaction-control statement. Visibility also depends on which transactions were still in progress; transaction IDs are not commit timestamps.
 `VACUUM` reclaims dead tuples only after they are invisible to every relevant snapshot.
 
 InnoDB keeps the newest record in its clustered index and reconstructs older states through undo-log chains.
 Consistent reads use a read view, while locking reads such as `FOR UPDATE` inspect current data and acquire locks.
-Under its default `REPEATABLE READ`, next-key locks combine record and gap locking for relevant range scans.
+Under its default `REPEATABLE READ`, locking range scans can use next-key locks combining record and gap protection; ordinary consistent reads use snapshots instead.
 
 These differences explain why the same isolation-level name can produce different blocking patterns.
 Applications must test anomalies and locking behaviour against the actual engine and query plan, not only against the SQL label.
@@ -413,6 +417,25 @@ A flash-sale seat cannot be sold to 20,000 simultaneous users by blindly retryin
 The service needs bounded retries with jitter, admission control, partitioned inventory, or a queue.
 Optimism removes waiting only when conflict probability justifies discarding losers.
 
+### Try It: Snapshot Read vs Locking Read
+
+Open two fresh `psql` sessions connected to the same disposable PostgreSQL practice database, using the default autocommit and Read Committed settings. This lab demonstrates visibility and blocking; it does not benchmark performance.
+
+**Session A:** Create the fixture in autocommit, then leave the update uncommitted:
+```sql
+CREATE TABLE cs_lock_lab (id integer PRIMARY KEY, quantity integer NOT NULL);
+INSERT INTO cs_lock_lab VALUES (1, 10);
+BEGIN;
+UPDATE cs_lock_lab SET quantity = 9 WHERE id = 1;
+```
+**Session B:** Run these in order; the second statement waits for A:
+```sql
+SELECT quantity FROM cs_lock_lab WHERE id = 1;
+SELECT quantity FROM cs_lock_lab WHERE id = 1 FOR UPDATE;
+```
+The plain read returns **10**, not A's uncommitted **9**. Run `ROLLBACK;` in A: B's locking read then returns **10**. Repeat with `COMMIT;` in A and predict why B's locking read returns **9** at Read Committed.
+After both sessions finish, clean up your fixture with `DROP TABLE cs_lock_lab;`. If a statement times out, roll back an explicit transaction before retrying. Explain which operation waited and why the first read could proceed.
+
 ### Production Diagnostics and Recovery Discipline
 
 On PostgreSQL, inspect `pg_stat_activity`, `pg_locks`, and `pg_blocking_pids(pid)` to connect waiters to blockers.
@@ -464,7 +487,7 @@ The goal is to encode the invariant at the narrowest safe boundary, observe cont
 
 5. **“Retrying the statement that received the deadlock error is enough.”**
    The database normally aborts the entire victim transaction and releases all of its locks.
-   The application must replay the complete transaction from a known boundary and protect external effects from duplication.
+   Replay the complete transaction from a known boundary and protect external effects from duplication. Distinguish an InnoDB deadlock from a lock-wait timeout: by default, the latter rolls back only the waiting statement, so explicitly decide whether to roll back the whole business operation.
 
 ### Interview Questions
 
@@ -520,7 +543,7 @@ Some engines escalate many fine-grained locks, while others avoid formal escalat
 
 Both assign stable transaction ages and allow waits only in one age direction, making a circular wait impossible.
 Wait-Die lets an older requester wait but aborts a younger requester; Wound-Wait lets a younger requester wait but allows an older requester to abort the younger holder.
-Retaining the original age across retries is necessary to prevent repeated victims from starving.
+Retaining the original age across retries helps older transactions eventually gain priority rather than continually becoming the youngest victim.
 
 **Q10. Why can snapshot isolation permit write skew?** `[medium]`
 
@@ -548,8 +571,8 @@ Use bounded jittered retries, admission control, or serialize claims through a q
 
 **Q14. Why can a missing index create lock contention or deadlocks?** `[hard]`
 
-The engine may scan many rows to find a small result, acquiring record, range, or gap locks across the scanned access path.
-That enlarged footprint overlaps unrelated transactions and adds edges to the wait-for graph, increasing both blocking and cycle probability.
+InnoDB locking scans may acquire record, range, or gap locks across a much larger access path when an index is missing. PostgreSQL SSI predicate tracking is different: a broad read can increase serialization failures without its predicate locks blocking writers.
+For blocking locks, the enlarged footprint overlaps unrelated transactions and adds edges to the wait-for graph, increasing blocking and cycle probability.
 Confirm with the execution plan and lock diagnostics, then add or correct the index rather than merely increasing the timeout.
 
 ### Further Reading
@@ -557,4 +580,4 @@ Confirm with the execution plan and lock diagnostics, then add or correct the in
 - [PostgreSQL: Introduction to Multi-Version Concurrency Control](https://www.postgresql.org/docs/current/mvcc-intro.html) explains snapshots, isolation, and serialization anomalies in PostgreSQL.
 - [PostgreSQL: Explicit Locking](https://www.postgresql.org/docs/current/explicit-locking.html) documents table, row, page, advisory locks, and deadlock handling.
 - [MySQL 8.4 Reference Manual: InnoDB Locking](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html) defines intention, record, gap, next-key, and insert-intention locks.
-- [Serializable Isolation for Snapshot Databases](https://doi.org/10.1145/1376616.1376690) is the original paper behind Serializable Snapshot Isolation.
+- [PostgreSQL: Transaction Isolation](https://www.postgresql.org/docs/18/transaction-iso.html) explains snapshot boundaries and SSI, including its nonblocking predicate locks. The [InnoDB error-handling contract](https://dev.mysql.com/doc/refman/8.4/en/innodb-error-handling.html) distinguishes statement rollback from transaction rollback.

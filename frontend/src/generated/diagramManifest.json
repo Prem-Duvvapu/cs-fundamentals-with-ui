@@ -538,11 +538,11 @@
     "height": 1183,
     "widened": 18
   },
-  "e210098f": {
+  "aee5a745": {
     "source": "content/dbms/06-transactions-acid.md",
     "renderFingerprint": "073161cd5090938f",
     "width": 519,
-    "height": 578,
+    "height": 557,
     "widened": 13
   },
   "127d88db": {
@@ -566,7 +566,7 @@
     "height": 270,
     "widened": 6
   },
-  "02ecb116": {
+  "e3dde289": {
     "source": "content/dbms/06-transactions-acid.md",
     "renderFingerprint": "073161cd5090938f",
     "width": 1201,

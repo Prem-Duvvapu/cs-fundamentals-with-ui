@@ -115,3 +115,7 @@ The Java path already has explicit openings in all 23 lessons and an executable 
 6. **Validate learning, not just pages.** Ask at least one novice and one backend engineer to complete a subnet calculation, an OS wait diagnosis, a SQL correction and a Spring endpoint change without coaching. Record confusion and incorrect answers, revise the lesson, then rerun the content, example, frontend, backend, browser and accessibility checks relevant to the change.
 
 **Status:** this document is a complete inventory and prioritized teaching audit of the 56 core lessons, with targeted factual checks. It is **not** a claim that every technical assertion or exercise has undergone expert review, or that the remaining work has shipped.
+
+## Accuracy implementation checkpoint
+
+The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) now records the first DBMS package: recovery/durability/MVCC explanations and their interview answers were corrected together; the transaction lesson has an explicit beginner outcome; and concurrency includes a live-verified read-versus-lock exercise plus a transactional queue claim. The current core corpus is 26,413 lines (DBMS 6,263), with 241 diagrams and 785 Q&As; the inventory above remains the initial audit snapshot. C01 remains open for the other openings and fuller prerequisite links. C03 still needs the end-to-end SQL dataset. C05 remains open for the rest of the source-review queue, and C08/C09/C10 remain open for broader feedback and executable learning tracks.
