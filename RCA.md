@@ -352,4 +352,4 @@ unsupported state controlling whether the Simulation tab should appear.
   themes, 14 axe scans, and the rubric-specific journey.
 - Prevention: browser assertions for lazy content must wait for the content itself,
   not only the control that opens it.
-- Resolving commit: pending this branch's implementation commit.
+- Resolving commit: `ac05000`.
