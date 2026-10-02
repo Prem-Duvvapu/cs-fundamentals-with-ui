@@ -7,6 +7,40 @@ import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import dbmsData from '../../../data/dbms-concepts-bplus-tree.json'
 import { prefersReducedMotion } from '../../../utils/motionPreference'
 
+// Preserve immutable legacy question snapshots while correcting their teaching copy.
+const interviewAnswers = {
+  "Why do relational databases use B+ Trees instead of Binary Search Trees (BST) or Red-Black Trees?": 'Page-oriented trees route through many children per database page, keeping logical traversal shallow. A database page is not necessarily an OS page. Cache hits can avoid device I/O, and qualifying rows or visibility checks add work beyond the descent.',
+  "What is the difference between a Clustered Index and a Secondary Non-Clustered Index?": 'InnoDB clustered leaves store rows; secondary leaves store their indexed columns plus the clustered key. A secondary lookup can need another tree traversal for missing values or visibility. PostgreSQL instead keeps separate indexes and a heap.',
+  "What is a Covered Query in B+ Tree indexing?": 'Coverage means the index has the query’s required values. It can avoid payload lookups, but snapshot visibility may still require table access. PostgreSQL index-only scans can therefore report heap fetches even when covered.'
+}
+const quizAnswers = {
+  "Suppose a B+ Tree of order M = 4 has a leaf node containing 3 keys [10, 20, 30]. If we insert key 25, what happens to the leaf node?": 'The toy order-4 leaf overflows to [10, 20, 25, 30], splitting into [10, 20] and [25, 30]. Separator 25 is copied into the parent and remains in the right leaf. Real engines split by physical record layout rather than this fixed key count.',
+  "Why are sequential random UUID v4 primary keys considered an anti-pattern for B+ Tree indexes in MySQL InnoDB?": 'UUIDv4 is random rather than sequential. It can spread inserts across a larger working set and increase splits/cache misses, but a split on every insert is not guaranteed. Ordered keys improve locality while potentially concentrating page-latch contention.',
+  "How many disk page lookups are required for a 3-level B+ Tree with a root, internal layer, and leaf layer?": 'This three-level tree visits three logical pages on a basic root-to-leaf descent. The device-read count can be zero, one or more depending on database and OS caches; row, visibility and overflow work can add visits. A cached upper level is not a physical-I/O guarantee.'
+}
+const conceptData = {
+  ...dbmsData.bplusTree,
+  subtitle: 'Insert and search integer keys in a toy B+ tree. Node splits model sorted routing and equal leaf depth; database pages, MVCC and device latency are not simulated.',
+  theoryData: {
+    ...dbmsData.bplusTree.theoryData,
+    failureModes: [
+      'Random inserts can widen the write working set; split rates and occupancy depend on the engine and workload.',
+      'A sequential scan can be the right plan for a tiny table or a large matching fraction. Validate actual rows, buffers and ordering before adding an index.',
+      'Frequent changes and wide indexes add maintenance. Cardinality alone does not determine split rate or index value.'
+    ],
+    tradeOffs: [
+      'High routing fanout keeps page trees shallow; vendor layouts differ from the textbook B+ tree.',
+      'Page trees and LSMs trade read, write, cache and compaction work. Neither has universally faster reads or writes.'
+    ],
+    interviewQA: dbmsData.bplusTree.theoryData.interviewQA.map(item => ({ ...item, a: interviewAnswers[item.q] ?? item.a }))
+  },
+  quizData: dbmsData.bplusTree.quizData.map(item => ({
+    ...item,
+    ...(item.question === 'Why are sequential random UUID v4 primary keys considered an anti-pattern for B+ Tree indexes in MySQL InnoDB?' ? { question: 'Why can random UUIDv4 primary keys hurt an InnoDB index workload?' } : {}),
+    answer: quizAnswers[item.question] ?? item.answer
+  }))
+}
+
 export default function BPlusTreeVisualizer() {
   const [order, setOrder] = useState(3) // Default Order M = 3
   const [treeInstance, setTreeInstance] = useState(() => new BPlusTree(3))
@@ -130,6 +164,7 @@ export default function BPlusTreeVisualizer() {
           <div className="u-row">
             <label className="field-label-strong">Tree Order (M):</label>
             <select
+              aria-label="Tree order"
               value={order}
               onChange={e => handleOrderChange(Number(e.target.value))}
               className="select-input is-compact"
@@ -142,6 +177,7 @@ export default function BPlusTreeVisualizer() {
 
           <div className="bptree-key-group">
             <input
+              aria-label="Tree key"
               type="number"
               placeholder="Enter key (e.g. 42)"
               value={inputKey}
@@ -332,8 +368,6 @@ export default function BPlusTreeVisualizer() {
       </div>
     </div>
   )
-
-  const conceptData = dbmsData.bplusTree
 
   return (
     <ConceptModuleShell

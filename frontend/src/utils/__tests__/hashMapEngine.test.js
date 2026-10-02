@@ -57,14 +57,44 @@ describe('HashMapEngine', () => {
     expect(map.size).toBe(3)
   })
 
-  it('reports treeification once a chain reaches 8 nodes', () => {
-    const map = new HashMapEngine(1, 100) // huge load factor keeps resize out of the way
-    const seen = []
-    for (let i = 1; i <= 8; i++) seen.push(actions(map.put(`k${i}`, i)))
+  it('keeps eight colliding put entries as a list and models a tree on the ninth at capacity 64', () => {
+    const map = new HashMapEngine(64, 100)
+    map.hash = () => 1
+    for (let i = 0; i < 8; i++) {
+      expect(actions(map.put(`k${i}`, i))).not.toContain('TREEIFY_TRIGGERED')
+    }
+    expect(map.cloneState().treeBins).toEqual([])
+    expect(actions(map.put('k8', 8))).toContain('TREEIFY_TRIGGERED')
+    expect(map.cloneState().treeBins).toEqual([1])
+    expect(actions(map.put('k9', 9))).not.toContain('TREEIFY_TRIGGERED')
+    expect(actions(map.put('k8', 80))).toEqual(['HASH_COMPUTE', 'KEY_EXISTS_UPDATE'])
+    expect(map.size).toBe(10)
+  })
 
-    // The first seven insertions must not claim treeification; the eighth must.
-    seen.slice(0, 7).forEach((stepActions) => expect(stepActions).not.toContain('TREEIFY_TRIGGERED'))
-    expect(seen[7]).toContain('TREEIFY_TRIGGERED')
+  it('grows a collision bin below capacity 64 without falsely marking it as a tree', () => {
+    const map = new HashMapEngine(32, 100)
+    map.hash = () => 1
+    for (let i = 0; i < 8; i++) map.put(`k${i}`, i)
+    const steps = map.put('k8', 8)
+    expect(actions(steps)).toContain('RESIZE_TRIGGERED')
+    expect(actions(steps)).not.toContain('TREEIFY_TRIGGERED')
+    expect(map.capacity).toBe(64)
+    expect(map.cloneState().treeBins).toEqual([])
+    expect(steps[0].state.capacity).toBe(32)
+    expect(actions(map.put('k9', 9))).toContain('TREEIFY_TRIGGERED')
+  })
+
+  it('splits a modeled tree on growth and untreeifies sides with at most six entries', () => {
+    const map = new HashMapEngine(64, 100)
+    map.hash = key => key.startsWith('low') ? 1 : 65
+    for (let i = 0; i < 7; i++) map.put(`low${i}`, i)
+    for (let i = 0; i < 5; i++) map.put(`high${i}`, i)
+    expect(map.cloneState().treeBins).toEqual([1])
+    map.resize()
+    expect(map.buckets[1]).toHaveLength(7)
+    expect(map.buckets[65]).toHaveLength(5)
+    expect(map.cloneState().treeBins).toEqual([1])
+    expect(map.size).toBe(12)
   })
 
   it('resizes once size exceeds the load-factor threshold', () => {
@@ -99,14 +129,16 @@ describe('HashMapEngine', () => {
     })
   })
 
-  it('hashes deterministically and non-negatively', () => {
+  it('uses Java string hash spreading including signed hashes', () => {
     const map = new HashMapEngine()
 
     expect(map.hash('repeatable')).toBe(map.hash('repeatable'))
     expect(map.hash('alpha')).not.toBe(map.hash('beta'))
-    for (const key of ['', 'a', 'zzzzzzzzzzzz', '~!@#$%^&*()', '1234567890']) {
-      expect(map.hash(key)).toBeGreaterThanOrEqual(0)
-    }
+    expect(map.hash('Aa')).toBe(2112)
+    expect(map.hash('BB')).toBe(2112)
+    // Independently checked in Java 17: raw hash -1910022912, spread hash -1909992665.
+    expect(map.hash('zzzzzzzz')).toBe(-1909992665)
+    expect(map.getBucketIndex('zzzzzzzz')).toBeGreaterThanOrEqual(0)
   })
 
   it('snapshots state per step so replaying the animation cannot mutate the engine', () => {
@@ -116,8 +148,10 @@ describe('HashMapEngine', () => {
 
     snapshot.buckets[0].push({ key: 'injected', value: 'x' })
     snapshot.size = 999
+    snapshot.treeBins.push(0)
 
     expect(map.size).toBe(1)
     expect(map.buckets.flat().map((n) => n.key)).toEqual(['alpha'])
+    expect(map.cloneState().treeBins).toEqual([])
   })
 })

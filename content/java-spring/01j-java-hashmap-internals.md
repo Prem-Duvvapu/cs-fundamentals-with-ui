@@ -11,6 +11,8 @@ Interviewers ask about it because the same details explain surprising missing ke
 
 **After this lesson you can:** trace a lookup, distinguish replacement from collision, and explain why changing a key's equality-relevant fields is dangerous.
 
+Unmarked Java fences are excerpts, not complete programs. Internal thresholds below describe OpenJDK 17; the `Map` API does not promise that layout.
+
 ## 🟢 Beginner Level
 
 ### Understand replacement before investigating buckets
@@ -169,7 +171,7 @@ static final int hash(Object key) {
 
 The table capacity is a power of two.
 For capacity `n`, the index is `(n - 1) & hash`.
-This is equivalent to non-negative modulo `n` but avoids integer division.
+For positive power-of-two `n`, this equals `Math.floorMod(hash, n)`, including negative hashes; Java's `%` can return a negative remainder.
 It also lets a resize split a bucket using one newly relevant bit.
 
 For a table of capacity $16$, the mask is $15$, or binary `0000 1111`.
@@ -189,7 +191,7 @@ Map<String, Integer> counts = new HashMap<>();
 
 With default settings, the first allocated table normally has capacity $16$.
 Its threshold is $16 \times 0.75 = 12$ entries.
-Inserting the thirteenth distinct entry triggers growth toward capacity $32$.
+With well-distributed keys, inserting the thirteenth distinct entry triggers growth toward capacity $32$; heavy collisions can force earlier growth.
 The new threshold becomes $32 \times 0.75 = 24$.
 
 | Load factor | Memory usage | Collision likelihood | Good fit |
@@ -243,13 +245,13 @@ Initially, a collision chain is linked nodes.
 Searching a chain of $k$ entries is $O(k)$.
 Java 8 introduced tree bins to prevent an attacker or poor key distribution from making a single bucket pathologically slow.
 
-Treeification is considered when a bucket reaches at least eight nodes.
+The constant `TREEIFY_THRESHOLD` is eight, but the exact insertion path matters: ordinary OpenJDK 17 `put` requests treeification when appending a ninth distinct node to a list of eight. Compute-family methods count differently; do not treat eight as a universal API trigger.
 The table must also have capacity at least $64$.
 If it is smaller, the map prefers a resize because a bigger table may disperse the collision.
 
 After conversion, the bucket uses red-black tree nodes.
-Search is approximately $O(\log k)$ rather than $O(k)$.
-During resize, a tree bin may revert to a list when a split side has at most six nodes.
+Search can use $O(\log k)$ comparisons when hashes distinguish paths or compatible comparable keys provide useful ordering. Equal-hash, non-comparable keys can require searching both subtrees and degrade to $O(k)$ despite the balanced shape.
+During resize, a tree bin may revert to a list when a split side has at most six nodes; removal uses a shape-based test, not a universal six-entry rule.
 
 | Constant | Value | Reason |
 |---|---:|---|
@@ -259,7 +261,7 @@ During resize, a tree bin may revert to a list when a split side has at most six
 | untreeify threshold | 6 | avoid flip-flopping near threshold |
 | minimum treeify capacity | 64 | resize before treeing a small table |
 
-Treeification is a defensive worst-case measure.
+Treeification improves collision handling under those ordering conditions.
 It does not make consistently colliding keys a good design.
 Good `hashCode` implementations and bounded key domains remain the first solution.
 
@@ -297,7 +299,7 @@ These three maps implement `Map` but make different ordering and performance pro
 | `LinkedHashMap` | insertion order or access order | expected $O(1)$ | predictable iteration or simple LRU policy |
 | `TreeMap` | sorted by key comparator | $O(\log n)$ | range queries, nearest keys, sorted traversal |
 
-An access-ordered `LinkedHashMap` moves an entry toward the end when it is accessed.
+Successful access operations such as `get` move entries toward the end of an access-ordered `LinkedHashMap`; traversing collection views does not. Those reads can structurally change encounter order, so sharing this LRU map still needs synchronization.
 Overriding `removeEldestEntry` can build a small, synchronised LRU-style map, although production caches usually need stronger expiry, concurrency, and admission policies.
 
 `TreeMap` uses comparison rather than hash buckets.
@@ -336,7 +338,7 @@ Use the iterator's own `remove`, collect changes first, or choose a concurrent c
 
 An entry's bucket location is chosen from the key hash at insertion time.
 Changing a field used by `equals` or `hashCode` changes the logical lookup hash but does not move the entry.
-The map then searches the new bucket and cannot find the node in its old bucket.
+Lookup uses the new hash; even if it selects the same bucket, the stored old hash may prevent a match. Changing only equality fields can instead cause duplicate or surprising equality behavior. Placement is never repaired automatically.
 
 ```java
 final class RequestKey {
@@ -365,7 +367,7 @@ Use immutable keys such as strings, records composed of immutable values, or def
 
 An attacker who can choose request keys may intentionally create many collisions.
 Before tree bins, a single operation could degrade toward linear time in the number of colliding keys.
-Treeification bounds lookup cost after the bucket crosses thresholds, but it is not a full denial-of-service solution.
+Treeification helps when hashes or compatible comparison can guide a search; it does not guarantee logarithmic lookup for every equal-hash key type.
 
 ```mermaid
 stateDiagram-v2
@@ -378,10 +380,45 @@ stateDiagram-v2
     TreeBin --> ListBin: split side has at most 6 nodes
 ```
 
-Application-level limits remain important.
+The state diagram shows possible transitions, not an exact insertion-count contract. Application-level limits remain important.
 Bound untrusted form fields and JSON object sizes.
 Avoid using adversary-controlled composite keys in long-lived maps without rate limits or validation.
 Measure collision-heavy workloads instead of assuming a tree bin removes all overhead.
+
+**Runnable example — OpenJDK 17.** Save as `TreeLookupDemo.java`; compile and run as in the first example. This counts equality calls, not elapsed time.
+
+```java runnable=TreeLookupDemo
+import java.util.HashMap;
+public class TreeLookupDemo {
+    static final class Key {
+        static int comparisons;
+        final int id;
+        Key(int id) { this.id = id; }
+        @Override public int hashCode() { return 1; }
+        @Override public boolean equals(Object other) {
+            comparisons++;
+            return other instanceof Key key && id == key.id;
+        }
+    }
+    public static void main(String[] args) {
+        var map = new HashMap<Key, Integer>(128);
+        for (int i = 0; i < 64; i++) map.put(new Key(i), i);
+        System.out.println("tree=" + map.entrySet().iterator().next()
+                .getClass().getSimpleName().equals("TreeNode"));
+        Key.comparisons = 0;
+        System.out.println("missing=" + (map.get(new Key(-1)) == null));
+        System.out.println("manyComparisons=" + (Key.comparisons >= 64));
+    }
+}
+```
+
+```text output=TreeLookupDemo
+tree=true
+missing=true
+manyComparisons=true
+```
+
+**Predict/change/debug:** changing the requested ID to 7 finds a value, but equality-call count depends on tree shape. Distinct hashes or a consistent `Comparable<Key>` ordering can guide the search. The observed internal node name is specific to OpenJDK 17; this program is not a portable `Map` contract or benchmark.
 
 ### `HashMap` is not safe for concurrent mutation
 
@@ -411,8 +448,8 @@ ConcurrentMap<String, LongAdder> counts = new ConcurrentHashMap<>();
 counts.computeIfAbsent("/orders", ignored -> new LongAdder()).increment();
 ```
 
-Its `compute`, `computeIfAbsent`, and `merge` methods make one key's update atomic relative to other map operations.
-The mapping function should be short and should not recursively update the same map.
+Its `compute`, `computeIfAbsent`, and `merge` methods coordinate one key's map update; mutating a stored object later is separate work. Publishing a `LongAdder` is safe, but its `sum()` is not an atomic snapshot, and concurrent removal can strand an increment on an object no longer stored in the map.
+Mapping/remapping functions must stay short and must not update this map during computation, including other keys. A null result or exception does not permanently memoize a failed `computeIfAbsent`; later calls may compute again.
 `ConcurrentHashMap` rejects null keys and values so a null result never confuses absence with a stored null.
 
 | Property | `HashMap` | `ConcurrentHashMap` |
@@ -430,8 +467,8 @@ If an operation requires a consistent view across several keys, coordinate at a 
 ### Common Misconceptions
 
 1. **“A good hash function means collisions never occur.”** A finite bucket array guarantees some different hashes share indexes. A good hash distributes typical keys so those collisions remain short and statistically rare.
-2. **“HashMap lookup is always $O(1)$.”** It is expected $O(1)$ for well-distributed hashes at a controlled load factor. A collision chain is linear, and tree bins reduce sufficiently large bins toward $O(\log k)$.
-3. **“Treeification happens as soon as eight keys share a bucket.”** The table must also be at least capacity $64$. Smaller maps resize first because the collision may separate naturally.
+2. **“HashMap lookup is always $O(1)$.”** It is expected $O(1)$ for well-distributed hashes. Lists are linear; even tree bins can require linear equality search for non-comparable keys with identical hashes.
+3. **“Treeification happens as soon as eight keys share a bucket.”** The constant is eight, but OpenJDK 17 ordinary `put` requests it on the ninth list insertion and capacity must be at least $64$. Compute-family paths and removal tests differ; these are implementation details.
 4. **“Fail-fast iteration makes HashMap thread-safe.”** It only detects many accidental structural modifications. It does not establish memory visibility, atomicity, or a reliable cross-thread failure signal.
 5. **“ConcurrentHashMap makes compound business operations atomic.”** It atomically coordinates individual map operations and its compute-family methods per key. A multi-key invariant still needs explicit higher-level coordination.
 
@@ -455,11 +492,11 @@ A power-of-two capacity lets the map compute an index with `(n - 1) & hash` rath
 
 **Q5. When does HashMap resize with default settings?** `[medium]`
 
-The usual first table capacity is 16 and the default load factor is 0.75, creating a threshold of 12 entries. Adding a thirteenth distinct entry triggers a resize toward capacity 32 and a new threshold of 24. Replacing an existing value does not increase size and therefore does not trigger this threshold.
+The usual first table capacity is 16 and the default load factor is 0.75, creating a threshold of 12 entries. With distributed keys, the thirteenth distinct entry causes load-based growth toward capacity 32; collisions can cause earlier growth. Replacing an existing value does not increase size or trigger this size threshold.
 
 **Q6. What causes treeification and why is there a capacity check?** `[medium]`
 
-A collision bin is eligible when it reaches eight nodes, but the table must also be at least 64 slots. In a smaller table, resizing is usually cheaper than building tree nodes and can distribute the colliding entries across new buckets. A tree bin reduces lookup within a pathological bin but adds memory and comparison overhead.
+OpenJDK 17 ordinary `put` requests treeification while appending a ninth node to a list bin; the constant is eight, and compute-family paths differ. Below capacity 64, the request causes resizing instead. Trees add memory overhead and improve ordered search, but identical-hash non-comparable keys can still require linear equality work.
 
 **Q7. How does resize avoid recalculating every hash?** `[medium]`
 
@@ -475,7 +512,7 @@ No, it is a best-effort detector for many unexpected structural changes while an
 
 **Q10. What does `ConcurrentHashMap.computeIfAbsent` provide?** `[medium]`
 
-It atomically creates or obtains the value for one key relative to other map operations, avoiding a separate check-then-put race. The mapping function should be short, side-effect controlled, and should not recursively update the same map. It does not make a larger multi-key workflow atomic.
+It atomically creates or obtains the value for one key relative to other map operations, avoiding a separate check-then-put race. The mapping function must not modify this map and should finish quickly; null, removal or an exception allows later computation. This does not make the returned object's mutations or a multi-key workflow atomic.
 
 **Q11. A service reports intermittent missing cache entries after a key object is reused. What do you inspect first?** `[hard]`
 
@@ -483,7 +520,15 @@ Check whether any field participating in `equals` or `hashCode` changes after th
 
 **Q12. An endpoint accepts arbitrary JSON keys and shows long map-operation latency. How do you investigate?** `[hard]`
 
-Measure bucket distribution, request size, key construction, and CPU profiles to determine whether adversarial or accidental collisions are concentrating work. Confirm that hash functions use stable, well-distributed immutable fields and bound untrusted object sizes before insertion. Treeification limits a large-bin worst case but does not replace input limits, rate controls, or a suitable cache policy.
+Measure request size, equality/hash costs and CPU profiles; inspect bucket distribution through controlled diagnostics, not unsupported production reflection. Bound input size and verify stable key fields. Equal hashes without usable comparison can still require linear search in a tree bin, so treeification alone does not prevent denial of service.
+
+**Answer rubric**
+- **Say it:** Tree shape alone does not guarantee a logarithmic equality search.
+- **Mechanism:** Equal hashes without useful comparison can force traversal of both branches.
+- **Example:** The 64-key program misses after at least 64 equality checks in a tree bin.
+- **Limit:** An equality-call count on OpenJDK 17 is not a latency benchmark or portable API promise.
+- **Watch for:** Input limits and expensive key methods matter even with tree bins.
+- **Follow-up:** What changes when the same keys provide a consistent comparable ordering?
 
 **Q13. Two request threads increment a HashMap counter and the result is lower than expected. Why and how do you fix it?** `[hard]`
 
@@ -499,3 +544,6 @@ Its iterators are weakly consistent so they can continue while other threads upd
 - [OpenJDK `ConcurrentHashMap` source](https://github.com/openjdk/jdk/blob/jdk-17%2B35/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java) documents its concurrent table operations and null policy.
 - [Java `Map` interface API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html) defines the key equality contract and optional operations.
 - [Java `Object.hashCode` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()) defines the equality and hash-code invariant.
+- [ConcurrentHashMap API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html) specifies atomic compute operations and callback restrictions.
+- [LongAdder API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html) explains why a live sum is not an atomic snapshot.
+- [LinkedHashMap API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/LinkedHashMap.html) distinguishes access operations from view traversal.

@@ -10,7 +10,7 @@ Interviewers ask about it because process state, context switching, `fork`, and 
 
 ### Operating system fundamentals
 
-An **operating system** manages hardware resources and provides durable abstractions such as processes, virtual memory, files, sockets, and devices.
+An **operating system** manages hardware resources and provides stable interfaces such as processes, virtual memory, files, sockets, and devices. Stable does not mean that their state survives a power failure.
 The **kernel** is its privileged core; the wider OS also includes system libraries, startup services, command tools, and user interfaces.
 Applications therefore depend on the OS without executing every service inside the kernel.
 
@@ -20,7 +20,7 @@ A **system call**, or syscall, is a controlled entry from user mode into a valid
 
 An **interrupt** is usually an asynchronous hardware notification, such as a network card reporting received data.
 A **trap** is a synchronous transfer caused by the current instruction, such as a syscall request, breakpoint, invalid opcode, or page fault.
-Both enter a kernel handler, but their causes and restart semantics differ.
+Both enter a kernel handler, but their causes and restart semantics differ. Entering kernel mode does not itself mean the scheduler switched to another task; a syscall can return to the same thread.
 
 ```mermaid
 flowchart TD
@@ -63,7 +63,7 @@ A terminated child whose status has not been collected is a **zombie**, while a 
 These are relationship and lifecycle terms, not scheduling algorithms.
 
 Launching the same executable twice normally creates two independent processes.
-They may map the same executable file pages, but their mutable memory and process IDs are distinct.
+They may share executable pages and explicitly shared memory, while ordinary private mappings and process IDs are separate. Process isolation is not a promise that every mapped byte is private.
 A browser process crashing does not change the bytes in its executable file; the running state is what failed.
 
 ```mermaid
@@ -111,7 +111,7 @@ This distinction matters when diagnosing high load: a large ready queue suggests
 | terminated | no | exit status awaits reaping |
 
 State names vary across operating systems and tools.
-The underlying question is always whether the task is executing, runnable, blocked, or already finished.
+Linux `/proc` reports R for both running and ready, S for interruptible sleep, D for uninterruptible sleep and Z for zombies. A process leader's state does not summarize every thread. Linux load averages also count uninterruptible tasks, so high load with low CPU can indicate waiting rather than a CPU-only queue.
 
 ### The PCB records what the kernel must resume
 
@@ -162,7 +162,7 @@ Frequent switching can also damage cache and TLB locality, making the cost great
 
 A process owns a virtual address space and a set of kernel-managed resources.
 A thread is an execution context within a process.
-Threads in one process normally share heap memory, code mappings, and open files, while retaining separate registers and stacks.
+Threads in one process normally share heap memory, code mappings, and open files, while retaining separate registers and stack allocations. Those stacks inhabit the shared address space; one thread can access another's stack through a valid shared pointer, so separate stacks are not a security boundary.
 
 A **user-level thread** can be created and scheduled by a language runtime without a separate kernel schedulable entity for every logical task.
 This makes creation and switching cheap, but a blocking operation can stall the underlying carrier unless the runtime integrates with non-blocking I/O or multiple carriers.
@@ -206,15 +206,17 @@ if (pid > 0) {
 }
 ```
 
-After `fork`, parent and child have different PIDs.
+The C fork/exec block is an excerpt: a full launcher must handle failure and retry an interrupted wait. After `fork`, parent and child have different PIDs.
 They initially inherit many resources, including file descriptors, but each has its own process identity.
-After `exec`, the child retains its PID while its code, stack, heap, and most process image content are replaced.
+After successful `exec`, the caller retains its PID and does not return to the old code. Descriptors normally survive unless marked close-on-exec; signal handlers and other attributes have explicit reset/preservation rules.
+
+The child inherits descriptors referring to the same open file descriptions, including shared file offsets/status flags. In a multithreaded parent only the calling thread survives in the child; copied mutexes can remain locked by vanished threads. Use only async-signal-safe operations before exec in that child, or an appropriate spawn API.
 
 ### Copy-on-write makes fork economical
 
 Copying an entire multi-gigabyte address space at every fork would be expensive.
 Instead, modern Unix-like kernels use copy-on-write.
-Parent and child initially point at the same physical pages, marked so a write traps into the kernel.
+For ordinary private writable mappings, parent and child initially share physical pages protected for copy-on-write. Read-only and explicitly shared mappings have different rules; a write to shared memory can be visible to both.
 
 ```mermaid
 sequenceDiagram
@@ -233,9 +235,57 @@ Suppose a parent has 1 GiB of mapped anonymous memory consisting of 262,144 page
 The child immediately calls `exec`, so it writes no inherited pages.
 Copy-on-write avoids copying all 1 GiB; it needs page-table setup and shares the original pages until `exec` replaces the image.
 
-If instead the child modifies 2,000 pages, it copies roughly $2{,}000 \times 4\text{ KiB} = 7.8125\text{ MiB}$ of page content.
+Assuming all 2,000 modified base pages still need separate private copies, the payload copied is $2{,}000 \times 4\text{ KiB} = 7.8125\text{ MiB}$. An exclusively owned page can instead become writable without copying; huge pages and other mapping types alter this model.
 This is still much less than 1 GiB, but page faults and allocator pressure are real costs.
 Copy-on-write is an optimization, not a promise that `fork` is free.
+
+### Runnable check: private value, shared file offset
+
+**Linux C, one child and no background threads.** Save as `ForkStateDemo.c`; run `cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror ForkStateDemo.c -o ForkStateDemo` and `./ForkStateDemo`. Only its unique temporary file is created; it is immediately unlinked.
+
+```c
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
+int main(void) {
+    char path[] = "/tmp/cs-fork-XXXXXX";
+    int fd = mkstemp(path);
+    if (fd < 0) { perror("mkstemp"); return 1; }
+    if (unlink(path) < 0) { close(fd); return 1; }
+    if (write(fd, "AB", 2) != 2 || lseek(fd, 0, SEEK_SET) < 0) {
+        close(fd); return 1;
+    }
+    int value = 7;
+    pid_t child = fork();
+    if (child < 0) { close(fd); return 1; }
+    if (child == 0) {
+        value = 9;
+        char first;
+        _exit(read(fd, &first, 1) == 1 && first == 'A' && value == 9 ? 0 : 1);
+    }
+    int status;
+    pid_t result;
+    do { result = waitpid(child, &status, 0); } while (result < 0 && errno == EINTR);
+    if (result != child || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        close(fd); return 1;
+    }
+    char second;
+    if (read(fd, &second, 1) != 1) { close(fd); return 1; }
+    close(fd);
+    printf("parentValue=%d\nnextByte=%c\nchildExit=%d\n", value, second, WEXITSTATUS(status));
+    return 0;
+}
+```
+
+```text
+parentValue=7
+nextByte=B
+childExit=0
+```
+
+**Predict/change/debug:** the child's private `value=9` does not change the parent's value. Its read advances the shared open-file-description offset, so the parent reads B after waiting. Independently reopening the path would create a different offset, but this example unlinks it first; using `pread` with an explicit offset would leave the shared position unchanged. The parent reaps its one child; this is not a multithreaded-launcher or crash-recovery implementation.
 
 ### Parent, child, zombie, and orphan are lifecycle terms
 
@@ -254,8 +304,8 @@ while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
 }
 ```
 
-Ignoring `SIGCHLD` without a correct platform-aware policy is a common source of zombies.
-In a container, the process acting as PID 1 must reap children or delegate that responsibility to a small init process.
+On modern Linux, explicitly setting SIGCHLD to SIG_IGN or using SA_NOCLDWAIT avoids zombies but loses waitable exit results; the default “ignore” disposition is different and still allows zombies. If results matter, drain waitpid until no completed children remain, retry EINTR, and keep logging outside an asynchronous handler. Standard signals can coalesce, so one notification is not one exited child.
+A container init can reap adopted descendants, but cannot wait for an arbitrary grandchild whose living parent still owns it. Fix the direct parent's lifecycle handling too.
 
 ### IPC chooses a data and failure boundary
 
@@ -283,7 +333,7 @@ Sockets make failure and boundaries explicit, which often outweighs their overhe
 
 Linux schedules tasks, which correspond closely to threads of execution.
 The kernel maintains per-CPU run queues and selects a runnable task according to the active scheduling class and policy.
-The Completely Fair Scheduler model historically used virtual runtime to favour tasks that have received less weighted CPU time.
+Historical CFS selected using weighted virtual runtime. Linux began moving the fair class to EEVDF in 6.6: eligible lag and virtual deadlines determine selection; see [CPU scheduling](/topic/cpu-scheduling) for the versioned mechanism.
 
 For two runnable tasks with equal weights, each should receive roughly half of the available CPU over a sufficiently long interval.
 If task A has nice weight twice task B's weight, A receives roughly twice B's share when both remain runnable.
@@ -298,7 +348,7 @@ Interactive workloads need short response delay when they wake.
 Batch workloads benefit from sustained throughput and fewer disruptive preemptions.
 The scheduler balances those goals using policy, load balancing, and heuristics rather than a single fixed quantum for every task.
 
-CPU affinity limits or prefers the CPUs on which a task may execute.
+A Linux affinity mask restricts the CPUs on which a task may execute, intersecting cpuset and online-CPU constraints. It does not reserve exclusive CPU time.
 Keeping a task on one CPU can retain hot cache data.
 Overly strict affinity can instead leave one CPU overloaded while another is idle.
 NUMA systems add another dimension because memory access can be faster from a local node than a remote node.
@@ -347,7 +397,7 @@ Container isolation is powerful but not a substitute for application authorizati
 
 ### Signals, exit status, and termination need ownership
 
-Signals are asynchronous notifications delivered to a process or thread group.
+Signals can be process-directed or thread-directed; hardware faults can generate synchronous signals. Dispositions are process-wide while blocking masks are per-thread, and ordinary pending signals can coalesce.
 `SIGTERM` asks for orderly termination, while `SIGKILL` cannot be caught or cleaned up by the target.
 `SIGCHLD` informs a parent that a child changed state, commonly exited.
 
@@ -356,7 +406,7 @@ It does not transport logs, stack traces, or a full business error.
 Robust supervisors combine exit status with structured logging, health checks, restart backoff, and a deliberate policy for repeated failure.
 
 When a service receives `SIGTERM`, it should stop accepting new work, finish or hand off bounded in-flight work, close resources, and exit before its orchestrator deadline.
-Ignoring the signal forces escalation to `SIGKILL`, which bypasses cleanup.
+Ignoring a shutdown request can lead a supervisor to escalate to `SIGKILL`, which bypasses target cleanup. Kernel waits can delay observable death; SIGKILL is not a guarantee of immediate resource release. Namespace PID 1 has special signal-disposition rules, so install handlers deliberately.
 Conversely, a shutdown handler that blocks forever turns a graceful deploy into an outage.
 
 ### Process limits prevent one workload consuming the host
@@ -425,11 +475,11 @@ The kernel must save the outgoing execution context and restore another before a
 
 **Q6. How does copy-on-write reduce fork cost?** `[medium]`
 
-Parent and child initially share physical pages with mappings that cause a write fault when either attempts modification. The kernel copies only the page being written, so a child that immediately calls `exec` avoids copying the parent's whole address space. Copy-on-write still requires page-table work and can become costly when either side writes many pages.
+For private writable mappings, fork can share pages under copy-on-write protection; explicitly shared mappings keep their shared semantics. A write fault creates a private copy when needed, or can reuse an exclusively owned page. An immediate exec often avoids large copying, but page-table setup and later writes still cost work.
 
 **Answer rubric**
 - **Say it:** Copy-on-write postpones physical page copying until a shared page is written.
-- **Mechanism:** Parent and child start with mappings to shared pages; a write fault makes the kernel create a private copy.
+- **Mechanism:** Private mappings initially share protected pages; a write fault copies a still-shared page or reuses an exclusively owned one.
 - **Example:** A child that immediately calls `exec` need not copy the parent's whole heap.
 - **Limit:** `fork` still has page-table and process setup costs, and widespread writes reduce the saving.
 - **Watch for:** Do not claim that `fork` is free or that parent and child permanently share writable memory.
@@ -437,7 +487,7 @@ Parent and child initially share physical pages with mappings that cause a write
 
 **Q7. What is a zombie process and how do you prevent it?** `[medium]`
 
-A zombie is a child that has exited but whose parent has not yet collected its status with `wait` or `waitpid`. Its execution resources are gone, but its process-table record remains so the parent can inspect the exit result. A parent must reap children promptly, and a container PID 1 must do the same for its descendants.
+A zombie is a child that has exited but whose parent has not yet collected its status with `wait` or `waitpid`. Its execution resources are gone, but its process-table record remains so the parent can inspect the exit result. Normally the parent must collect exit status promptly; an explicit auto-reap policy prevents zombies while sacrificing that result. Container init can reap descendants only once they become its children.
 
 **Q8. Compare processes and threads.** `[medium]`
 
@@ -489,3 +539,7 @@ The parent can observe only the exit status and any durable records or messages 
 - [Linux manual: `waitpid(2)`](https://man7.org/linux/man-pages/man2/waitpid.2.html) documents child reaping and zombie state.
 - [Linux kernel documentation: cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html) explains resource control for process groups.
 - [Linux kernel documentation: namespaces](https://docs.kernel.org/admin-guide/namespaces/index.html) explains the isolation primitives used by containers.
+- [Linux execve API](https://man7.org/linux/man-pages/man2/execve.2.html) lists preserved and reset process attributes.
+- [Linux task states](https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html) explains R/S/D/Z observations.
+- [Linux signal API](https://man7.org/linux/man-pages/man7/signal.7.html) distinguishes disposition, masks and coalescing.
+- [Linux EEVDF](https://docs.kernel.org/scheduler/sched-eevdf.html) identifies the modern fair-scheduler transition.

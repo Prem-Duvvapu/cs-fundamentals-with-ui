@@ -7,6 +7,33 @@ import ConceptModuleShell from '../../shared/ConceptModuleShell'
 import javaData from '../../../data/java-concepts.json'
 import { prefersReducedMotion } from '../../../utils/motionPreference'
 
+// Legacy JSON is an immutable migration snapshot. Correct its display copy here.
+const conceptData = {
+  ...javaData.hashMap,
+  subtitle: 'Trace string-key hash spreading, collision chains and resize. Tree-bin flags model OpenJDK 17 ordinary put; tree search and ConcurrentHashMap execution are not simulated.',
+  mentalModel: 'Hashing selects a bucket; equality identifies a key. On ordinary put, a ninth list entry requests treeification, but capacity below 64 grows first. Tree-bin search depends on usable hash or key ordering.',
+  theoryData: {
+    ...javaData.hashMap.theoryData,
+    failureModes: [
+      'Identical hashes can still cause linear equality search in a tree bin when keys have no useful comparable ordering. Limit untrusted input and expensive key methods.',
+      'Unsynchronized concurrent mutation is unsupported in every HashMap version. Historical resize bugs are not a reason to treat modern HashMap as thread-safe.'
+    ],
+    tradeOffs: [
+      'External locking can protect a small shared map when every related operation follows the same lock discipline.',
+      'ConcurrentHashMap coordinates updates with CAS and bin-level mechanisms; many reads proceed without that update lock. A stored mutable value still needs its own concurrency policy.',
+      'Compute callbacks must not modify the same map. Per-key updates do not make a multi-key business invariant atomic.'
+    ],
+    interviewQA: javaData.hashMap.theoryData.interviewQA.map(item => ({
+      ...item,
+      a: 'A positive power-of-two capacity permits (n - 1) & spreadHash, equivalent to Math.floorMod(spreadHash, n), including negative hashes. It also enables resize splitting by one bit. Uniform bucket use still depends on hash distribution; the mask cannot manufacture it.'
+    }))
+  },
+  quizData: javaData.hashMap.quizData.map(item => ({
+    ...item,
+    answer: 'For OpenJDK 17 ordinary put, eight entries can remain a list at capacity 32. Appending the ninth requests treeification; below capacity 64 the request doubles capacity instead. A later insertion can treeify if the bin still collides. Other insertion paths can differ.'
+  }))
+}
+
 export default function HashMapVisualizer() {
   const [engine] = useState(() => new HashMapEngine(8, 0.75))
   const [steps, setSteps] = useState([])
@@ -78,6 +105,7 @@ export default function HashMapVisualizer() {
       <div className="viz-controls-card" style={{ marginBottom: '1rem' }}>
         <form onSubmit={handlePut} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.75rem' }}>
           <input
+            aria-label="Map key"
             type="text"
             placeholder="Key (e.g. userId)"
             value={inputKey}
@@ -86,6 +114,7 @@ export default function HashMapVisualizer() {
             style={{ flex: 1, minWidth: '130px' }}
           />
           <input
+            aria-label="Map value"
             type="text"
             placeholder="Value (e.g. Alice)"
             value={inputValue}
@@ -140,7 +169,7 @@ export default function HashMapVisualizer() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
           {state.buckets.map((bucket, idx) => {
             const isHighlighted = idx === highlightBucket
-            const isTreeified = bucket.length >= 8
+            const isTreeified = state.treeBins.includes(idx)
 
             return (
               <div
@@ -159,7 +188,7 @@ export default function HashMapVisualizer() {
                   </strong>
                   {isTreeified && (
                     <span style={{ background: 'var(--state-success-tint)', color: 'var(--state-success)', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem' }}>
-                      🌳 Treeified
+                      🌳 Tree bin (modeled)
                     </span>
                   )}
                 </div>
@@ -204,8 +233,6 @@ export default function HashMapVisualizer() {
       />
     </div>
   )
-
-  const conceptData = javaData.hashMap
 
   return (
     <ConceptModuleShell

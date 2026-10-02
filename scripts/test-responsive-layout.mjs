@@ -79,6 +79,8 @@ try {
     '/topic/java-execution-pipeline',
     '/topic/process-management',
     '/topic/application-layer',
+    '/topic/java-hashmap-internals',
+    '/topic/dbms-indexing',
     '/topic/embeddings-vector-db',
     '/search?q=java',
     '/interview/all',
@@ -193,12 +195,14 @@ try {
   const axeSource = require('axe-core').source
   for (const theme of ['dark', 'light']) {
     await page.evaluate(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
-    for (const route of ['/', '/category/java-spring', '/topic/java-execution-pipeline', '/topic/process-management?view=simulation', '/search?q=java', '/interview/all', '/progress', '/review']) {
+    for (const route of ['/', '/category/java-spring', '/topic/java-execution-pipeline', '/topic/process-management?view=simulation', '/topic/java-hashmap-internals?view=simulation', '/topic/dbms-indexing?view=simulation', '/search?q=java', '/interview/all', '/progress', '/review']) {
       await page.goto(`${origin}${route}`)
       await page.locator('h1').first().waitFor()
       await page.locator(`html[data-theme="${theme}"]`).waitFor()
       if (route.startsWith('/topic/') && !route.includes('view=simulation')) await page.locator('.topic-content h2').first().waitFor()
-      if (route.includes('view=simulation')) await page.locator('.action-buttons-grid .btn-action').first().waitFor()
+      if (route.includes('process-management?view=simulation')) await page.locator('.action-buttons-grid .btn-action').first().waitFor()
+      if (route.includes('java-hashmap-internals?view=simulation')) await page.getByRole('textbox', { name: 'Map key' }).waitFor()
+      if (route.includes('dbms-indexing?view=simulation')) await page.getByRole('combobox', { name: 'Tree order' }).waitFor()
       await page.addScriptTag({ content: axeSource })
       const violations = await page.evaluate(async () => {
         const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } })
