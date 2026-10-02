@@ -371,4 +371,4 @@ unsupported state controlling whether the Simulation tab should appear.
 - Resolution: use plain text without the separator and regenerate both themed assets.
 - Verification: require the real source parser, diagram generation and browser decode before release.
 - Prevention: validate changed Mermaid sources before rendering or declaring content complete.
-- Resolving commit: recorded after the reviewed package is committed.
+- Resolving commit: `5d0ebe0`. The 68-lesson parser, generation and 590-asset browser decode passed before release.
