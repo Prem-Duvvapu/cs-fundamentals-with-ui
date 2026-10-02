@@ -206,3 +206,21 @@ question parsing suite and full 68-lesson gate pass before the final deadlock ed
 final structural/render/parser check also passes (five focused tests). The migration ledger quote
 for the revised 2PC answer was synchronized; all 109 entries pass. Thirteen marked Java programs pass; the Python
 Banker model passes all three assertions and exact output. Main-thread dark-theme changes are not merged here.
+
+
+## October 2 follow-up — REST contracts, normalization and generics
+
+Three further complete lessons, including their interview sections, were reviewed. Cumulative
+coverage: **19/56 core lessons**, with **37 pending**; **42 authored rubrics**. Question prompts and
+Mermaid sources remain unchanged, so learner keys and existing diagram assets are preserved.
+
+| Lesson | Corrections and evidence | Sources and verification limits |
+|---|---|---|
+| [Spring REST](content/java-spring/08-spring-rest-api-design.md) | Declare the memory versus secure example profile; null nested values, item bounds and provider assumptions; constrained method validation versus individual DTO validation; 401 challenge and 403/503 nuances; cursor traversal versus snapshot and physical scan cost; atomic deduplication and strong ETag checks; advice versus security/container errors. One duplicate-order rubric. | [Framework 7.0.9 validation](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html) / [error responses](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html), [Jakarta Validation 3.1](https://jakarta.ee/specifications/bean-validation/3.1/jakarta-validation-spec-3.1.html), [HTTP RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html), [Problem Details RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html), [PostgreSQL 16 LIMIT/OFFSET](https://www.postgresql.org/docs/16/queries-limit.html). Source review; excerpts are labelled incomplete. Existing Task Tracker tests/real HTTP demonstrate its declared body-version/409 and offset contract, not an implemented ETag/cursor/idempotency API. |
+| [Normalization](content/dbms/04b-database-normalization.md) | Classical set/FD proof versus SQL bags/NULLs; nullable unique is not a classical key; structured domains; minimum child count is not a foreign-key guarantee; all candidate keys for 2NF; local BCNF versus cross-fragment dependency enforcement; lossless proof scope; referencing indexes. One BCNF rubric. | The authors' [Database System Concepts normalization chapter](https://www.db-book.com/slides-dir/PDF-dir/ch7.pdf), PostgreSQL 16 [constraints](https://www.postgresql.org/docs/16/ddl-constraints.html) / [materialized views](https://www.postgresql.org/docs/16/rules-materializedviews.html). The read-only VALUES/join counterexample and changed case execute on PostgreSQL 16.15; independent closure arithmetic checks candidate keys A and BC. No live migration or concurrent trigger proof is claimed. |
+| [Generics](content/java-spring/01g-java-generics.md) | Wildcard type permission versus mutability/null policy; empty bound-method inputs; custom append copy versus Collections.copy; SafeVarargs constructors/static/final/private eligibility; legal wildcard arrays; implementation-class equality; Java 17 checked parameterized instanceof versus arbitrary Object. One array rubric and complete new program. | JLS 17 [types/reifiability](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html), [SafeVarargs](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.6.4.7), [expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html), [List API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html). ReifiableDemo runs with exact output; concrete generic array, arbitrary-Object List<String> test and non-final method in a final class are each compiler-rejected. Fourteen marked Java programs pass; incomplete excerpts are not claimed copy-and-run. |
+
+Each changed lesson receives real-Mermaid structural validation and focused rendering/whole-corpus
+question parsing. The preceding 683 frontend / 59 backend / 19 example test baseline remains valid
+for unchanged application code. Full curriculum factual approval, real learner sessions, Docker
+execution and main-thread integration remain open.

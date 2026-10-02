@@ -430,9 +430,15 @@ tracked in `LEARNER_USABILITY_STUDY.md`; automated accessibility is not a compre
 
 ### October 2 remaining-lesson review batch
 
-The source ledger now covers **16 of 56 core lessons**, with 40 still awaiting a full review.
+The source ledger now covers **19 of 56 core lessons**, with 37 still awaiting a full review.
 Application-layer, Java concurrency, distributed DBMS and deadlock corrections retain the same
-question prompts and Mermaid sources. There are 39 authored rubrics. Two added Java 17 programs
+question prompts and Mermaid sources. There are 42 authored rubrics. Two added Java 17 programs
 verify task-result retrieval and deterministic executor admission; the complete marked-example
-verifier now covers thirteen programs. A finite Python Banker model verifies two safe allocations
+verifier now covers fourteen programs. A finite Python Banker model verifies two safe allocations
 and an unsafe allocation without acquiring OS locks. Neither model is a performance benchmark.
+
+Spring REST, normalization and generics reviews add method-versus-object validation boundaries,
+filter/MVC error separation, cursor/ETag/deduplication limits, a SQL BCNF dependency counterexample,
+and a runnable Java 17 reifiable-array/type-test example. Compilation also verifies three forbidden
+forms fail; a final-class method does not automatically qualify for SafeVarargs. These are sourced
+lesson/executable checks, not a new cursor, idempotency or method-validation feature in Task Tracker.

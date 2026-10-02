@@ -136,8 +136,8 @@ numbers above are historical. OS/networking review and the seeded SQL fixture re
 The [delivery checkpoint](CURRICULUM_COMPLETION_2026-10-02.md) supersedes the earlier pending
 milestone descriptions: seeded SQL plus OS/loopback networking labs, Spring migrations/relationships/
 pagination/security/caching/operations, and optional spaced-review histories/mixed sessions are
-implemented in an isolated branch. Nineteen more rubrics bring authored feedback to 39 questions.
-The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) now covers sixteen scoped core reviews;
-40 core reviews remain. [Learner study tasks](LEARNER_USABILITY_STUDY.md) are prepared, but real
+implemented in an isolated branch. Twenty-two more rubrics bring authored feedback to 42 questions.
+The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) now covers nineteen scoped core reviews;
+37 core reviews remain. [Learner study tasks](LEARNER_USABILITY_STUDY.md) are prepared, but real
 sessions, revisions informed by them and retesting remain open. Container checks require a running
 daemon/CI result. Do not close those items from structural tests or an automated browser pass alone.

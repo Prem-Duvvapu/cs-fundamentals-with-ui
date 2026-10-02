@@ -402,3 +402,17 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: require all 109 migration entries to pass and verify unchanged question prompts/diagram sources before the local commit.
 - Prevention: inspect migration references before future target-lesson edits and synchronize literal evidence as a separate integration unit; never restore an inaccurate claim to pass the gate.
 - Resolving commit: `ce82a0b`; 109/109 migration entries and all six migration-tool tests pass.
+
+## RCA-2026-10-02-13 — Generic type prose was parsed as raw HTML
+
+- Evidence: the revised generics lesson failed the structural gate with seven raw HTML tags;
+  all fourteen marked programs compiled, so compilation did not catch the rendering defect.
+- Root cause: new explanatory prose and a rubric used parameterized type names without inline
+  backticks. Markdown interprets their angle brackets as HTML rather than visible Java syntax.
+- Resolution: wrap each prose type expression in inline code; retain the question identities,
+  example output and four migration evidence sentences.
+- Verification: require the real-Mermaid content gate, focused lesson rendering and whole-corpus
+  interview parsing before committing. The fixed lesson passes structural validation.
+- Prevention: format Java types as inline code while authoring; keep the raw-HTML gate even when
+  compiler and renderer smoke checks pass.
+- Resolving commit: pending this local review batch.

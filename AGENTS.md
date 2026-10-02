@@ -520,7 +520,7 @@ attempt/history/Progress-to-review journey and both-theme axe coverage when chan
 PostgreSQL script with ON_ERROR_STOP and Python unittest suite. Use only owned child processes,
 temporary files and loopback sockets; observations are not production benchmarks.
 
-The source ledger now records sixteen of 56 core lessons reviewed, not a whole-curriculum sign-off.
-Nineteen added rubrics bring the total to 39. Do not count structural validation as factual review,
-or prepared study protocols/AI personas as real learner sessions. The remaining 40 lesson reviews
+The source ledger now records nineteen of 56 core lessons reviewed, not a whole-curriculum sign-off.
+Twenty-two added rubrics bring the total to 42. Do not count structural validation as factual review,
+or prepared study protocols/AI personas as real learner sessions. The remaining 37 lesson reviews
 and participant observations stay visible in `CURRICULUM_COMPLETION_2026-10-02.md`.

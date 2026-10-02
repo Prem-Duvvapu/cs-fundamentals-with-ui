@@ -2,7 +2,7 @@
 
 Status: active implementation in `feat/2026-10-02-curriculum-completion`, isolated from the
 main thread's dark-theme branch. This checkpoint records delivered work and explicit remaining
-criteria. The four requested tracks are **not all complete**: 40 core accuracy reviews, actual
+criteria. The four requested tracks are **not all complete**: 37 core accuracy reviews, actual
 learner sessions and local/CI container execution evidence remain.
 
 ## Implemented and verified
@@ -18,16 +18,16 @@ learner sessions and local/CI container execution evidence remain.
    a packaged real HTTP smoke for actual servlet errors, token/session behavior and SIGTERM.
    [The walkthrough](examples/java-spring/task-tracker/README.md) supplies exact commands,
    predictions, failure cases and deployment limits. The original memory/persistence paths remain.
-3. **Interview feedback and spaced review:** 39 canonical authored rubrics (19 new), optional
+3. **Interview feedback and spaced review:** 42 canonical authored rubrics (22 new), optional
    recording of written explanations/self-ratings, ten recent attempt snapshots per question,
    transparent review dates, postpone/reset actions and sessions of up to eight due/mixed
    questions. Exact question matching uses canonical lesson Markdown. Version-3 backup merges
    preserve local drafts/history and accept v1/v2 files. No automatic score/readiness claim.
-4. **Accuracy review:** sixteen complete core lessons read, high-risk claims checked against
+4. **Accuracy review:** nineteen complete core lessons read, high-risk claims checked against
    dated primary sources, and corrections made alongside answers. [The source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md)
-   records contracts, runtime versions and limits. The thirteen new reviews cover CPU scheduling, memory management,
+   records contracts, runtime versions and limits. The sixteen new reviews cover CPU scheduling, memory management,
    I/O systems, JVM/GC, transport protocols, practical SQL, Spring Security, caching/async and
-   testing/operations, application protocols, Java concurrency, distributed DBMS and deadlocks. No question prompts or Mermaid sources changed in this package.
+   testing/operations, application protocols, Java concurrency, distributed DBMS, deadlocks, Spring REST, normalization and generics. No question prompts or Mermaid sources changed in this package.
 5. **Usability preparation:** [the real-learner protocol](LEARNER_USABILITY_STUDY.md) defines
    beginner/engineer tasks, unaided predictions, changed examples, next-day recall, observation
    records and revision/retest criteria. No participant observations are fabricated.
@@ -42,7 +42,7 @@ learner sessions and local/CI container execution evidence remain.
 - Production frontend build and current diagram manifest check pass (295 diagrams/590 assets).
 - Browser: **11 route families × 5 widths × 2 themes**, exact-question review journey and
   **16 axe scans**, all pass. This is automated accessibility/interaction evidence, not learner comprehension.
-- Content: 68/68 lessons and 83/83 coverage mappings pass; the current-batch corpus renderer/interview parser passes 210 tests. The final deadlock structure/render checks and corpus question parsing pass (five focused tests). The 109-entry migration gate and thirteen marked Java programs pass. The Banker Python model produces the stated output.
+- Content: 68/68 lessons and 83/83 coverage mappings pass; the current-batch corpus renderer/interview parser passes 210 tests. The final deadlock structure/render checks and corpus question parsing pass (five focused tests). The 109-entry migration gate and fourteen marked Java programs pass. The Banker Python model produces the stated output.
 - CI now runs PostgreSQL/Python labs, the packaged Spring HTTP smoke and a teaching-container
   readiness/nonroot/SIGTERM check. CI execution itself is not claimed as locally observed.
 
@@ -56,14 +56,13 @@ These are **pending**, not sign-offs inferred from line counts. Each unit must r
 lesson, verify consequential claims with primary sources, correct answers together, run relevant
 examples, retain question identity/migration evidence, and record its scope in the source ledger.
 
-### java-spring: 17 lessons
+### java-spring: 15 lessons
 
 - [ ] [Java Execution Pipeline & JVM Architecture](content/java-spring/01b-java-execution-pipeline.md)
 - [ ] [Java Memory Model: Values, Objects, Strings, and Concurrency](content/java-spring/01c-java-memory-model.md)
 - [ ] [OOP Pillars & Dynamic Method Dispatch](content/java-spring/01d-java-oop-pillars.md)
 - [ ] [Java Classes, Immutability, Records & Modern Language Features](content/java-spring/01e-java-static-final-records.md)
 - [ ] [Java Interfaces, Functional Interfaces & Lambda Expressions](content/java-spring/01f-java-functional-lambdas.md)
-- [ ] [Generics, Wildcards (PECS) & Type Erasure](content/java-spring/01g-java-generics.md)
 - [ ] [Java Collections Framework: List, Set, Queue & PriorityQueue](content/java-spring/01h-java-collections-framework.md)
 - [ ] [Java Streams API, Lazy Pipelines, and Optional](content/java-spring/01i-java-streams-optional.md)
 - [ ] [HashMap Bucket Internals, Treeification & ConcurrentHashMap](content/java-spring/01j-java-hashmap-internals.md)
@@ -74,7 +73,6 @@ examples, retain question identity/migration evidence, and record its scope in t
 - [ ] [Spring Batch Architecture, Chunk Execution Lifecycle & Fault Tolerance](content/java-spring/05-spring-batch-lifecycle.md)
 - [ ] [Quartz Scheduler Architecture, Clustering & Misfire Policies](content/java-spring/06-quartz-scheduler.md)
 - [ ] [Spring Boot Internals, Auto-Configuration, and Production Configuration](content/java-spring/07-spring-boot-internals.md)
-- [ ] [Spring REST API Design, Validation & Error Contracts](content/java-spring/08-spring-rest-api-design.md)
 
 ### os: 4 lessons
 
@@ -96,14 +94,13 @@ examples, retain question identity/migration evidence, and record its scope in t
 - [ ] [Network Security: Cryptography, TLS, Filtering, and Resilience](content/networking/08-network-security.md)
 - [ ] [Network QoS, Traffic Shaping & Modern Networking](content/networking/09-network-performance-qos.md)
 
-### dbms: 9 lessons
+### dbms: 8 lessons
 
 - [ ] [DBMS Introduction & Architecture](content/dbms/00-dbms-introduction.md)
 - [ ] [DBMS Architecture, ANSI-SPARC & Data Independence](content/dbms/01-dbms-architecture.md)
 - [ ] [Entity-Relationship Modeling and Relational Mapping](content/dbms/02-er-model.md)
 - [ ] [Relational Algebra, Calculus & Advanced Joins](content/dbms/03-relational-algebra-calculus.md)
 - [ ] [Keys, Functional Dependencies, and Canonical Covers](content/dbms/04-functional-dependencies-keys.md)
-- [ ] [Database Normalization: 1NF, 2NF, 3NF, and BCNF](content/dbms/04b-database-normalization.md)
 - [ ] [Database Indexing & B/B+ Tree Data Structures](content/dbms/05-dbms-indexing.md)
 - [ ] [Storage Engines, RAID, and Advanced Indexing](content/dbms/05c-storage-raid-indexing.md)
 - [ ] [Query Processing, Relational Trees, and Cost-Based Optimization](content/dbms/08-query-optimization.md)
@@ -119,10 +116,10 @@ examples, retain question identity/migration evidence, and record its scope in t
 
 ## Current corpus
 
-68 lessons; 32,808 lines; 295 Mermaid sources; 953 interview questions; 39 authored rubrics.
+68 lessons; 32,922 lines; 295 Mermaid sources; 953 interview questions; 42 authored rubrics.
 
 
-Final package gates: 68/68 lesson structures/syntax and 83/83 coverage mappings; 109/109 migration entries; thirteen marked Java programs compile/run with expected output. The final deadlock structure/render check and corpus question parsing pass; the migration evidence quote was synchronized and all 109 entries pass. Local commit hashes follow below.
+Final package gates: 68/68 lesson structures/syntax and 83/83 coverage mappings; 109/109 migration entries; fourteen marked Java programs compile/run with expected output. The final deadlock structure/render check and corpus question parsing pass; the migration evidence quote was synchronized and all 109 entries pass. Local commit hashes follow below.
 
 
 ## Local integration checkpoint
@@ -132,4 +129,17 @@ This includes the runnable milestones, review UX, thirteen newly reviewed lesson
 CI checks and learner-study protocol. RCA-2026-10-02-10/11/12 link to this resolving commit.
 All 39 rubrics remain in canonical lesson Markdown. The final migration gate and six migration-tool
 tests pass; all changed question prompts and Mermaid sources match the base. The branch is local
-and has not been pushed or merged into the main thread. The 40-item accuracy queue above remains open.
+and has not been pushed or merged into the main thread. At this commit, 40 reviews remained;
+the following batch updates the queue above to 37.
+
+
+## Following review batch
+
+Spring REST, normalization and generics add three scoped reviews: **19/56 core**, **37 pending**,
+**42 rubrics**. The source ledger records consequential corrections and explicit runtime limits.
+The PostgreSQL 16.15 BCNF query returns `S1|Databases|2`; changing one course removes the violation.
+The marked Java gate now covers fourteen programs, and three intentionally invalid generic forms
+are independently rejected by javac --release 17. Changed-lesson rendering, corpus question parsing,
+structural validation and the unchanged migration evidence are checked before this batch's commit.
+The generics gate caught seven unformatted angle-bracket types; inline code formatting fixes them,
+and the lesson's real-Mermaid structural validation now passes (RCA-2026-10-02-13).

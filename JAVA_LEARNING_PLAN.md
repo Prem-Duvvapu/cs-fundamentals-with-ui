@@ -117,7 +117,7 @@ steps across OS, networking, DBMS and all Java/Spring lessons.
 ## October 2 continuation checkpoint
 
 The isolated curriculum-completion branch adds runnable SQL/OS/networking labs, Spring milestones,
-review attempts/dates/mixed sessions and nineteen more rubrics. Sixteen scoped core accuracy reviews
-are now recorded; 40 remain, alongside actual learner observations. This is not completion of all
+review attempts/dates/mixed sessions and twenty-two more rubrics. Nineteen scoped core accuracy reviews
+are now recorded; 37 remain, alongside actual learner observations. This is not completion of all
 foundational lesson expansions or a production-readiness certificate. See
 `CURRICULUM_COMPLETION_2026-10-02.md` for checks and `LEARNER_USABILITY_STUDY.md` for real-user closure.
