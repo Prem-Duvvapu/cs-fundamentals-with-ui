@@ -123,3 +123,13 @@ examples, retain question identity/migration evidence, and record its scope in t
 
 
 Final package gates: 68/68 lesson structures/syntax and 83/83 coverage mappings; 109/109 migration entries; thirteen marked Java programs compile/run with expected output. The final deadlock structure/render check and corpus question parsing pass; the migration evidence quote was synchronized and all 109 entries pass. Local commit hashes follow below.
+
+
+## Local integration checkpoint
+
+Implementation/content commit: **`ce82a0b`** on `feat/2026-10-02-curriculum-completion`.
+This includes the runnable milestones, review UX, thirteen newly reviewed lessons, source ledger,
+CI checks and learner-study protocol. RCA-2026-10-02-10/11/12 link to this resolving commit.
+All 39 rubrics remain in canonical lesson Markdown. The final migration gate and six migration-tool
+tests pass; all changed question prompts and Mermaid sources match the base. The branch is local
+and has not been pushed or merged into the main thread. The 40-item accuracy queue above remains open.
