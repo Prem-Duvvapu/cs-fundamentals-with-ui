@@ -302,17 +302,17 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: the migration gate passes with 109/109 items resolved and zero pending.
 - Prevention: run the migration gate after any rewrite of a lesson named as a ledger target.
 - Resolving commit: `93d059d` (initial OOP occurrence).
-+- DBMS recurrence: the October 1 accuracy review changed three transaction-lesson evidence
-+  sentences. The migration gate identified interview `51ef3c150fa5` and quiz `4acd99ff6bb9` /
-+  `e296148a8b37` as stale. Their source payloads remain archived unchanged; current lesson
-+  explanations retain the concepts while correcting the legacy overclaims. The three evidence
-+  quotes now point to the revised WAL ordering, partial-commit and ARIES explanations.
-+- Recurrence prevention: inspect all migration-ledger references before editing a target lesson;
-+  synchronize evidence as an integration unit and run the gate before committing. Never restore
-+  an inaccurate sentence merely to satisfy a literal evidence check.
-+- DBMS resolving commit: `8931526`; the follow-up documentation commit records this hash.
-+
-+## RCA-2026-10-01-04 — Browser accessibility scan could miss a lazy simulator and selected theme
+- DBMS recurrence: the October 1 accuracy review changed three transaction-lesson evidence
+  sentences. The migration gate identified interview `51ef3c150fa5` and quiz `4acd99ff6bb9` /
+  `e296148a8b37` as stale. Their source payloads remain archived unchanged; current lesson
+  explanations retain the concepts while correcting the legacy overclaims. The three evidence
+  quotes now point to the revised WAL ordering, partial-commit and ARIES explanations.
+- Recurrence prevention: inspect all migration-ledger references before editing a target lesson;
+  synchronize evidence as an integration unit and run the gate before committing. Never restore
+  an inaccurate sentence merely to satisfy a literal evidence check.
+- DBMS resolving commit: `8931526`; the follow-up documentation commit records this hash.
+
+## RCA-2026-10-01-04 — Browser accessibility scan could miss a lazy simulator and selected theme
 
 - Evidence: the responsive check first passed, then an identical run reported low contrast in
   the process simulator. A stricter run found the active-state badge also failed in dark mode.
@@ -362,3 +362,13 @@ unsupported state controlling whether the Simulation tab should appear.
 - Prevention: browser assertions for lazy content must wait for the content itself,
   not only the control that opens it.
 - Resolving commit: `ac05000`.
+
+## RCA-2026-10-02-01 — Transaction diagram label failed Mermaid parsing
+
+- Evidence: the real Mermaid validator rejected JPA diagram 3; both theme renders also failed.
+- Root cause: an authored sequence-message label contained an unescaped semicolon, which Mermaid
+  treated as a statement separator. Mocked Markdown tests correctly did not establish diagram validity.
+- Resolution: use plain text without the separator and regenerate both themed assets.
+- Verification: require the real source parser, diagram generation and browser decode before release.
+- Prevention: validate changed Mermaid sources before rendering or declaring content complete.
+- Resolving commit: recorded after the reviewed package is committed.

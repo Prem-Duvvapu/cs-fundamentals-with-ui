@@ -571,3 +571,13 @@ seeded SQL examples, and later runnable Spring milestones. It explicitly leaves 
 expert accuracy review and learner validation open.
 
 The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records further A06 progress: the DBMS transaction/recovery lesson and concurrency lesson now distinguish PostgreSQL, InnoDB, and ARIES mechanisms, with configuration-aware durability advice and matching interview answers. A reproducible PostgreSQL read/lock exercise and a transactional queue-claim example were verified in independent sessions. A06 remains open for the broader source-review queue, and this content package does not close the lab, learner-validation, or UI acceptance criteria.
+
+## October 2 checkpoint — A06/A11 initial JPA milestone
+
+The JPA lesson and fourteen answers received source-backed lifecycle, fetching, flush/commit,
+proxy/rollback and locking corrections. Task Tracker adds a persistence profile and twelve tests
+with failure predictions and database close/reopen evidence. A06 remains open beyond the three
+scoped reviews; A11 remains open for migrations, fetching/pagination, full CRUD, security, caching
+and operations. See the [accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) and
+[learner walkthrough](examples/java-spring/task-tracker/README.md). This package does not close
+manual usability, accessibility, performance, or learner-comprehension findings.

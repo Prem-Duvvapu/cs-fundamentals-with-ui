@@ -1245,17 +1245,17 @@
     "height": 172,
     "widened": 11
   },
-  "9517dcd8": {
+  "c0e238f9": {
     "source": "content/java-spring/04-jpa-hibernate-lifecycle.md",
     "renderFingerprint": "073161cd5090938f",
-    "width": 571,
-    "height": 439,
-    "widened": 11
+    "width": 542,
+    "height": 553,
+    "widened": 14
   },
-  "1d84ad81": {
+  "3b853828": {
     "source": "content/java-spring/04-jpa-hibernate-lifecycle.md",
     "renderFingerprint": "073161cd5090938f",
-    "width": 943,
+    "width": 1133,
     "height": 591,
     "widened": 0
   },

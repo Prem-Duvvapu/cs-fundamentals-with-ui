@@ -380,3 +380,17 @@ flow without changing the platform backend. See its README for run commands and 
 ## Source-backed content review
 
 [The technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records a scoped review of the transactions and concurrency lessons against PostgreSQL 18, MySQL 8.4, and the original ARIES paper. It distinguishes engine contracts, configuration assumptions, and textbook recovery models. A disposable PostgreSQL 16.15 database verified the authored read/lock lab and transactional SKIP LOCKED queue claim; this is not a cross-engine crash test. Two corrected Mermaid sources were regenerated in both themes. The API continues to serve canonical lesson Markdown with the same topic and question identities.
+
+### Task Tracker persistence learning milestone — October 2
+
+The isolated example keeps its existing `/api/tasks` controller and Task DTO. The default `memory`
+profile excludes datasource auto-configuration; the `persistence` profile substitutes a transactional
+`JpaTaskRepository`, mutable `TaskEntity` with `@Version`, and file-backed H2. Each repository method
+is one transaction; multi-operation business workflows still require a service boundary. SQL setup
+creates the initial table and Hibernate validates it. OSIV is disabled and records are created before
+returning from the repository. There is no migration engine, security or production conflict policy.
+
+Twelve example tests cover unit validation, both MVC repository paths, lifecycle/merge, flush rollback,
+stale versions, Spring exception rollback and proxy/self-invocation, and close/reopen file persistence.
+The [example README](examples/java-spring/task-tracker/README.md) provides commands and predictions;
+[the accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) states sources, versions and limits.

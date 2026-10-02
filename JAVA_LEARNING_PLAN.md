@@ -31,8 +31,8 @@ latest main before starting another package. Do not mark planned work as deliver
 | 6. Java foundations | Setup/run/debug, types and operators, conditions/loops/methods, arrays, strings, numbers and wrappers | Planned |
 | 7. Practical Java | Exceptions and resource handling, files/I/O, date/time, Maven, unit tests, debugging and JDBC prerequisites | Planned |
 | 8. Collections and functional Java | Gradual generics, collection selection, equality/hash contracts, lambdas, streams and Optional with exercises | Planned |
-| 9. First Spring application | HTTP/JSON prerequisites; reproducible Task Tracker application from first endpoint to validated CRUD | Initial in-memory app shipped; persistence and full CRUD remain |
-| 10. Persistence and transactions | Practical repositories and queries, mappings, pagination, transaction boundaries/propagation and failure scenarios | Planned |
+| 9. First Spring application | HTTP/JSON prerequisites; reproducible Task Tracker application from first endpoint to validated CRUD | Memory app and initial JPA profile shipped; full CRUD remains |
+| 10. Persistence and transactions | Practical repositories and queries, mappings, pagination, transaction boundaries/propagation and failure scenarios | Initial JPA/H2 and failure tests shipped; migrations, relationships and pagination remain |
 | 11. Production Spring | Security, caching/async, testing and operations connected to the same application | Planned |
 | 12. Advanced Java | Memory-model terminology, concurrency, GC, virtual-thread version differences, reflection and performance trade-offs | Planned |
 | 13. Practice and discovery | Draft-preserving recall, useful answer explanations, prerequisite guidance and existing progress integration | Planned |
@@ -104,10 +104,11 @@ existing unmarked snippets still need review as their lessons are rebuilt.
 Reference lesson and initial example gate: PR #41, commits `9a3407b` and `5dd45cc`.
 The lesson passes structural/coverage validation and its Java program/output check;
 196 renderer tests passed, followed by the added all-lesson title regression check.
-The broader foundation, persistence/security Spring milestones, learning-path and HLD
-packages remain planned. The in-memory [Task Tracker](examples/java-spring/task-tracker/README.md)
-is already runnable: its five service/API tests pass on Java 17 and Spring Boot 4.1.1.
-It covers basic wiring, validation and HTTP behavior, but has no database, transactions,
-authentication, authorization, caching or deployment milestone yet. The
+The broader foundation, security Spring milestones, learning-path and HLD packages remain planned.
+[Task Tracker](examples/java-spring/task-tracker/README.md) now has a default memory path and
+an optional JPA/H2 persistence profile, with twelve tests on Java 17 and Spring Boot 4.1.1.
+The October 2 milestone adds lifecycle, version, flush/rollback, proxy/exception rules and
+file reopen evidence. Versioned migrations, relationship fetching, pagination, full CRUD,
+authentication, authorization, caching and deployment remain pending. The
 [core CS content audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) records the next teaching
 steps across OS, networking, DBMS and all Java/Spring lessons.

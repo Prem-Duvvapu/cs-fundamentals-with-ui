@@ -24,7 +24,7 @@ A **persistence context** tracks managed entity objects and their identity. Hibe
 | Commit | Transaction finishes successfully | Changes become committed |
 | Roll back instead | Transaction fails | Flushed statements are not committed by that transaction |
 
-This is a conceptual trace; SQL timing depends on flush behavior, pending work, and the provider. A flush is not the same as a commit. The in-memory Task Tracker starter has no JPA yet, so its map operations must not be described as database transactions.
+This is a conceptual trace; SQL timing depends on flush behavior, pending work, and the provider. A flush is not the same as a commit. Task Tracker defaults to an in-memory repository. Its optional persistence profile demonstrates these database boundaries; follow the repository example README for commands and executable tests.
 **Predict:** changing a detached object is not automatically tracked by a former persistence context. **Change:** inspect the SQL emitted when accessing a collection on several loaded entities. **Debug:** if one list page issues many extra SELECTs, trace the lazy association accesses before adding a cache; choose a fetch plan for that use case.
 
 
@@ -74,10 +74,11 @@ stateDiagram-v2
     [*] --> Transient: new Customer
     Transient --> Managed: persist
     Managed --> Detached: detach or context closes
-    Detached --> Managed: merge returns managed copy
+    Detached --> Detached: merge leaves argument detached
+    Detached --> Managed: state copied into returned instance
     Managed --> Removed: remove
     Removed --> [*]: flush delete and commit
-    Managed --> [*]: context ends
+    Removed --> Managed: persist before deletion
 ```
 
 A transient entity is created with `new` and is unknown to the persistence context.
@@ -90,7 +91,7 @@ A managed entity is tracked by the context and can be changed through ordinary s
 
 A detached entity has an identity from a previous context but is no longer tracked.
 
-A removed entity is managed but scheduled for deletion at flush.
+A removed entity remains associated with the context but has the distinct removed state; deletion is pending. `contains(entity)` is false after removal, and `persist` can return it to managed state before deletion.
 
 ### Persist, find, merge, remove, and detach
 
@@ -112,7 +113,7 @@ Accessing a non-identifier property on that reference can trigger a select.
 
 It returns the managed instance.
 
-The argument passed to `merge` remains detached.
+A detached argument remains detached. For an already managed argument, merge returns that same managed instance; it is not detached by the operation.
 
 ```java
 Customer detached = request.customer();
@@ -128,6 +129,8 @@ managed.rename("Ada");
 `clear` detaches every entity in the current persistence context.
 
 Use these operations deliberately because they change both memory use and update behaviour.
+
+Passing a detached instance to `persist` may fail immediately or at flush/commit. Passing one to `remove` is invalid; find its managed counterpart first. An id alone does not establish lifecycle state.
 
 ---
 
@@ -155,7 +158,7 @@ The Java method does not need to call `merge` because `customer` is already mana
 
 Flush synchronizes in-memory changes with the database.
 
-Commit makes the database transaction durable and visible according to its isolation level.
+Commit finalizes the transaction. Visibility follows isolation, while crash durability also depends on database and storage settings; see the transactions lesson.
 
 Flush is therefore not the same as commit.
 
@@ -173,7 +176,7 @@ The service runs one transaction.
 
 It calls `find(Customer.class, 42)` twice.
 
-The first call executes one select and creates managed object `c1`.
+Assume an empty persistence context and no second-level cache hit: the first call executes one select and creates managed object `c1`.
 
 The second call returns the same object, so `c1 == c2` is true.
 
@@ -211,7 +214,7 @@ sequenceDiagram
     E->>D: SELECT customer WHERE id=42
     D-->>E: Ada, points 100, version 7
     S->>E: mutate points to 125
-    S->>E: transaction commit
+    S-->>E: method returns and Spring interceptor commits
     E->>H: dirty-check snapshot
     H->>D: UPDATE ... version 7
     D-->>H: one row updated
@@ -254,17 +257,17 @@ Never apply `CascadeType.ALL` automatically to a shared association such as `@Ma
 
 ### Fetching is a query design decision
 
-`LAZY` means a relationship may be represented by a proxy or persistent collection and loaded when accessed.
+`LAZY` is a provider hint to defer loading; a provider may still fetch eagerly. A proxy or persistent collection often performs the deferred lookup.
 
-`EAGER` asks the provider to make related state available immediately, but it does not guarantee one efficient SQL shape.
+`EAGER` requires the related state to be fetched eagerly. It does not require a join or one SELECT; secondary SELECTs can still produce N+1.
 
-The default fetch types are historical defaults, not a query plan.
+`@ManyToOne` and `@OneToOne` default to EAGER; `@OneToMany` and `@ManyToMany` default to LAZY. These mapping defaults are not a query plan.
 
 | Strategy | Strength | Failure mode | Best use |
 |---|---|---|---|
 | Lazy association | Avoids unused data | N+1 queries or lazy-init failure | Default domain mapping |
 | Eager association | Convenient immediate graph | Large joins, extra selects, unbounded graphs | Small always-needed reference |
-| JPQL `join fetch` | Request-specific SQL shape | Duplicate parent rows for collections | Known read view |
+| JPQL `join fetch` | Request-specific loading | Multiplied SQL rows for collections | Known bounded read view |
 | Entity graph | Reusable fetch plan | Can conceal query cost | Named API read paths |
 | Batch fetching | Reduces repeated lazy selects | Still multiple SQL statements | Many similar references |
 
@@ -286,7 +289,7 @@ For 1,000 customers, a loop that accesses `customer.getOrders()` can issue 1 que
 
 That is 1,001 round trips, not merely a minor ORM inefficiency.
 
-If each database round trip costs 3 ms when queued, the serial waiting component alone can approach 3 seconds.
+As an illustrative estimate, 1,000 serial round trips at 3 ms each contribute about 3 seconds. This is arithmetic, not a benchmark of this project.
 
 ```java
 List<Customer> customers = entityManager
@@ -300,11 +303,14 @@ for (Customer customer : customers) {
 
 Use a fetch join when the endpoint needs the associated records.
 
-```java
-select distinct c from Customer c left join fetch c.orders
+```sql
+-- JPQL: Customer and orders are entity names/properties, not table names.
+select c from Customer c left join fetch c.orders
 ```
 
-Use pagination carefully with collection fetch joins because row multiplication can make page boundaries incorrect.
+Hibernate 6+ removes duplicate parent entity results from fetch joins automatically; SQL row multiplication still costs memory and transfer. Collection fetch pagination support depends on dialect and query shape; unsupported plans may read all matches and paginate in memory, or fail when configured to reject that fallback.
+
+A portable approach is to page ordered parent ids, fetch their required graph separately, and restore that id order. Check count-query semantics and actual SQL; do not assume `setMaxResults` limits every fetch plan at the database.
 
 An entity graph offers a declarative alternative for a named attribute set.
 
@@ -328,7 +334,7 @@ Fetch joining every association to suppress N+1 can create a Cartesian-product e
 
 ### Transaction scope, proxies, and lazy initialization
 
-A lazy proxy needs an open persistence context when it initializes.
+Ordinary lazy initialization needs an accessible open persistence context. An open context alone does not imply an active transaction; Open Session in View can allow SELECTs after the service transaction ended.
 
 Accessing `customer.getOrders()` after the transaction and context close can throw `LazyInitializationException`.
 
@@ -342,7 +348,7 @@ Do not cure lazy initialization failures by marking every association eager.
 
 Spring's @Transactional annotation normally works through an AOP proxy around the service bean.
 
-When an external caller enters the proxied method, the interceptor opens or joins a database transaction and binds an EntityManager to the current execution context.
+With `JpaTransactionManager` and the matching EntityManagerFactory, an intercepted call opens or joins the configured transaction and associates its EntityManager with the current thread. Other transaction managers have different resource behavior.
 
 That EntityManager owns the persistence context, so entities loaded during the method remain managed and lazy proxies can initialize while the boundary is active.
 
@@ -352,7 +358,11 @@ Calling a transactional method through `this.someMethod()` bypasses the Spring p
 
 The inner call therefore does not create its declared propagation boundary, and a method reached without an outer transaction may have no transaction-scoped persistence context at all.
 
-Put transaction boundaries on public service entry points or move the operation to another bean when separate proxy interception is required.
+Put transaction boundaries on public service entry points or move the operation to another bean when separate proxy interception is required. An existing outer transaction still applies during self-invocation; the inner annotation simply does not establish its own boundary.
+
+By default, escaping `RuntimeException` and `Error` trigger rollback, while checked exceptions do not. Use `rollbackFor` or an explicitly configured global rollback policy when checked failures must roll back. Catching a failure inside the method may prevent the interceptor from seeing it; a provider-marked rollback-only transaction can still fail at commit.
+
+**Predict:** a proxied method inserts a task, flushes, then throws a checked exception. With default rules the insert can commit; with `rollbackFor = Exception.class` it rolls back. Test both outcomes from a new transaction, rather than trusting the thrown exception as proof of rollback.
 
 ### Optimistic locking and bulk operations
 
@@ -362,11 +372,11 @@ Each update checks that the database version still equals the version seen by th
 
 An update that affects zero rows signals a concurrent modification.
 
-The application can return a conflict response, reload, or apply a domain-specific retry.
+The failed transaction is marked for rollback. Return a conflict or retry from a fresh transaction after reloading and rechecking the business rule; do not continue using the failed context. Row versions do not by themselves protect cross-row invariants.
 
 Bulk JPQL updates and deletes bypass the normal managed-entity dirty-checking path.
 
-They can leave already-managed entities stale in the persistence context.
+They can leave already-managed entities stale in the persistence context. Bulk JPQL also bypasses automatic optimistic version checks; include a version predicate/increment explicitly when the use case requires that protection.
 
 Flush pending work before a bulk query when required, then clear or refresh affected managed entities afterward.
 
@@ -394,7 +404,11 @@ for (int i = 0; i < imports.size(); i++) {
         entityManager.clear();
     }
 }
+entityManager.flush();
+entityManager.clear();
 ```
+
+Flushing and clearing do not commit chunks or release transaction locks. Separate transactions are needed for bounded commits, with explicit partial-failure handling. An input list can still retain references after the context clears; stream bounded input when necessary.
 
 The batch size should be measured against JDBC batching, database limits, and memory budget.
 
@@ -425,7 +439,7 @@ Transient entities are new and unknown to a persistence context, managed entitie
 
 **Q2. What does `persist` do differently from `merge`?** `[easy]`
 
-`persist` makes a new transient instance managed and normally schedules an insert. `merge` copies state from a detached or transient argument into a managed instance and returns that managed instance. The supplied merge argument remains unmanaged, which is a common source of lost mutations after merge.
+`persist` makes a new transient instance managed and normally schedules an insert. `merge` copies state from a detached or transient argument into a managed instance and returns that managed instance. A detached argument stays detached, so later changes to it are not tracked; an already managed argument remains managed and is returned unchanged.
 
 **Q3. What is Hibernate dirty checking?** `[easy]`
 
@@ -437,11 +451,11 @@ The persistence context acts as a first-level identity map keyed by entity type 
 
 **Q5. What is the difference between flush and commit?** `[medium]`
 
-Flush sends pending entity changes to the database so SQL constraints and queries can observe them in the current transaction. Commit finalizes the database transaction and makes its effects durable and visible according to isolation rules. A flush can occur more than once before one commit, and a later rollback can still undo flushed work.
+Flush sends pending entity changes to the database so SQL constraints and queries can observe them in the current transaction. Commit finalizes the database transaction; visibility follows isolation and crash durability depends on database/storage settings. A flush can occur more than once before one commit, and a later rollback can still undo flushed work.
 
 **Q6. What causes the N+1 query problem?** `[medium]`
 
-It occurs when code loads a parent collection with one query and accesses a lazy association once per parent. Each access initiates another select, turning an apparently small loop into hundreds or thousands of round trips. Use a fetch join, entity graph, batch fetching, or DTO projection based on the read shape.
+It occurs when code loads a parent collection with one query and accesses a lazy association once per parent. Without batching or a cache hit, repeated accesses can each initiate another select; eager secondary loading can create the same pattern. Use a fetch join, entity graph, batch fetching, or DTO projection based on the read shape.
 
 **Q7. Why is `CascadeType.REMOVE` dangerous on shared relationships?** `[medium]`
 
@@ -453,7 +467,7 @@ The owning side is the association mapping that writes the foreign key or join t
 
 **Q9. How does optimistic locking prevent lost updates?** `[medium]`
 
-An entity with `@Version` includes its previously read version in the update predicate. A concurrent update changes that version, so the stale update affects zero rows and produces an optimistic-lock exception. The application must then surface a conflict or retry using a domain-safe policy rather than silently overwriting data.
+An entity with `@Version` includes its previously read version in the update predicate. A concurrent update changes that version, so the stale update affects zero rows and produces an optimistic-lock exception. The transaction is marked for rollback; surface a conflict or retry from a fresh transaction with a domain-safe policy.
 
 **Q10. When are DTO projections preferable to entity loading?** `[medium]`
 
@@ -461,7 +475,7 @@ DTO projections are preferable for read-only views that need a specific subset o
 
 **Q11. Scenario: an endpoint loading 1,000 customers takes 3.2 seconds and emits 1,001 selects. What is your first fix?** `[hard]`
 
-First identify the association accessed in the response loop and define the exact endpoint result shape. Use a fetch join or entity graph for that association, or a DTO projection if only summary fields are required, then verify query count and row multiplication with SQL metrics. Do not globally switch the mapping to eager because another endpoint may need a different graph and could become slower.
+In this hypothetical incident, first identify the association accessed in the response loop and define the exact endpoint result shape. Use a fetch join or entity graph for that association, or a DTO projection if only summary fields are required, then verify query count and row multiplication with SQL metrics. Do not globally switch the mapping to eager because another endpoint may need a different graph and could become slower.
 
 **Q12. Scenario: a controller throws `LazyInitializationException` while serializing an order response. How do you fix it?** `[hard]`
 
@@ -473,11 +487,21 @@ Bulk JPQL executes directly against rows and bypasses Hibernate's per-entity dir
 
 **Q14. How should a batch import avoid exhausting persistence-context memory?** `[hard]`
 
-Persist in measured chunks and call `flush` followed by `clear`, for example after every 50 or 100 rows depending on database and heap behaviour. Flushing allows JDBC work to be sent and clearing releases managed snapshots from the first-level context. The trade-off is that earlier entities become detached, so subsequent relationships and error recovery need explicit handling.
+Persist in measured chunks and call `flush` followed by `clear`, for example after every 50 or 100 rows depending on database and heap behaviour. Flushing sends pending work and clearing removes entities/snapshots from the context, but neither commits the transaction or removes external object references. The trade-off is that earlier entities become detached, so subsequent relationships and error recovery need explicit handling.
+
+### Executable practice
+
+The existing Task Tracker example at `examples/java-spring/task-tracker` keeps its HTTP contract while changing the repository under the `persistence` profile. Read its README in your checkout if the repository URL differs. The examples above are excerpts: Customer mappings and injected managers are intentionally omitted.
+
+1. Run the default profile and observe that a restart loses tasks.
+2. Run the persistence profile, create/complete a task, restart, and retrieve it.
+3. Run `JpaLifecycleTest` to inspect identity, detachment, merge, rollback and version conflicts.
+4. Run `TransactionBoundaryTest` to compare unchecked failures, checked failures, explicit rollback rules and self-invocation.
+5. Explain each expected outcome before reading the assertion; then change one rule and predict which assertion fails.
 
 ### Further Reading
 
-- [Jakarta Persistence specification](https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1) defines entity state, persistence contexts, and relationships.
-- [Hibernate ORM user guide: persistence context](https://docs.hibernate.org/orm/current/userguide/html_single/Hibernate_User_Guide.html#pc) covers managed entities, flush, and dirty checking.
-- [Hibernate ORM user guide: fetching](https://docs.hibernate.org/orm/current/userguide/html_single/Hibernate_User_Guide.html#fetching) explains fetch joins, batch fetching, and association loading.
-- [Hibernate ORM user guide: optimistic locking](https://docs.hibernate.org/orm/current/userguide/html_single/Hibernate_User_Guide.html#locking-optimistic) details version-based concurrency control.
+- [Jakarta Persistence 3.2 specification](https://jakarta.ee/specifications/persistence/3.2/jakarta-persistence-spec-3.2) defines lifecycle states, fetching contracts and version checks.
+- [Hibernate ORM 7.4 user guide](https://docs.hibernate.org/orm/7.4/userguide/html_single/) explains dirty checking, fetch joins and dialect-dependent pagination; the runnable example uses the version managed by its Spring Boot parent.
+- [Spring transaction annotations](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html) explains proxy interception and self-invocation.
+- [Spring rollback rules](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html) documents defaults and explicit exception rules.

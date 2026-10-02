@@ -350,7 +350,7 @@ All 68 topics are registered at all integration points, so content work requires
 
 Current contract-completion order:
 - **Complete** — Core Java, Advanced Java, Spring, OS, Networking, DBMS, AI/ML and DevOps
-- **Verified** — 32,507 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
+- **Verified** — 32,531 curriculum lines, 295 Mermaid diagrams and 953 interview Q&As across 68 lessons
   (63 from the P4 content-depth rebuild plus all 5 `devops/` topics — `docker-fundamentals` added
   2026-09-10, and `kubernetes-fundamentals`, `nginx-reverse-proxy`,
   `cicd-pipelines-deployment-strategies` and `cloud-native-operations` added 2026-09-13, completing
@@ -452,8 +452,7 @@ retaining their state. Existing theme and topic-completion stores remain separat
 Twenty-two Java/Spring lessons received introductory teaching improvements; OOP retains
 its reference lesson. This does not complete all planned foundational curriculum packages.
 Run the marked Java example verifier plus `mvn -f examples/java-spring/task-tracker/pom.xml test`
-when changing the runnable teaching examples. The first Task Tracker milestone intentionally
-has no database or security.
+when changing the runnable teaching examples. Task Tracker defaults to the memory milestone; its optional `persistence` profile uses JPA/H2, explicit schema initialization/validation and disabled OSIV. Security and versioned migrations remain pending.
 
 ## October 1 learning audit remediation
 
@@ -480,8 +479,20 @@ with topic-by-topic next actions. It is a triage audit, not a corpus-wide expert
 sign-off. Its high-priority tracks are explicit beginner outcomes in the 33 non-Java core
 lessons, reproducible network/OS diagnosis, a seeded SQL lab, and extensions to the
 existing runnable Task Tracker. `JAVA_LEARNING_PLAN.md` now recognizes that first
-in-memory application as shipped while later persistence/security milestones remain open.
+in-memory application and initial persistence/transaction milestone as shipped while relationship fetching, migrations and security remain open.
 
 ## Technical accuracy review
 
 `CONTENT_ACCURACY_REVIEW_2026-10-01.md` is the source/version/correction ledger for A06/C05. The first package scopes recovery and isolation review to the transactions and concurrency lessons; it does not certify the entire corpus. Keep PostgreSQL tuple visibility and subtransactions separate from ARIES undo and InnoDB undo records. Commit durability needs explicit flush/storage/replication assumptions, and hypothetical throughput calculations must be labelled. The concurrency lesson includes a disposable two-session PostgreSQL lab and a queue claim that persists status before releasing locks. Any future change to those SQL examples should rerun them on the declared engine and verify waiting, rollback/commit, empty claims, and cleanup. The previous live checks used PostgreSQL 16.15; primary-source review used PostgreSQL 18 and MySQL 8.4.
+
+## October 2 JPA accuracy and runnable evidence
+
+The JPA lesson review covers lifecycle state, managed/detached merge, flush/commit, fetch contracts,
+query-shape caveats, proxy interception, rollback defaults and version failures. The example uses
+Boot 4.1.1-managed Hibernate 7.4.5.Final/Spring 7.0.9/H2 2.4.240 on Java 17. Keep the default
+memory path database-free; activate `persistence` explicitly for the H2 file-backed adapter.
+Entities stay inside repository boundaries and are mapped to Task records; the current single-operation
+boundaries do not make multi-operation service workflows atomic. `schema.sql` is initial setup,
+not migrations. Run all twelve example tests after any example change, including temporary-file
+reopen evidence, plus the platform backend and corpus/parser gates for associated lesson changes.
+The source ledger records this as the third scoped lesson review, not corpus-wide certification.

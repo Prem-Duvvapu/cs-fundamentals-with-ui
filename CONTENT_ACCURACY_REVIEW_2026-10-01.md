@@ -95,3 +95,53 @@ This package changes content, diagram assets and review documentation. Frontend 
 | AI/ML and DevOps | changing provider/runtime interfaces, evaluations, cost assumptions, deployment and operational guarantees | Current primary references and reproducible examples, building on the already shipped beginner paths. |
 
 The earlier audits stay open for these packages, broader interview feedback, full lab milestones and learner validation. New technical content should carry the same source/version/failure boundaries as this package.
+
+## October 2 package — JPA and Spring transaction behavior
+
+This second package reviews the complete [JPA lesson](content/java-spring/04-jpa-hibernate-lifecycle.md)
+and its 14 answers. The cumulative scoped review is **3 of 68 lessons**. It is not a complete
+Java/Spring or whole-curriculum accuracy sign-off. The previous DBMS checks and limits above remain.
+
+| ID | Location | Correction or clarified boundary | Evidence |
+|---|---|---|---|
+| J01 | Beginner state diagram; merge; Q2 | A detached merge argument stays detached; the returned object is managed. An already managed argument is returned as itself. | Jakarta EntityManager API; lifecycle test compares identities and saved rows. |
+| J02 | Removed state | Removed is a distinct associated state, `contains` is false, and persist can reverse removal before deletion. Detached persist/remove are not safe state shortcuts. | Jakarta lifecycle contract; remove/contains/persist assertions. |
+| J03 | Flush/commit; Q5 | Flushed SQL can roll back; commit crash durability depends on database/storage configuration. | Native SQL observation followed by rollback and a fresh-context lookup. |
+| J04 | Identity worked example | First-find SELECT assumes no second-level cache hit; identity reuse is local to one context. | Repeated-find identity assertion and separate-context observations. |
+| J05 | Fetch contracts; Q6 | LAZY is a hint, EAGER a requirement; eager secondary SELECTs can also cause N+1. Mapping defaults are stated explicitly. | Jakarta FetchType/relationship contracts, Hibernate fetching guide. |
+| J06 | Collection fetch joins | Hibernate 6+ deduplicates returned parent entities, while SQL rows still multiply; pagination behavior depends on dialect/query support. | Hibernate 7.4 query guide; this example does not benchmark associations. |
+| J07 | Lazy/context boundaries | An open context is not proof of an active transaction; OSIV can move SELECTs after the service boundary. | Spring/JPA resource contracts; example disables OSIV and returns records. |
+| J08 | Transaction interception | Resource behavior depends on the manager; self-invocation skips the inner annotation but preserves an existing outer transaction. | Spring annotations reference; intercepted/self/outer test cases. |
+| J09 | Rollback rules | Unchecked/Error rollback is the default; checked failures may commit unless configured otherwise. | Spring rollback reference; three flushed-insert failure scenarios. |
+| J10 | Version conflict; Q9 | Optimistic failure marks rollback; retry must start a fresh unit of work. A row version does not guarantee cross-row invariants. | Jakarta locking contract; stale writer fails and committed winner remains. |
+| J11 | Bulk updates | Bulk JPQL bypasses automatic optimistic version checks and can leave managed state stale. | Jakarta bulk-operation contract; source review only in this milestone. |
+| J12 | Batch example; Q14 | Add final flush/clear; explain that clearing is not a chunk commit, lock release or elimination of external references. | Hibernate batching/context guide; source review, not import/load evidence. |
+
+### Primary sources and runtime baseline
+
+- [Jakarta Persistence 3.2](https://jakarta.ee/specifications/persistence/3.2/jakarta-persistence-spec-3.2), entity lifecycle, fetching, optimistic locking and bulk operations.
+- [EntityManager API](https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/jakarta/persistence/entitymanager), especially merge, contains, remove and persist.
+- [Hibernate ORM 7.4 guide](https://docs.hibernate.org/orm/7.4/userguide/html_single/), persistence contexts, query result duplication, fetching and pagination. This maintained guide reported 7.4.11.Final when reviewed; executable tests use Boot-managed **7.4.5.Final**, not an assertion that every patch behaves identically.
+- [Spring annotations](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html) and [rollback rules](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html), default proxy mode and exception handling.
+
+The example uses Java 17, Spring Boot 4.1.1, Spring Framework 7.0.9, Hibernate 7.4.5.Final and
+H2 2.4.240. These versions come from the example's parent/BOM and test startup, not moving `latest`
+labels. The lesson's round-trip arithmetic and incident timing are explicitly illustrative.
+
+### Runnable milestone and verification
+
+[Task Tracker](examples/java-spring/task-tracker/README.md) retains its memory path and adds an
+explicit persistence profile. Its twelve tests cover both HTTP paths, lifecycle/dirty checking,
+merge identity, rollback after flush, removed state, optimistic conflict, checked/unchecked rollback,
+self-invocation/outer boundaries, and file-backed close/reopen persistence. Tests run in CI through
+the existing example Maven step. A fresh context verifies committed database state; throwing an
+exception alone is never counted as rollback evidence.
+
+The tests do not claim crash durability, PostgreSQL/MySQL parity, relationship-query performance,
+full transaction propagation coverage or production readiness. Initial `schema.sql` is not versioned
+migrations. Security, pagination, full CRUD, HTTP conflict policy, caching and telemetry remain open.
+N+1/pagination, bulk-update and batch-import claims were source-reviewed rather than runtime-tested.
+Question identifiers and both existing JPA migration-evidence sentences are preserved.
+
+Release checks: twelve example and 59 platform-backend tests pass; 210 corpus Markdown/parser tests
+pass. The 68/68 lesson and 83/83 coverage gate, 109/109 migration gate, all 590 browser-decoded diagrams, frontend production build and eleven marked Java examples also pass. Full frontend application tests were not rerun for this content/example package.

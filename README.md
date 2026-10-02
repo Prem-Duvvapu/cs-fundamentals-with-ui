@@ -127,10 +127,10 @@ The [AI/ML and DevOps learning path](AI_ML_DEVOPS_LEARNING_PATH.md) gives the fu
 
 ## 📚 68 Curriculum Topics Covered
 
-All 68 lessons satisfy the authoring contract and coverage manifest: 32,507 curriculum lines,
+All 68 lessons satisfy the authoring contract and coverage manifest: 32,531 curriculum lines,
 295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
 
-The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records the first sourced DBMS recovery/isolation review, including a PostgreSQL two-session lab and a durable queue-claim example. Broader accuracy review remains open.
+The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records sourced DBMS recovery/isolation and JPA/transaction reviews, including a PostgreSQL two-session lab, a durable queue claim, and executable Task Tracker persistence tests. Broader accuracy review remains open.
 
 Twenty high-value questions across Java, Spring MVC, OS processes, TCP, and DBMS now include
 an optional six-point answer rubric. Reveal the model answer first, then open **Answer checklist
@@ -292,7 +292,7 @@ backup. These records stay in your browser, with session-only fallback when stor
 Twenty-two Java/Spring lessons now introduce prerequisites, outcomes and concrete traces
 before advanced terminology; the existing OOP reference lesson remains. The runnable
 [Task Tracker example](examples/java-spring/task-tracker/README.md) connects plain Java
-dependency injection to a small Spring REST application. It uses in-memory storage.
+dependency injection to a small Spring REST application. It defaults to in-memory storage and adds an optional JPA/H2 persistence profile with transaction and restart tests.
 
 The [revamp plan](UI_UX_REVAMP_PLAN.md) remains in progress: comprehensive accessibility
 verification, simulator presentation work and the larger curriculum expansion are pending.

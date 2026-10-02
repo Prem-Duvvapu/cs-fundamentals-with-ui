@@ -119,3 +119,13 @@ The Java path already has explicit openings in all 23 lessons and an executable 
 ## Accuracy implementation checkpoint
 
 The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) now records the first DBMS package: recovery/durability/MVCC explanations and their interview answers were corrected together; the transaction lesson has an explicit beginner outcome; and concurrency includes a live-verified read-versus-lock exercise plus a transactional queue claim. The current core corpus is 26,413 lines (DBMS 6,263), with 241 diagrams and 785 Q&As; the inventory above remains the initial audit snapshot. C01 remains open for the other openings and fuller prerequisite links. C03 still needs the end-to-end SQL dataset. C05 remains open for the rest of the source-review queue, and C08/C09/C10 remain open for broader feedback and executable learning tracks.
+
+## October 2 checkpoint — initial persistence and JPA accuracy
+
+C04/C09 now have an initial JPA/H2 Task Tracker milestone with twelve passing tests, including
+transaction failures and file reopen persistence. The memory path remains available. Versioned
+migrations, shared business transactions, relationships/fetching, pagination, security, caching and
+production behavior are still pending. C05 now has three scoped lesson reviews across DBMS and
+Java/Spring; [the source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records J01–J12 and limits.
+The live corpus now contains 32,531 lines, 295 diagrams and 953 Q&As; original audit inventory
+numbers above are historical. OS/networking review and the seeded SQL fixture remain open.

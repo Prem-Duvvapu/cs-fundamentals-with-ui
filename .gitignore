@@ -19,3 +19,6 @@ content-gap-report.md
 
 # Isolated teaching-project build output
 examples/**/target/
+
+# Local database for the optional teaching profile
+/examples/java-spring/task-tracker/data/
