@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense, useId } from 'react'
 import useLearningState from '../../hooks/useLearningState'
-import { questionKey, savePractice, updateLearning } from '../../utils/learningState'
+import { questionKey, savePractice, updateLearning, recordPracticeAttempt, moveReview } from '../../utils/learningState'
 import { splitInterviewAnswer } from '../../utils/interviewQuestions'
 
 // react-markdown + KaTeX + highlight.js are ~600KB and are only needed once an
@@ -38,6 +38,8 @@ export default function InterviewDeck({
   const [selectedId, setSelectedId] = useState(() => requestedKey || (scope && state.sessions[scope]) || (questions[0] ? questionKey(questions[0]) : null))
   const instanceId = useId()
   const [revealed, setRevealed] = useState(false)
+  const [answerViewed, setAnswerViewed] = useState(false)
+  const [attemptMessage, setAttemptMessage] = useState('')
   const [finding, setFinding] = useState(false)
   const [findError, setFindError] = useState('')
 
@@ -56,6 +58,8 @@ export default function InterviewDeck({
     setSelectedId(key)
     if (scope) updateLearning(state => ({ ...state, sessions: { ...state.sessions, [scope]: key } }))
     setRevealed(false)
+    setAnswerViewed(false)
+    setAttemptMessage('')
     setFindError('')
   }
 
@@ -95,13 +99,30 @@ export default function InterviewDeck({
         </div>
       )}
       {revealed && (rubric ? <details className="practice-guidance"><summary>Answer checklist and follow-up</summary><Suspense fallback={<p>Loading checklist…</p>}><MarkdownRenderer content={rubricMarkdown} /></Suspense><p>Compare your explanation with these points; your self-rating is not an automatic grade.</p></details> : <details className="practice-guidance"><summary>How to compare your answer</summary><ol><li>Did you state the main idea directly?</li><li>Did you explain the mechanism or sequence, not just name it?</li><li>Could you give a concrete example and say when the answer changes?</li><li>Did you mention an important limit or trade-off?</li></ol><p>Use the model answer to check your reasoning. These prompts are a guide, not an automatic score.</p></details>)}
-      {revealed && <fieldset className="practice-assessment"><legend>Your self-assessment</legend>{[['review', 'Needs review'], ['partial', 'Partly recalled'], ['confident', 'Recalled confidently']].map(([value, label]) => <button key={value} type="button" aria-pressed={saved.assessment === value} onClick={() => savePractice(current, { assessment: value })}>{label}</button>)}</fieldset>}
+      {<fieldset className="practice-assessment"><legend>Your self-assessment</legend>{[['review', 'Needs review'], ['partial', 'Partly recalled'], ['confident', 'Recalled confidently']].map(([value, label]) => <button key={value} type="button" aria-pressed={saved.assessment === value} onClick={() => savePractice(current, { assessment: value })}>{label}</button>)}</fieldset>}
+      <div className="saved-answer-actions">
+        <button type="button" disabled={!saved.assessment} onClick={() => {
+          if (recordPracticeAttempt(current, answerViewed)) setAttemptMessage('Attempt recorded. Your next review date is shown below.')
+        }}>Record this attempt</button>
+      </div>
+      {attemptMessage && <p role="status">{attemptMessage}</p>}
+      {state.reviews[questionKey(current)] && <details className="practice-guidance">
+        <summary>Review date and previous attempts</summary>
+        <p>Next review: {new Date(state.reviews[questionKey(current)].dueAt).toLocaleString()}. Needs review: 1 day; partial: 3 days; confident: 7 days, then doubles up to 30 days. These are suggestions, not grades.</p>
+        <button type="button" onClick={() => moveReview(questionKey(current), 'postpone')}>Postpone one day</button>
+        <button type="button" onClick={() => moveReview(questionKey(current), 'reset')}>Reset review date to now</button>
+        <p>The most recent 10 recorded attempts are kept. Compare what you explained, not just your rating.</p>
+        <ol>{state.reviews[questionKey(current)].attempts.map((attempt, index) => <li key={`${attempt.id}-${index}`}>
+          <p>{new Date(attempt.at).toLocaleString()} · {attempt.assessment} · {attempt.answerViewed ? 'Model answer opened during this visit' : 'Model answer not opened during this visit'}</p>
+          <p className="saved-answer-draft">{attempt.draft || 'No written explanation recorded.'}</p>
+        </li>)}</ol>
+      </details>}
       <div className="interview-deck-actions">
         <button
           type="button"
           aria-expanded={revealed}
           aria-controls={answerId}
-          onClick={() => setRevealed(value => !value)}
+          onClick={() => { setRevealed(value => !value); setAnswerViewed(true) }}
         >
           {revealed ? 'Hide answer' : 'Reveal answer'}
         </button>

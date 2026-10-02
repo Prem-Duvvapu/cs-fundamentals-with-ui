@@ -362,7 +362,7 @@ retry rather than a second hardcoded curriculum. Category pages consume this sam
 `learningState.js` stores versioned reading locations, practice drafts, self-assessments,
 selected questions and font preferences under `cs-fundamentals-learning-v1`. It broadcasts
 local changes and listens for cross-tab storage events. Practice identity uses topic and
-normalized question text rather than an array position. The progress page's version-2
+normalized question text rather than an array position. The progress page's version-3
 learning backup previews merges; legacy progress backups remain supported separately.
 
 Study/Simulation/Practice selection is URL-backed. Visited simulations remain mounted while
@@ -386,11 +386,53 @@ flow without changing the platform backend. See its README for run commands and 
 The isolated example keeps its existing `/api/tasks` controller and Task DTO. The default `memory`
 profile excludes datasource auto-configuration; the `persistence` profile substitutes a transactional
 `JpaTaskRepository`, mutable `TaskEntity` with `@Version`, and file-backed H2. Each repository method
-is one transaction; multi-operation business workflows still require a service boundary. SQL setup
-creates the initial table and Hibernate validates it. OSIV is disabled and records are created before
-returning from the repository. There is no migration engine, security or production conflict policy.
+is one transaction; multi-operation business workflows still require a service boundary. Flyway V1/V2
+create and evolve the tables; Hibernate validates the result. OSIV is disabled and records are created before
+returning from the repository. The optional `production` profile now adds a separate owner-scoped project API, security, caching and operational endpoints.
 
 Twelve example tests cover unit validation, both MVC repository paths, lifecycle/merge, flush rollback,
 stale versions, Spring exception rollback and proxy/self-invocation, and close/reopen file persistence.
 The [example README](examples/java-spring/task-tracker/README.md) provides commands and predictions;
 [the accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) states sources, versions and limits.
+
+
+### October 2 executable milestones and review sessions
+
+`production` expands to `persistence,secure,cached` in the isolated example. Flyway owns V1 tasks
+and V2 projects/task foreign keys. `ProjectService` owns transactional project CRUD, owner predicates,
+version checks and deterministic bounded pages; records are mapped before leaving the transaction.
+A task page uses parent authorization, count and bounded rows instead of collection fetch pagination.
+`SecurityConfiguration` applies only to servlet applications; its secure chain permits ERROR dispatch
+for correct status rendering, public health, owner/role-restricted projects and protected metrics.
+Basic authentication retains CSRF sessions; configured nonempty teaching passwords are hashed.
+Unowned legacy task endpoints are denied in the secure profile. The cache manager wraps bounded
+Caffeine in `TransactionAwareCacheManagerProxy`; local puts/evictions and creation metrics publish
+after commit. This does not provide cross-instance invalidation or transaction-local cache coherence.
+The packaged HTTP verifier uses a random loopback port and temporary database directory, then
+asserts servlet error responses and SIGTERM completion independently of MockMvc.
+
+`reviewSchedule.js` validates and merges up to ten attempt snapshots per question, computes the
+explained 1/3/7/doubling intervals, and chooses up to eight due/mixed items. `learningState.js`
+keeps the local version-1 store/key compatible while exporting version-3 envelopes; v1 progress
+and v2 learning backups still import. Deleting a saved answer removes its review history.
+`ReviewPage` freezes its selection for the session, loads only its selected canonical lesson Markdown,
+matches normalized question keys, cancels superseded reads and retries unavailable selections
+without replacing them. `InterviewDeck` explicitly records draft, self-rating and whether the answer
+was opened during that visit; merely choosing a rating does not create an attempt. Dates can be
+postponed or reset. There is no backend review store, synthetic grading or new question bank.
+
+`examples/labs` contains transactional PostgreSQL fixtures and bounded Python Linux/loopback
+observations. Their dedicated CI job and the example HTTP smoke are separate from browser checks.
+`scripts/test-responsive-layout.mjs` now covers 11 route families at five widths in both themes,
+16 axe scans and an exact-question attempt/review journey. Actual learner sessions are separately
+tracked in `LEARNER_USABILITY_STUDY.md`; automated accessibility is not a comprehension study.
+
+
+### October 2 remaining-lesson review batch
+
+The source ledger now covers **16 of 56 core lessons**, with 40 still awaiting a full review.
+Application-layer, Java concurrency, distributed DBMS and deadlock corrections retain the same
+question prompts and Mermaid sources. There are 39 authored rubrics. Two added Java 17 programs
+verify task-result retrieval and deterministic executor admission; the complete marked-example
+verifier now covers thirteen programs. A finite Python Banker model verifies two safe allocations
+and an unsafe allocation without acquiring OS locks. Neither model is a performance benchmark.

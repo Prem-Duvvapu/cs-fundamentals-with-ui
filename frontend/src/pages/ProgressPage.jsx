@@ -197,6 +197,7 @@ export default function ProgressPage() {
           </section>
         </div>
       )}
+      <section className="category-overview"><h2>Review over time</h2><p>Mix due questions with previously recalled answers in a session of up to eight questions. Record attempts, compare your explanations, postpone a review or reset its date from Practice.</p><Link to="/review" className="roadmap-cta">Start a review session</Link></section>
       <PracticeReview topics={topics} />
       <LearningBackup topics={topics} />
     </div>

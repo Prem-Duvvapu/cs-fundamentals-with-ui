@@ -1,12 +1,13 @@
+import { DAY, normalizeReviews, mergeReviews, nextInterval } from './reviewSchedule'
 const KEY = 'cs-fundamentals-learning-v1'
 const EVENT = 'cs-fundamentals:learning-change'
 const PROBE_KEY = 'cs-fundamentals-storage-probe'
 const APP_ID = 'cs-fundamentals-with-ui'
-export const LEARNING_BACKUP_VERSION = 2
+export const LEARNING_BACKUP_VERSION = 3
 export const MAX_DRAFT_LENGTH = 20000
 export const MAX_IMPORT_BYTES = 8_000_000
 const ASSESSMENTS = ['review', 'partial', 'confident']
-const empty = () => ({ version: 1, reading: {}, practice: {}, sessions: {}, preferences: { fontSize: 18 } })
+const empty = () => ({ version: 1, reading: {}, practice: {}, reviews: {}, sessions: {}, preferences: { fontSize: 18 } })
 let volatileState = null
 let durable = null
 const safeKey = key => typeof key === 'string' && key.length > 0 && key.length <= 4096 && !['__proto__', 'constructor', 'prototype'].includes(key)
@@ -37,6 +38,7 @@ export function validateLearning(value) {
   for (const [scope, key] of Object.entries(isRecord(value.sessions) ? value.sessions : {})) {
     if (safeKey(scope) && safeKey(key)) result.sessions[scope] = key
   }
+  result.reviews = normalizeReviews(value.reviews)
   result.preferences = { fontSize: [16, 18, 20].includes(value.preferences?.fontSize) ? value.preferences.fontSize : 18 }
   return result
 }
@@ -72,7 +74,9 @@ export function deletePractice(key) {
   updateLearning(state => {
     const practice = { ...state.practice }
     delete practice[key]
-    return { ...state, practice }
+    const reviews = { ...state.reviews }
+    delete reviews[key]
+    return { ...state, practice, reviews }
   })
 }
 
@@ -140,12 +144,12 @@ export function previewLearningImport(text, knownTopicIds = null) {
     return { ok: false, error: 'This backup was made by a newer version of the app. Update the app, then import it again.' }
   }
   if (!isRecord(value.progress)) return { ok: false, error: 'This backup has no readable lesson progress.' }
-  if (value.version === 2 && (!isRecord(value.learning) || value.learning.version !== 1)) {
+  if (value.version >= 2 && (!isRecord(value.learning) || value.learning.version !== 1)) {
     return { ok: false, error: 'This backup is damaged: its learning data is missing or unreadable.' }
   }
-  if (value.version !== 1 && value.version !== 2) return { ok: false, error: 'This backup version is not supported.' }
+  if (![1, 2, 3].includes(value.version)) return { ok: false, error: 'This backup version is not supported.' }
 
-  const learning = value.version === 2 ? validateLearning(value.learning) : empty()
+  const learning = value.version >= 2 ? validateLearning(value.learning) : empty()
   const current = readLearning()
   const conflicts = Object.entries(learning.practice)
     .filter(([key, incoming]) => current.practice[key]?.draft && incoming.draft && current.practice[key].draft !== incoming.draft).length
@@ -203,7 +207,7 @@ export function mergeLearningImport(incoming) {
     }
     const reading = { ...current.reading }
     for (const [key, entry] of Object.entries(incoming.reading)) if (!reading[key] || reading[key].updatedAt < entry.updatedAt) reading[key] = entry
-    return { ...current, reading, practice, sessions: { ...incoming.sessions, ...current.sessions } }
+    return { ...current, reading, practice, reviews: mergeReviews(current.reviews, incoming.reviews), sessions: { ...incoming.sessions, ...current.sessions } }
   })
 }
 
@@ -231,4 +235,29 @@ export function adoptPracticeAlternative(key) {
     }
   }))
   return true
+}
+
+export function recordPracticeAttempt(question, answerViewed, now = Date.now()) {
+  const key = questionKey(question)
+  const saved = readLearning().practice[key]
+  if (!safeKey(key) || !saved?.assessment) return false
+  updateLearning(state => {
+    const previous = state.reviews[key] || { attempts: [], intervalDays: 0 }
+    const intervalDays = nextInterval(saved.assessment, previous.intervalDays)
+    const attempt = { id: globalThis.crypto?.randomUUID?.() || `${now}-${Math.random().toString(36).slice(2)}`,
+      at: now, draft: saved.draft, assessment: saved.assessment, answerViewed }
+    return { ...state, reviews: { ...state.reviews, [key]: { attempts: [...previous.attempts, attempt],
+      intervalDays, dueAt: now + intervalDays * DAY, updatedAt: now } } }
+  })
+  return true
+}
+
+export function moveReview(key, action, now = Date.now()) {
+  if (!safeKey(key) || !['postpone', 'reset'].includes(action) || !readLearning().practice[key]) return
+  updateLearning(state => {
+    const previous = state.reviews[key] || { attempts: [], intervalDays: 0, dueAt: now }
+    return { ...state, reviews: { ...state.reviews, [key]: { ...previous,
+      dueAt: action === 'postpone' ? Math.max(now, previous.dueAt) + DAY : now,
+      intervalDays: action === 'postpone' ? previous.intervalDays : 0, updatedAt: now } } }
+  })
 }

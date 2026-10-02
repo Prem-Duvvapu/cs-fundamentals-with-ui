@@ -8,6 +8,7 @@ import TopicPage from './pages/TopicPage'
 import SearchPage from './pages/SearchPage'
 import InterviewPage from './pages/InterviewPage'
 import ProgressPage from './pages/ProgressPage'
+import ReviewPage from './pages/ReviewPage'
 import NotFoundPage from './pages/NotFoundPage'
 import AppErrorBoundary from './components/AppErrorBoundary'
 import ProductTour from './components/shared/ProductTour'
@@ -32,7 +33,7 @@ function routeLabel(pathname, topics, status) {
       ? `${CATEGORY_METADATA[interviewCategory].label} interview practice`
       : 'Unknown interview category'
   }
-  return { '/': 'Learning paths', '/search': 'Search', '/progress': 'Your progress' }[pathname] || 'Page not found'
+  return { '/': 'Learning paths', '/search': 'Search', '/progress': 'Your progress', '/review': 'Review session' }[pathname] || 'Page not found'
 }
 
 function RouteTitle() {
@@ -56,6 +57,7 @@ function RoutedContent() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/interview/:category" element={<InterviewPage />} />
         <Route path="/progress" element={<ProgressPage />} />
+        <Route path="/review" element={<ReviewPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppErrorBoundary>

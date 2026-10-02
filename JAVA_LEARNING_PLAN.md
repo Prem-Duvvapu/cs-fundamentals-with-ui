@@ -31,9 +31,9 @@ latest main before starting another package. Do not mark planned work as deliver
 | 6. Java foundations | Setup/run/debug, types and operators, conditions/loops/methods, arrays, strings, numbers and wrappers | Planned |
 | 7. Practical Java | Exceptions and resource handling, files/I/O, date/time, Maven, unit tests, debugging and JDBC prerequisites | Planned |
 | 8. Collections and functional Java | Gradual generics, collection selection, equality/hash contracts, lambdas, streams and Optional with exercises | Planned |
-| 9. First Spring application | HTTP/JSON prerequisites; reproducible Task Tracker application from first endpoint to validated CRUD | Memory app and initial JPA profile shipped; full CRUD remains |
-| 10. Persistence and transactions | Practical repositories and queries, mappings, pagination, transaction boundaries/propagation and failure scenarios | Initial JPA/H2 and failure tests shipped; migrations, relationships and pagination remain |
-| 11. Production Spring | Security, caching/async, testing and operations connected to the same application | Planned |
+| 9. First Spring application | HTTP/JSON prerequisites; reproducible Task Tracker application from first endpoint to validated CRUD | Memory, JPA and owner-scoped project/task CRUD implemented; local teaching scope |
+| 10. Persistence and transactions | Practical repositories and queries, mappings, pagination, transaction boundaries/propagation and failure scenarios | JPA/H2, rollback, Flyway adoption, relationships and bounded pagination implemented |
+| 11. Production Spring | Security, caching/async, testing and operations connected to the same application | Security, commit-aware cache, health/metrics and HTTP/shutdown milestone implemented; broader async/durable delivery and deployment validation remain |
 | 12. Advanced Java | Memory-model terminology, concurrency, GC, virtual-thread version differences, reflection and performance trade-offs | Planned |
 | 13. Practice and discovery | Draft-preserving recall, useful answer explanations, prerequisite guidance and existing progress integration | Planned |
 | 14. Final verification | Browser/a11y checks, content and example gates, documentation sync and remaining coverage review | Planned |
@@ -112,3 +112,12 @@ file reopen evidence. Versioned migrations, relationship fetching, pagination, f
 authentication, authorization, caching and deployment remain pending. The
 [core CS content audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) records the next teaching
 steps across OS, networking, DBMS and all Java/Spring lessons.
+
+
+## October 2 continuation checkpoint
+
+The isolated curriculum-completion branch adds runnable SQL/OS/networking labs, Spring milestones,
+review attempts/dates/mixed sessions and nineteen more rubrics. Sixteen scoped core accuracy reviews
+are now recorded; 40 remain, alongside actual learner observations. This is not completion of all
+foundational lesson expansions or a production-readiness certificate. See
+`CURRICULUM_COMPLETION_2026-10-02.md` for checks and `LEARNER_USABILITY_STUDY.md` for real-user closure.

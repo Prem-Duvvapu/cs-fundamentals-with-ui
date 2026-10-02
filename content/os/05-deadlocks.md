@@ -4,6 +4,9 @@ A deadlock is a liveness failure in which a set of processes or threads waits fo
 It appears in operating-system locks, database transactions, distributed services, and ordinary application code whenever resource ownership and waiting interact.
 Interviewers use deadlocks to test graph reasoning, resource trade-offs, and the difference between preventing a failure and recovering from one.
 
+**Before you start:** Read the Beginner tier of [synchronization](04-synchronization.md); know what it means to own a lock and wait for one.
+**After this lesson:** Draw a wait cycle, calculate a safe allocation and explain when interruption, rollback or fencing can actually restore progress.
+
 ---
 
 ## 🟢 Beginner Level
@@ -66,7 +69,7 @@ flowchart LR
     R2 --> P2
 ```
 
-With one instance of every resource, a graph cycle is both necessary and sufficient for deadlock.
+In the classic reusable-resource model, requests wait until granted and holders cannot release while blocked. With one instance of every resource, a cycle is necessary and sufficient for deadlock; alternative requests, external releases or recovery require a different model.
 With multiple instances, a cycle is necessary but not sufficient because another free instance can break the wait.
 A wait-for graph removes resource nodes and connects a waiter directly to the process holding the needed resource.
 
@@ -75,6 +78,8 @@ A wait-for graph removes resource nodes and connects a waiter directly to the pr
 Most application deadlocks involve locks rather than physical devices.
 A mutex is exclusive, while a read-write lock may share reads but exclude writes.
 Database row locks, file locks, semaphore permits, and connection-pool slots can all participate in a wait cycle.
+
+**Excerpt — Java 17, inside a method with application-defined objects and `settle`; not a complete program.**
 
 ```java
 // Dangerous if another path locks invoice before customer.
@@ -104,6 +109,8 @@ Deadlock prevention structurally breaks at least one Coffman condition.
 It provides a guarantee, but that guarantee can reduce resource utilization or complicate failure handling.
 The right method depends on whether resources are known in advance and whether rollback is possible.
 
+**Excerpt — Java 17; `Account` and `debitCredit` are application-defined.**
+
 ```java
 static void transfer(Account left, Account right, long amount) {
     Account first = left.id() < right.id() ? left : right;
@@ -116,13 +123,13 @@ static void transfer(Account left, Account right, long amount) {
 }
 ```
 
-Ordering by immutable account ID breaks circular wait.
+This assumes one shared lock-bearing object per account and unique immutable IDs. Ordering those objects by ID breaks circular wait for this resource set; distinct objects representing one database account would not mutually exclude anything.
 Every transfer involving the same two accounts uses the same lock order.
 Ordering must include a tie-breaker when identifiers can be equal or locks represent different resource classes.
 
 Requesting all locks at once breaks hold and wait.
 That can leave resources idle while a task waits for its last requirement.
-Using a timeout and backing off breaks indefinite wait but can create livelock without randomized delay or priority policy.
+A timed acquisition can bound a particular wait, but recovery must release earlier locks and abandon/retry the operation. A timeout that keeps held resources is not a deadlock-prevention guarantee. Repeated retries can livelock without backoff or priority policy.
 
 ### Avoidance asks whether a state remains safe
 
@@ -174,6 +181,47 @@ If P0 instead requests one more unit immediately, tentative availability becomes
 P1 still can finish, so this particular request remains safe.
 If no unfinished process had `Need <= Work`, the proposed allocation would be unsafe and must not be granted by the algorithm.
 
+**Runnable teaching model — Python 3, standard library only.** Save as `banker.py` and run `python3 banker.py`. This models one resource type; it neither schedules processes nor acquires real OS locks.
+
+```python
+MAXIMUM = [7, 4, 5]
+
+
+def safe_sequence(allocation, available):
+    need = [maximum - held for maximum, held in zip(MAXIMUM, allocation)]
+    work = available
+    finished = set()
+    sequence = []
+    while len(finished) < len(allocation):
+        for process, remaining in enumerate(need):
+            if process not in finished and remaining <= work:
+                work += allocation[process]
+                finished.add(process)
+                sequence.append(process)
+                break
+        else:
+            return None
+    return sequence
+
+
+assert safe_sequence([3, 2, 2], 3) == [1, 0, 2]
+assert safe_sequence([4, 2, 2], 2) == [1, 0, 2]
+assert safe_sequence([6, 2, 2], 0) is None
+print("baseline safe: P1 -> P0 -> P2")
+print("P0 requests 1: safe")
+print("P0 requests 3: unsafe, not necessarily deadlocked")
+```
+
+Expected output:
+
+```text
+baseline safe: P1 -> P0 -> P2
+P0 requests 1: safe
+P0 requests 3: unsafe, not necessarily deadlocked
+```
+
+**Predict/change/debug:** The hand trace chose `P1, P2, P0`; this code scans from P0 again and finds `P1, P0, P2`. Both are safe sequences. Granting P0 three more units leaves zero available and needs `[1, 2, 3]`, so no process can finish under its maximum claim. That is unsafe, not proof that each is already requesting that maximum. The function assumes these fixed, valid inputs, including nonnegative needs.
+
 The numerical result is not a scheduling promise.
 It assumes declared maxima are truthful and each process eventually releases what it holds after completing.
 These assumptions often fail for interactive or open-ended workloads.
@@ -191,7 +239,7 @@ T3 waits for T1
 ```
 
 Depth-first search detects a back edge in $O(V + E)$ for a graph with vertices and edges.
-Database lock managers often detect cycles when a lock wait is added rather than waiting for a slow global scan.
+Detection timing is engine-specific: InnoDB normally checks for deadlocks during lock waiting, while PostgreSQL delays its check according to `deadlock_timeout`. A lock-wait timeout alone does not establish that a cycle existed.
 For multiple resource instances, an algorithm similar to the safety test identifies processes that can finish with currently available resources.
 
 Detection frequency is a trade-off.
@@ -209,7 +257,7 @@ Always selecting the cheapest victim can starve a long-running transaction.
 Including age or retry count in the cost makes repeated victimization less likely.
 
 Recovery itself needs careful state management.
-Killing a process while it owns an in-memory lock can leave a data structure inconsistent unless the runtime has designed robust ownership recovery.
+Owner death can leave shared memory inconsistent. A POSIX robust mutex can report `EOWNERDEAD` to its next owner, who must repair the protected state and mark it consistent; the notification is not automatic repair. Java monitors do not provide this robust-mutex recovery contract.
 Transaction logs make database rollback far more tractable than arbitrary process rollback.
 
 ---
@@ -258,7 +306,7 @@ Distributed designs commonly prevent cycles with ordering, leases, time-bounded 
 
 In **wait-die**, an older transaction may wait for a younger holder, while a younger requester aborts rather than wait for an older holder.
 In **wound-wait**, an older requester aborts the younger holder, while a younger requester waits for an older holder.
-Both use age to orient waits so cycles cannot form.
+Both orient waits by a stable total age order so cycles cannot form; restarted transactions retain their original age to avoid repeatedly becoming youngest. Wound-wait also depends on the younger holder actually aborting/releasing safely, rather than a requester merely announcing a wound.
 
 Leases add another failure mode.
 If a process pauses past its lease while continuing work, it may believe it owns a lock that has been reassigned.
@@ -272,7 +320,7 @@ Acquire multiple locks in one documented global order.
 
 In Java, `ReentrantLock.tryLock` can support bounded acquisition with a timeout.
 Release every acquired lock in `finally` blocks, including the first lock when acquiring the second fails.
-Avoid catch blocks that swallow interruption; interruption is often the cancellation path that lets a waiting thread leave the cycle.
+Do not swallow interruption on interruptible acquisition paths. Waiting to enter `synchronized` is not interruptible, and ordinary `ReentrantLock.lock()` is not the interruptible variant; use `lockInterruptibly` or timed interruptible `tryLock` where cancellation is part of the design.
 
 Lock-free data structures trade blocking cycles for other complexity such as compare-and-set retries, ABA issues, memory ordering, and potential starvation.
 They are not automatically faster or simpler.
@@ -295,6 +343,8 @@ Metrics such as lock wait percentiles, deadlock victim count, transaction retry 
 Reproduce known multi-lock paths in tests with controlled barriers.
 One test thread can acquire resource A and pause; another can acquire B and pause; then both attempt the second resource.
 The test should assert that the designed ordering prevents the cycle or that timeout and recovery release all resources.
+
+**Test-design sketch — not a complete runnable test; the barrier must have a bounded failure path.**
 
 ```java
 CountDownLatch firstLocksHeld = new CountDownLatch(2);
@@ -394,11 +444,19 @@ The holder may be halfway through changing an in-memory invariant, so forcibly r
 
 **Q14. A distributed lock uses leases but still corrupts data after a long garbage-collection pause. What is missing?** `[hard]`
 
-The paused client may resume after its lease expired and continue acting as if it still owns the lock, while a new client has acquired it. Add fencing tokens or monotonically increasing lock versions that the protected database or service rejects when stale. Leases bound ownership in time but require the resource itself to enforce which owner is current.
+The paused client may resume after its lease expired and continue acting as if it still owns the lock, while a new client has acquired it. Issue monotonic fencing tokens and require the protected resource to compare/enforce them atomically with each effect. Merely checking lease ownership in the client before a separate write leaves a race. Leases limit claimed ownership but do not stop a paused process from resuming. A resource that has accepted token 12 must reject a later write carrying 11; arbitrary external APIs need their own enforcement contract.
+
+**Answer rubric**
+- **Say it:** Lease expiry does not stop the old worker; the resource must reject its stale writes.
+- **Mechanism:** Issue increasing tokens and enforce the stored token with each protected update atomically.
+- **Example:** After token 12 writes, resumed token 11 cannot overwrite it.
+- **Limit:** A client-side check or a target API without token enforcement cannot provide this guarantee.
+- **Watch for:** Saying a lease automatically cancels a paused thread or using wall-clock time as a reliable fencing epoch.
+- **Follow-up:** What if the old write arrives before the resource has seen the newer token?
 
 ### Further Reading
 
 - [Linux kernel locking design](https://docs.kernel.org/kernel-hacking/locking.html) explains lock ownership and deadlock avoidance in kernel code.
-- [PostgreSQL documentation: explicit locking](https://www.postgresql.org/docs/current/explicit-locking.html) describes row locks and deadlock behaviour.
-- [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html) documents transaction failure and retry considerations.
+- [PostgreSQL documentation: explicit locking](https://www.postgresql.org/docs/16/explicit-locking.html) describes row locks and deadlock behaviour.
+- [PostgreSQL documentation: transaction isolation](https://www.postgresql.org/docs/16/transaction-iso.html) documents transaction failure and retry considerations.
 - [Java `Lock` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/Lock.html) documents lock acquisition and `tryLock` behaviour.

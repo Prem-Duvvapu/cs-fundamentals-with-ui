@@ -55,7 +55,8 @@ jobs:
           java-version: '17'
           cache: maven
       - run: mvn test -f backend/pom.xml
-      - run: mvn test -f examples/java-spring/task-tracker/pom.xml
+      - run: mvn verify -f examples/java-spring/task-tracker/pom.xml
+      - run: python3 examples/java-spring/task-tracker/verify_http.py
       - run: node scripts/verify-java-examples.mjs
       - run: node --test scripts/verify-java-examples.test.mjs
 
@@ -63,6 +64,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: docker build -t task-tracker-learning examples/java-spring/task-tracker
+      - run: |
+          docker run -d --name task-tracker-check -p 127.0.0.1:9191:9191 -e TASK_TRACKER_ALICE_PASSWORD=ci-alice -e TASK_TRACKER_BOB_PASSWORD=ci-bob -e TASK_TRACKER_VIEWER_PASSWORD=ci-viewer task-tracker-learning
+          trap 'docker rm -f task-tracker-check' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:9191/actuator/health/readiness >/dev/null; then
+              test "$(docker inspect --format='{{.Config.User}}' task-tracker-check)" = "10001:10001"
+              docker stop --time 25 task-tracker-check
+              exit_code=$(docker inspect --format='{{.State.ExitCode}}' task-tracker-check)
+              test "$exit_code" = "0" || test "$exit_code" = "143"
+              docker logs task-tracker-check 2>&1 | grep -q 'Graceful shutdown complete'
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs task-tracker-check
+          exit 1
       - run: docker compose build
       - run: |
           docker compose up -d
@@ -75,3 +93,28 @@ jobs:
           done
           docker compose logs
           exit 1
+
+  labs:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: lab-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: python3 -m unittest discover -s examples/labs -p test_labs.py -v
+      - run: psql -X -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f examples/labs/sql/verify.sql
+        env:
+          PGPASSWORD: lab-password

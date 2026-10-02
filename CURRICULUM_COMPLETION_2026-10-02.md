@@ -1,0 +1,125 @@
+# Curriculum delivery checkpoint — October 2, 2026
+
+Status: active implementation in `feat/2026-10-02-curriculum-completion`, isolated from the
+main thread's dark-theme branch. This checkpoint records delivered work and explicit remaining
+criteria. The four requested tracks are **not all complete**: 40 core accuracy reviews, actual
+learner sessions and local/CI container execution evidence remain.
+
+## Implemented and verified
+
+1. **SQL/OS/networking labs:** checked PostgreSQL fixture covers outer joins, fan-out, NULL,
+   ranking, deterministic ordering, constraints and rollback. Python observes a bounded child
+   waiting/allocating/computing, temporary filesystem resources, TCP/HTTP partial reads and
+   UDP datagrams/truncation. Setup, expected observations, cleanup and limits are in
+   [the lab guide](examples/labs/README.md). PostgreSQL 16.15 and both Python tests pass.
+2. **Spring milestones:** Flyway V1/V2 plus explicit legacy adoption, owner-scoped project/task
+   CRUD, relationships, bounded pages, project version conflicts, Basic/role/CSRF checks,
+   transaction-aware bounded caching and health/metrics. Nineteen example tests pass, plus
+   a packaged real HTTP smoke for actual servlet errors, token/session behavior and SIGTERM.
+   [The walkthrough](examples/java-spring/task-tracker/README.md) supplies exact commands,
+   predictions, failure cases and deployment limits. The original memory/persistence paths remain.
+3. **Interview feedback and spaced review:** 39 canonical authored rubrics (19 new), optional
+   recording of written explanations/self-ratings, ten recent attempt snapshots per question,
+   transparent review dates, postpone/reset actions and sessions of up to eight due/mixed
+   questions. Exact question matching uses canonical lesson Markdown. Version-3 backup merges
+   preserve local drafts/history and accept v1/v2 files. No automatic score/readiness claim.
+4. **Accuracy review:** sixteen complete core lessons read, high-risk claims checked against
+   dated primary sources, and corrections made alongside answers. [The source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md)
+   records contracts, runtime versions and limits. The thirteen new reviews cover CPU scheduling, memory management,
+   I/O systems, JVM/GC, transport protocols, practical SQL, Spring Security, caching/async and
+   testing/operations, application protocols, Java concurrency, distributed DBMS and deadlocks. No question prompts or Mermaid sources changed in this package.
+5. **Usability preparation:** [the real-learner protocol](LEARNER_USABILITY_STUDY.md) defines
+   beginner/engineer tasks, unaided predictions, changed examples, next-day recall, observation
+   records and revision/retest criteria. No participant observations are fabricated.
+
+## Verification evidence
+
+- Frontend: **683/683 tests**, including scheduling/history/merge, exact review selection,
+  failed-load retry preservation, cancellation and the shared interview deck.
+- Platform backend: **59/59 tests**; isolated Spring example: **19/19**.
+- Packaged HTTP: health/readiness, authentication, real session CSRF, ownership, nested CRUD,
+  page contract, stale version, metric exposure and idle graceful shutdown pass.
+- Production frontend build and current diagram manifest check pass (295 diagrams/590 assets).
+- Browser: **11 route families × 5 widths × 2 themes**, exact-question review journey and
+  **16 axe scans**, all pass. This is automated accessibility/interaction evidence, not learner comprehension.
+- Content: 68/68 lessons and 83/83 coverage mappings pass; the current-batch corpus renderer/interview parser passes 210 tests. The final deadlock structure/render checks and corpus question parsing pass (five focused tests). The 109-entry migration gate and thirteen marked Java programs pass. The Banker Python model produces the stated output.
+- CI now runs PostgreSQL/Python labs, the packaged Spring HTTP smoke and a teaching-container
+  readiness/nonroot/SIGTERM check. CI execution itself is not claimed as locally observed.
+
+The Docker Desktop Linux engine is unavailable locally. The authored Dockerfile/CI smoke has
+not been executed against a local daemon. H2, teaching identities and Caffeine do not establish
+remote TLS, disaster recovery, multi-replica coherence or production load capacity.
+
+## Remaining accuracy queue
+
+These are **pending**, not sign-offs inferred from line counts. Each unit must read the whole
+lesson, verify consequential claims with primary sources, correct answers together, run relevant
+examples, retain question identity/migration evidence, and record its scope in the source ledger.
+
+### java-spring: 17 lessons
+
+- [ ] [Java Execution Pipeline & JVM Architecture](content/java-spring/01b-java-execution-pipeline.md)
+- [ ] [Java Memory Model: Values, Objects, Strings, and Concurrency](content/java-spring/01c-java-memory-model.md)
+- [ ] [OOP Pillars & Dynamic Method Dispatch](content/java-spring/01d-java-oop-pillars.md)
+- [ ] [Java Classes, Immutability, Records & Modern Language Features](content/java-spring/01e-java-static-final-records.md)
+- [ ] [Java Interfaces, Functional Interfaces & Lambda Expressions](content/java-spring/01f-java-functional-lambdas.md)
+- [ ] [Generics, Wildcards (PECS) & Type Erasure](content/java-spring/01g-java-generics.md)
+- [ ] [Java Collections Framework: List, Set, Queue & PriorityQueue](content/java-spring/01h-java-collections-framework.md)
+- [ ] [Java Streams API, Lazy Pipelines, and Optional](content/java-spring/01i-java-streams-optional.md)
+- [ ] [HashMap Bucket Internals, Treeification & ConcurrentHashMap](content/java-spring/01j-java-hashmap-internals.md)
+- [ ] [Java Reflection, Annotations, and Exception Handling](content/java-spring/01k-java-reflection-exceptions.md)
+- [ ] [SOLID Principles and Java Design Patterns](content/java-spring/01m-design-patterns-solid.md)
+- [ ] [Spring IoC Container, Bean Lifecycles & Auto-Configuration](content/java-spring/02-spring-bean-lifecycle.md)
+- [ ] [Spring MVC Request Lifecycle, Filters & Exception Resolution](content/java-spring/03-spring-mvc-lifecycle.md)
+- [ ] [Spring Batch Architecture, Chunk Execution Lifecycle & Fault Tolerance](content/java-spring/05-spring-batch-lifecycle.md)
+- [ ] [Quartz Scheduler Architecture, Clustering & Misfire Policies](content/java-spring/06-quartz-scheduler.md)
+- [ ] [Spring Boot Internals, Auto-Configuration, and Production Configuration](content/java-spring/07-spring-boot-internals.md)
+- [ ] [Spring REST API Design, Validation & Error Contracts](content/java-spring/08-spring-rest-api-design.md)
+
+### os: 4 lessons
+
+- [ ] [Process Management](content/os/01-process-management.md)
+- [ ] [Process Synchronization: Locks, Semaphores, Atomics, and RCU](content/os/04-synchronization.md)
+- [ ] [File Systems, Inodes, Journaling & Copy-on-Write](content/os/06-file-systems.md)
+- [ ] [Disk Scheduling & File Allocation](content/os/08-disk-scheduling.md)
+
+### networking: 10 lessons
+
+- [ ] [Computer Network Fundamentals, Devices & Topologies](content/networking/00-network-fundamentals.md)
+- [ ] [Physical Layer: Transmission Media, Encoding, and Channel Capacity](content/networking/00b-physical-layer-media.md)
+- [ ] [Computer Networks: OSI & TCP/IP Reference Models](content/networking/01-osi-model.md)
+- [ ] [Data Link Layer, MAC, Framing & ARQ](content/networking/02-data-link-layer.md)
+- [ ] [IP Addressing, CIDR Subnetting, ARP, DHCP, and NAT](content/networking/03-ip-subnetting.md)
+- [ ] [Routing Algorithms, Link State & Distance Vector](content/networking/04-routing-algorithms.md)
+- [ ] [Transport Layer: TCP vs UDP & Connection Management](content/networking/05-tcp-ip.md)
+- [ ] [TCP Flow and Congestion Control: Windows, Loss, and Pacing](content/networking/06-tcp-congestion.md)
+- [ ] [Network Security: Cryptography, TLS, Filtering, and Resilience](content/networking/08-network-security.md)
+- [ ] [Network QoS, Traffic Shaping & Modern Networking](content/networking/09-network-performance-qos.md)
+
+### dbms: 9 lessons
+
+- [ ] [DBMS Introduction & Architecture](content/dbms/00-dbms-introduction.md)
+- [ ] [DBMS Architecture, ANSI-SPARC & Data Independence](content/dbms/01-dbms-architecture.md)
+- [ ] [Entity-Relationship Modeling and Relational Mapping](content/dbms/02-er-model.md)
+- [ ] [Relational Algebra, Calculus & Advanced Joins](content/dbms/03-relational-algebra-calculus.md)
+- [ ] [Keys, Functional Dependencies, and Canonical Covers](content/dbms/04-functional-dependencies-keys.md)
+- [ ] [Database Normalization: 1NF, 2NF, 3NF, and BCNF](content/dbms/04b-database-normalization.md)
+- [ ] [Database Indexing & B/B+ Tree Data Structures](content/dbms/05-dbms-indexing.md)
+- [ ] [Storage Engines, RAID, and Advanced Indexing](content/dbms/05c-storage-raid-indexing.md)
+- [ ] [Query Processing, Relational Trees, and Cost-Based Optimization](content/dbms/08-query-optimization.md)
+
+## Closure still needs external evidence
+
+- Run the container job with a functioning Docker daemon and record its result; fix any demonstrated failure.
+- Conduct at least one beginner and one backend-engineer study session, capture confusion and
+  incorrect models, revise from the findings, and retest changed tasks. The pending participant
+  question is not answered by elapsed time.
+- Merge this isolated branch into the active project through the main thread's integration flow;
+  it has not modified or merged the ongoing dark-mode work.
+
+## Current corpus
+
+68 lessons; 32,808 lines; 295 Mermaid sources; 953 interview questions; 39 authored rubrics.
+
+
+Final package gates: 68/68 lesson structures/syntax and 83/83 coverage mappings; 109/109 migration entries; thirteen marked Java programs compile/run with expected output. The final deadlock structure/render check and corpus question parsing pass; the migration evidence quote was synchronized and all 109 entries pass. Local commit hashes follow below.

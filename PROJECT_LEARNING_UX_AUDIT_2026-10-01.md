@@ -581,3 +581,15 @@ scoped reviews; A11 remains open for migrations, fetching/pagination, full CRUD,
 and operations. See the [accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) and
 [learner walkthrough](examples/java-spring/task-tracker/README.md). This package does not close
 manual usability, accessibility, performance, or learner-comprehension findings.
+
+
+## October 2 continuation checkpoint
+
+The [delivery checkpoint](CURRICULUM_COMPLETION_2026-10-02.md) supersedes the earlier pending
+milestone descriptions: seeded SQL plus OS/loopback networking labs, Spring migrations/relationships/
+pagination/security/caching/operations, and optional spaced-review histories/mixed sessions are
+implemented in an isolated branch. Nineteen more rubrics bring authored feedback to 39 questions.
+The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) now covers sixteen scoped core reviews;
+40 core reviews remain. [Learner study tasks](LEARNER_USABILITY_STUDY.md) are prepared, but real
+sessions, revisions informed by them and retesting remain open. Container checks require a running
+daemon/CI result. Do not close those items from structural tests or an automated browser pass alone.

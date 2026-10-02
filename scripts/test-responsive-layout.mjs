@@ -84,6 +84,7 @@ try {
     '/interview/all',
     '/category/java-spring',
     '/progress',
+    '/review',
     '/not-a-real-route'
   ]
   const widths = [320, 375, 768, 1024, 1440]
@@ -174,10 +175,25 @@ try {
     failures.push(`Pilot rubric did not render its inline code and follow-up: ${await page.locator('.practice-guidance').innerText()}`)
   }
 
+  await page.getByRole('textbox').fill('A subtype implementation is selected for the actual receiver.')
+  await page.getByRole('button', { name: 'Partly recalled' }).click()
+  await page.getByRole('button', { name: 'Record this attempt' }).click()
+  await page.getByText('Review date and previous attempts').click()
+  await page.getByText('Reset review date to now').click()
+  await page.goto(`${origin}/progress`)
+  await page.getByRole('link', { name: 'Start a review session' }).click()
+  await page.getByRole('heading', { name: 'Explain and compare' }).waitFor()
+  if (!(await page.getByRole('textbox').inputValue()).includes('actual receiver')) failures.push('Review did not restore the exact saved explanation')
+  await page.getByRole('button', { name: 'Recalled confidently' }).click()
+  await page.getByRole('button', { name: 'Record this attempt' }).click()
+  await page.getByText('1 of 1 questions recorded in this session.').waitFor()
+  await page.getByText('Review date and previous attempts').click()
+  await page.getByText('Model answer not opened during this visit', { exact: false }).waitFor()
+
   const axeSource = require('axe-core').source
   for (const theme of ['dark', 'light']) {
     await page.evaluate(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
-    for (const route of ['/', '/category/java-spring', '/topic/java-execution-pipeline', '/topic/process-management?view=simulation', '/search?q=java', '/interview/all', '/progress']) {
+    for (const route of ['/', '/category/java-spring', '/topic/java-execution-pipeline', '/topic/process-management?view=simulation', '/search?q=java', '/interview/all', '/progress', '/review']) {
       await page.goto(`${origin}${route}`)
       await page.locator('h1').first().waitFor()
       await page.locator(`html[data-theme="${theme}"]`).waitFor()
@@ -205,4 +221,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('Responsive layout smoke passed: 10 route families × 5 widths × 2 themes; 14 axe scans.')
+console.log('Responsive layout smoke passed: 11 route families × 5 widths × 2 themes; 16 axe scans; exact-question spaced-review journey.')

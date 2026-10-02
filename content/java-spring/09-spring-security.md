@@ -23,7 +23,7 @@ Suppose task 7 belongs to Alice. Bob can be successfully logged in and still hav
 
 **Authentication** establishes the caller's identity through a configured mechanism. **Authorization** evaluates a rule about that identity, the operation, and the resource. A filter chain can enforce request rules before controller execution; resource-specific rules still need the correct business context.
 **Predict:** changing a URL from task 7 to task 8 must not bypass the ownership check. **Change:** add an explicitly defined support role and state exactly what it may do. **Debug:** never trust a request body that merely claims `ownerId = Alice`; derive trusted identity from the authenticated context and verify the resource relationship.
-The initial Task Tracker example intentionally has no security configuration. Use it for request/wiring practice, not as an authenticated deployment. Later session, token, CSRF, and OAuth2 sections describe different mechanisms and trade-offs rather than one interchangeable login recipe.
+Task Tracker's default teaching profile permits requests locally; its [secure project milestone](../../examples/java-spring/task-tracker/README.md#milestone-3-migrations-and-related-resources) adds identity, role, ownership and CSRF checks with executable rejection tests. Later session, token, CSRF, and OAuth2 sections describe different mechanisms and trade-offs rather than one interchangeable login recipe.
 
 
 ### Authentication, authorization, and the security filter chain
@@ -89,9 +89,9 @@ sequenceDiagram
 
 `AuthenticationManager` normally delegates to one or more `AuthenticationProvider` implementations. A `DaoAuthenticationProvider` loads a user and asks a `PasswordEncoder` to compare the submitted password with the stored adaptive hash. On success, Spring replaces the unauthenticated request token with an authenticated object.
 
-### A minimal Spring Security 6 configuration
+### A minimal modern Spring Security configuration
 
-Modern Spring Security uses beans and lambdas rather than extending the removed `WebSecurityConfigurerAdapter`.
+This configuration is an excerpt, not a standalone application. The runnable example uses Java 17 and Spring Boot 4.1.1 with its managed Spring Security 7 dependencies. Modern configuration uses beans and lambdas rather than the removed `WebSecurityConfigurerAdapter`.
 
 ```java
 @Configuration
@@ -220,6 +220,8 @@ SecurityFilterChain resourceServer(HttpSecurity http) throws Exception {
 }
 ```
 
+Configuring JWT support alone does not supply keys, issuer or audience policy. Set the expected `issuer-uri` and `audiences` (or explicit validators) and test incorrect values. The framework's default issuer/time validation is not an implicit audience allow-list.
+
 `STATELESS` prevents the security context from being persisted as a session; it does not make the whole application stateless if other filters or controllers create sessions.
 
 ### OAuth 2.0 and OpenID Connect boundaries
@@ -256,7 +258,7 @@ Raising the cost to 13 roughly halves the per-instance capacity to 22 checks per
 
 **Cross-Origin Resource Sharing (CORS)** controls whether browser JavaScript from one origin may read or send selected cross-origin requests. It is enforced by browsers, not by command-line clients or malicious servers. CORS is therefore not authentication and cannot protect a public API from non-browser callers.
 
-**Cross-Site Request Forgery (CSRF)** exploits credentials the browser attaches automatically, especially cookies. A malicious site causes a victim's browser to send a state-changing request to a trusted site, and the trusted site sees the victim's valid cookie. A random anti-CSRF token proves the request originated from a page that could read trusted-site state.
+**Cross-Site Request Forgery (CSRF)** exploits credentials the browser attaches automatically, especially cookies. A malicious site causes a victim's browser to send a state-changing request to a trusted site, and the trusted site sees the victim's valid cookie. A validated anti-CSRF token checks possession of trusted-site state; it is not proof of human intent and does not repair XSS that can read or submit that state.
 
 ```mermaid
 flowchart LR
@@ -267,7 +269,7 @@ flowchart LR
     T -->|Yes| H["Business handler"]
 ```
 
-A bearer token supplied explicitly in an `Authorization` header is not automatically attached by the browser, so classic CSRF risk is lower. If the same token is stored in a cookie, CSRF protection is needed again. Disabling CSRF merely because an application returns JSON is unsafe; credential transport determines the threat.
+A bearer token supplied explicitly in an `Authorization` header is not automatically attached by the browser, so classic CSRF risk is lower. If the same token is stored in a cookie, CSRF protection is needed again. Browser HTTP Basic can also attach credentials automatically. Disabling CSRF merely because an application returns JSON is unsafe; credential transport determines the threat.
 
 Configure CORS before Spring Security because a preflight `OPTIONS` request generally has no cookies. Use exact trusted origins when credentials are allowed; the wildcard origin cannot be combined safely with credentialed browser requests.
 
@@ -288,9 +290,11 @@ Method security protects service operations even when they are called from anoth
 ```java
 @PreAuthorize("hasAuthority('invoice:read') and #customerId == authentication.name")
 public Invoice getInvoice(String customerId, long invoiceId) {
-    return repository.findRequired(invoiceId);
+    return repository.findRequiredForCustomer(invoiceId, customerId);
 }
 ```
+
+The repository method above must constrain both invoice ID and stored owner; merely comparing a supplied customer ID with the principal would leave another invoice readable. Method rules are normally proxy-intercepted, so self-invocation or directly constructing the service can bypass the annotation.
 
 Use method rules for domain-sensitive checks, but avoid expressions that trigger uncontrolled database queries. Complex authorization belongs in a testable policy component invoked from the expression or service.
 
@@ -308,7 +312,7 @@ The authenticated principal is request evidence, not a mutable domain aggregate.
 
 ### Authentication failure and access-denied contracts
 
-An unauthenticated request that needs identity should produce HTTP 401 through an `AuthenticationEntryPoint`. An authenticated principal lacking permission should produce HTTP 403 through an `AccessDeniedHandler`. Returning 404 can deliberately conceal resource existence, but that policy must be consistent to avoid an enumeration oracle.
+A Basic/bearer API normally returns HTTP 401 through its configured `AuthenticationEntryPoint`; a form-login entry point can redirect to login. CSRF rejection can return 403 before authentication/authorization completes, so status alone does not identify the filter. An authenticated principal lacking permission should produce HTTP 403 through an `AccessDeniedHandler`. Returning 404 can deliberately conceal resource existence, but that policy must be consistent to avoid an enumeration oracle.
 
 API error bodies should be stable and non-sensitive:
 
@@ -351,7 +355,7 @@ sequenceDiagram
     RS->>J: refresh and retain only K2
 ```
 
-If the authorization server or JWKS endpoint is temporarily unavailable, cached unexpired keys should permit validation. A resource server that fetches keys on every request converts an identity-system slowdown into a complete API outage.
+If the authorization server or JWKS endpoint is temporarily unavailable, cached trusted keys can permit validation of unexpired tokens while the configured freshness and key-retirement policy allow it. A resource server that fetches keys on every request converts an identity-system slowdown into a complete API outage.
 
 ### Common attack and failure modes
 
@@ -443,6 +447,14 @@ Authorities are exact permission strings carried by an authenticated principal, 
 
 It should remain enabled whenever the browser automatically attaches authentication credentials, especially session or token cookies, to state-changing requests. Returning JSON does not eliminate the forged-request mechanism. An API using only explicit bearer headers may not need classic CSRF tokens, but XSS and token leakage remain separate threats.
 
+**Answer rubric**
+- **Say it:** CSRF depends on automatic browser credentials, not JSON or a stateless label.
+- **Mechanism:** A hostile page induces a write carrying cookies or browser Basic credentials; validate a same-session token.
+- **Example:** Alice's authenticated POST without a token returns 403 in the runnable milestone.
+- **Limit:** XSS and explicitly supplied bearer headers have different threat boundaries.
+- **Watch for:** Do not assume HTTP Basic, REST or STATELESS makes browser forgery impossible.
+- **Follow-up:** Why does fetching a token and then discarding its session cookie fail?
+
 **Q7. What must a resource server validate in a JWT?** `[medium]`
 
 It must validate the signature with a trusted allowed algorithm, token time bounds, expected issuer, and its own audience before using claims. It must then map only controlled claims to authorities and tolerate no untrusted algorithm substitution. Merely decoding the token or checking expiration lets attacker-created or wrongly targeted tokens through.
@@ -453,7 +465,7 @@ PKCE binds the authorization request to a high-entropy verifier retained by the 
 
 **Q9. When is method security preferable to URL authorization?** `[medium]`
 
-Method security is preferable when the decision depends on arguments, return values, resource ownership, or an operation reachable through several transports. It protects the service boundary even if a new controller or listener calls the same method. Complex expressions can become opaque or trigger expensive lookups, so domain policy should live in a focused, testable component.
+Method security is preferable when the decision depends on arguments, return values, resource ownership, or an operation reachable through several transports. It protects intercepted service calls through the configured security proxy; self-invocation is not a new intercepted entry. Resource lookup must still constrain stored ownership, rather than trusting a matching caller-supplied owner label. Complex expressions can become opaque or trigger expensive lookups, so domain policy should live in a focused, testable component.
 
 **Q10. How should signing-key rotation work without breaking valid JWTs?** `[medium]`
 
@@ -461,11 +473,19 @@ The authorization server first publishes the new public key alongside the old on
 
 **Q11. Scenario: Every API request starts failing when the identity provider's JWKS endpoint has a brief outage. What would you change?** `[hard]`
 
-The resource server is probably fetching signing keys synchronously for every request or has no resilient cache. It should cache trusted keys according to appropriate freshness rules, refresh on rotation or unknown key identifiers, and continue validating with cached unexpired keys during a short upstream outage. Cache duration must still support emergency key retirement, so operations need an explicit refresh and revocation procedure.
+The resource server is probably fetching signing keys synchronously for every request or has no resilient cache. It should cache trusted keys according to appropriate freshness rules, refresh on rotation or unknown key identifiers, and validate unexpired tokens with cached trusted keys during a short upstream outage only within its explicit freshness and key-retirement policy. Cache duration must still support emergency key retirement, so operations need an explicit refresh and revocation procedure.
 
 **Q12. Scenario: A logged-in customer can retrieve another customer's invoice by changing the numeric ID in the URL. What failed?** `[hard]`
 
 Authentication succeeded, but object-level authorization was never enforced for the requested invoice. The service must compare ownership or a privileged authority against the loaded domain object, preferably at the service boundary rather than trusting a client-supplied owner ID. Tests should attempt cross-account identifiers because role-only happy-path tests will miss this insecure direct object reference.
+
+**Answer rubric**
+- **Say it:** The invoice lookup lacks object-level authorization.
+- **Mechanism:** Derive trusted identity and constrain the stored resource owner before exposing the invoice.
+- **Example:** Bob can authenticate successfully yet must not retrieve Alice's project or its tasks.
+- **Limit:** A coarse role or matching owner label in JSON is insufficient; proxy annotations also have interception boundaries.
+- **Watch for:** Comparing customerId with the principal does not prove invoiceId belongs to that customer.
+- **Follow-up:** How would you test a correctly authenticated caller requesting another owner's child resource?
 
 **Q13. Scenario: Raising BCrypt from cost 12 to cost 14 causes login latency and CPU saturation during a credential-stuffing attack. How do you respond?** `[hard]`
 

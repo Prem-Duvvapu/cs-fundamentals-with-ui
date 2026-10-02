@@ -22,3 +22,7 @@ examples/**/target/
 
 # Local database for the optional teaching profile
 /examples/java-spring/task-tracker/data/
+
+# Executed Python teaching labs
+__pycache__/
+*.pyc

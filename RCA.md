@@ -372,3 +372,33 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: require the real source parser, diagram generation and browser decode before release.
 - Prevention: validate changed Mermaid sources before rendering or declaring content complete.
 - Resolving commit: `5d0ebe0`. The 68-lesson parser, generation and 590-asset browser decode passed before release.
+
+## RCA-2026-10-02-10 — Servlet security configuration broke the non-web persistence test
+
+- Evidence: `FilePersistenceTest` failed because its non-web context had no `HttpSecurity` bean;
+  the other sixteen example tests passed.
+- Root cause: the new filter-chain configuration applied to every application type.
+- Resolution: condition servlet security on `ConditionalOnWebApplication.Type.SERVLET`.
+- Verification: rerun the entire example suite, including both application close/reopen contexts.
+- Prevention: retain the non-web file-persistence test when adding web/security configuration.
+- Resolving commit: to be recorded after this package is committed.
+
+
+## RCA-2026-10-02-11 — Real servlet error dispatch changed CSRF 403 into 401
+
+- Evidence: all MockMvc security tests passed, but the packaged HTTP smoke received 401 with an empty body for an authenticated POST missing CSRF. Allowing ERROR dispatch restored the expected 403 while direct protected requests remained denied.
+- Root cause: the secure deny-all fallback applied again to the container's error dispatch. MockMvc does not reproduce every embedded-container dispatch after `sendError`.
+- Resolution: permit only `DispatcherType.ERROR` within the chain so the configured error response can render; `/error` is not generally made public. Retain the packaged socket/CSRF check.
+- Verification: rerun the nineteen example tests and the real HTTP script. The shutdown assertion accepts the JVM's normal SIGTERM exit 143 as well as 0 and requires the server's graceful-completion log; exit 0 alone was an incorrect harness assumption.
+- Prevention: keep real HTTP rejection, readiness, metrics and SIGTERM checks alongside MockMvc; do not infer servlet-container behavior from mocked dispatch alone.
+- Resolving commit: recorded in the curriculum-completion release checkpoint after commit.
+
+
+## RCA-2026-10-02-12 — 2PC wording correction left migration evidence stale
+
+- Evidence: the migration gate rejected `legacy-json:dbms-concepts-distributed:root:interview:5563ba3f1e56` because its literal quote was absent after this accuracy review. The original question prompt and fourteen-answer section were still present.
+- Root cause: the reviewed answer correctly allowed recovery through authoritative decision evidence instead of implying only direct coordinator contact; the integration ledger still quoted the older sentence. This recurs under RCA-2026-10-01-03.
+- Resolution: update only that entry's `evidence.contains` to the revised answer sentence. Preserve its source payload, digest, question identity and migrated disposition.
+- Verification: require all 109 migration entries to pass and verify unchanged question prompts/diagram sources before the local commit.
+- Prevention: inspect migration references before future target-lesson edits and synchronize literal evidence as a separate integration unit; never restore an inaccurate claim to pass the gate.
+- Resolving commit: recorded after the local package commit.

@@ -4,11 +4,14 @@ CPU scheduling decides which runnable thread receives a processor next and for h
 
 ---
 
+**Before you start:** distinguish a thread from a process in [process management](/topic/process-management).
+**After this lesson:** calculate ready-queue waiting, explain a latency/fairness trade-off, and distinguish historical CFS from modern EEVDF.
+
 ## 🟢 Beginner Level
 
 ### Why a scheduler exists
 
-A processor executes one instruction stream per hardware core at a time.
+Each logical CPU runs one scheduled thread at a time. SMT can expose multiple logical CPUs on one physical core; they share execution resources and are not equivalent to separate full cores.
 
 Many more processes and threads may be ready to run.
 
@@ -111,7 +114,7 @@ It can cause the convoy effect, where many short jobs wait behind one long CPU-b
 
 Shortest Job First selects the smallest next CPU burst.
 
-With exact burst knowledge, non-preemptive SJF minimises average waiting time among available jobs.
+For a fixed batch already ready at the same time, exact burst knowledge and negligible overhead let non-preemptive SJF minimise average waiting time. Future arrivals change the assumptions; this is not a universal online scheduling optimum.
 
 Operating systems estimate bursts from past behaviour because future execution time is unknown.
 
@@ -257,7 +260,7 @@ Virtual runtime grows faster for lower-weight tasks and slower for higher-weight
 
 The scheduler chooses tasks with the smallest virtual runtime so tasks converge toward their weighted CPU share.
 
-Runnable tasks are stored in an ordered tree, giving selection and insertion logarithmic complexity in runnable-task count.
+Historical CFS stores runnable tasks in an ordered red-black tree. Insertion/removal cost is logarithmic; selecting a cached leftmost candidate need not traverse the whole tree.
 
 Nice values influence weight rather than representing a fixed millisecond time slice.
 
@@ -268,6 +271,10 @@ For a task with twice the weight, its ideal share is roughly two thirds against 
 The exact implementation and scheduler extensions vary across kernel versions.
 
 Read the target kernel documentation rather than assuming one historical default applies everywhere.
+
+Linux began the transition to **EEVDF** in 6.6. It measures whether a task is owed service using lag, then selects the earliest virtual deadline among eligible tasks. Virtual deadlines here express fair-scheduler service goals, not an application hard-real-time deadline. The kernel has continued evolving sleeper and slice behavior; check the deployed version and configuration.
+
+**Lab:** run `python3 examples/labs/os/observe.py` from your checkout. Predict the child's state while it waits on a pipe, then inspect its observed runnable state during bounded CPU work. A sampled `R` combines runnable/running; it is not proof the task occupied a CPU at the exact observation time.
 
 ### Real-time scheduling and priority inversion
 
@@ -359,7 +366,7 @@ For blocking work, capacity depends on blocking ratio and downstream limits rath
 
 **Q1. What is the difference between turnaround time and response time?** `[easy]`
 
-Turnaround time is the total time from arrival to completion, including all CPU, waiting, and I/O phases. Response time ends when the task first receives CPU service or produces its first response. Interactive systems often optimise response even if background turnaround worsens.
+Turnaround time is the total time from arrival to completion, including all CPU, waiting, and I/O phases. In the scheduling traces here, response time ends at first CPU dispatch; HTTP time-to-first-response is a different application metric. Interactive systems often optimise response even if background turnaround worsens.
 
 **Q2. What is the convoy effect in FCFS?** `[easy]`
 
@@ -383,7 +390,7 @@ A shorter quantum lets newly ready interactive tasks reach the CPU sooner. It al
 
 **Q7. How does aging prevent starvation in priority scheduling?** `[medium]`
 
-Aging increases the effective priority of a task as it waits, eventually allowing it to outrank newer higher-priority work. This bounds indefinite postponement while keeping urgent work preferred for short periods. The rate must be tuned so low-priority jobs progress without erasing meaningful priority distinctions.
+Aging gradually raises a waiting task's effective priority. It can prevent starvation within the policy's eligible class when boosts are sufficient and runnable demand permits progress; it does not guarantee service against an indefinitely busy higher scheduling class. The rate must be tuned so low-priority jobs progress without erasing meaningful priority distinctions.
 
 **Q8. What does MLFQ infer from a task that repeatedly consumes its entire quantum?** `[medium]`
 
@@ -405,9 +412,25 @@ Inspect run-queue latency, worker-pool queueing, thread priorities, blocking I/O
 
 This is priority inversion because the urgent task is waiting for a resource owned by lower-priority work. Enable or design priority inheritance or a priority-ceiling protocol for that lock, and minimise the critical section. Also verify that the logger does not perform I/O while holding the mutex because protocol choice cannot compensate for an unbounded critical section.
 
+**Answer rubric**
+- **Say it:** The lock dependency creates priority inversion.
+- **Mechanism:** Describe how medium-priority work can keep the low-priority owner from releasing the urgent task's lock.
+- **Example:** A control loop waits while a low-priority logger owns a mutex.
+- **Limit:** Inheritance does not bound unbounded I/O in the critical section.
+- **Watch for:** Changing only the waiting thread's priority does not remove the lock dependency.
+- **Follow-up:** What changes if the resource uses a priority ceiling?
+
 **Q13. How does CFS approximate weighted fairness?** `[hard]`
 
-CFS tracks a virtual runtime that advances in relation to actual execution and task weight. Tasks with less accumulated virtual runtime are selected so runnable tasks converge toward their configured weighted CPU shares. This is fair-sharing behaviour, not a strict fixed time-slice guarantee, and exact details vary by kernel version.
+CFS tracks a virtual runtime that advances in relation to actual execution and task weight. Tasks with less accumulated virtual runtime are selected so runnable tasks converge toward their configured weighted CPU shares. This is historical fair-sharing behavior, not a strict fixed time-slice guarantee. Modern Linux began moving to EEVDF in 6.6: eligibility comes from lag, and eligible tasks are chosen by virtual deadline; describe the target kernel rather than assuming every Linux machine still uses the older selection rule.
+
+**Answer rubric**
+- **Say it:** Historical CFS uses weighted virtual runtime.
+- **Mechanism:** Explain why execution increases vruntime inversely to weight; distinguish insertion from cached selection.
+- **Example:** Two equal-weight runnable tasks trend toward half a CPU each.
+- **Limit:** EEVDF eligibility/deadlines and kernel version matter; neither model is a hard deadline promise.
+- **Watch for:** A definition of CFS alone does not describe every modern Linux kernel.
+- **Follow-up:** How do lag and virtual deadlines change selection under EEVDF?
 
 **Q14. Why can an application with hundreds of threads become slower on eight cores?** `[hard]`
 
@@ -417,5 +440,5 @@ Hundreds of runnable threads compete for only eight execution contexts, increasi
 
 - [Linux kernel scheduler documentation](https://docs.kernel.org/scheduler/index.html) describes scheduler classes and Linux scheduling behaviour.
 - [Linux CFS design documentation](https://docs.kernel.org/scheduler/sched-design-CFS.html) explains virtual runtime and fair scheduling goals.
-- [POSIX scheduling interfaces](https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html) documents priority and scheduling policy concepts.
+- [Linux EEVDF documentation](https://docs.kernel.org/scheduler/sched-eevdf.html) explains eligibility, lag and virtual deadlines in the evolving fair scheduler.
 - [Linux real-time locking documentation](https://docs.kernel.org/locking/rt-mutex-design.html) explains priority inheritance mutexes.
