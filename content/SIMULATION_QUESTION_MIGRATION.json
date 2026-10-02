@@ -606,7 +606,7 @@
       "disposition": "migrated",
       "evidence": {
         "type": "lesson-content",
-        "contains": "After durably voting yes, a participant cannot commit or abort without the coordinator's decision."
+        "contains": "After durably voting yes, a participant needs authoritative evidence of the global decision."
       }
     },
     {

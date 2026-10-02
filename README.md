@@ -300,3 +300,27 @@ verification, simulator presentation work and the larger curriculum expansion ar
 ### Learning continuity and review
 
 The home and progress pages suggest a next lesson in your recently used category, following unmet prerequisites first. Your reading location and practice answers stay in browser storage and can be exported from Progress. Category interview practice can find a saved question on a later page. On Progress, the saved-answer manager opens the exact question, reaches answers beyond the first page, compares imported alternatives, swaps an alternative into Practice without losing the previous draft, and confirms deletion; its empty state remains visible after the last deletion so keyboard focus can land on the result; a live status appears only for a completed action. Known, missing, malformed and failed-to-load routes, including category-specific interview pages receive matching page titles and main-landmark names. Route changes focus the named main landmark so keyboard and screen-reader users can identify the new page; query, hash and lesson-view changes keep the current focus and reading position. The responsive browser check now waits for the selected theme and lazy simulator before scanning contrast in both themes. The [dated learning and UX audit](PROJECT_LEARNING_UX_AUDIT_2026-10-01.md) tracks further improvements to interview feedback, learning labs and accessibility.
+
+
+### Runnable labs and delayed recall — October 2
+
+[SQL, OS and networking labs](examples/labs/README.md) provide fixtures, predictions, expected
+observations, checks and cleanup. They use PostgreSQL 16+ and Python 3 on Linux/WSL, with loopback
+networking and temporary files. CI runs SQL correctness and both Python observations.
+
+[Task Tracker](examples/java-spring/task-tracker/README.md) now progresses from memory and JPA to
+Flyway migrations, project/task CRUD, bounded pagination, owner/role/CSRF security, commit-aware
+caching and health/metrics. Run its Maven suite and packaged `verify_http.py`; the README explains
+legacy schema adoption and the limits of the local production teaching profile.
+
+From Progress, open **Start a review session**. Record optional explanations and self-assessments,
+review up to eight due/mixed questions, compare the latest ten attempts, and postpone/reset dates.
+Scheduling is transparent: needs review 1 day, partial 3 days, confident 7 days then doubles to a
+30-day cap. Ratings are learner feedback, not automatic interview-readiness scores. Version-3
+backups include dates/history and still accept legacy version-1/2 files without replacing local drafts.
+
+The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records nineteen scoped lesson reviews;
+37 core accuracy reviews remain. Twenty-two new authored rubrics bring the total to 42. The
+[learner study](LEARNER_USABILITY_STUDY.md) is prepared; actual participant sessions and retesting
+remain required. See [the delivery checkpoint](CURRICULUM_COMPLETION_2026-10-02.md) for evidence
+and the outstanding work rather than interpreting automated checks as learner validation.

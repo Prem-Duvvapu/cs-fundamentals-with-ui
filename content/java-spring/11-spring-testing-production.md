@@ -26,6 +26,8 @@ Run `mvn test -f examples/java-spring/task-tracker/pom.xml` for the repository's
 **Predict:** removing the controller mapping may leave service tests green while breaking API tests. **Change:** assert that completing a task preserves its title. **Debug:** if production requests slow down while tests pass, inspect latency, errors, traffic, and dependency behavior; passing tests are evidence about tested conditions, not a guarantee about every deployment.
 
 
+**Try it:** package [Task Tracker](../../examples/java-spring/task-tracker/README.md#executable-milestones-and-transfer-exercises), then run its real HTTP smoke. It launches an isolated loopback server, checks CSRF/ownership failures and metrics, and verifies SIGTERM shutdown. Compare those claims with its MockMvc and persistence tests.
+
 ### Spring testing and production operations
 
 Testing and operations form one feedback loop. A unit test checks a small decision quickly, an integration test checks real boundaries, and production telemetry checks the running system under traffic that no test suite reproduces perfectly.
@@ -50,9 +52,9 @@ Production readiness adds a second set of questions:
 - Are secrets supplied without being committed or printed?
 - Does the JVM respect the container's memory budget?
 
-### JUnit 5 fundamentals
+### JUnit Jupiter fundamentals
 
-JUnit Jupiter is the programming and extension model commonly called JUnit 5. A test class groups executable examples, and each `@Test` should make one behaviour easy to understand when it fails.
+JUnit Jupiter is the programming and extension model introduced with JUnit 5; it remains in JUnit 6. Task Tracker's Boot 4.1.1-managed runtime uses Jupiter 6.0.3 on Java 17. These snippets are excerpts; the full example supplies imports, dependencies and classes. A test class groups executable examples, and each `@Test` should make one behaviour easy to understand when it fails.
 
 ```java
 class PriceCalculatorTest {
@@ -125,8 +127,8 @@ Each test type answers a different question.
 
 | Test type | Loads | Typical speed | Proves | Does not prove |
 |---|---|---:|---|---|
-| Unit | Plain objects | 1–10 ms | Branches and domain rules | Spring wiring or serialization |
-| MVC slice | Web layer subset | 100–800 ms | Routing, validation, JSON, security | Real database behaviour |
+| Unit | Plain objects | Illustrative: milliseconds | Branches and domain rules | Spring wiring or serialization |
+| MVC slice | Web layer subset | Context startup varies | Routing, validation, JSON, security | Real database behaviour |
 | Integration | Application plus real dependencies | Seconds | Wiring, SQL, transactions, protocols | Full user journey |
 | End-to-end | Deployed system | Seconds to minutes | Critical workflow | Every edge case cheaply |
 
@@ -136,7 +138,7 @@ Do not replace a missing unit-test layer with hundreds of full-context tests. Th
 
 Spring Boot Actuator exposes operational endpoints such as health, metrics, info, loggers, and mappings when enabled. Exposure must be intentional because some endpoints reveal configuration or permit runtime changes.
 
-**Liveness** answers whether the process is stuck and should be restarted. **Readiness** answers whether it can currently accept traffic. A temporary database failure should usually make a service unready, not necessarily dead; restarting every replica can amplify the outage.
+**Liveness** answers whether the process is stuck and should be restarted. **Readiness** answers whether it can currently accept traffic. Consider whether a database failure should make this instance unready: a shared outage can remove every replica even when some endpoints still work. Boot's default readiness group does not automatically include database or other external dependency checks; configure contributors deliberately. Restarting a healthy process does not repair a shared dependency; restarting every replica can amplify the outage.
 
 ```mermaid
 flowchart LR
@@ -158,7 +160,7 @@ Metrics reveal rates and distributions: request count, error rate, latency perce
 
 `@WebMvcTest` loads a focused MVC application context containing controllers, MVC configuration, converters, validation, and relevant security infrastructure. Collaborating service beans are replaced with test doubles, through Spring Framework’s `@MockitoBean` (`org.springframework.test.context.bean.override.mockito.MockitoBean`). Older Boot 3 examples may use `@MockBean`, which was deprecated in Boot 3.4 and removed in Boot 4.
 
-`MockMvc` invokes the servlet stack without opening a network socket. It verifies request mapping, argument binding, validation, filters, exception handling, status, headers, and rendered response bodies.
+`MockMvc` invokes the servlet stack without opening a network socket. It verifies request mapping, argument binding, validation, filters, exception handling, status, headers, and rendered response bodies. Embedded-container error dispatch can differ: the real HTTP milestone found a denied ERROR dispatch converting a CSRF 403 into 401, although MockMvc assertions passed.
 
 ```mermaid
 sequenceDiagram
@@ -213,7 +215,7 @@ Also test malformed JSON, invalid fields, missing authentication, insufficient a
 - `DEFINED_PORT` uses configured ports and creates collision risk in concurrent builds.
 - `NONE` loads a non-web context.
 
-Use a full context when the test must prove auto-configuration, bean wiring, proxy behaviour, transaction boundaries, security-chain integration, or multiple layers working together. Context caching speeds classes that share identical configuration; excessive custom profiles and mock sets fragment that cache.
+Use a full context when the test must prove auto-configuration, bean wiring, proxy behaviour, transaction boundaries, security-chain integration, or multiple layers working together. A transaction opened by a RANDOM_PORT test does not wrap the server's separate HTTP thread; those server writes need explicit cleanup or an isolated fixture. Context caching speeds classes that share identical configuration; excessive custom profiles and mock sets fragment that cache.
 
 Tests that start a server and database should assert observable behaviour, not reach into repositories to manufacture every state. Setup through stable application boundaries provides stronger confidence, though direct fixture insertion can be appropriate for large data arrangements.
 
@@ -254,7 +256,7 @@ class OrderRepositoryIntegrationTest {
 }
 ```
 
-Pin image versions so a registry's moving tag does not change build semantics unexpectedly. Keep containers reusable within an appropriate test scope, run independent suites in parallel carefully, and diagnose readiness through wait strategies rather than fixed sleeps.
+This is a Testcontainers 1.x-style excerpt; current 2.x imports/API need the corresponding module migration. `postgres:16-alpine` tracks a major release and remains a moving tag. For byte-for-byte fixture reproducibility, choose a tested patch tag or digest and update it deliberately. Keep containers reusable within an appropriate test scope, run independent suites in parallel carefully, and diagnose readiness through wait strategies rather than fixed sleeps.
 
 ### Structured logging and correlation IDs
 
@@ -325,7 +327,7 @@ Important settings include maximum pool size, connection timeout, idle timeout, 
 
 ### Graceful shutdown and traffic draining
 
-Graceful shutdown stops accepting new work, allows bounded in-flight requests to finish, closes application resources, and exits before the orchestrator's hard deadline. Spring Boot can perform graceful embedded-server shutdown when configured.
+Graceful shutdown stops accepting new work, allows bounded in-flight requests to finish, closes application resources, and exits before the orchestrator's hard deadline. Boot 4.1 enables graceful embedded-server shutdown by default; explicit configuration makes the teaching profile's intent visible. Server behavior, lifecycle phases and request deadlines still determine what completes.
 
 ```mermaid
 sequenceDiagram
@@ -373,9 +375,9 @@ $$
 M_{limit} > M_{heap} + M_{metaspace} + M_{code\ cache} + M_{direct} + M_{thread\ stacks} + M_{native}
 $$
 
-For a 1,024 MiB limit, allocating an 820 MiB heap leaves only 204 MiB for metaspace, direct buffers, thread stacks, JIT code cache, libraries, and the process itself. Two hundred threads with 1 MiB stacks could consume up to 200 MiB of virtual stack reservation before other native uses, making an out-of-memory kill plausible even when heap graphs look safe.
+For a 1,024 MiB limit, allocating an 820 MiB heap leaves only 204 MiB for metaspace, direct buffers, thread stacks, JIT code cache, libraries, and the process itself. Two hundred platform threads can reserve roughly 200 MiB of virtual address space for 1 MiB stacks, but reservation is not the same as resident or cgroup-charged memory. Stack commitment and other native allocations can exceed the remaining budget; establish actual resident/charged usage before attributing the kill.
 
-A safer initial budget might allocate 60% to heap: about 614 MiB, leaving about 410 MiB for non-heap and native memory. This is a starting hypothesis, not a universal rule; load tests and Native Memory Tracking should validate the actual workload.
+A safer initial budget might allocate 60% to heap: about 614 MiB, leaving about 410 MiB for non-heap and native memory. This is a starting hypothesis, not a universal rule; load tests, cgroup/RSS measurements and Native Memory Tracking should test that hypothesis. NMT distinguishes JVM reservation/commitment but does not account for every third-party native allocation; it is not an exact process-RSS total.
 
 Use an explicit container memory limit and inspect effective JVM ergonomics. Do not set identical `-Xms` and `-Xmx` reflexively in small containers unless the native headroom and startup footprint are understood.
 
@@ -439,6 +441,14 @@ A unit test creates plain objects and isolates a small rule without starting Spr
 
 It loads a focused MVC slice containing controllers, request mapping, conversion, validation, and relevant web security. With `MockMvc`, it can verify status, headers, JSON, filters, and exception handling without opening a network port. It does not prove the real database or full application wiring unless those boundaries are added separately.
 
+**Answer rubric**
+- **Say it:** MockMvc exercises a servlet test stack without a real listener.
+- **Mechanism:** Choose a slice for mappings, conversion, filters and error advice; choose real HTTP for container dispatch and socket behavior.
+- **Example:** Task Tracker's HTTP CSRF check exposed an ERROR-dispatch issue its MockMvc checks missed.
+- **Limit:** Neither test type proves every database engine, deployment or traffic scenario.
+- **Watch for:** A full test context is not proof that a network or persistence boundary was exercised.
+- **Follow-up:** What evidence would prove a row survives closing and reopening the application?
+
 **Q3. How does a Mockito mock differ from a spy?** `[easy]`
 
 A mock has generated default behaviour until the test stubs interactions. A spy wraps a real object and calls real methods unless a method is replaced. Spies can therefore execute side effects or depend on state, making them more hazardous and usually a signal to inspect the design seam.
@@ -479,6 +489,14 @@ The database check has likely been included in liveness, so the orchestrator tre
 
 The remaining memory may be consumed by metaspace, direct buffers, thread stacks, JIT code cache, native libraries, or allocator overhead. Inspect the actual JVM flags, thread count, direct-memory users, Native Memory Tracking, and container events rather than relying only on heap graphs. Reduce heap percentage or other native consumers and preserve explicit headroom beneath the cgroup limit.
 
+**Answer rubric**
+- **Say it:** Heap usage is only one part of the container's memory charge.
+- **Mechanism:** Compare cgroup events and RSS with heap, stacks, direct memory and JVM native categories.
+- **Example:** A 1 GiB limit can be exceeded by a 750 MiB heap plus committed native allocations.
+- **Limit:** Virtual stack reservation and NMT totals are not exact resident-memory totals.
+- **Watch for:** An OOM kill is not proof of a Java-heap leak, and larger heap settings can reduce native headroom.
+- **Follow-up:** How would the investigation change if the JVM reported unable to create native thread instead?
+
 **Q13. Scenario: Integration tests pass locally but intermittently fail in CI because the PostgreSQL container is not ready. What should change?** `[hard]`
 
 The suite is probably using a fixed sleep or treating an open port as application readiness. Configure a Testcontainers wait strategy based on the database's real readiness signal, inject properties only after startup, and capture container logs on failure. Pin the image version and remove shared mutable test data so infrastructure readiness is not confused with cross-test interference.
@@ -491,5 +509,5 @@ Mark the instance unready and allow routing changes to propagate before refusing
 
 - [Spring Boot reference: testing](https://docs.spring.io/spring-boot/reference/testing/index.html) documents test slices, full-context tests, utilities, and Testcontainers integration.
 - [Spring Boot reference: production-ready features](https://docs.spring.io/spring-boot/reference/actuator/index.html) covers Actuator endpoints, health groups, metrics, and observability.
-- [JUnit 5 User Guide](https://docs.junit.org/5.10.2/user-guide/) specifies the Jupiter programming model, lifecycle, parameterised tests, and extensions.
+- [JUnit 6.0.3 User Guide](https://docs.junit.org/6.0.3/overview.html) specifies the Jupiter programming model, lifecycle, parameterised tests, and extensions.
 - [Mockito documentation](https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html) defines mock, spy, verification, stubbing, and injection behaviour.

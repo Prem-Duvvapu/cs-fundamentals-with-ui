@@ -1,6 +1,7 @@
 /**
  * HashMap & ConcurrentHashMap Simulation Engine
- * Handles hash bucket indexing, collision linked-list chaining, treeification at 8 elements, and resize.
+ * Models OpenJDK 17 string-key placement, ordinary put thresholds and resize.
+ * Tree bins are represented by a flag; red-black rotations/search are not simulated.
  */
 
 export class HashMapEngine {
@@ -9,6 +10,7 @@ export class HashMapEngine {
     this.loadFactor = loadFactor
     this.buckets = Array.from({ length: initialCapacity }, () => [])
     this.size = 0
+    this.treeBins = new Set()
   }
 
   cloneState() {
@@ -17,6 +19,7 @@ export class HashMapEngine {
       loadFactor: this.loadFactor,
       size: this.size,
       threshold: Math.floor(this.capacity * this.loadFactor),
+      treeBins: [...this.treeBins],
       buckets: this.buckets.map(b => b.map(node => ({ ...node })))
     }
   }
@@ -28,7 +31,7 @@ export class HashMapEngine {
       hash = (hash << 5) - hash + strKey.charCodeAt(i)
       hash |= 0
     }
-    return Math.abs(hash)
+    return hash ^ (hash >>> 16)
   }
 
   getBucketIndex(key, cap = this.capacity) {
@@ -42,7 +45,7 @@ export class HashMapEngine {
 
     steps.push({
       action: 'HASH_COMPUTE',
-      description: `Key "${key}" ➔ hashCode = ${rawHash}. Target bucket = (capacity - 1) & hash = ${bucketIdx}.`,
+      description: `Key "${key}" ➔ spread hash = ${rawHash}. Target bucket = (capacity - 1) & hash = ${bucketIdx}.`,
       highlightBucket: bucketIdx,
       state: this.cloneState()
     })
@@ -73,14 +76,30 @@ export class HashMapEngine {
       state: this.cloneState()
     })
 
-    // Check treeification (>= 8 elements in chain)
-    if (bucket.length >= 8) {
-      steps.push({
-        action: 'TREEIFY_TRIGGERED',
-        description: `🌳 Bucket #${bucketIdx} reached 8 elements! Linked-list converted into Red-Black Tree for O(log N) lookup.`,
-        highlightBucket: bucketIdx,
-        state: this.cloneState()
-      })
+    if (bucket.length >= 9 && !this.treeBins.has(bucketIdx)) {
+      if (this.capacity < 64) {
+        steps.push({
+          action: 'RESIZE_TRIGGERED',
+          description: `Bucket #${bucketIdx} requests treeification after ${bucket.length} nodes, but capacity ${this.capacity} is below 64. Resize first.`,
+          highlightBucket: bucketIdx,
+          state: this.cloneState()
+        })
+        this.resize()
+        steps.push({
+          action: 'RESIZE_COMPLETE',
+          description: `Capacity doubled to ${this.capacity}; stored spread hashes select the new buckets.`,
+          highlightBucket: null,
+          state: this.cloneState()
+        })
+      } else {
+        this.treeBins.add(bucketIdx)
+        steps.push({
+          action: 'TREEIFY_TRIGGERED',
+          description: `Bucket #${bucketIdx} is now modeled as a tree bin. This view marks the representation; it does not execute tree search or rotations.`,
+          highlightBucket: bucketIdx,
+          state: this.cloneState()
+        })
+      }
     }
 
     // Check resize threshold
@@ -88,14 +107,14 @@ export class HashMapEngine {
     if (this.size > threshold) {
       steps.push({
         action: 'RESIZE_TRIGGERED',
-        description: `⚠️ HashMap size (${this.size}) > Threshold (${threshold}). Doubling array capacity to ${this.capacity * 2} and rehashing all entries!`,
+        description: `HashMap size (${this.size}) > threshold (${threshold}). Doubling capacity to ${this.capacity * 2} using stored spread hashes.`,
         highlightBucket: bucketIdx,
         state: this.cloneState()
       })
       this.resize()
       steps.push({
         action: 'RESIZE_COMPLETE',
-        description: `✅ Array capacity doubled to ${this.capacity}. Rehashed all keys into new bucket indices.`,
+        description: `Array capacity doubled to ${this.capacity}. Entries moved to the buckets selected by their stored hashes.`,
         highlightBucket: null,
         state: this.cloneState()
       })
@@ -106,16 +125,23 @@ export class HashMapEngine {
 
   resize() {
     const oldBuckets = this.buckets
+    const oldTreeBins = this.treeBins
     this.capacity *= 2
     this.buckets = Array.from({ length: this.capacity }, () => [])
     this.size = 0
+    this.treeBins = new Set()
 
-    oldBuckets.forEach(b => {
+    oldBuckets.forEach((b, oldIndex) => {
       b.forEach(node => {
         const newIdx = (this.capacity - 1) & node.hash
         this.buckets[newIdx].push(node)
         this.size++
       })
+      if (oldTreeBins.has(oldIndex)) {
+        for (const newIndex of [oldIndex, oldIndex + this.capacity / 2]) {
+          if (this.buckets[newIndex].length > 6) this.treeBins.add(newIndex)
+        }
+      }
     })
   }
 }

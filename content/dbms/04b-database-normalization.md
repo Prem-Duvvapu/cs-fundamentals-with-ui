@@ -4,6 +4,10 @@ Normalization organizes relational schemas so each fact has one authoritative ho
 It connects functional-dependency theory to practical schema design, migration safety, and query performance.
 Interviewers use it to test whether an engineer can identify anomalies, prove a decomposition correct, and explain when deliberate denormalization is justified.
 
+**Before you start:** Read [keys and functional dependencies](04-functional-dependencies-keys.md) through attribute closure; read [SQL joins](12-sql-querying.md) before running the worked query.
+**After this lesson:** Find every candidate key, test a normal form, and separately prove losslessness and dependency preservation.
+**Scope:** The proofs use classical set-valued relations and functional dependencies, without SQL NULLs. SQL bags, nullable uniqueness and join behavior need explicit constraints in the implementation.
+
 ---
 
 ## 🟢 Beginner Level
@@ -41,7 +45,7 @@ Dependencies come from business rules rather than from coincidences in one sampl
 For `STUDENT(StudentId, Email, DepartmentId, DepartmentName)`, plausible dependencies include:
 
 - `StudentId → Email, DepartmentId` because one student record has one email and department.
-- `Email → StudentId` if email is declared globally unique.
+- `Email → StudentId` if email is globally unique and non-null. PostgreSQL UNIQUE normally permits multiple NULLs, so a nullable UNIQUE column alone is not a classical candidate key.
 - `DepartmentId → DepartmentName` because one department identifier names one department.
 
 A sample in which two departments happen to share a name does not establish `DepartmentName → DepartmentId`.
@@ -92,8 +96,10 @@ It does not mean skipping design analysis: the normalized source of truth and th
 ### First normal form makes rows relational
 
 First normal form requires each row-column position to contain one value from the column's domain.
-A comma-separated list of phone numbers or an array of course identifiers inside a text column hides multiple facts from relational constraints.
+A comma-separated list of phone numbers or course identifiers hides independently constrained facts. SQL supports structured types such as arrays/JSON, but that does not automatically give every nested member a foreign key or one-row identity; choose a child relation when those facts need independent constraints.
 The fix is normally a child relation with one row per value.
+
+**Schema excerpt — requires an existing `student(student_id)` primary/unique key; not a complete setup script.**
 
 ```sql
 CREATE TABLE student_phone (
@@ -168,7 +174,7 @@ erDiagram
     }
 ```
 
-Every remaining non-trivial determinant is a key of its own relation, so this decomposition reaches BCNF.
+Under exactly the stated dependencies, every remaining non-trivial determinant is a key of its relation, so these fragments are in BCNF. The diagram assumes every order has at least one line; ordinary foreign keys do not enforce that minimum child count, which needs its own business/transaction rule.
 The original dependencies are also dependency preserving because each can be checked inside one resulting relation.
 That convenient outcome is not guaranteed for every BCNF decomposition.
 
@@ -204,7 +210,7 @@ Moving it removes both update redundancy and the inability to record a product b
 
 Do not test only the declared primary key.
 A relation can have several candidate keys, and 2NF must hold with respect to all of them.
-Prime status likewise comes from membership in any candidate key, not merely the chosen primary key.
+Prime status likewise comes from any candidate key, not merely the primary key. For `R(A,B,C,D)` with `A → B,C,D`, `BC → A` and `B → D`, candidate keys are A and BC. D is non-prime and depends on proper subset B of key BC: this violates 2NF despite single-column key A.
 
 ### Third normal form and transitive dependencies
 
@@ -237,13 +243,31 @@ Candidate keys are `(Student, Course)` and `(Student, Instructor)`.
 Decomposing into `INSTRUCTOR_COURSE(Instructor, Course)` and `STUDENT_INSTRUCTOR(Student, Instructor)` is lossless.
 
 The dependency `(Student, Course) → Instructor` is no longer contained in either fragment.
-Checking it requires a join, trigger, assertion mechanism, or application transaction.
+Checking it requires cross-fragment enforcement with a join/trigger/transaction and appropriate concurrency control; PostgreSQL has no general SQL CREATE ASSERTION feature. Merely querying for duplicates before a separate insert is race-prone.
 This is why production designers sometimes prefer dependency-preserving 3NF over BCNF.
+
+**Runnable SQL example — PostgreSQL 16+, read-only, no tables to create.** Save as `bcnf-counterexample.sql`; run `psql -X -At -v ON_ERROR_STOP=1 -d postgres -f bcnf-counterexample.sql` with your normal connection settings.
+
+```sql
+WITH instructor_course(instructor, course) AS (
+    VALUES ('I1', 'Databases'), ('I2', 'Databases')
+), student_instructor(student, instructor) AS (
+    VALUES ('S1', 'I1'), ('S1', 'I2')
+)
+SELECT si.student, ic.course, COUNT(DISTINCT si.instructor)
+FROM student_instructor si
+JOIN instructor_course ic USING (instructor)
+GROUP BY si.student, ic.course
+HAVING COUNT(DISTINCT si.instructor) > 1;
+```
+
+Expected unaligned output: `S1|Databases|2`. Each instructor has one course and each student/instructor pair is unique, so both fragments satisfy their local keys. Their join assigns two instructors to one student/course, violating the original dependency. This is a valid state of the fragments that could not come from a legal original relation; it does not contradict the lossless projection theorem.
+**Predict/change/debug:** Change I2's course to Networks: no row should be returned. A clean sample cannot prove dependency preservation; the rule must hold for every permitted state.
 
 ### Lossless join and dependency preservation are separate
 
 A decomposition is **lossless** when joining its projections recreates exactly the legal original rows without inventing spurious tuples.
-For a binary decomposition of $R$ into $R_1$ and $R_2$, it is lossless when the shared attributes functionally determine all attributes of at least one fragment.
+For a binary decomposition covering R, the shared attributes determining an entire fragment is sufficient for losslessness, and necessary when all constraints are functional dependencies. Additional multivalued/join constraints need their own theory.
 
 Formally, one of these must hold in $F^+$:
 
@@ -259,7 +283,7 @@ $$
 
 A decomposition is **dependency preserving** when all original dependencies can be enforced by checking individual fragments without joining them.
 Losslessness protects stored information; dependency preservation protects efficient constraint enforcement.
-A good decomposition aims for both, but BCNF guarantees lossless decomposition rather than dependency preservation.
+A good design aims for both. The standard BCNF decomposition algorithm guarantees a lossless split under its dependency assumptions; simply observing that two arbitrary fragments are in BCNF does not prove their split lossless.
 
 ---
 
@@ -342,7 +366,7 @@ Use a consistent snapshot plus change-data capture, or version comparisons that 
 Make each batch idempotent so retries do not duplicate child rows.
 
 Query regressions are also possible.
-After decomposition, missing foreign-key indexes can turn joins into repeated scans, and an ORM can create an N+1 query pattern.
+After decomposition, missing supporting indexes can make selected joins or parent-update/delete constraint checks expensive; PostgreSQL does not automatically index the referencing foreign-key columns. A hash join or sequential scan can still be the right plan. An ORM can separately create N+1 queries.
 Inspect actual execution plans, batch related reads, and keep transaction boundaries aligned with the invariant being updated.
 
 Denormalized read models fail differently.
@@ -377,11 +401,19 @@ A superkey functionally determines every attribute in the relation. A candidate 
 
 **Q5. How does 2NF differ from 3NF?** `[medium]`
 
-2NF removes dependencies where a non-prime attribute depends on only part of a candidate key. 3NF additionally restricts non-trivial dependencies whose determinant is not a superkey, unless the dependent attribute is prime. A single-column-key relation is automatically in 2NF but can still violate 3NF through a non-key transitive dependency.
+2NF removes dependencies where a non-prime attribute depends on only part of a candidate key. 3NF additionally restricts non-trivial dependencies whose determinant is not a superkey, unless the dependent attribute is prime. A relation is automatically in 2NF only when every candidate key has one attribute; checking a single-column primary key alone can miss a composite alternate key. Even then, 3NF can fail through a non-key transitive dependency.
 
 **Q6. Why is BCNF stricter than 3NF?** `[medium]`
 
-BCNF requires every determinant of a non-trivial functional dependency to be a superkey. 3NF allows the dependency when its right-side attribute is prime even if the determinant is not a superkey. The stricter rule removes more anomalies but can make an original dependency impossible to enforce without a join.
+BCNF requires every determinant of a non-trivial functional dependency to be a superkey. 3NF allows the dependency when its right-side attribute is prime even if the determinant is not a superkey. The stricter rule removes additional functional-dependency redundancy but can require cross-fragment enforcement for an original rule.
+
+**Answer rubric**
+- **Say it:** BCNF removes 3NF's prime-attribute exception, but its decomposition can lose local enforcement.
+- **Mechanism:** Check determinants against all candidate keys, then test projected dependencies separately.
+- **Example:** Instructor determines Course without being a key, while Course is prime in TEACHING.
+- **Limit:** Lossless reconstruction does not imply that local fragment constraints preserve every dependency.
+- **Watch for:** Saying BCNF is always better or that being prime means belonging only to the primary key.
+- **Follow-up:** Why can two locally valid fragments assign two instructors to one student/course?
 
 **Q7. What makes a binary decomposition lossless?** `[medium]`
 
@@ -417,7 +449,7 @@ Treat the view as a derived read model with a documented staleness objective and
 
 ### Further Reading
 
-- [PostgreSQL documentation on table constraints](https://www.postgresql.org/docs/current/ddl-constraints.html) explains primary, unique, foreign-key, and check constraints used to enforce normalized designs.
-- [PostgreSQL documentation on materialized views](https://www.postgresql.org/docs/current/rules-materializedviews.html) shows the mechanics and performance trade-offs of stored derived relations.
-- [SQLite query planner documentation](https://www.sqlite.org/queryplanner.html) provides a concrete primary-source explanation of indexes and join planning relevant after decomposition.
+- [PostgreSQL documentation on table constraints](https://www.postgresql.org/docs/16/ddl-constraints.html) explains primary, unique, foreign-key, and check constraints used to enforce normalized designs.
+- [PostgreSQL documentation on materialized views](https://www.postgresql.org/docs/16/rules-materializedviews.html) shows the mechanics and performance trade-offs of stored derived relations.
+- [Database System Concepts: normalization chapter](https://www.db-book.com/slides-dir/PDF-dir/ch7.pdf), from its authors, derives lossless decomposition, projected dependencies, 3NF synthesis and BCNF trade-offs.
 - [Codd's relational model paper](https://doi.org/10.1145/362384.362685) is the foundational source for relational structure and normalization theory.

@@ -36,6 +36,8 @@ Operating-system ephemeral ranges are configurable and need not exactly match th
 Binding a low port may require extra privileges depending on the operating system.
 Firewalls and load balancers make decisions on ports, but a listening port does not itself authenticate a caller.
 
+**Try it:** the [loopback networking lab](../../examples/labs/README.md#networking-name-resolution-byte-streams-and-http-errors) runs TCP/HTTP and UDP without external services. Predict which bytes belong to the body before inspecting its length-delimited parser.
+
 ### TCP, UDP, QUIC, and SCTP offer different services
 
 TCP provides a reliable ordered byte stream between two endpoints.
@@ -47,7 +49,7 @@ SCTP is a message-oriented association protocol with multi-streaming and multi-h
 |---|---|---|---|---|
 | abstraction | byte stream | datagrams | multiplexed streams | messages and streams |
 | built-in reliability | yes | no | yes per stream | yes |
-| message boundaries | no | yes | yes | yes |
+| message boundaries | no | yes | no for reliable streams | yes |
 | encryption required | no | no | yes in IETF QUIC | no |
 | connection migration | 4-tuple bound | application responsibility | connection IDs | multi-homing support |
 | common use | HTTPS, SSH | DNS, media | HTTP/3 | telecom signalling |
@@ -72,7 +74,7 @@ sequenceDiagram
     Note over C,S: established full-duplex byte stream
 ```
 
-The server allocates connection state only after it can validate the handshake according to its policy.
+A normal TCP server can allocate half-open state when it receives SYN, before the final ACK. SYN cookies can defer this allocation under the implementation's policy; completing the handshake is not the first possible allocation.
 The handshake helps both sides agree on sequence-number spaces and makes blind spoofing harder than a one-packet setup.
 It does not encrypt application data; TLS or another security protocol is required for that.
 
@@ -80,7 +82,7 @@ It does not encrypt application data; TLS or another security protocol is requir
 
 UDP adds source port, destination port, length, and checksum to a datagram.
 It does not establish a connection or retransmit a missing datagram.
-The receiver gets one whole datagram or none of it.
+UDP preserves datagram boundaries, but a receive buffer smaller than the datagram can yield a truncated message and discard the rest. Receive APIs expose truncation differently; check their contract rather than assuming a whole payload.
 
 Choose UDP when preserving message boundaries, avoiding connection setup, or preferring fresh data over late retransmissions matters more than built-in ordered reliability.
 DNS commonly uses a small request-response datagram and retries or falls back when needed; real-time streaming can discard a late media packet instead of delaying newer playback; and multiplayer games often send frequent position updates whose newer values supersede lost older ones.
@@ -93,7 +95,7 @@ UDP header: source port | destination port | length | checksum
 
 This makes UDP useful where an old packet is less valuable than a new one, such as real-time media or discovery queries.
 Applications must decide how to handle loss, reordering, duplication, authentication, rate limiting, and oversized messages.
-UDP checksum is optional in IPv4 only under specific rules and mandatory in IPv6.
+UDP permits a zero checksum in IPv4. Normal IPv6 UDP requires a checksum; narrowly specified tunnel exceptions are not a general permission to disable it.
 
 ---
 
@@ -118,7 +120,7 @@ The acknowledgement number is cumulative.
 An ACK of 10,001 means the endpoint has received every byte through 10,000 and expects byte 10,001 next.
 Selective acknowledgement options can additionally identify received ranges beyond a gap, reducing unnecessary retransmission.
 
-TCP sequence numbers count bytes, not segments.
+TCP sequence numbers count byte positions, not segments; SYN and FIN each consume one additional position.
 This lets the receiver reassemble differently sized segments into one ordered stream.
 Applications must still add their own message framing because TCP never reports “the sender's write call ended here.”
 
@@ -143,7 +145,7 @@ That number means the next missing byte is 4,000; it does not mean exactly 4,000
 
 For a 1,500-byte Ethernet MTU with 20-byte IPv4 and TCP headers and no options, 1,460 bytes is a common MSS.
 TCP options, IPv6 headers, tunnels, and path MTU constraints can reduce this value.
-Sending segments larger than the viable path risks fragmentation or loss, which is why TCP negotiates MSS during setup.
+MSS advertised during setup limits the payload the peer accepts; it does not discover the smallest MTU on the entire route. Path MTU discovery or packetization-layer probing can separately reduce the effective segment size.
 
 ```mermaid
 sequenceDiagram
@@ -267,7 +269,7 @@ QUIC integrates TLS negotiation, so a new connection commonly reaches usable enc
 Session resumption can permit 0-RTT early data before handshake completion.
 
 0-RTT data can be replayed by an attacker who captures it under the protocol's replay model.
-Servers must accept only replay-safe operations such as idempotent reads in early data, or reject early data for operations like payments and account changes.
+Restrict early data to operations whose replay policy is actually safe, or require handshake completion. A GET that records a charge is unsafe, and HTTP idempotency alone is not a complete anti-replay guarantee. [QUIC TLS §9.2](https://www.rfc-editor.org/rfc/rfc9001.html#section-9.2) defines the replay boundary.
 Faster setup is therefore a security and application-semantics decision, not a free latency switch.
 
 UDP reachability is also an operational constraint.
@@ -277,7 +279,7 @@ Monitor actual negotiated protocol use rather than assuming all HTTP/3-capable c
 ### SCTP supports messages, streams, and multiple paths
 
 SCTP calls a connection an association.
-It preserves message boundaries, so one send corresponds to one received user message unless fragmentation and reassembly are needed internally.
+It preserves user-message boundaries even when transport fragmentation is needed. Some socket APIs support partial delivery of a large message; the application must use message-end indications rather than assuming every receive call returns it whole.
 It supports multiple logical streams within an association so loss in one stream need not block delivery in another.
 
 SCTP also supports multi-homing: endpoints can advertise several addresses and use an alternate path when the primary fails.
@@ -351,7 +353,7 @@ Each flow is distinguished by its protocol and source and destination address-po
 
 **Q3. What is the difference between TCP and UDP message boundaries?** `[easy]`
 
-TCP exposes one continuous ordered byte stream and does not preserve sender write boundaries. UDP delivers one datagram as one message or does not deliver it. Applications using TCP must implement framing, while UDP applications must handle size limits and loss semantics.
+TCP exposes one continuous ordered byte stream and does not preserve sender write boundaries. UDP preserves each datagram's boundary, but a receive call with an undersized buffer can truncate its payload and discard the remainder. Applications using TCP must implement framing, while UDP applications must handle size limits and loss semantics.
 
 **Q4. What do TCP sequence and acknowledgement numbers count?** `[easy]`
 
@@ -379,11 +381,27 @@ SCTP preserves message boundaries and supports multiple streams within one assoc
 
 **Q10. What is dangerous about 0-RTT data?** `[medium]`
 
-0-RTT permits a resumed client to send early encrypted data before the new handshake completes. That data can be replayed under the QUIC and TLS threat model, even though it is encrypted. Servers should allow only idempotent replay-tolerant actions or wait for full handshake confirmation.
+0-RTT permits a resumed client to send early encrypted data before the new handshake completes. That data can be replayed under the QUIC and TLS threat model, even though it is encrypted. Servers must establish an application-specific replay-safe policy or wait for handshake completion; an idempotent HTTP method alone does not establish that policy.
+
+**Answer rubric**
+- **Say it:** Early encryption does not prevent replayed business effects.
+- **Mechanism:** A resumed client sends data before the new handshake completes; the server must decide whether replay is safe.
+- **Example:** Replaying an operation that charges a card can duplicate a payment even if transport ciphertext is valid.
+- **Limit:** Require handshake completion or an explicit replay policy; HTTP method names alone are insufficient.
+- **Watch for:** Do not equate idempotency, confidentiality and replay prevention.
+- **Follow-up:** Would a GET that changes an account balance be safe as early data?
 
 **Q11. A TCP application occasionally parses two business messages as one. What is the correct fix?** `[hard]`
 
 Add explicit framing such as a validated length prefix, delimiter with escaping rules, or a self-describing protocol grammar, then buffer reads until one complete frame is available. Do not assume one `read` matches one sender `write`, because TCP is free to split and combine byte delivery. Include maximum frame sizes and timeouts so malformed or stalled peers cannot consume unbounded memory.
+
+**Answer rubric**
+- **Say it:** TCP carries bytes; the application must delimit its messages.
+- **Mechanism:** Accumulate partial reads, validate a frame length, and parse exactly one complete frame while retaining extra bytes.
+- **Example:** Two four-byte messages can arrive in one read or several reads without violating TCP.
+- **Limit:** Bound frame size and deadlines before allocating memory or waiting for the remaining payload.
+- **Watch for:** One sender write is not one receiver read.
+- **Follow-up:** How would you test a length prefix itself split across two reads?
 
 **Q12. A mobile client changes networks and its HTTP/3 session fails at the load balancer. What do you investigate?** `[hard]`
 

@@ -4,6 +4,12 @@ I/O systems move data between programs and hardware whose speed, ownership, and 
 
 ---
 
+**Before you start:** understand [process waiting](/topic/process-management) and [memory pages](/topic/memory-management).
+
+**After this lesson you can:** distinguish readiness from completion, trace a partial read, and explain why write success is not a durability promise.
+
+**Try it:** the [OS and networking labs](../../examples/labs/README.md) observe a pipe wait and bounded TCP reads. Neither experiment claims to capture device interrupts or benchmark io_uring.
+
 ## 🟢 Beginner Level
 
 ### The I/O path
@@ -62,11 +68,11 @@ It avoids per-byte programmed transfer work.
 
 ### Blocking and non-blocking calls
 
-A blocking `read` waits until data, EOF, or an error is available.
+A blocking `read` can return immediately when progress is possible; otherwise it waits according to the descriptor's rules. Its result can be fewer bytes than requested, EOF or an error.
 
 The calling thread sleeps and another runnable task can use the CPU.
 
-A non-blocking `read` returns promptly with data, EOF, an error, or a would-block result such as `EAGAIN`.
+For supported sockets and pipes, non-blocking `read` avoids waiting for readiness and can return `EAGAIN`. On Linux, O_NONBLOCK does not prevent ordinary regular-file reads from waiting for storage; memory faults and processing can also take time.
 
 Non-blocking does not itself tell the application when to retry.
 
@@ -120,7 +126,7 @@ That requires `65,536 / 4 = 16,384` device-data reads, ignoring loop and bus ove
 
 With DMA using 4 KiB descriptors, the driver submits `65,536 / 4,096 = 16` descriptors.
 
-Assume descriptor setup costs 2 microseconds each and completion handling costs 20 microseconds total.
+Assume descriptor setup costs 2 microseconds each and completion bookkeeping costs 20 microseconds total, excluding interrupt entry/handler cost.
 
 DMA CPU overhead is approximately `16 × 2 + 20 = 52 microseconds` before mapping and cache effects.
 
@@ -164,7 +170,7 @@ The page cache keeps file data in RAM and can satisfy reads without storage acce
 
 Buffered writes may complete before physical media persistence.
 
-Use `fsync` or an application durability protocol when an acknowledgement must survive a crash.
+Use the appropriate durability protocol when an acknowledgement must survive a crash. Linux `fsync` on a file does not itself persist a newly created directory entry; creating or renaming a durable file can also require synchronizing its parent directory, under the filesystem/storage guarantees.
 
 Every queue needs a bound and a policy when full.
 
@@ -199,7 +205,7 @@ Edge-triggered mode can reduce repeated events.
 
 It can also stall a connection if the application reads only one chunk and waits for another edge that never comes.
 
-Use level triggering until measurements justify the more demanding drain discipline.
+Use level triggering until measurements justify the more demanding drain discipline. Linux epoll does not support every descriptor: regular files commonly fail registration with EPERM; it is not a general asynchronous disk-read mechanism.
 
 ### Data ownership, copies, and direct I/O
 
@@ -207,7 +213,7 @@ An I/O API must define who owns a buffer until an operation completes.
 
 For a blocking write, a caller can usually reuse the buffer after the call returns its accepted byte count.
 
-For asynchronous submission, the buffer must remain valid until its completion is observed.
+For asynchronous submission, follow the operation's exact buffer-lifetime contract. One-shot reads/writes normally need valid storage through completion; zero-copy sends can require a separate release notification before reuse.
 
 Reusing or freeing it early can corrupt a later device transfer.
 
@@ -231,7 +237,7 @@ Other paths still require DMA mapping, page pinning, checksum work, or a copy in
 
 It usually imposes alignment and size constraints based on filesystem and device requirements.
 
-It can help a database that already manages its own cache.
+It can help a database that already manages its own cache. O_DIRECT is not a durability flag: alignment, metadata handling and flush semantics remain separate concerns.
 
 It can hurt a small-read workload that would benefit from the page cache.
 
@@ -277,7 +283,7 @@ Not every operation is truly asynchronous on every filesystem, driver, or kernel
 
 Treat `io_uring` as a completion interface with rich batching, not as a magic zero-copy guarantee.
 
-Validate cancellation, timeout, partial result, and resource-lifetime handling.
+The diagram represents a one-shot operation. Multishot requests can produce several completions, while zero-copy sends have additional notification semantics. A successful cancellation-request CQE is not permission to free every original buffer; account for the original operation's completion/lifetime contract. Validate operation support on the deployed kernel, filesystem and security policy.
 
 ### Storage paths and scheduling
 
@@ -352,7 +358,7 @@ DMA lets a controller transfer a block between a device and RAM without the CPU 
 
 **Q3. What is a blocking system call?** `[easy]`
 
-A blocking call sleeps the calling thread until it can return data, completion, EOF, or an error. The scheduler can run another task while the thread waits. This is simple per request but can exhaust a limited thread pool when many operations block.
+A blocking call can sleep when progress is unavailable; it can also return immediately or with a partial result. The scheduler can run another task while the thread waits. This is simple per request but can exhaust a limited thread pool when many operations block.
 
 **Q4. Why must a condition after `epoll_wait` still be checked with `read`?** `[easy]`
 
@@ -392,7 +398,7 @@ Inspect queue depth, device saturation, request-size distribution, scheduler pol
 
 **Q13. Why can thread-per-connection fail for blocking I/O?** `[hard]`
 
-Each blocked connection consumes a thread stack, scheduler bookkeeping, and a pool slot even while no CPU work occurs. At high concurrency this creates memory pressure and queueing before the I/O device is saturated. Event-driven readiness or completion-based designs multiplex many waits, but they require explicit state-machine and error handling.
+With one platform thread per connection, each wait occupies that thread's stack and bookkeeping, and can exhaust a bounded worker pool. JVM virtual threads can unmount supported waits and change this cost model, but memory, downstream limits and cancellation still need bounds. At high concurrency this creates memory pressure and queueing before the I/O device is saturated. Event-driven readiness or completion-based designs multiplex many waits, but they require explicit state-machine and error handling.
 
 **Q14. When is kernel bypass justified?** `[hard]`
 

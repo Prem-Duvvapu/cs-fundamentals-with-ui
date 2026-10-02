@@ -40,7 +40,7 @@ describe('learning backups', () => {
     const exported = JSON.stringify(exportLearningData({ 'java-oop-pillars': { bookmarked: true } }))
     localStorage.clear(); resetLearningStoreForTests()
     const preview = previewLearningImport(exported, ['java-oop-pillars'])
-    expect(preview).toMatchObject({ ok: true, version: 2, drafts: 1, assessments: 1, lessons: 1, unknownTopics: 0 })
+    expect(preview).toMatchObject({ ok: true, version: 3, drafts: 1, assessments: 1, lessons: 1, unknownTopics: 0 })
     mergeLearningImport(preview.learning)
     expect(readLearning().practice[key]).toMatchObject({ draft: 'Explained', assessment: 'partial' })
     expect(readLearning().preferences.fontSize).toBe(18)
@@ -56,7 +56,7 @@ describe('learning backups', () => {
     ['null', /not a CS Fundamentals backup/],
     ['[]', /not a CS Fundamentals backup/],
     [JSON.stringify({ app: 'other-app', version: 2, progress: {} }), /not a CS Fundamentals backup/],
-    [JSON.stringify({ app: 'cs-fundamentals-with-ui', version: 3, progress: {} }), /newer version/],
+    [JSON.stringify({ app: 'cs-fundamentals-with-ui', version: 4, progress: {} }), /newer version/],
     [JSON.stringify({ app: 'cs-fundamentals-with-ui', version: 2, progress: {} }), /damaged/]
   ])('rejects %s with an explanation', (text, error) => {
     const preview = previewLearningImport(text)

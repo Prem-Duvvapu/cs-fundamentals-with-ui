@@ -14,6 +14,11 @@ public class TaskEntity {
     @Version
     private Long version;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    private ProjectEntity project;
+    void setProject(ProjectEntity project) { this.project = project; }
+
     protected TaskEntity() { }
     public TaskEntity(String title) { this.title = title; }
     public Long id() { return id; }

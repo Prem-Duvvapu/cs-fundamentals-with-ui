@@ -4,6 +4,12 @@ SQL is a declarative language: a query states the result to produce, while the d
 
 ---
 
+**Before you start:** understand [tables and keys](/topic/dbms-introduction) and [transactions](/topic/transactions-acid). You can run the fixture without inventing a schema.
+
+**After this lesson you can:** correct a multiplying join, predict NULL and ranking results, and choose deterministic pagination.
+
+**Try it:** follow the [seeded PostgreSQL lab](../../examples/labs/README.md#sql-grain-null-ordering-and-transaction-boundaries), predict each table, then run the checked queries. Other SQL fences here are excerpts; `:name` parameters belong to a client/framework, not raw psql syntax.
+
 ## 🟢 Beginner Level
 
 ### Practical SQL, joins, CTEs, and window functions
@@ -34,7 +40,7 @@ flowchart LR
 
 This order explains why a SELECT alias often cannot be referenced in WHERE: the alias does not logically exist when row filtering occurs. A subquery or CTE can establish the derived name at an earlier query level when reuse is needed.
 
-The optimizer may physically reorder safe operations, choose indexes, or change join algorithms. Those transformations must preserve the logical result.
+The optimizer may physically reorder safe operations, choose indexes, or change join algorithms. Those transformations must preserve the logical result. The diagram is simplified: window evaluation follows grouping/HAVING and precedes final DISTINCT/order/limit; logical order is not a promise that every expression executes physically in that sequence.
 
 ### Selecting, filtering, and deriving values
 
@@ -227,7 +233,7 @@ LEFT JOIN employees AS manager
   ON manager.id = employee.manager_id;
 ```
 
-A cross join returns $|A| \times |B|$ rows. Joining 12 months to 8 regions deliberately generates $12 \times 8 = 96$ reporting buckets, but crossing two million-row tables would attempt $10^{12}$ pairs before filtering.
+A cross join returns $|A| \times |B|$ rows. Joining 12 months to 8 regions deliberately generates $12 \times 8 = 96$ reporting buckets, while an unfiltered cross join of two million-row tables has $10^{12}$ logical pairs. An optimizer can push safe filters or change execution; it need not materialize every pair before filtering.
 
 A full outer join is useful for reconciliation:
 
@@ -241,10 +247,10 @@ FULL OUTER JOIN processor
   ON processor.order_id = ledger.order_id
 WHERE ledger.order_id IS NULL
    OR processor.order_id IS NULL
-   OR ledger.amount <> processor.amount;
+   OR ledger.amount IS DISTINCT FROM processor.amount;
 ```
 
-MySQL lacks native FULL OUTER JOIN, so applications often combine left and right anti-join branches with UNION ALL. Verify duplicate semantics carefully when emulating it.
+This reconciliation excerpt uses PostgreSQL's null-safe `IS DISTINCT FROM`; ordinary `<>` misses a one-sided NULL amount. MySQL lacks native FULL OUTER JOIN, so applications often combine left and right anti-join branches with UNION ALL. Verify duplicate semantics carefully when emulating it.
 
 ### Subqueries and correlated subqueries
 
@@ -324,7 +330,7 @@ FROM org
 ORDER BY depth, id;
 ```
 
-The path detects cycles in malformed hierarchy data. Production recursion should also enforce a reasonable maximum depth or statement timeout.
+The array syntax in this excerpt is PostgreSQL-specific. The path detects cycles in malformed hierarchy data. Production recursion should also enforce a reasonable maximum depth or statement timeout.
 
 ### Window functions preserve row detail
 
@@ -361,6 +367,8 @@ FROM orders;
 ```
 
 For values `100, 100, 80`, ROW_NUMBER yields `1, 2, 3`, RANK yields `1, 1, 3`, and DENSE_RANK yields `1, 1, 2`. ROW_NUMBER arbitrarily breaks ties unless its ordering includes a unique tie-breaker.
+
+A window's frame determines which rows a frame-sensitive aggregate or `LAST_VALUE` sees. With an ORDER BY, PostgreSQL's default frame ends at the current row's last peer, not necessarily the partition end. For a row-by-row running sum, use `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` with a deterministic ordering; for a whole-partition last value, choose `UNBOUNDED FOLLOWING`. LAG and LEAD use offsets rather than that frame.
 
 LAG reads a prior row and LEAD reads a following row in window order. They are useful for change detection, time gaps, and comparing an observation with its neighbour without a self join.
 
@@ -561,9 +569,17 @@ PARTITION BY divides input rows into independent windows without collapsing them
 
 A left join creates null-extended right-side columns for unmatched left rows. A WHERE predicate such as `right.status = 'PAID'` evaluates to unknown for those nulls, so the rows are rejected. Moving the condition into ON restricts matching right rows while preserving unmatched left rows.
 
+**Answer rubric**
+- **Say it:** A right-side WHERE condition can remove the rows the LEFT JOIN preserved.
+- **Mechanism:** An unmatched customer receives NULL order fields, and NULL equals PAID evaluates to unknown.
+- **Example:** Grace disappears from the lab report if the paid predicate moves from ON to WHERE.
+- **Limit:** Not every WHERE predicate does this; null-accepting conditions have different semantics.
+- **Watch for:** ON filters matching right rows while preserving left rows; WHERE filters the joined output.
+- **Follow-up:** What would COUNT(*) report for Grace compared with COUNT(order.id)?
+
 **Q6. When would you use EXISTS instead of IN?** `[medium]`
 
-EXISTS directly expresses that at least one correlated match is required and can stop after finding one. Optimizers often implement it as a semi-join, and NOT EXISTS has intuitive null-safe anti-join semantics. IN is concise for membership, but NOT IN can surprise when its subquery contains null.
+EXISTS directly expresses that at least one correlated match is required and can stop after finding one. Optimizers often implement it as a semi-join, and NOT EXISTS is not poisoned by a NULL elsewhere in the inner result. Equality still does not match two NULL keys; explicitly define that business rule when either key is nullable. IN is concise for membership, but NOT IN can surprise when its subquery contains null.
 
 **Q7. What are the parts of a recursive CTE?** `[medium]`
 
@@ -571,7 +587,7 @@ A recursive CTE contains an anchor query that seeds rows and a recursive query t
 
 **Q8. Why must ORDER BY include a unique tie-breaker for pagination?** `[medium]`
 
-Rows with equal sort values have no defined relative order, so the database may arrange them differently between executions. LIMIT, OFFSET, and cursor boundaries can then duplicate or skip tied rows. Appending a stable unique key creates a total order that clients can continue reliably.
+Rows with equal sort values have no defined relative order, so the database may arrange them differently between executions. LIMIT, OFFSET, and cursor boundaries can then duplicate or skip tied rows. Appending a stable unique key creates a total order; concurrent mutation of rows or ordering keys still requires a separate snapshot/cursor policy.
 
 **Q9. How do LAG and LEAD replace some self joins?** `[medium]`
 
@@ -580,6 +596,14 @@ LAG returns a preceding row's expression and LEAD returns a following row's expr
 **Q10. Why is `SUM(DISTINCT order_total)` not a valid fix for duplicated totals after joining order items?** `[medium]`
 
 DISTINCT deduplicates equal numeric values, not logical order identities. Two different orders can legitimately have the same total, so one would disappear from the sum. Aggregate at one row per order before joining further, or remove the multiplying join when it contributes nothing to the result.
+
+**Answer rubric**
+- **Say it:** Deduplicate order identities before summing, not equal prices.
+- **Mechanism:** Joining an order to several child rows repeats its total; SUM DISTINCT then removes unrelated orders with equal totals.
+- **Example:** Ada's two payments for the 50 order make the naive sum 200 instead of 150 in the lab.
+- **Limit:** The correct grain depends on whether the report measures order value, paid amounts or item revenue.
+- **Watch for:** A disappearing duplicate numeric value is not proof of a duplicate business row.
+- **Follow-up:** How would two separate 80 orders expose a SUM DISTINCT workaround?
 
 **Q11. Scenario: a customer report shows one order for customers who have never ordered. What do you inspect?** `[hard]`
 
@@ -591,7 +615,7 @@ Compare EXPLAIN ANALYZE estimates and actual rows for both tenant parameters, fo
 
 **Q13. Why can deep OFFSET pagination be both slow and inconsistent?** `[hard]`
 
-The engine may walk and discard every preceding index entry, so work grows with the offset even though few rows are returned. Inserts and deletes before the boundary shift row positions between requests, causing duplicates or omissions. Keyset pagination seeks from stable ordered values and usually gives bounded index work, at the cost of no arbitrary page jump.
+The engine may walk and discard every preceding index entry, so work grows with the offset even though few rows are returned. Inserts and deletes before the boundary shift row positions between requests, causing duplicates or omissions. Keyset pagination can seek from stable ordered values with a suitable access path, avoiding offset-proportional skipping. It does not freeze a snapshot or guarantee bounded work for every filter/plan, and it trades away arbitrary page jumps.
 
 **Q14. How would you diagnose a join that returns one hundred times more rows than expected?** `[hard]`
 
@@ -599,7 +623,7 @@ State the expected grain and calculate cardinality after each join using key uni
 
 ### Further Reading
 
-- [PostgreSQL documentation: SELECT](https://www.postgresql.org/docs/current/sql-select.html) defines query clauses, logical processing, grouping, ordering, and limits.
-- [PostgreSQL documentation: table expressions](https://www.postgresql.org/docs/current/queries-table-expressions.html) covers joins, WHERE, GROUP BY, and HAVING semantics.
-- [PostgreSQL documentation: window functions](https://www.postgresql.org/docs/current/tutorial-window.html) explains partitions, ordering, frames, ranking, LAG, and LEAD.
-- [PostgreSQL documentation: WITH queries](https://www.postgresql.org/docs/current/queries-with.html) documents CTE evaluation, recursion, cycle handling, and materialization.
+- [PostgreSQL documentation: SELECT](https://www.postgresql.org/docs/16/sql-select.html) defines query clauses, logical processing, grouping, ordering, and limits.
+- [PostgreSQL documentation: table expressions](https://www.postgresql.org/docs/16/queries-table-expressions.html) covers joins, WHERE, GROUP BY, and HAVING semantics.
+- [PostgreSQL documentation: window functions](https://www.postgresql.org/docs/16/tutorial-window.html) explains partitions, ordering, frames, ranking, LAG, and LEAD.
+- [PostgreSQL documentation: WITH queries](https://www.postgresql.org/docs/16/queries-with.html) documents CTE evaluation, recursion, cycle handling, and materialization.

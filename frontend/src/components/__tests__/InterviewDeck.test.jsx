@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
 import InterviewDeck from '../shared/InterviewDeck'
-import { questionKey } from '../../utils/learningState'
+import { beforeEach } from 'vitest'
+import { readLearning, resetLearningStoreForTests, questionKey } from '../../utils/learningState'
 
 // The real Markdown pipeline is exercised exhaustively by
 // TopicViewer.markdown.test.jsx. Keep this deck-level suite focused on reveal,
@@ -15,6 +16,8 @@ const QUESTIONS = [
   { id: 'q1', question: 'Q1. What is a page fault?', difficulty: 'easy', answerMarkdown: 'A **trap** into the kernel.' },
   { id: 'q2', question: 'Q2. What is thrashing?', difficulty: 'hard', answerMarkdown: 'Excessive paging activity.' }
 ]
+
+beforeEach(() => { localStorage.clear(); resetLearningStoreForTests() })
 
 describe('InterviewDeck', () => {
   it('renders nothing for an empty question list', () => {
@@ -131,4 +134,21 @@ describe('InterviewDeck', () => {
     )
     expect(screen.getByText('Source: q1')).toBeInTheDocument()
   })
+})
+
+it('records an unassisted explanation and preserves answer-opening evidence after hiding', () => {
+  render(<InterviewDeck questions={QUESTIONS} />)
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: 'My explanation before the answer.' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Partly recalled' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Record this attempt' }))
+  const key = questionKey(QUESTIONS[0])
+  expect(readLearning().reviews[key].attempts[0]).toMatchObject({ answerViewed: false, draft: 'My explanation before the answer.' })
+  fireEvent.click(screen.getByRole('button', { name: 'Reveal answer' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Hide answer' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Record this attempt' }))
+  expect(readLearning().reviews[key].attempts[1].answerViewed).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Needs review' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Record this attempt' }))
+  expect(readLearning().reviews[questionKey(QUESTIONS[1])].attempts[0].answerViewed).toBe(false)
 })

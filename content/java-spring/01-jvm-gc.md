@@ -41,9 +41,9 @@ The native method stack supports code reached through JNI or JVM runtime interna
 
 Objects created with `new` normally live on the heap.
 
-Class metadata is held in metaspace, which is native memory rather than ordinary Java heap memory.
+In HotSpot, class metadata is held in metaspace outside the Java heap. The JVM specification defines a method area but does not require this physical layout.
 
-The code cache contains JIT-compiled native instructions.
+HotSpot's code cache contains JIT-compiled native instructions. Virtual-thread stacks can use heap-resident stack chunks; the diagram separates conceptual roles rather than requiring one native stack per Java thread.
 
 Native libraries, direct buffers, and JVM bookkeeping also consume process memory.
 
@@ -152,7 +152,7 @@ stateDiagram-v2
     TERMINATED --> [*]
 ```
 
-`BLOCKED` specifically means contention for an intrinsic monitor.
+`BLOCKED` specifically means contention for an intrinsic monitor. The diagram combines several wake-up paths: an unparked thread can become runnable directly, but `Object.wait()` must reacquire its monitor before returning and can pass through `BLOCKED`. Waits may wake spuriously, so test the condition in a loop.
 
 An HTTP request waiting on a database socket may appear as `WAITING`, `RUNNABLE`, or inside native code depending on the library and platform.
 
@@ -168,7 +168,7 @@ Most Java applications allocate many short-lived objects.
 
 Generational collectors exploit that observation by collecting young objects more frequently than old objects.
 
-An allocation usually begins in a thread-local allocation buffer inside the young generation.
+With a generational collector such as G1, ordinary small allocations usually begin in a thread-local allocation buffer in young space. This is not a rule for every collector: Java 17 ZGC, for example, is non-generational.
 
 The fast path advances a pointer without a shared lock.
 
@@ -231,7 +231,7 @@ At 10:20, it is 310 MiB.
 
 At 10:30, it is 390 MiB while request volume is unchanged.
 
-The increasing post-collection baseline is strong evidence of retention.
+The increasing post-collection baseline warrants a retention investigation. Cache warm-up or a legitimately larger live dataset can also increase it; growth alone does not prove a leak. These numbers are an illustrative trace, not a benchmark.
 
 Suppose a static `Map<UUID, UserProfile>` receives 50,000 profiles per hour.
 
@@ -299,7 +299,7 @@ Concurrent collection does not mean zero stop-the-world work.
 
 It means substantial marking or relocation proceeds while application threads continue.
 
-Long-running native calls or loops that delay safepoint polling can increase time-to-safepoint.
+Loops that delay safe polling or some JNI critical regions can delay VM coordination. A long native call does not automatically prevent a HotSpot safepoint: a thread in a safe native state can remain there while Java threads stop.
 
 When pause complaints occur, separate the time to reach a safepoint from the time spent doing GC at that safepoint.
 
@@ -336,7 +336,7 @@ sequenceDiagram
     G->>H: reclaim old region
 ```
 
-These barriers make concurrent collectors possible but add work to ordinary object access.
+The diagram combines techniques used by different collectors; it is not G1's exact implementation. Barrier selection and cost depend on the collector and JDK version.
 
 The right collector depends on latency, CPU headroom, heap size, allocation rate, and operational observability.
 
@@ -374,17 +374,17 @@ Virtual threads improve scalability for blocking I/O workloads.
 
 They do not make CPU-bound work use more cores than the machine has.
 
-Use a bounded executor, rate limit, or queue when external dependencies must be protected from too much concurrency.
+Limit access to scarce resources with a semaphore, rate limit, or bounded work queue. Do not pool virtual threads merely to limit their number; bound the database or downstream operation itself. CPU-heavy parallel work still needs a measured concurrency limit.
 
 Creating one virtual thread per request does not remove database connection-pool limits or downstream quotas.
 
 ### Pinning, thread locals, and structured lifecycle
 
-In early virtual-thread implementations, blocking while holding a `synchronized` monitor or executing native code could pin a virtual thread to its carrier.
+Virtual threads became a final feature in Java 21 and are unavailable in the Java 17 baseline. In Java 21–23, blocking while holding a `synchronized` monitor can pin a virtual thread to its carrier.
 
 Pinned carriers reduce the scalability benefit because blocked work occupies an OS thread.
 
-Recent JDK work reduces monitor-related pinning, but native calls and critical sections still need measurement in the target runtime.
+Java 24 removes monitor-related pinning through JEP 491. Native methods and foreign-function calls can still pin; identify the deployed JDK before diagnosing or changing locking code.
 
 Use JFR and virtual-thread diagnostics to find pinning rather than replacing every monitor blindly.
 
@@ -414,7 +414,7 @@ Other OOME variants identify different pools: `Metaspace` suggests retained clas
 
 An SOE is not an OOME: it occurs when one thread exhausts its stack frames, whereas native-thread creation can fail because the process cannot reserve another stack or OS thread resource.
 
-Always collect a heap dump, GC logs, process memory metrics, and thread dumps before assuming the collector is the root cause.
+Choose diagnostics for the failing resource: heap retention calls for reference-path evidence; native-thread exhaustion calls for thread counts and OS limits; high process RSS may need native-memory accounting. GC logs and request metrics help correlate a memory problem with latency.
 
 Enable heap dumps on memory failure in a controlled location and ensure the host has capacity for them.
 
@@ -439,7 +439,7 @@ Enable heap dumps on memory failure in a controlled location and ensure the host
 
 **Q1. What is the difference between stack memory and heap memory in Java?** `[easy]`
 
-Each thread has stack frames for method execution, local values, and return bookkeeping, while the heap stores shared objects and arrays. A local reference can live in a frame while referring to an object on the heap. Stack frames are removed on return, whereas heap objects remain until no GC root can reach them.
+Each thread has stack frames for method execution, local values, and return bookkeeping, while the heap stores shared objects and arrays. A local reference can live in a frame while referring to an object on the heap. Frames end on return; an unreachable object becomes eligible for collection, and storage can remain allocated until the collector reclaims it.
 
 **Q2. Is Java pass-by-reference for objects?** `[easy]`
 
@@ -473,9 +473,17 @@ G1 is a solid general-purpose choice when a service needs balanced throughput an
 
 Virtual threads improve the scalability of applications with many concurrent tasks that spend time in supported blocking operations. The JVM can unmount a blocked virtual thread and reuse its carrier platform thread for another task. They do not remove downstream capacity limits or increase CPU parallelism beyond available cores.
 
+**Answer rubric**
+- **Say it:** Virtual threads improve concurrency during supported blocking waits, not CPU capacity.
+- **Mechanism:** A blocked virtual thread can unmount so its carrier executes another task.
+- **Example:** Ten thousand requests waiting for remote responses need not occupy ten thousand platform threads.
+- **Limit:** Database connections, downstream quotas, memory and JDK-specific pinning still limit the workload.
+- **Watch for:** Do not promise unlimited throughput or apply Java 21 monitor-pinning advice unchanged to Java 24.
+- **Follow-up:** How would you limit calls when the database has only 30 connections?
+
 **Q10. Why is a static cache a common source of heap retention?** `[medium]`
 
-A static field is reachable from a GC root for the lifetime of its class loader. If it holds an unbounded map, every object graph reachable from that map stays live even when no request needs it. Bound the cache by size or time and inspect keys, values, and eviction semantics in a heap dump.
+A strong static field in a reachable class can retain its object graph. A collectible class loader and its classes can be unloaded; static fields are not an unconditional root keeping every loader alive forever. If it holds an unbounded map, every object graph reachable from that map stays live even when no request needs it. Bound the cache by size or time and inspect keys, values, and eviction semantics in a heap dump.
 
 **Q11. How do concurrent collectors relocate objects while application threads run?** `[hard]`
 
@@ -484,6 +492,14 @@ They combine concurrent tracing with barriers that record reference changes and,
 **Q12. Scenario: after a deployment, heap usage grows from 180 MiB to 390 MiB after full collections while traffic is flat. What do you do?** `[hard]`
 
 Treat the growing post-collection baseline as a retention investigation rather than immediately increasing the heap or changing the collector. Capture a heap dump near the high baseline, inspect dominators and paths from GC roots, and compare it with a healthy deployment. Check new static maps, listener registrations, thread locals, caches, and class loaders before applying a bounded ownership fix.
+
+**Answer rubric**
+- **Say it:** Investigate retained live data before selecting a different collector.
+- **Mechanism:** Compare equivalent post-collection snapshots, then trace dominators to strong owners.
+- **Example:** A reachable map retaining 50,000 four-KiB graphs adds about 195 MiB in this illustrative hour.
+- **Limit:** Warm-up and legitimate state growth can look similar; establish whether ownership and bounds meet requirements.
+- **Watch for:** A peak graph or larger heap does not establish or fix a leak.
+- **Follow-up:** Which evidence would instead point to direct-buffer or native-thread exhaustion?
 
 **Q13. Scenario: a virtual-thread service still has poor throughput and carrier threads are blocked in database calls. What do you check?** `[hard]`
 
@@ -495,7 +511,7 @@ A larger heap gives a retained graph more room and changes collection frequency,
 
 ### Further Reading
 
-- [Java Virtual Machine Specification, runtime data areas](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-2.html) defines JVM stacks, heap, and method areas.
+- [Java Virtual Machine Specification, runtime data areas](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-2.html) defines JVM stacks, heap, and method areas.
 - [Java garbage collection tuning guide](https://docs.oracle.com/en/java/javase/21/gctuning/) explains collector goals, logging, and ergonomics.
 - [JEP 444: Virtual Threads](https://openjdk.org/jeps/444) describes the virtual-thread model and its intended workloads.
-- [JFR virtual-thread events](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html) provides runtime observability for virtual-thread scheduling and pinning.
+- [Java 24 virtual-thread guide](https://docs.oracle.com/en/java/javase/24/core/virtual-threads.html) explains monitor-pinning removal, remaining native pinning and concurrency limits.

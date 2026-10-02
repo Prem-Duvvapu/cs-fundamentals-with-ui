@@ -10,12 +10,12 @@ An index is an auxiliary access path that trades storage and write work for fewe
 Finding the chapter on "sorting" in a 1,200-page textbook by reading every page is a **full table scan**. Instead, you open the index at the back, see "sorting … page 214", and jump straight there. A database index is exactly that back-of-book index: a small, sorted auxiliary structure whose entries point to where the real rows live. The database pays for it twice — extra disk space, and extra work on every write — so that reads stop being linear searches.
 
 ### What Is an Index?
-An **Index** is a disk-resident data structure (almost always a B+ Tree) that maps search-key values to row locations.
+An **index** is an extra access structure. Ordinary relational B-trees use persistent pages plus memory caching, while hash, GIN, GiST, BRIN and in-memory indexes offer different representations. This lesson focuses on page-oriented B+ tree ideas, with PostgreSQL 16 and MySQL 8.4 examples explicitly identified.
 
-- **Read path**: turns an O(N) table scan into an O(log N) tree descent — a few page reads instead of thousands.
-- **Storage cost**: typically 10% to 40% of the table size, depending on key width and fill factor.
-- **Write cost**: every INSERT/UPDATE/DELETE on indexed columns must update the tree (plus the write-ahead log), so ingest throughput drops.
-- **Transparency**: the SQL text never changes; the optimizer decides whether to use the index.
+- **Read path**: a selective B-tree probe uses a shallow descent plus qualifying-entry and row work; returning K rows is not merely O(log N).
+- **Storage cost**: key width, row locators, duplicates, fill, compression and coverage determine size; measure each index rather than promise one percentage.
+- **Write cost**: inserts and many updates create index/log work; deletes can leave dead entries for later cleanup. MVCC, HOT updates, partial predicates and engine rules change the immediate maintenance.
+- **Transparency**: the optimizer can choose an index without an SQL rewrite, but expressions, collations and query shape must match the access path.
 
 ```mermaid
 flowchart LR
@@ -39,20 +39,20 @@ B+ tree point lookup  (3 page reads)       =  ~0.3 ms on SSD (cold cache)
 Point-lookup speedup                       =  ~15,000x faster than scanning
 ```
 
-The wider the table and the more selective your predicate, the bigger the win. Conversely, a query that matches half the table gains nothing — reading 15 GB sequentially beats 50 million random lookups.
+This compares two different result sizes and hypothetical device rates; it is not a benchmark or a universal speedup. A large matching fraction can favor a scan, while a narrow covering index can still help. Storage, visibility checks, caching and parallel execution affect the result.
 
 ### The Classic Index Types
 
 | Type | Built On | Leaf Entry Contains | Limit Per Table |
 | --- | --- | --- | --- |
 | Primary index | Ordered key field of the data file | Key + anchor to first record of each block | One (defines physical order) |
-| Clustered index | The key the table is physically sorted by | The entire row (InnoDB) or the row itself nearby | Exactly one |
+| Clustered organization | logical key order of table storage | row contents in InnoDB leaves | at most one maintained organization; heaps need not have one |
 | Secondary (non-clustered) | Any other column(s) | Key + row locator: PK value (InnoDB) or RID (SQL Server heap) | Many |
-| Dense | Any key | One entry per search-key value | Either density possible |
+| Dense, textbook definition | any key | every record/search value represented, possibly with locator lists | duplicates have engine-specific representation |
 | Sparse | Sorted data file only | One entry per block (first key of the block) | Only on the physical sort key |
 
 - **Dense vs Sparse**: a dense index answers "does key K exist?" directly from the index. A sparse index locates the **block** containing K, then searches inside the block. Sparse indexing is only possible when the data file is physically ordered by the search key — which is why it appears on the clustering key and nowhere else.
-- **Clustered vs Secondary**: there can be only one physical row order, hence one clustered index per table. Everything else is secondary and must "hop" to the row.
+- **Clustered vs Secondary**: InnoDB stores rows in its clustered tree and secondary keys plus the clustered key in separate trees. Logical tree order does not require physically adjacent disk pages. PostgreSQL keeps a heap and separate indexes; CLUSTER can reorder the heap once, but later writes do not maintain that order.
 
 ### Unique, composite, and covering indexes
 
@@ -60,7 +60,7 @@ A **unique index** rejects duplicate key values and can enforce a candidate-key 
 
 A **composite index** orders entries lexicographically by two or more key columns. For `(tenant_id, status, created_at)`, all entries for one tenant are adjacent, then ordered by status and time. This is useful when the workload filters by that leading sequence, but it is not three independent single-column indexes.
 
-A **covering index** contains every column needed by a query, either as key columns or payload columns such as SQL Server's `INCLUDE` columns. The engine can answer from index leaves without fetching base-table rows, eliminating random bookmark lookups. Coverage speeds a targeted query at the cost of wider leaves, fewer entries per page, more storage, and more DML maintenance.
+A **covering index** contains every column needed by a query, either as key columns or payload columns such as SQL Server's `INCLUDE` columns. Coverage makes index-only access possible, but MVCC may still require row visibility checks. PostgreSQL skips the heap only when its visibility map permits it; coverage alone does not prove zero heap fetches. Coverage speeds a targeted query at the cost of wider leaves, fewer entries per page, more storage, and more DML maintenance.
 
 | Design | Primary benefit | Main trade-off |
 |---|---|---|
@@ -70,9 +70,9 @@ A **covering index** contains every column needed by a query, either as key colu
 | Partial or filtered | Indexes only relevant rows | Predicate must match the query and vendor syntax |
 
 ### What Does an Index Cost You?
-1. **Space**: a secondary index on a 100M-row table with 8-byte keys costs roughly 3 to 4 GB (key + PK pointer + page overhead).
+1. **Space**: 100M entries at a hypothetical 32 bytes each already consume 3.2 GB before occupancy and page overhead. Actual entry layout must be measured.
 2. **Write amplification**: inserting into a table with 5 secondary indexes performs 6 tree modifications (1 clustered + 5 secondary), each generating redo log records.
-3. **Locking hotspots**: monotonic keys concentrate all inserts on the rightmost leaf page, serializing concurrent writers.
+3. **Page-latch hotspots**: increasing keys concentrate new inserts near the right edge; short physical latches differ from transaction locks, and measured contention is workload-dependent.
 4. **Optimizer risk**: more indexes means more plan choices — outdated statistics can steer the optimizer into the wrong one.
 
 Rule of thumb: index columns that appear in WHERE joins and ORDER BY clauses **with high selectivity**, and audit for unused indexes quarterly.
@@ -103,7 +103,7 @@ flowchart TD
 | Range scan | Tree-walk per key, revisits upper levels | One descent, then ride the leaf chain |
 | Point lookup | Sometimes finds data early (no leaf visit) | Always descends to leaf |
 
-Every mainstream engine (InnoDB, PostgreSQL nbtree, Oracle, SQL Server, SQLite) chose the B+ Tree because the linked leaf layer makes range scans and full index scans nearly sequential I/O, and the slim internal entries maximize fanout — and fanout is what keeps the tree shallow.
+InnoDB and PostgreSQL ordered indexes use high-fanout page trees with linked levels/leaves. Implementations differ: SQLite index b-trees also contain payload in interior cells, so not every vendor exactly matches the textbook B+ tree. Linked logical order does not guarantee adjacent physical pages.
 
 A hash index computes a bucket from the complete search key and can make equality lookup approximately constant-time when distribution is healthy. It cannot preserve ordering, answer range predicates, support prefix matching, or satisfy `ORDER BY`. Bucket collisions and growth also require overflow handling or rehashing, so the constant-time description is an average rather than a worst-case guarantee.
 
@@ -118,8 +118,8 @@ A hash index computes a bucket from the complete search key and can make equalit
 ### Fanout Math: Why a 3-Level Tree Indexes 100 Million Rows
 Assume MySQL InnoDB defaults: 16 KB pages, BIGINT keys.
 
-- Internal entry = 8-byte key + 6-byte child page number = 14 bytes → ⌊16384 ÷ 14⌋ ≈ 1170 entries per page. After page headers and the slot directory, use a conservative fanout F ≈ 1000.
-- A leaf page storing 150-byte rows holds ≈ ⌊16384 ÷ 150⌋ ≈ 100 rows.
+- Assume effective routing fanout F = 1,000 and effective leaf capacity L = 100 after overhead and occupancy. These are teaching inputs, not a byte-layout derivation or guaranteed InnoDB capacity.
+- With one root and H total levels, the idealized capacity is L × F^(H−1). Real fill, key width, row versions and splits alter both inputs.
 - A tree with root + internals + leaves ("height 3") therefore holds:
 
 ```
@@ -130,15 +130,14 @@ Height 3 :   10^6  x 10^2   =   100,000,000  rows   (one hundred million)
 Height 4 :   10^9  x 10^2   =   100 billion  rows
 ```
 
-This is the punchline interviewers want: **fanout grows exponentially with height**, so a 3-level B+ Tree reaches any of 100M+ rows in 3 page reads — and the general bound is H = ⌈log_F(N)⌉.
+For N rows in this packed model, H = 1 + max(0, ceil(log_F(N/L))). At N = 100,000,000, F = 1,000 and L = 100, H = 3. A descent visits three logical pages; caching can avoid device reads, while a secondary lookup may also descend another tree.
 
-| Access Path | Latency | Relative Cost |
-| --- | --- | --- |
-| RAM (buffer pool hit) | ~25-100 ns | 1x |
-| NVMe SSD random read | ~20-100 µs | ~1000x RAM |
-| SATA SSD random read | ~100 µs | ~1000x RAM |
-| 7200 RPM HDD random read | ~4 ms rotation + 4-9 ms seek ≈ 8 ms | ~80x SSD |
-| Cold 3-level descent on HDD | 3 × 8 ms = 24 ms | why caching the upper levels matters |
+| Page source | What the measurement means |
+|---|---|
+| database buffer hit | no storage fetch for that page; locks/search still cost time |
+| OS page-cache read | database miss, but not necessarily a device request |
+| device access | storage latency varies with queueing, media and workload |
+| cold multi-level descent | several dependent page visits, plus any row/visibility access |
 
 ### Trace 1: Secondary Index Point Lookup (InnoDB Bookmark Lookup)
 
@@ -151,15 +150,16 @@ PRIMARY KEY id  : clustered B+ tree, leaf payload = entire row
 Step 1  Descend idx_users_email root          1 page read
 Step 2  Descend its internal level            1 page read (usually cached)
 Step 3  Leaf: locate 'bob@example.com'        1 page read, payload = id = 48213
-Step 4  Descend clustered tree with id 48213  1 to 3 page reads (root pinned)
+Step 4  Descend clustered tree with id 48213  3 logical visits in this model
 Step 5  Clustered leaf returns the full row
 
-Total: 4 to 6 logical page reads, typically 1 to 2 physical reads
+Total: 6 logical visits for the assumed two three-level trees;
+cached pages need no device fetch. Visibility/overflow can add work.
 ```
 
 That Step 4 hop is the famous **bookmark lookup** (SQL Server term) or **backlink lookup**. Because InnoDB secondary leaves store the **primary key value** rather than a physical address, page splits never invalidate secondary indexes — the price is a second tree descent whenever the query selects columns not in the secondary index. SQL Server heaps instead store an 8-byte RID (FileID:PageID:Slot) and patch up moves with forwarding pointers.
 
-### Trace 2: Covering Index — Zero Table Touches
+### Trace 2: Covering Index — Visibility Still Matters
 
 ```sql
 CREATE INDEX idx_orders_customer_status ON orders (customer_id, status);
@@ -169,13 +169,50 @@ FROM orders
 WHERE customer_id = 42;
 -- Plan shows Extra: "Using index"
 -- Meaning: the secondary leaf ALREADY contains customer_id, status and the
--- hidden primary key, so the clustered tree is never consulted.
+-- primary key. Coverage can avoid row lookup, but MVCC visibility may still
+-- require clustered-row access; inspect the actual workload.
 ```
 
-Fetching N matching rows without a covering index costs 1 index descent plus N random clustered-tree hops (each potentially a cold SSD read). With the covering index it is 1 descent plus a short sequential walk along linked leaves. This is exactly why `SELECT *` defeats covering strategies — every extra selected column widens the required index.
+Without coverage, matching rows can require additional table lookups, often with caching or batched access. Coverage can avoid those payload fetches when visibility permits. SELECT * often prevents secondary coverage; it is not universally non-covering, since a clustered leaf contains the row and some narrow tables fit the full projection.
+
+### Runnable PostgreSQL 16 check: coverage versus visibility
+
+Save this as `index_visibility.sql` and run `psql -X -v ON_ERROR_STOP=1 -d your_lab_database -f index_visibility.sql`. It creates only a session-local temporary table. Use a scratch database where you can create temporary objects; no persistent application table is changed.
+
+```sql
+CREATE TEMP TABLE index_visibility (
+  id integer PRIMARY KEY,
+  tenant_id integer NOT NULL,
+  status text NOT NULL,
+  payload text NOT NULL
+);
+INSERT INTO index_visibility
+SELECT i, i % 100, CASE WHEN i % 2 = 0 THEN 'PENDING' ELSE 'DONE' END,
+       repeat('x', 64)
+FROM generate_series(1, 10000) AS source(i);
+CREATE INDEX visibility_cover ON index_visibility (tenant_id, status, id);
+-- VACUUM must run outside an explicit transaction block.
+VACUUM (ANALYZE) index_visibility;
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT id FROM index_visibility
+WHERE tenant_id = 42 AND status = 'PENDING'
+ORDER BY id LIMIT 5;
+UPDATE index_visibility SET payload = 'changed' WHERE id = 42;
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT id FROM index_visibility
+WHERE tenant_id = 42 AND status = 'PENDING'
+ORDER BY id LIMIT 5;
+SELECT id FROM index_visibility
+WHERE tenant_id = 42 AND status = 'PENDING'
+ORDER BY id LIMIT 5;
+```
+
+The result IDs stay `42, 142, 242, 342, 442`. On the verified PostgreSQL 16 fixture, both plans use an index-only scan; after vacuum it has zero heap fetches, and after the update it needs heap visibility work even though the required columns are still covered. Timings and fetch counts are measurements, not fixed expected values.
+
+**Predict/change/debug:** rerun VACUUM outside a transaction, then inspect the last plan again; it can regain zero heap fetches. Selecting payload makes the projection non-covering because this index omits it. If another version chooses a different plan, inspect the plan and statistics rather than force a portable index-only guarantee. An index-only operator with heap fetches is not contradictory.
 
 ### Composite Indexes and the Leftmost Prefix Rule
-A composite B+ Tree sorts by column A, then B, then C — like a phone book sorted by surname then firstname. You cannot efficiently look someone up by firstname alone.
+A composite B+ tree orders by A, then B, then C. Missing A usually loses one tight range seek; a full index scan or a supported skip scan can still use later predicates.
 
 ```
 INDEX (tenant_id, status, created_at)
@@ -185,18 +222,18 @@ WHERE tenant_id = ? AND status = ?             seek using columns 1-2
 WHERE tenant_id = ? AND created_at > ?         seek column 1, filter column 3
 WHERE tenant_id = ? AND status = ? AND created_at > ?
                                                full 3-column seek (range LAST)
-WHERE status = ?                               cannot seek, prefix is broken
+WHERE status = ?                               no single tight leading range; scan or versioned skip scan may help
 ```
 
 - **Design order**: equality predicates first, the range predicate last — an early range column prevents the following columns from contributing to the seek (they degrade to filters inside the scanned range).
 - **ORDER BY bonus**: an index on (a, b) satisfies ORDER BY a, b without a sort step.
-- **Skip-scan exception**: MySQL 8.0.13+ and Oracle can skip a missing low-cardinality prefix, but this is a fallback, not a design principle; PostgreSQL has no skip scan.
+- **Versioned exception**: MySQL 8.4 has a restricted skip-scan optimization; PostgreSQL 18 added B-tree skip scan. The PostgreSQL 16 lab below does not demonstrate it. Low leading-column cardinality can help, but inspect the plan rather than assume every missing prefix is cheap.
 
 ### When an Index Hurts
-1. **Low selectivity**: WHERE status = 'ACTIVE' matching 30M of 100M rows means 30M random leaf-to-table hops — far worse than one 15 GB sequential scan. The optimizer correctly ignores the index.
+1. **Low selectivity**: matching 30M of 100M rows may make row fetches expensive, but bitmap access, clustering, caching or coverage can change the comparison. The planner estimates alternatives; no fixed matching percentage decides the winner.
 2. **Write-heavy tables**: every index adds tree maintenance to each DML; high-ingest logging tables often drop all but the essential index.
-3. **Tiny tables**: a few thousand rows fit in a handful of pages; scanning them is faster than a descent and cheaper on cache.
-4. **Redundant indexes**: index (A) is wasted if (A, B) exists — the longer one serves all of (A)'s queries.
+3. **Tiny tables**: a scan often wins for a small table; row width, ordering, limits and coverage still matter.
+4. **Potential redundancy**: (A,B) can support many A-only searches, but (A) may be smaller, unique, differently filtered or differently ordered. Check constraints and workload before removal.
 
 ### Selectivity and reasons an index is not used
 
@@ -216,7 +253,7 @@ Index builds are operational writes too. An offline build may block table change
 
 ### Reading EXPLAIN and execution plans
 
-`EXPLAIN` displays the optimizer's chosen operators, estimated cardinalities, access paths, join order, and costs without necessarily running the statement. `EXPLAIN ANALYZE` executes the query and adds actual rows and timing, so use it carefully for mutating or expensive statements. PostgreSQL's `BUFFERS` option separates shared-buffer hits from physical reads, while other engines expose comparable logical-read metrics.
+`EXPLAIN` displays the optimizer's chosen operators, estimated cardinalities, access paths, join order, and costs without necessarily running the statement. `EXPLAIN ANALYZE` executes the query and adds actual rows and timing, so use it carefully for mutating or expensive statements. PostgreSQL BUFFERS distinguishes shared hits from blocks read into shared buffers; a read can be served by the OS page cache and is not proof of device I/O. Temporary-table plans report local buffers.
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS)
@@ -228,7 +265,7 @@ ORDER BY created_at DESC
 LIMIT 20;
 ```
 
-A useful `(tenant_id, status, created_at DESC)` index should show an index scan bounded by both equality predicates and already ordered for the limit. Compare estimated rows with actual rows: a large mismatch indicates statistics, correlation, or parameter-distribution trouble. Also inspect rows removed by filters, heap fetches, sort spills, loop counts, and total buffers; an operator named “Index Scan” can still read millions of entries and be the wrong plan.
+A matching `(tenant_id, status, created_at DESC)` index can supply bounded ordered access, but its creation does not guarantee planner selection. This SQL is a PostgreSQL excerpt requiring an orders schema. Compare estimated rows with actual rows: a large mismatch indicates statistics, correlation, or parameter-distribution trouble. Also inspect rows removed by filters, heap fetches, sort spills, loop counts, and total buffers; an operator named “Index Scan” can still read millions of entries and be the wrong plan.
 
 ```mermaid
 flowchart LR
@@ -244,22 +281,17 @@ flowchart LR
 ## 🔴 Expert Level
 
 ### Inside the Page: Physical Node Layout
-A B+ Tree node is exactly one disk page. InnoDB's 16 KB index page anatomy:
+A page-oriented tree normally places a node on one database page, not necessarily one OS base page; overflow values and compressed formats complicate the picture. InnoDB's default page is 16 KiB, while PostgreSQL normally uses 8 KiB. Exact byte offsets depend on format/version; use the engine source when inspecting a page.
 
-```
-Offset 0        FIL Header (38B): page number, page type, prev/next
-                page links, newest modification LSN
-Offset 38       Index Header: number of records, level (0 = leaf),
-                index id, garbage list, last-insert direction/position
-Offset ~58      FSEG entries and free-space bookkeeping
-Offset ~112     User record heap: records allocated downward from here;
-                two sentinel records (infimum and supremum) bracket them
-Page end        Page Directory: slot array pointing to every 4th-8th
-                record, enabling in-page binary search; FIL Trailer (8B)
-```
+| Page region | Purpose |
+|---|---|
+| metadata/header | identity, type, version/recovery metadata |
+| record/cell area | routing entries or leaf records |
+| slot directory | locate records for in-page search |
+| free/garbage space | room for changes and reclaimable records |
 
 - **In-page search**: the slot directory gives binary search inside the page; the tree search is thus binary search at every scale.
-- **PostgreSQL nbtree** differs: 8 KB pages, block 0 is a metapage, and it implements Lehman-Yao concurrency with a high-key (upper-bound sentinel) per page plus a right-sibling link, so readers never latch parent pages while a split is in flight. Since PostgreSQL 13, leaf pages can deduplicate duplicate keys into posting-list tuples.
+- **PostgreSQL nbtree** normally uses 8 KiB database pages, a metapage and linked page levels. High keys/right links support recovery from concurrent splits without keeping every ancestor locked throughout a lookup; this is not a claim that readers never lock an internal page. Eligible duplicate keys can use posting-list deduplication; unique/INCLUDE indexes and operator classes have restrictions.
 
 ### Node Split Walkthrough (Order m = 4, Max 3 Keys per Node)
 Convention (matches this platform's simulator): order m ⇒ maximum m − 1 = 3 keys per node, minimum ⌈m/2⌉ − 1 = 1 key. Insert keys 10, 20, 30, 40, 50, then 60 into an empty tree:
@@ -277,24 +309,24 @@ flowchart TD
 ```
 
 - **Leaf split = COPY-UP**: the separator is COPIED to the parent and also stays in the right leaf, because range scans traverse leaves and must still find 30 there.
-- **Internal split = PUSH-UP**: when the root itself eventually overflows, its median key MOVES up into a new root — it exists only at the parent level. Each root overflow raises the height by exactly 1; the tree grows from the top, never sideways, which is why balance is guaranteed without rotations.
-- **Real engines deviate deliberately**: PostgreSQL picks the split point by physical tuple size and MOVES the boundary tuple (avoiding duplicate separators for monotonically increasing keys); InnoDB splits at the page middle but detects strictly ascending inserts and leaves the old page empty instead (its insertion-point heuristic), reclaiming space later via MERGE_THRESHOLD-triggered merges at 50% occupancy. Fill factor knobs: PostgreSQL fillfactor 90 (leaves), SQL Server fillfactor applied at rebuild time only.
+- **Internal split = PUSH-UP**: in this toy model, a separator moves to the parent while child entries split. A root split raises height by one; non-root splits add sibling nodes and can cascade upward. Equal leaf depth is maintained without binary-tree rotations, while real separator representations can differ.
+- **Real engines deviate deliberately**: physical tuple sizes and insertion patterns guide split positions and separator representations. InnoDB aims for about 15/16 fullness with ordered inserts, while random inserts can yield 1/2 to 15/16 fullness; it does not deliberately empty every old ascending-insert page. Fillfactor and merge policies are vendor-specific, not this simulator's key-count rule.
 
-### Caching Reality: Steady-State I/O
-- The root page is essentially permanently resident in the buffer pool; internal levels exceed 99% hit rate after warm-up.
-- A warmed 3-level lookup therefore costs about **1 physical read** (~100 µs on SSD, ~8 ms on HDD) — not 3.
-- After a cold restart (cache flushed), the first burst of queries eats 3 physical reads each; this is why post-deploy latency spikes happen.
-- Sizing guidance: InnoDB buffer pool ≈ 60-75% of machine RAM; verify with EXPLAIN (ANALYZE, BUFFERS) in PostgreSQL — shared hit vs read counters expose logical vs physical I/O.
+### Caching Reality: Logical Visits Versus Device Reads
+
+A hot root and upper levels often remain cached, but no root pinning or 99% hit rate is universal. A fully warm point lookup can need zero device reads; a leaf miss can need one, and visibility/secondary-row access can need more. Cold behavior depends on both database and OS caches, not merely whether the application restarted.
+
+Size the buffer pool/shared buffers alongside connection, OS-cache and other process memory budgets. Explain counters distinguish database hits/read requests; pair them with storage telemetry before claiming a physical-I/O rate. Do not apply one RAM percentage to every engine or deployment.
 
 ### B+ Tree vs LSM-Tree: The Write-Optimized Challenger
-B+ Trees mutate pages in place (with WAL protection). LSM-trees (RocksDB, Cassandra, HBase, MyRocks) never modify data in place: writes land in an in-memory memtable, flush as immutable SSTable files, and background **compaction** continuously merges overlapping runs (size-tiered or leveled) so old versions are discarded.
+Page B-trees typically update buffered pages and log changes. LSM engines first update a memtable with recovery logging, flush sorted files and compact runs later. The SSTable data is immutable; memtables and metadata can change, and old versions/tombstones can be removed only when snapshot and consistency rules permit.
 
 | Property | B+ Tree (in-place) | LSM, Leveled (RocksDB-style) |
 | --- | --- | --- |
 | Point read | 1-3 page descents | Probe each level; bloom filters cut misses |
 | Range read | Excellent (linked leaves) | Merge across all levels |
-| Write amplification | ~2-4x (record + WAL + split rewrite) | ~10-30x (compaction rewrites data repeatedly) |
-| Space amplification | ~1.15-1.33x (fill factor 66-90%) | ~1.1-2x bounded by level ratios |
+| Write amplification | page/log/split work varies with occupancy | WAL/flush/compaction work varies with policy and workload |
+| Space amplification | free space, dead versions and rebuild policies | obsolete versions, level overlap and compaction headroom |
 | Sweet spot | Read-heavy OLTP (PostgreSQL, InnoDB) | Write-heavy ingestion (telemetry, message metadata) |
 
 Interview framing: B+ trees buy read performance with in-place write cost; LSMs buy write throughput with read amplification and compaction CPU. Neither dominates — engines pick per workload.
@@ -312,9 +344,9 @@ An online index build normally scans a stable table view, captures concurrent ro
 Publication is a metadata transition, not proof that every workload should use the index. After deployment, refresh or verify statistics, inspect plans, and watch write latency before removing an older access path.
 
 ### Failure Modes
-1. **Index bloat from random keys**: UUIDv4 inserts hit arbitrary leaves, forcing 50/50 splits everywhere; average fill drops toward 66%, inflating the tree ~1.5x and diluting the buffer pool. Fixes: time-ordered IDs (UUIDv7, ULID, Snowflake), periodic REINDEX / pg_repack, OPTIMIZE TABLE in MySQL.
+1. **Random-key locality**: UUIDv4 can spread the write working set and cause more splits/cache misses. A fixed 50/50 split rate, 66% occupancy or 1.5× bloat is not guaranteed. Time-ordered identifiers trade locality against right-edge contention; measure before disruptive rebuilds.
 2. **Duplicate-heavy secondary indexes**: an index on `status` with 3 distinct values across 100M rows builds a massive tree of equal-key runs (InnoDB appends the hidden PK to make entries unique, so it is not literally duplicated — but the scan still returns millions of rows). Prefer a composite index led by a selective column, or a partial index (CREATE INDEX … WHERE status = 'PENDING' in PostgreSQL).
-3. **Rightmost hotspot**: monotonic keys serialize all writers onto one leaf page; partitioned indexes or randomized prefixes trade locality for spread.
+3. **Rightmost hotspot**: ordered insertion can contend on hot leaf latches; partitioning or randomized prefixes spread work at locality/order cost. A hotspot must be measured rather than inferred from monotonicity alone.
 4. **Stale statistics steering the planner away** from a good index — covered in depth in the Query Optimization topic.
 5. **Unused-index tax**: write amplification and backup bloat with zero read benefit; hunt with pg_stat_user_indexes.idx_scan or MySQL sys.schema_unused_indexes.
 
@@ -363,7 +395,7 @@ The tree can efficiently seek using `tenant_id`, then optionally `status`, then 
 
 **Q7. What does a covering index eliminate?** `[medium]`
 
-It eliminates the base-table or clustered-index lookup when all selected, filtered, and ordered columns are available in the index. Matching entries can be read sequentially from leaves, reducing random I/O for multi-row results. Wider leaves reduce fanout and increase DML cost, so coverage should target important query shapes rather than every column.
+It makes payload retrieval from an index possible when the query's required values are available there. Snapshot visibility can still require table access; PostgreSQL index-only scans consult the visibility map and can report nonzero heap fetches. Wider leaves add storage/write cost, so target important query shapes rather than every column.
 
 **Q8. How do INSERT, UPDATE, and DELETE affect indexes?** `[medium]`
 
@@ -375,7 +407,15 @@ It may estimate that too many rows qualify, the table is small, or the predicate
 
 **Q10. What should you inspect in EXPLAIN ANALYZE?** `[medium]`
 
-Inspect the chosen access path, join order, actual versus estimated rows, loop counts, filters, sorts, and buffer or logical-read metrics. A large cardinality mismatch points to statistics or correlation problems, while high heap fetches expose a non-covering path. Because the statement executes, use it carefully for writes and production-scale queries.
+Inspect the chosen access path, join order, actual versus estimated rows, loop counts, filters, sorts, and buffer or logical-read metrics. A large cardinality mismatch points to statistics or correlation problems, while nonzero heap fetches in an index-only scan can reflect visibility checks even when coverage is complete. Because the statement executes, use it carefully for writes and production-scale queries.
+
+**Answer rubric**
+- **Say it:** A covering index does not guarantee zero heap fetches.
+- **Mechanism:** PostgreSQL checks the visibility map and consults heap tuples when required.
+- **Example:** The covered ID query needs heap work after a payload update without changing its result IDs.
+- **Limit:** Buffer reads can be served by the OS cache; they are not a device-I/O counter.
+- **Watch for:** Compare estimates, actual rows, loops and visibility work before blaming index coverage.
+- **Follow-up:** What changes after vacuum, or when the query also selects the unindexed payload?
 
 **Q11. Why can random UUID primary keys hurt an InnoDB table?** `[hard]`
 
@@ -395,7 +435,12 @@ Correlate each index with read usage, uniqueness or constraint dependencies, pag
 
 ### Further Reading
 
-- [PostgreSQL index types](https://www.postgresql.org/docs/current/indexes-types.html) documents B-tree, hash, GiST, SP-GiST, GIN, and BRIN access paths.
-- [PostgreSQL execution plans](https://www.postgresql.org/docs/current/using-explain.html) explains estimates, actual execution, and plan interpretation.
+- [PostgreSQL index types](https://www.postgresql.org/docs/16/indexes-types.html) documents B-tree, hash, GiST, SP-GiST, GIN, and BRIN access paths.
+- [PostgreSQL execution plans](https://www.postgresql.org/docs/16/using-explain.html) explains estimates, actual execution, and plan interpretation.
 - [MySQL InnoDB clustered and secondary indexes](https://dev.mysql.com/doc/refman/8.4/en/innodb-index-types.html) describes its primary-key-oriented storage layout.
 - [SQLite query planner](https://www.sqlite.org/queryplanner.html) gives a concrete explanation of multi-column and covering index decisions.
+- [PostgreSQL 16 index-only scans](https://www.postgresql.org/docs/16/indexes-index-only-scans.html) explains the visibility-map requirement.
+- [PostgreSQL 18 multicolumn indexes](https://www.postgresql.org/docs/18/indexes-multicolumn.html) documents versioned skip scan.
+- [InnoDB 8.4 physical index structure](https://dev.mysql.com/doc/refman/8.4/en/innodb-physical-structure.html) describes page occupancy and insert patterns.
+- [SQLite b-tree file format](https://www.sqlite.org/fileformat.html#b_tree_pages) documents table/index tree differences and overflow cells.
+- [RocksDB compaction](https://github.com/facebook/rocksdb/wiki/Compaction) describes policy trade-offs rather than universal amplification ratios.

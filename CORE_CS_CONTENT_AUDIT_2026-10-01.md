@@ -129,3 +129,15 @@ production behavior are still pending. C05 now has three scoped lesson reviews a
 Java/Spring; [the source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records J01–J12 and limits.
 The live corpus now contains 32,531 lines, 295 diagrams and 953 Q&As; original audit inventory
 numbers above are historical. OS/networking review and the seeded SQL fixture remain open.
+
+
+## October 2 continuation checkpoint
+
+The [delivery checkpoint](CURRICULUM_COMPLETION_2026-10-02.md) supersedes the earlier pending
+milestone descriptions: seeded SQL plus OS/loopback networking labs, Spring migrations/relationships/
+pagination/security/caching/operations, and optional spaced-review histories/mixed sessions are
+implemented in an isolated branch. Twenty-two more rubrics bring authored feedback to 42 questions.
+The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) now covers nineteen scoped core reviews;
+37 core reviews remain. [Learner study tasks](LEARNER_USABILITY_STUDY.md) are prepared, but real
+sessions, revisions informed by them and retesting remain open. Container checks require a running
+daemon/CI result. Do not close those items from structural tests or an automated browser pass alone.

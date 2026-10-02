@@ -2,6 +2,10 @@
 
 The application layer is where a browser, mobile application, or service decides what a request means: resolve a name, fetch a representation, authenticate a caller, or send a message. It sits above transport protocols such as TCP and QUIC, but its choices determine most user-visible latency, cache behaviour, and security boundaries. Interviewers use DNS, HTTP, and TLS together because a convincing answer connects an address lookup, a protocol exchange, and a safe response rather than treating them as isolated acronyms.
 
+**Before you start:** Read the Beginner tiers of [TCP/UDP](05-tcp-ip.md) and [transport protocols](05b-transport-layer-protocols.md).
+**After this lesson:** Trace a cold HTTPS request; explain stale DNS versus stale HTTP data; design a retry that cannot silently create a second order.
+**Try it:** The [loopback networking lab](../../examples/labs/README.md) verifies partial TCP reads and HTTP status/body framing. Its `localhost` lookup need not send a DNS packet, and it does not implement TLS, HTTP/2 or QUIC.
+
 ---
 
 ## 🟢 Beginner Level
@@ -17,47 +21,30 @@ The application layer is where a browser, mobile application, or service decides
 | **SMTP** | Relays outgoing mail between clients and mail transfer agents and among mail servers. |
 | **IMAP / POP3** | IMAP synchronises server-side mailboxes across clients; POP3 primarily downloads messages using a simpler mailbox model. |
 | **SSH** | Authenticates and encrypts remote shells, command execution, tunnels, and SFTP sessions. |
-| **WebSocket** | Upgrades an HTTP connection to a persistent, full-duplex message channel for bidirectional low-latency updates. |
+| **WebSocket** | Persistent, full-duplex messages; HTTP/1.1 uses Upgrade, while supported HTTP/2 and HTTP/3 connections use extended CONNECT on a stream. |
 | **gRPC** | Defines typed RPC services, commonly using Protocol Buffers and HTTP/2 streaming between internal services. |
 
 When a user enters `https://www.example.com/products`, the client first needs an address for `www.example.com`.
-
 It then needs a secure connection to the server selected for that address.
-
 Finally, it sends an HTTP request that states the method, path, headers, and sometimes a body.
-
 The server returns an HTTP response containing a status code, headers, and an optional body.
-
 The application layer defines the meaning of those messages.
-
 TCP or QUIC only carries bytes reliably enough for the selected protocol; it does not know what a `GET` or a DNS `AAAA` record means.
-
 This separation lets the same HTTP API run over HTTP/1.1 on TCP, HTTP/2 on TCP, or HTTP/3 on QUIC.
 
 ### DNS as the Internet's distributed directory
 
 The Domain Name System, or DNS, maps names to records.
-
 An `A` record maps a name to an IPv4 address.
-
 An `AAAA` record maps a name to an IPv6 address.
-
 A `CNAME` record makes one name an alias for another canonical name.
-
 An `MX` record identifies mail exchangers, `TXT` is commonly used for ownership and policy data, and `NS` delegates a zone to authoritative nameservers.
-
 The core record-type vocabulary is A, AAAA, CNAME, MX, TXT, and NS; each type carries different data and therefore answers a different resolution question.
-
 Most applications ask a recursive resolver, often supplied by the network or chosen by the operating system.
-
 The recursive resolver follows delegations on the application's behalf and caches the result.
-
 The root zone does not know every host address.
-
 It refers a resolver to the nameservers for a top-level domain such as `.com`.
-
 The top-level-domain server refers the resolver to the authoritative servers for the particular domain.
-
 The authoritative server provides the answer for that zone.
 
 ```mermaid
@@ -78,26 +65,19 @@ sequenceDiagram
     R-->>B: Cached answer and TTL
 ```
 
-The browser normally does not contact root and authoritative servers directly.
+This is a cold, simplified resolution path. Browser, OS and resolver caches may skip exchanges; aliases and missing delegation addresses can add them. The browser normally does not contact root and authoritative servers directly.
 
 That delegation work is valuable because a shared resolver can cache common answers for many clients.
 
 ### Caches, TTLs, and the limits of freshness
 
 A DNS answer has a time to live, or TTL, measured in seconds.
-
 Resolvers may reuse an answer until that TTL expires instead of repeating the full lookup.
-
 If an `A` record has a TTL of 300 seconds, a resolver can normally reuse it for five minutes.
-
 That reduces latency and protects authoritative servers from repeated identical requests.
-
 A short TTL can make an address change visible sooner.
-
 A long TTL reduces lookup load but makes a bad deployment or a moved endpoint take longer to disappear from caches.
-
-Negative answers can be cached too, so creating a previously absent name may not become visible immediately.
-
+Negative answers can be cached too, so creating a previously absent name may not become visible immediately. Some resolvers can also [serve stale DNS answers](https://www.rfc-editor.org/rfc/rfc8767.html) after expiry when refresh fails. TTL is the normal reuse lifetime, not an absolute guarantee that every client immediately stops using an old address.
 DNS caching is therefore an availability and release-management decision, not merely a performance optimisation.
 
 ### HTTP is a request-response contract
@@ -108,11 +88,11 @@ The request line or pseudo-headers identify a method and target resource.
 
 Headers carry metadata such as content type, caching policy, credentials, and accepted representations.
 
-`Content-Type` identifies the body's media type, `Authorization` carries caller credentials, and cookies let a server associate later requests with browser state such as a session identifier. `Keep-Alive` and persistent connections amortise connection setup, compression reduces transferred representation or header bytes, and caching reuses responses only under the validators and freshness rules described later.
+`Content-Type` identifies the body's media type, `Authorization` carries caller credentials, and cookies can identify a browser session. Persistent connections amortise setup without requiring a literal `Keep-Alive` header; connection-specific headers including `Keep-Alive` are prohibited in HTTP/2 and HTTP/3. Compression reduces bytes; caching follows the freshness and validation rules below.
 
 The body carries a representation when the method needs one.
 
-`GET` asks for a representation and should not change server state.
+`GET` asks for a representation without requesting a state-changing effect; incidental logging or metering is allowed.
 
 `POST` commonly asks the server to process submitted data or create a subordinate resource.
 
@@ -251,7 +231,7 @@ Loss in one QUIC stream does not prevent an unrelated stream's already available
 
 HTTP/3 is not simply “HTTP over unreliable UDP.”
 
-QUIC supplies reliability for streams where HTTP needs it, while preserving independence between streams.
+QUIC supplies reliable byte streams. Shared congestion limits still affect all streams, and QPACK header decoding can create dependencies between streams; removing TCP head-of-line blocking does not remove every source of waiting.
 
 ### A worked latency example
 
@@ -302,7 +282,7 @@ sequenceDiagram
     Note over C,S: Approximate cold first byte: 201 ms
 ```
 
-This model deliberately excludes server computation, packet loss, congestion, certificate-chain validation time, and browser connection reuse.
+This cold-handshake model excludes computation, loss, congestion, certificate-validation time and reuse. It also assumes no TLS HelloRetryRequest, QUIC Retry or protocol-discovery delay; those can add exchanges.
 
 In production, a real-user measurement trace is more trustworthy than a hand calculation.
 
@@ -312,9 +292,9 @@ The calculation is still useful for forming a hypothesis: a DNS miss cannot be f
 
 An HTTP cache can store a representation and reuse it only when response directives permit it.
 
-`Cache-Control: max-age=60` says a shared or private cache may regard a response as fresh for 60 seconds unless another directive changes that interpretation.
+`Cache-Control: max-age=60` sets a freshness lifetime, subject to other directives such as `s-maxage` for shared caches. Compare it with the response's calculated current age: if that age is already 45 seconds, about 15 seconds remain, not a fresh minute after each receipt. [RFC 9111](https://www.rfc-editor.org/rfc/rfc9111.html) defines this calculation.
 
-`no-store` says the response must not be stored, which is useful for highly sensitive material but can be overused.
+`no-store` prohibits storage/reuse of that response by conforming HTTP caches; it is not a general privacy guarantee or a purge of browser history and unrelated existing copies.
 
 `no-cache` is often misunderstood: it allows storage but requires validation before reuse.
 
@@ -322,7 +302,7 @@ An `ETag` is an opaque validator chosen by the server.
 
 The client sends it in `If-None-Match` to ask whether its stored representation still matches.
 
-If unchanged, the server can return `304 Not Modified` with no representation body.
+For a matching conditional GET or HEAD, the server can return `304 Not Modified` without a representation body. A failed `If-None-Match` precondition on another method instead requires `412 Precondition Failed`.
 
 `Last-Modified` and `If-Modified-Since` provide time-based validation but can be less precise than an entity tag.
 
@@ -344,7 +324,7 @@ An idempotent method has the same intended end state when applied once or repeat
 
 Distributed applications often add an idempotency key to a POST request.
 
-The server stores the key with the completed effect and returns the original result when it sees the key again.
+In a local database design, claim a caller-scoped key under a unique constraint and commit the effect and recorded result in the same transaction. Concurrent duplicates must wait for or discover that result; merely checking for a key before inserting allows a race. Reject a different payload under the same key and define retention. External payments need their own deduplication/coordination because a database transaction cannot atomically commit a remote charge.
 
 That protects clients retrying after a timeout when they cannot tell whether the first request reached the server.
 
@@ -352,11 +332,11 @@ That protects clients retrying after a timeout when they cannot tell whether the
 
 TLS 1.3 has the client send a `ClientHello` containing supported algorithms, a server-name indication, and usually a key share.
 
-The server selects parameters, sends its own key share, and proves its identity with a certificate chain and signature.
+For the fresh certificate-authenticated handshake described here, the server selects parameters, sends a key share and proves its identity with a certificate chain and signature.
 
-Both endpoints derive shared handshake secrets using ephemeral Diffie-Hellman key exchange.
+In that handshake, ephemeral Diffie-Hellman contributes to shared secrets. TLS 1.3 also supports pre-shared-key authentication, with or without a fresh Diffie-Hellman exchange; resumption normally omits a new certificate. A cipher suite selects record encryption and a hash, separately from groups and signature algorithms.
 
-The client validates the certificate chain to a trusted authority and checks the requested hostname against the certificate identity.
+For certificate authentication, the client checks the trust chain, validity, permitted usage and requested hostname.
 
 It also verifies the server's `CertificateVerify` signature and the handshake `Finished` message.
 
@@ -378,7 +358,7 @@ An attacker who can cause a resolver to cache a false answer can direct clients 
 
 DNSSEC adds signed resource-record sets and a chain of trust from a signed parent zone to a signed child zone.
 
-A validating resolver checks signatures and reports a validation failure rather than accepting an altered signed answer.
+A validating resolver uses configured trust anchors to validate signed delegations/answers and rejects bogus signatures. An unsigned zone can be classified as insecure rather than bogus: DNSSEC is not proof that every name has signed data.
 
 DNSSEC authenticates DNS data; it does not encrypt DNS queries or hide names from the resolver.
 
@@ -398,7 +378,7 @@ Instrument resolver response code, cache-hit rate, answer age, and authoritative
 
 Multiplexing can let one eager sender consume memory at a slower receiver unless the protocol provides limits.
 
-HTTP/2 has connection-level and stream-level flow-control windows.
+HTTP/2 has connection-level and stream-level flow-control windows for DATA frames; header/control frames are not governed by those byte windows.
 
 The receiver sends `WINDOW_UPDATE` frames as it consumes data and can permit more bytes.
 
@@ -444,7 +424,7 @@ Early data is not safe against replay in the same way as data sent after handsha
 
 An attacker who captures an early-data request may be able to replay it to the server under conditions the protocol permits.
 
-Servers must only accept replay-tolerant, idempotent operations as early data.
+Servers need an application-specific replay-safe acceptance policy for early data. HTTP idempotency alone does not establish safety for duplicated authorization checks, one-time credentials or reordered effects.
 
 For example, an authenticated `GET /catalog` may be suitable if its side effects are truly absent.
 
@@ -478,7 +458,7 @@ When a phone moves from Wi-Fi to cellular, that tuple usually changes.
 
 Traditional TCP connections normally need to reconnect because the peer sees a different path and address.
 
-QUIC separates a stable connection ID from the current network path.
+QUIC separates connection identity from the network tuple using connection IDs that can rotate. Migration depends on negotiated policy, usable connection IDs and path validation; a zero-length ID makes routing across address changes fragile.
 
 After path validation, a client can continue a QUIC connection across an address change without recreating all application streams.
 
@@ -536,7 +516,7 @@ A recursive query asks the resolver to return a final answer or an error for the
 
 **Q2. Why does a DNS TTL matter to an application deployment?** `[easy]`
 
-A TTL controls how long resolvers may reuse an answer before asking again. A short TTL can make an endpoint change propagate faster, while a long TTL reduces lookup traffic and often improves latency. The trade-off is that an address rollback or outage can remain visible in independent caches until their stored lifetime ends.
+A TTL sets the normal reuse lifetime of a DNS answer. Shorter TTLs can expose changes sooner but increase lookup traffic; previously cached answers retain their earlier lifetime. Serve-stale policies and application caches mean expiry alone does not guarantee that every client immediately selects the new endpoint.
 
 **Q3. What does an HTTP status code tell a client, and what does it not tell it?** `[easy]`
 
@@ -544,7 +524,7 @@ The status code categorises the result of the HTTP exchange, such as success, ca
 
 **Q4. How does TLS authenticate a web server for a hostname?** `[easy]`
 
-The server sends a certificate chain and proves possession of the corresponding private key with handshake signatures. The client validates that chain to a configured trust store and checks that the requested hostname matches a permitted certificate identity. Expired certificates, an untrusted issuer, or a hostname mismatch must fail validation even if encryption could otherwise be established.
+For a fresh certificate-authenticated handshake, the server sends a chain and proves possession of its private key with a handshake signature. The client checks trust, validity, usage and hostname; encryption alone is insufficient. Resumption can authenticate from an established pre-shared key without sending a new certificate, so do not describe the certificate flight as universal.
 
 **Q5. Why can HTTP/2 still suffer head-of-line blocking?** `[medium]`
 
@@ -560,11 +540,19 @@ Flow control limits how much data a sender may place in a receiver's buffers bef
 
 **Q8. What is an ETag, and why is it preferable to sending a full representation on every request?** `[medium]`
 
-An ETag is an opaque version validator selected by the origin server for a representation. A client sends it in `If-None-Match`, allowing the server to answer `304 Not Modified` when the representation has not changed. This saves body bytes and transfer time, but cache directives and variation by headers must still be correct or a client can receive an inappropriate cached representation.
+An ETag is an opaque version validator selected by the origin server for a representation. On a conditional GET/HEAD, a client sends it in `If-None-Match`, allowing a `304 Not Modified` when it matches. This saves body bytes and transfer time, but cache directives and variation by headers must still be correct or a client can receive an inappropriate cached representation.
 
 **Q9. A client timed out while creating an order. What should the retry design do?** `[medium]`
 
-Treat the timeout as an unknown outcome rather than evidence that no order was created. Submit the operation with an idempotency key, store the completed effect against that key, and return the original result for a retry. The service must scope the key to the correct caller and request payload, otherwise a reused key can incorrectly join different operations.
+Treat the timeout as an unknown outcome, then retry with the same caller-scoped idempotency key and payload. A unique key claim plus atomic local effect/result commit prevents concurrent duplicates from both creating orders; an in-progress attempt needs a defined wait or conflict response. Different payloads must be rejected and retention documented; remote effects need provider deduplication or another coordination design.
+
+**Answer rubric**
+- **Say it:** A timeout leaves the outcome unknown, so retries need a durable deduplication contract.
+- **Mechanism:** Claim a unique caller-scoped key; atomically commit the local order and result; resolve duplicate/in-progress requests.
+- **Example:** Two simultaneous retries with key K must produce one order, then the same recorded result.
+- **Limit:** Key expiry or an uncoordinated remote charge can still permit a duplicate.
+- **Watch for:** Checking whether a key exists before a separate order insert leaves a race.
+- **Follow-up:** What should happen if the same key is submitted with a different quantity?
 
 **Q10. Why is DNSSEC different from DNS over HTTPS?** `[medium]`
 
@@ -576,7 +564,15 @@ First determine whether the application uses TCP-based HTTP/1.1 or HTTP/2 connec
 
 **Q12. A CDN migration changed an address record, but some users still reach the old edge for several minutes. What do you check?** `[hard]`
 
-Check the old record's TTL, resolver cache age, alias chain, and whether the application is resolving an unexpected canonical target. Compare answers from several recursive resolvers and inspect any in-process or operating-system DNS cache. Do not repeatedly lower the TTL after the change and expect existing cached answers to disappear, because the lifetime was attached when each resolver stored the earlier response.
+Check the old record's TTL, resolver cache age, alias chain, and whether the application is resolving an unexpected canonical target. Compare answers from several recursive resolvers and inspect any in-process or operating-system DNS cache. Do not lower the TTL after the change and expect older cached answers to disappear: they retain the earlier lifetime. Also check serve-stale policy and connection reuse; a pooled connection to the old edge can survive a new DNS answer.
+
+**Answer rubric**
+- **Say it:** Address selection depends on earlier caches and existing connections, not only today's authoritative answer.
+- **Mechanism:** Compare authority/resolver answers, original TTL and age, aliases, local caches and pooled connections.
+- **Example:** A five-minute answer cached before a TTL reduction can outlive the new 30-second setting.
+- **Limit:** Serve-stale policy can extend use when refresh fails; not every lookup sends a DNS query.
+- **Watch for:** Repeatedly lowering the new TTL cannot invalidate an answer already stored elsewhere.
+- **Follow-up:** Would closing the HTTP connection change which address the next request uses?
 
 **Q13. When is TLS 1.3 0-RTT data unsafe?** `[hard]`
 

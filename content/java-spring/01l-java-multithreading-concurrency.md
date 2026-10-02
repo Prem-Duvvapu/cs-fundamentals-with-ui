@@ -39,7 +39,7 @@ It also permits two threads to observe or update the same object at overlapping 
 
 The three basic correctness concerns are atomicity, visibility, and ordering.
 Atomicity means a change appears indivisible to other threads.
-Visibility means one thread eventually observes another thread's published write.
+Visibility describes which writes a read may observe; happens-before orders publication. It is not a promise that an unsynchronized reader eventually notices a change.
 Ordering means operations cannot be observed in an invalid rearrangement.
 
 The expression `count++` looks like one instruction in source code.
@@ -88,6 +88,8 @@ stateDiagram-v2
     RUNNABLE --> TERMINATED: run returns
 ```
 
+This diagram groups several wait mechanisms. After `Object.wait` notification, a thread must reacquire its monitor and can be `BLOCKED` before returning; `notify` does not transfer ownership.
+
 An application should rarely create raw platform threads for each request.
 Thread construction, stack reservation, operating-system scheduling, and lifecycle management are resources that need a deliberate policy.
 Use executors for managed task execution unless a specialized lifecycle is truly required.
@@ -99,15 +101,35 @@ A `Callable<T>` represents work that can return `T` or throw a checked exception
 An `Executor` decides when and on which thread that work runs.
 This separation lets the caller submit a task without owning a thread directly.
 
-```java
-ExecutorService executor = Executors.newSingleThreadExecutor();
-try {
-    Future<Integer> result = executor.submit(() -> 21 * 2);
-    System.out.println(result.get());
-} finally {
-    executor.shutdown();
+**Runnable example — Java 17.** Save as `TaskResultDemo.java`; run `javac --release 17 TaskResultDemo.java` then `java TaskResultDemo`. Imports name the APIs; `main` propagates checked failures.
+
+```java runnable=TaskResultDemo
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+public class TaskResultDemo {
+    public static void main(String[] args) throws Exception {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<Integer> result = executor.submit(() -> 21 * 2);
+            System.out.println(result.get(5, TimeUnit.SECONDS));
+        } finally {
+            executor.shutdownNow();
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Executor did not stop");
+            }
+        }
+    }
 }
 ```
+
+```text output=TaskResultDemo
+42
+```
+
+**Predict/change/debug:** Change the task to `21 * 3`; predict 63 first. `isDone` asks about completion instead of retrieving the result. Removing shutdown can keep the process alive after `main` finishes.
 
 `Future.get` waits for task completion and makes the completed task's effects visible to the thread that retrieves the result.
 It can throw `InterruptedException`, so a caller should either propagate it or restore the interrupt flag after handling it.
@@ -119,7 +141,7 @@ An executor must be shut down when its owning component ends, or its threads can
 
 `CompletableFuture` represents a stage that can be completed later and composed without immediately blocking the caller.
 Methods such as `thenApply`, `thenCompose`, and `allOf` build dependency graphs, but an eventual `join` or `get` still blocks the waiting thread.
-Unless an executor is supplied, asynchronous stages commonly use the shared `ForkJoinPool.commonPool`, so unrelated workloads can contend with one another.
+Non-async continuations may run on the completing thread or another caller participating in completion; they do not promise a separate worker. Without an explicit executor, async methods use the common pool unless its parallelism is below two, when the implementation creates a thread per task. Unrelated work can contend for that pool.
 
 The ForkJoin framework, represented by `ForkJoinPool`, is designed for recursively divisible CPU work and uses work stealing: an idle worker takes tasks from another worker's deque.
 It is a poor default for long blocking I/O unless blocking is compensated deliberately, because blocked workers reduce available parallelism.
@@ -165,6 +187,8 @@ It releases the monitor and places the caller in that monitor's wait set.
 `notify` wakes one arbitrary waiting thread and `notifyAll` wakes all of them, but each awakened thread must reacquire the monitor before continuing.
 Always await a predicate in a `while` loop because wakeups may be spurious or another thread may consume the condition first.
 
+**Excerpt — fields/methods inside a class, Java 17; not a complete program.**
+
 ```java
 private final Object monitor = new Object();
 private boolean ready;
@@ -194,7 +218,7 @@ Those are different monitors, so synchronizing one instance method does not excl
 
 ReentrantLock provides interruptible acquisition through `lockInterruptibly`, timed `tryLock`, optional fairness, and multiple `Condition` wait sets.
 ReadWriteLock permits concurrent readers while giving writers exclusive access; it helps only when reads are sufficiently frequent and long to offset coordination overhead.
-Both require explicit release in `finally`, unlike the structured release performed when leaving a `synchronized` block.
+Acquired explicit locks require release in `finally`, unlike leaving a `synchronized` block. A fair `ReentrantLock` does not make thread scheduling fair; untimed `tryLock()` may barge even on a fair lock.
 
 A `Semaphore` limits concurrent permit holders and is useful for protecting a pool of ten downstream connections without serializing them to one thread.
 A `CountDownLatch` is a one-shot gate: waiters proceed after its count reaches zero, and the latch cannot be reset.
@@ -245,6 +269,8 @@ Atomic classes use this primitive to implement many lock-free operations.
 
 $$\operatorname{CAS}(V, E, N) = \begin{cases} V \leftarrow N & \text{when } V = E \\ \text{fail} & \text{otherwise} \end{cases}$$
 
+**Excerpt — class field/method; import `java.util.concurrent.atomic.AtomicInteger`.**
+
 ```java
 AtomicInteger inventory = new AtomicInteger(5);
 
@@ -270,25 +296,60 @@ It trades away an instant, globally atomic total during concurrent updates.
 Assume an API has four CPU cores available for a CPU-heavy image validation stage.
 Each validation takes about 50 ms of CPU time.
 At a sustained 80 requests per second, the stage requires approximately $80 \times 0.050 = 4$ CPU-seconds each second.
-Four active workers are a reasonable starting point before measurement, because the work is CPU-bound rather than waiting on network I/O.
+Four workers match the ideal mean demand, but 100% utilization leaves no headroom for variance, runtime overhead or other work. This is a capacity estimate, not a latency guarantee; effective CPU quota and measurement matter.
 
-Now configure core size 4, maximum size 8, and an `ArrayBlockingQueue` capacity of 100.
-If the workers stay busy for two seconds while 160 tasks arrive, four immediately run and 100 queue.
-The next 56 submissions can cause the executor to grow toward eight workers, then invoke rejection when both the eight-worker limit and the queue are full.
-That rejection is a deliberate overload signal rather than an invisible unbounded-heap growth path.
+For **an instantaneous burst with no completions**, core size 4, maximum 8 and queue capacity 100 admit 108 tasks: four core workers, 100 queued tasks and four extra workers. With `AbortPolicy`, the remaining `160 - 108 = 52` submissions are rejected. Spreading 160 arrivals over two seconds while 50-ms tasks complete is a different scenario; completions change queue occupancy.
 
-```java
-ThreadPoolExecutor pool = new ThreadPoolExecutor(
-        4,
-        8,
-        30L,
-        TimeUnit.SECONDS,
-        new ArrayBlockingQueue<>(100),
-        new ThreadPoolExecutor.CallerRunsPolicy());
+**Runnable example — Java 17.** Save as `AdmissionDemo.java`; run `javac --release 17 AdmissionDemo.java` then `java AdmissionDemo`. A latch holds every admitted task until all submissions finish, so no sleeps or timing guesses determine the counts.
+
+```java runnable=AdmissionDemo
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+public class AdmissionDemo {
+    public static void main(String[] args) throws Exception {
+        CountDownLatch release = new CountDownLatch(1);
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(
+                4, 8, 30, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.AbortPolicy());
+        Runnable task = () -> {
+            try { release.await(); }
+            catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        };
+        int rejected = 0;
+        try {
+            for (int i = 0; i < 160; i++) {
+                try { pool.execute(task); }
+                catch (RejectedExecutionException e) { rejected++; }
+            }
+            System.out.println("workers=" + pool.getPoolSize());
+            System.out.println("queued=" + pool.getQueue().size());
+            System.out.println("rejected=" + rejected);
+        } finally {
+            release.countDown();
+            pool.shutdown();
+            if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
+                pool.shutdownNow();
+                throw new IllegalStateException("Executor did not stop");
+            }
+        }
+    }
+}
 ```
 
+```text output=AdmissionDemo
+workers=8
+queued=100
+rejected=52
+```
+
+**Predict/change/debug:** With maximum 4, predict 56 rejections. Do not simply switch this gated test to `CallerRunsPolicy`: the submitting main thread would wait on the latch it was supposed to release.
+
 With `CallerRunsPolicy`, a submitting application thread executes some overflow work.
-That slows admission and can create useful backpressure, but it is dangerous if the caller must never block or is holding a lock.
+That can slow admission, but it blocks the submitter and may be unsafe under a lock or on an event loop. After executor shutdown it discards the task instead; it is not a durable delivery guarantee.
 `AbortPolicy` fails fast with `RejectedExecutionException`, which may be more appropriate for a request that can return a defined overload response.
 Capacity should be tied to latency budgets and downstream limits, not selected as a decorative round number.
 
@@ -297,7 +358,7 @@ Capacity should be tied to latency budgets and downstream limits, not selected a
 Interruption is a cooperative cancellation request.
 Calling `interrupt` sets a thread's interrupted status and causes selected interruptible operations, such as `sleep`, `wait`, `join`, and many blocking-queue methods, to throw `InterruptedException`.
 It does not forcibly stop arbitrary Java code safely.
-The removed `Thread.stop` approach could expose partially updated invariants.
+Java 17 deprecates `Thread.stop` because it can expose partially updated invariants; do not use it as cancellation.
 
 When catching `InterruptedException` and not rethrowing it, restore the flag.
 This lets a caller higher in the stack recognize the cancellation request.
@@ -313,7 +374,7 @@ try {
 ```
 
 Timeouts are a policy, not proof that underlying work stopped.
-`Future.cancel(true)` requests interruption if the task has started, but a task that ignores interruption can continue.
+For executor-backed task futures, `cancel(true)` can request interruption of running work, which may ignore it. `CompletableFuture.cancel(true)` instead marks completion as cancelled without interrupting its computation; its boolean argument has no interruption effect.
 Design blocking calls with timeouts, propagate cancellation to dependent work, and make cleanup idempotent.
 
 ---
@@ -336,6 +397,8 @@ Deadlock requires mutually exclusive resources, hold-and-wait, no forced preempt
 The standard prevention technique is a global lock order.
 If a transfer must lock account A and account B, lock the lower stable identifier first in every code path.
 Timed `tryLock` can detect and back away from a contested acquisition, but it requires a safe retry or failure policy.
+
+**Excerpt — application-defined `Account`, `moveFunds` and locks; not a runnable transfer implementation.**
 
 ```java
 boolean transfer(Account first, Account second) throws InterruptedException {
@@ -395,6 +458,8 @@ Create virtual threads per task rather than pooling virtual threads themselves.
 The scarce resources remain database connections, sockets, file descriptors, CPU, heap, and downstream rate limits.
 Use a semaphore or a bounded resource pool to cap those resources even when virtual-thread creation is cheap.
 
+**Excerpt — Java 21+, with application-defined requests/remote service. Java 17 cannot compile this API.**
+
 ```java
 try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
     for (Request request : requests) {
@@ -403,8 +468,7 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-Pinning can prevent unmounting when a virtual thread blocks while holding a monitor or inside native code.
-Current JDKs have improved many synchronized cases, but long blocking operations inside synchronized regions remain a design smell worth profiling.
+In Java 21–23, blocking while holding a monitor can pin a virtual thread; Java 24 removes that monitor pinning through [JEP 491](https://openjdk.org/jeps/491). Native/foreign frames can still pin. A long locked operation can serialize callers without pinning: distinguish lock contention from carrier retention.
 Large `ThreadLocal` values multiplied across huge virtual-thread counts can also consume substantial heap.
 Use Java Flight Recorder and the JDK's virtual-thread diagnostics to observe pinning and scheduler behavior before rewriting synchronization mechanically.
 
@@ -413,7 +477,7 @@ Use Java Flight Recorder and the JDK's virtual-thread diagnostics to observe pin
 The ABA problem occurs when one thread reads A, another changes A to B and then back to A, and the first CAS succeeds without noticing the intermediate change.
 For reference transitions where that history matters, `AtomicStampedReference` pairs a reference with a version-like stamp.
 It makes the expected value include both reference and stamp.
-Not every CAS use needs a stamp; a monotonic counter increment does not have the same identity-reuse concern.
+Not every CAS needs a stamp; an increment often depends on the current number, not its history. Integer counters and stamps can wrap, so neither is an infinite monotonic-version guarantee.
 
 Lock-free does not mean wait-free.
 An algorithm is lock-free when system-wide progress is guaranteed even if one thread pauses, but a particular thread may repeatedly lose CAS races.
@@ -481,7 +545,7 @@ It happens when all workers in a limited pool run tasks that synchronously wait 
 
 **Q11. What is virtual-thread pinning, and how do you investigate it?** `[medium]`
 
-Pinning means a virtual thread cannot unmount from its carrier while it blocks, commonly around a monitor-held or native operation. This reduces the carrier's ability to run other virtual threads and can hurt scalability. Use JFR and JDK diagnostics to find the exact blocking region, then shorten or restructure the critical section rather than blindly replacing every lock.
+Pinning prevents unmounting from a carrier during blocking and can reduce capacity for other virtual threads. Check the JDK: monitor pinning applies to Java 21–23 and is removed in Java 24; native/foreign frames can still pin. Use version-appropriate JFR diagnostics and separate pinning from lock contention before changing synchronization.
 
 **Q12. Scenario: a CPU-bound service uses 200 worker threads on an 8-core host but throughput drops and latency rises. What do you change first?** `[hard]`
 
@@ -489,7 +553,15 @@ Profile CPU utilization, runnable-thread count, allocation, and context-switch a
 
 **Q13. Scenario: a request executor has a queue of 100,000 tasks and eventually crashes with `OutOfMemoryError`. What is the root cause and repair?** `[hard]`
 
-The queue acted as unbounded admission storage while producers outran consumers, so latency and heap usage grew together. Increasing heap only delays failure and does not restore a service-level latency target. Bound the queue, choose a rejection or caller-backpressure strategy, and cap upstream concurrency according to downstream capacity.
+A 100,000-task queue is finite but can still retain more state than the heap permits. Verify occupancy, retained bytes per task and other live data; reducing capacity also bounds queued waiting. Choose explicit rejection/backpressure and upstream limits rather than adding heap alone; preserve cancellation and rejection visibility.
+
+**Answer rubric**
+- **Say it:** A bounded queue can still be too large for the memory and latency budget.
+- **Mechanism:** Arrival above completion grows occupancy; captured task data remains reachable until execution/removal.
+- **Example:** 100,000 queued tasks retaining 20 KB each require about 2 GB before other data.
+- **Limit:** The queue may be only one contributor; inspect retained objects before declaring a root cause.
+- **Watch for:** Calling a finite queue literally unbounded or treating more heap as admission control.
+- **Follow-up:** Why can a large queue prevent the pool from reaching its maximum worker count?
 
 **Q14. Scenario: a virtual-thread migration increases database timeouts even though platform-thread usage falls. What should you inspect?** `[hard]`
 
@@ -498,6 +570,6 @@ Virtual threads may have removed thread scarcity and allowed too many concurrent
 ### Further Reading
 
 - [Java `java.lang.Thread` documentation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html) documents lifecycle, interruption, and virtual-thread APIs.
-- [Java Language Specification, chapter 17](https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html) is the primary reference for the Java Memory Model and happens-before rules.
-- [Java `ThreadPoolExecutor` documentation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html) specifies admission, queueing, and rejection behavior.
+- [Java Language Specification, chapter 17](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html) is the primary reference for the Java Memory Model and happens-before rules.
+- [Java `ThreadPoolExecutor` documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html) specifies admission, queueing, and rejection behavior.
 - [JEP 444: Virtual Threads](https://openjdk.org/jeps/444) explains the design, intended use, and observability of virtual threads.

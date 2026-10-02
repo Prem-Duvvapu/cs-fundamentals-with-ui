@@ -6,6 +6,12 @@ The useful goal is not to memorize page-table acronyms but to follow exactly wha
 
 ---
 
+**Before you start:** understand [process isolation](/topic/process-management) and the difference between an address and its stored value.
+
+**After this lesson you can:** trace one address translation, classify a page fault, and distinguish a container limit from host memory.
+
+**Try it:** the [Linux memory observation lab](../../examples/labs/README.md#os-waiting-memory-faults-and-filesystem-resources) touches 8 MiB and reports minor faults and high-water RSS; predict why no disk read is required for every touched page.
+
 ## 🟢 Beginner Level
 
 ### Address translation, paging, and segmentation
@@ -47,7 +53,7 @@ Compaction can combine holes but requires moving data and updating references or
 
 Paging avoids the need for one contiguous physical allocation.
 It divides virtual memory into fixed-size pages and RAM into equal-sized frames.
-Any free frame can hold any page, so holes do not prevent a large virtual allocation.
+For ordinary base-page mappings, a large virtual region can use separate free frames. Physical contiguity can still be required for huge pages or particular device/kernel allocations; paging does not eliminate every form of physical fragmentation.
 The final partly used page can still have internal fragmentation.
 
 ### Pages, Frames, and the Page Table
@@ -101,15 +107,15 @@ The best page size depends on locality, allocation shape, and latency requiremen
 
 Assume a TLB hit requires 10 ns and an ordinary RAM access after translation requires 100 ns.
 For this simplified model, a TLB hit costs $10 + 100 = 110$ ns.
-On a TLB miss, a single-level page-table access plus the data access costs $100 + 100 = 200$ ns, ignoring the small TLB lookup cost.
+For this serial teaching model, a miss includes the same 10 ns lookup, one page-table access and one data access: $10 + 100 + 100 = 210$ ns. These are assumed costs, not a measured CPU pipeline.
 Assume a 99% hit ratio.
 
 The effective access time is:
 
-$$0.99 \times 110\text{ ns} + 0.01 \times 200\text{ ns} = 108.9\text{ ns} + 2\text{ ns} = 110.9\text{ ns}$$
+$$0.99 \times 110\text{ ns} + 0.01 \times 210\text{ ns} = 108.9\text{ ns} + 2.1\text{ ns} = 111\text{ ns}$$
 
-At a 90% hit ratio, the same model becomes $0.90 \times 110 + 0.10 \times 200 = 119$ ns.
-The 9.1 ns difference matters because it applies to a large fraction of instructions and data loads.
+At a 90% hit ratio, the same model becomes $0.90 \times 110 + 0.10 \times 210 = 120$ ns.
+The 9 ns difference matters because it applies to a large fraction of instructions and data loads.
 Real CPUs have multi-level TLBs, page-walk caches, out-of-order execution, and overlapping memory operations, but the arithmetic shows why locality matters.
 
 ### Multi-Level Page Tables
@@ -152,7 +158,7 @@ The instruction does not need application code to manually retry.
 
 Copy-on-write uses this path intentionally.
 After `fork`, parent and child can initially map the same physical pages as read-only.
-When one writes a shared page, a protection fault lets the kernel copy that page, change the writer's mapping, and preserve the other process's original data.
+A write fault copies a still-shared private page when needed, preserving the other process's view. If that page is already exclusively owned, the kernel can make it writable without another copy; shared mappings also have different semantics.
 This makes process creation cheaper when the child soon executes another program.
 
 ### Replacement Policies and Working Sets
@@ -182,7 +188,7 @@ When allocated frames fall below a workload's active working set, repeated evict
 Global replacement lets one process take frames that another process used.
 It can improve total throughput but make an individual process's latency unpredictable.
 Local replacement protects a process's allocation but can leave freeable memory unused elsewhere.
-Modern kernels balance global reclaim with cgroup and memory-policy controls rather than following one classroom rule exclusively.
+Modern kernels balance global reclaim with cgroup and memory-policy controls rather than following one classroom rule exclusively. Linux can use multi-generation LRU when supported and enabled; textbook FIFO/LRU/Clock comparisons are models, not the current kernel's complete algorithm.
 
 ### Thrashing and Memory Pressure
 
@@ -358,7 +364,7 @@ The TLB is a hardware cache of recent virtual-to-physical translations. It avoid
 
 **Q4. What is the difference between a minor and major page fault?** `[easy]`
 
-A minor fault is resolved without waiting for disk, such as zero-fill allocation, copy-on-write, or mapping an already cached file page. A major fault requires storage I/O to obtain data that is not resident. Both are traps, but only major faults usually imply substantial latency.
+A minor fault is resolved without waiting for disk, such as zero-fill allocation, copy-on-write, or mapping an already cached file page. A major fault requires storage I/O to obtain data that is not resident. Both are traps; minor faults can still incur allocation, reclaim or compaction stalls. The minor/major counters classify I/O involvement, not a latency guarantee.
 
 **Q5. How does demand paging work after a valid non-present page is accessed?** `[medium]`
 
@@ -374,7 +380,7 @@ FIFO evicts the oldest resident page and is simple but can evict useful pages an
 
 **Q8. What is copy-on-write after `fork`?** `[medium]`
 
-Parent and child initially share physical pages marked so a write traps. When either writes, the kernel allocates and copies only that page for the writer, preserving the other process's view. This avoids eagerly copying a large address space when a child soon calls `exec`.
+Parent and child initially share physical pages marked so a write traps. A write to a still-shared private page can copy it for the writer; an exclusively owned page may only need its protection changed. Shared mappings and huge-page policies need their own rules. This avoids eagerly copying a large address space when a child soon calls `exec`.
 
 **Q9. Why can a process thrash even though the CPU is not fully utilized?** `[medium]`
 

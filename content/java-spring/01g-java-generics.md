@@ -44,9 +44,9 @@ Generics are type constraints, not a guarantee about mutability, thread safety, 
 
 ### Type safety moves failures earlier
 
-A raw collection stores references without an element-type promise.
-The code that retrieves an element must cast it.
-That cast can fail long after a different piece of code inserted the wrong value.
+A raw collection stores references without an element-type promise. The code that retrieves an element must cast it. That cast can fail long after a different piece of code inserted the wrong value.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 List raw = new ArrayList();
@@ -83,6 +83,8 @@ A generic declaration introduces a type parameter between angle brackets.
 Each use supplies a type argument.
 The conventional name `T` is only a name; it is not a Java keyword.
 
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
+
 ```java
 public final class Box<T> {
     private T value;
@@ -112,6 +114,8 @@ The letters make signatures compact, but a descriptive name is reasonable for a 
 A method may introduce its own type parameter.
 The declaration goes before the return type.
 
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
+
 ```java
 public static <T> T requirePresent(T value, String message) {
     return Objects.requireNonNull(value, message);
@@ -130,6 +134,8 @@ Writing `T` without declaring `<T>` first is a compiler error.
 Java arrays are covariant.
 A `Dog[]` can be referenced as `Animal[]`.
 The JVM then checks each array store at runtime.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 Animal[] animals = new Dog[1];
@@ -151,7 +157,7 @@ The original dog-list reference would then hold an impossible element.
 | `List<? extends Animal>` | Yes | No, except `null` | `Animal` |
 | `List<? super Dog>` | Yes | Yes | `Object` |
 
-The wildcard rows are safe views over another list.
+The table describes compile-time permission, assuming a mutable implementation. Even permitted `add(null)` can throw if a list rejects null or modification. An extends wildcard is not immutable: removal and `clear()` can still be legal. The wildcard rows are type-safe views over another list.
 They preserve the owner's exact element type.
 They are how Java provides controlled variance.
 
@@ -161,6 +167,8 @@ They are how Java provides controlled variance.
 It may refer to a `List<String>`, `List<Integer>`, or `List<Object>`.
 Every element can be read as `Object`.
 No non-null element can safely be added.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 static void printAll(List<?> values) {
@@ -186,6 +194,8 @@ PECS means **Producer Extends, Consumer Super**.
 Use `? extends T` when an argument produces `T` values for this method to read.
 Use `? super T` when an argument consumes `T` values supplied by this method.
 Use an exact `T` where the same argument needs both operations.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 static double totalWeight(List<? extends Animal> animals) {
@@ -227,6 +237,8 @@ An upper bound restricts a type variable to a capability.
 `<T extends Number>` gives code access to the methods of `Number`.
 It also rejects unrelated types before execution.
 
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
+
 ```java
 static <T extends Number> double average(List<T> values) {
     double sum = 0;
@@ -255,13 +267,15 @@ This pattern appears in the JDK's sorting APIs.
 Multiple bounds use `&`.
 A class bound, when present, must appear first.
 
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
+
 ```java
 static <T extends Number & Comparable<T>> T larger(T left, T right) {
     return left.compareTo(right) >= 0 ? left : right;
 }
 ```
 
-The bound is an API promise, not a runtime validator.
+These bound-method excerpts assume non-null elements and a nonempty list. `max` on empty input fails at `get(0)`; `average` computes NaN from zero divided by zero. A public API should specify or reject these cases. The bound is an API type promise, not an input-state validator.
 Erasure later represents `T` using its leftmost bound.
 
 ### Worked example: copy a typed event batch
@@ -270,6 +284,8 @@ An ingestion service receives four `PaymentEvent` objects.
 `PaymentEvent` extends `DomainEvent`.
 Its long-lived ledger already contains six `DomainEvent` objects.
 The service must append the incoming batch without raw casts.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 static <T> void copy(List<? super T> destination, List<? extends T> source) {
@@ -285,7 +301,7 @@ copy(ledger, incoming);
 
 The incoming list produces `T`, so the source is `? extends T`.
 The ledger consumes `T`, so the destination is `? super T`.
-The loop executes four times.
+This assumes a mutable destination distinct from the source, and no concurrent mutation. Copying a nonempty list into itself with this enhanced-for loop can invalidate its iterator. Unlike `Collections.copy`, this custom method appends; the JDK method replaces existing destination positions. The loop executes four times.
 The ledger size changes from $6$ to $6 + 4 = 10$.
 
 ```mermaid
@@ -308,6 +324,8 @@ The compiler treats each wildcard as a fresh hidden type.
 Compiler diagnostics often call it `CAP#1`.
 That name means the compiler cannot prove that an offered value matches the wildcard's actual type.
 
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
+
 ```java
 static void reverse(List<?> list) {
     reverseCaptured(list);
@@ -326,8 +344,10 @@ Capture cannot make an arbitrary external `Number` safe to insert into `List<? e
 ### Generic varargs need a narrow safety promise
 
 Varargs are implemented as arrays.
-Generic arrays are not reifiable.
+Arrays whose component type is non-reifiable, such as `List<String>`, cannot be created directly. An array of `List<?>` is permitted because that wildcard component is reifiable.
 Together, they can create heap pollution if a method leaks or mutates its varargs array.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 @SafeVarargs
@@ -341,7 +361,7 @@ static <T> List<T> flatten(List<? extends T>... batches) {
 ```
 
 `@SafeVarargs` suppresses a warning after an author audit.
-It is allowed only on static, final, private, or otherwise non-overridable methods.
+In Java 17 it is allowed on variable-arity constructors and methods explicitly declared static, final or private. A fixed-arity declaration is ineligible; being in a final class alone does not make a method eligible.
 The method must not expose the array or write incompatible values through it.
 When possible, accept a collection of collections instead of generic varargs.
 
@@ -355,6 +375,8 @@ Java implements generics with erasure.
 An unbounded type variable becomes `Object` in bytecode.
 A bounded variable becomes its leftmost bound.
 The compiler inserts casts at typed reads that it already proved safe in source.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 public final class Box<T extends Number> {
@@ -393,6 +415,8 @@ Erasure explains several restrictions.
 Erasure can make a specialized overriding method look different from the inherited erased method.
 The compiler emits a synthetic bridge method to preserve normal dynamic dispatch.
 
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
+
 ```java
 final class NameComparator implements Comparator<String> {
     @Override
@@ -414,16 +438,48 @@ Raw callers can still fail at the bridge cast, which is one reason raw types rem
 
 ### Reifiable types define the runtime boundary
 
-A reifiable type is fully known to the JVM at runtime.
+A reifiable type has enough runtime type information for the corresponding checks; `List<?>` checks that a value is a List, not a particular element type.
 Non-generic classes, primitive types, raw types, and parameterized types using only unbounded wildcards are reifiable.
 `List<String>` is not reifiable because its element argument disappears from an instance's runtime class.
 
-| Operation | `List<String>` | `List<?>` | Reason |
+| Operation from an arbitrary Object | `List<String>` | `List<?>` | Reason |
 |---|---:|---:|---|
 | `instanceof` test | No | Yes | only the wildcard form is reifiable |
-| direct generic array | No | no exact generic array | component argument is erased |
+| direct component array creation | No: `new List<String>[2]` | Yes: `new List<?>[2]` | wildcard component is reifiable |
 | cast from raw input | unchecked | shape checked only | element argument is unavailable |
-| runtime class equality | same as `List<Integer>` | same raw class | arguments are erased |
+| runtime class from instance | implementation class | implementation class | ArrayList and LinkedList still differ |
+
+**Runnable example — Java 17.** Save as `ReifiableDemo.java`; run `javac --release 17 ReifiableDemo.java` then `java ReifiableDemo`.
+
+```java runnable=ReifiableDemo
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+public class ReifiableDemo {
+    public static void main(String[] args) {
+        List<?>[] buckets = new List<?>[2];
+        buckets[0] = List.of("Ada");
+        buckets[1] = List.of(17);
+        List<String> names = new ArrayList<>();
+        System.out.println("buckets=" + buckets.length);
+        System.out.println("sameImplementation=" +
+                names.getClass().equals(new ArrayList<Integer>().getClass()));
+        System.out.println("differentImplementation=" +
+                names.getClass().equals(new LinkedList<Integer>().getClass()));
+        System.out.println("typedTest=" + (names instanceof ArrayList<String>));
+    }
+}
+```
+
+```text output=ReifiableDemo
+buckets=2
+sameImplementation=true
+differentImplementation=false
+typedTest=true
+```
+
+**Predict/change/debug:** `new List<String>[2]` fails compilation, but the wildcard array above succeeds. The last test is permitted in Java 17 because `names` already has `List<String>` type and the cast is checked; testing arbitrary `Object` for `List<String>` cannot validate the erased argument. This is why “all parameterized instanceof tests are illegal” is too broad.
 
 Reflection can inspect a field or method declaration's generic signature.
 It cannot normally ask an arbitrary `ArrayList` instance which element argument it was constructed with.
@@ -435,6 +491,8 @@ That explicit input makes the runtime dependency visible in the API.
 Heap pollution occurs when a parameterized reference points to data that violates its declared argument.
 Raw types, unchecked casts, reflection, and unsafe generic varargs can create it.
 The visible failure commonly occurs later at a compiler-inserted cast.
+
+**Java 17 excerpt — enclosing context/imports or domain types omitted; compile marked programs separately.**
 
 ```java
 List<String> names = new ArrayList<>();
@@ -502,7 +560,7 @@ A bridge method is compiler-generated when erasure would otherwise stop a specia
 
 **Q9. When should `@SafeVarargs` be used?** `[medium]`
 
-Use it only after verifying that a non-overridable generic-varargs method neither exposes its varargs array nor stores incompatible values into it. The annotation suppresses a warning; it does not enforce a safety property at runtime. Prefer a collection parameter if the API can avoid arrays entirely.
+Use it after auditing a variable-arity constructor or a static/final/private method for unsafe array stores and escapes. The Java 17 eligibility rules are explicit; a non-final method in a final class is not automatically eligible. The annotation suppresses a warning; it does not enforce a safety property at runtime. Prefer a collection parameter if the API can avoid arrays entirely.
 
 **Q10. What does a compiler error mentioning `CAP#1` mean?** `[medium]`
 
@@ -518,7 +576,15 @@ Return `List<Event>` when the implementation can safely expose the base type, or
 
 **Q13. Why are generic arrays forbidden, and what is a safe alternative?** `[hard]`
 
-Arrays enforce a runtime component type, while normal generic arguments are erased, so `new T[10]` cannot build the promised runtime array. Prefer `List<T>` for dynamic data. If an array is required, accept `Class<T>` or `IntFunction<T[]>` so the caller supplies the runtime component type.
+Arrays enforce a runtime component type, while normal generic arguments are erased, so `new T[10]` cannot build the promised runtime array. The restriction concerns non-reifiable components; `new List<?>[10]` is legal. Prefer `List<T>`, or accept a caller-supplied array factory when a real reifiable component is available; a `Class<T>` token cannot retain nested generic arguments.
+
+**Answer rubric**
+- **Say it:** Non-reifiable component arrays cannot be created directly, but an unbounded-wildcard component is an exception.
+- **Mechanism:** Runtime array stores check the component class; erased String arguments cannot supply that check.
+- **Example:** `new List<String>[2]` fails while `new List<?>[2]` compiles on Java 17.
+- **Limit:** The legal wildcard array still cannot enforce a concrete list element argument.
+- **Watch for:** Claiming every generic-looking array is forbidden or that array factories restore all nested type arguments.
+- **Follow-up:** Why do `ArrayList<String>` and `ArrayList<Integer>` share a class while `LinkedList<Integer>` differs?
 
 **Q14. A JSON framework needs actual `T` at runtime. How can it obtain it?** `[hard]`
 

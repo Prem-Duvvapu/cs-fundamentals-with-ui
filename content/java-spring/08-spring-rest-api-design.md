@@ -13,7 +13,7 @@ A REST API turns domain capabilities into stable HTTP resource contracts that cl
 
 ### Make success and failure observable
 
-The Task Tracker example in `examples/java-spring/task-tracker/` gives these ideas a complete Java 17 / Spring Boot 4.1.1 application. Start it using its README, then compare the following requests.
+The Task Tracker example in `examples/java-spring/task-tracker/` gives these ideas a complete Java 17 / Spring Boot 4.1.1 application. Use its default `memory` profile and a fresh process, then compare the following requests. The secure production teaching profile denies these legacy endpoints and uses owner-scoped `/api/projects` instead. The complete [walkthrough](../../examples/java-spring/task-tracker/README.md) declares exact profiles, commands and limitations.
 
 | Request | Meaning | Expected outcome |
 |---|---|---|
@@ -91,6 +91,8 @@ PATCH semantics depend on the media type. A JSON Merge Patch that sets `status` 
 
 Spring MVC routes HTTP requests through the DispatcherServlet to a matching controller method. The RestController stereotype combines controller discovery with response-body serialization, while RequestMapping establishes a shared path or media-type contract.
 
+**Excerpt — Java 17 / Spring Boot 4.1.1, with imports and application types omitted; not a complete runnable class.**
+
 ```java
 @RestController
 @RequestMapping(path = "/api/v1/orders", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -125,16 +127,18 @@ The controller should translate transport input into an application use case, no
 Spring binds different parts of a request with distinct annotations:
 
 - **PathVariable** binds identity encoded in the URI, such as `orderId`.
-- **RequestParam** binds optional collection controls such as `page`, `size`, or `status`.
+- **RequestParam** binds required or optional query/form values, including collection controls such as `page`, `size`, or `status`.
 - **RequestHeader** binds protocol metadata such as `If-Match` or an idempotency key.
 - **RequestBody** delegates JSON deserialization to an HTTP message converter.
 - **ResponseEntity** lets the controller control status, headers, and the response DTO together.
 
+**Excerpt — Java 17 / Spring Boot 4.1.1, with imports and application types omitted; not a complete runnable class.**
+
 ```java
 @GetMapping
 ResponseEntity<PageResponse<OrderSummary>> search(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(defaultValue = "0") @Min(0) @Max(100000) int page,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
         @RequestParam(required = false) OrderStatus status,
         @RequestParam(defaultValue = "createdAt,desc") String sort) {
     return ResponseEntity.ok(orderService.search(page, size, status, sort));
@@ -151,10 +155,12 @@ Do not use RequestBody on GET merely to carry a complex filter. Some clients, pr
 
 A **Data Transfer Object (DTO)** defines input or output at the HTTP boundary. Separate request and response DTOs make mutability and ownership explicit: a create request has client-settable fields, while a response adds server-generated identity and timestamps.
 
+**Excerpt — Java 17 / Spring Boot 4.1.1, with imports and application types omitted; not a complete runnable class.**
+
 ```java
 public record CreateOrderRequest(
         @NotNull Long customerId,
-        @NotEmpty List<@Valid OrderItemRequest> items,
+        @NotEmpty @Size(max = 100) List<@NotNull @Valid OrderItemRequest> items,
         @Size(max = 500) String note) {
 }
 
@@ -171,7 +177,7 @@ public record OrderResponse(
 }
 ```
 
-Jakarta Bean Validation provides declarative structural checks. Valid on the controller argument triggers recursive validation before the method body runs, and Valid on nested collection elements applies rules inside each item.
+With a configured validation provider, `@Valid` on the request object enables nested constraint checks before normal invocation. It does not reject null nested items by itself; `@NotNull` on each element does. A collection bound limits validated items but not the bytes already parsed: enforce body/parser limits separately.
 
 Validation belongs at more than one layer:
 
@@ -218,7 +224,7 @@ sequenceDiagram
 
 Content negotiation uses request headers and mapping metadata. `Content-Type` describes the request body's representation, while `Accept` describes response formats the client can consume. A server may return `415 Unsupported Media Type` for an unacceptable request body and `406 Not Acceptable` when it cannot produce any requested representation.
 
-ResponseEntity is useful when status or headers vary. A plain DTO is sufficient for an invariant `200` response, but creation needs `201 Created` and a `Location` header, conditional updates need `ETag`, and asynchronous work needs `202 Accepted` plus a status URI.
+ResponseEntity controls status and headers. In this API, creation returns `201` with `Location`; asynchronous acceptance returns `202` with a documented status resource. Neither an ETag nor a status URL alone implements conditional updates or durable job acceptance. Make those behaviors explicit and test them.
 
 ### Status codes as part of the contract
 
@@ -226,18 +232,18 @@ Status codes are machine-readable outcome categories, not decorative labels:
 
 - `200 OK` — successful read or update with a representation.
 - `201 Created` — a new resource exists; include its `Location`.
-- `202 Accepted` — work was queued but is not complete.
+- `202 Accepted` — work is accepted for processing but completion is not guaranteed; define durable admission and status tracking.
 - `204 No Content` — success with deliberately no response body.
 - `400 Bad Request` — malformed syntax or invalid request values.
-- `401 Unauthorized` — authentication is missing or invalid.
-- `403 Forbidden` — identity is known but lacks permission.
+- `401 Unauthorized` — authentication challenge; include an applicable `WWW-Authenticate` header.
+- `403 Forbidden` — the server refuses the request; this does not prove authentication succeeded, and can include CSRF/policy failures.
 - `404 Not Found` — resource is absent or intentionally concealed.
 - `409 Conflict` — request conflicts with current resource state.
 - `412 Precondition Failed` — an `If-Match` version condition failed.
 - `422 Unprocessable Content` — syntax is valid but domain semantics fail, if chosen consistently.
 - `429 Too Many Requests` — rate limit exceeded; `Retry-After` can guide retry.
 - `500 Internal Server Error` — an unexpected server defect, not a client mistake.
-- `503 Service Unavailable` — temporary inability to serve, often safe to retry with backoff.
+- `503 Service Unavailable` — temporary inability to serve; retry only under a bounded policy that handles possibly completed effects.
 
 Do not always return `200` with `{ "success": false }`. That hides failure from HTTP clients, monitoring, caches, and retry middleware, forcing every consumer to understand a proprietary envelope.
 
@@ -253,13 +259,13 @@ Unbounded collection endpoints create unpredictable memory, database, serializat
 |---|---|---|
 | Request | `?page=4&size=25` | `?after=encoded-cursor&limit=25` |
 | Random page access | Straightforward | Not natural |
-| Deep-page database cost | Often grows with offset | Approximately constant with index |
-| Concurrent insert stability | May duplicate or skip rows | Stable with deterministic keyset |
-| Required order | Recommended | Mandatory and unique |
+| Deep-page database cost | Often grows with offset | Avoids offset walk; depends on index and filter selectivity |
+| Concurrent insert stability | May duplicate or skip rows | Resists offset shifts; not a frozen snapshot |
+| Required order | Total order required for repeatable pages | Total order required for an unambiguous boundary |
 
 Allow-list sortable and filterable fields instead of copying arbitrary query text into SQL. A request such as `sort=customer.passwordHash` can expose data semantics, and unsanitized dynamic field names can become injection vectors.
 
-Always add a deterministic tie-breaker. Sorting only by `createdAt` is unstable when several rows share the same timestamp; sorting by `createdAt DESC, id DESC` yields a total order.
+Always add a unique tie-breaker: `createdAt DESC, id DESC` defines a total order. Keyset traversal also needs a documented policy for nulls, mutable sort keys, changed filters and late inserts; rows can move across a cursor. Encode filter/sort context in the cursor and validate it, but still reapply owner/tenant authorization. Base64 encoding alone provides neither secrecy nor tamper protection.
 
 ### Worked example: page cost and response metadata
 
@@ -271,13 +277,13 @@ $$
 \text{offset} = \text{page} \times \text{size} = 40 \times 25 = 1{,}000
 $$
 
-The final zero-based row index examined for that page is $1{,}000 + 25 - 1 = 1{,}024$. If a count query reports 1,000,000 matching rows, total pages are:
+The last zero-based logical result position on a full page is $1{,}000 + 25 - 1 = 1{,}024$; it is not a count of physical tuples/pages the engine examines. If a count query reports 1,000,000 matching rows, total pages are:
 
 $$
 \left\lceil \frac{1{,}000{,}000}{25} \right\rceil = 40{,}000
 $$
 
-A response can publish the calculation without exposing Spring Data's internal `Page` type:
+A response can publish the calculation without exposing Spring Data's internal `Page` type. This illustrative fragment abbreviates `items` to one entry; a real full page at these totals returns 25:
 
 ```json
 {
@@ -292,7 +298,7 @@ A response can publish the calculation without exposing Spring Data's internal `
 }
 ```
 
-Now compare a deep request at page 30,000. Its offset is $30{,}000 \times 25 = 750{,}000$, so even an index scan may walk past three quarters of a million entries before returning 25. A cursor query using `WHERE (created_at, id) < (:time, :id) ORDER BY created_at DESC, id DESC LIMIT 25` seeks into the composite index and reads roughly the next 25 entries.
+Now compare a deep request at page 30,000. Its offset is $30{,}000 \times 25 = 750{,}000$, so even an index scan may walk past three quarters of a million entries before returning 25. A PostgreSQL-compatible keyset excerpt, `WHERE (created_at, id) < (:time, :id) ORDER BY created_at DESC, id DESC LIMIT 25`, uses non-null stable keys and framework-bound parameters. A matching index can avoid the offset walk; additional filters or visibility checks may require examining far more than 25 entries. Inspect the actual plan rather than promising constant time.
 
 Counting can also dominate latency. If clients only need to know whether another page exists, fetch `size + 1` rows and return `hasNext`; avoid an expensive exact count over a complicated filter.
 
@@ -314,9 +320,9 @@ flowchart TD
     C -->|"Concurrent duplicate"| H["Wait or report in progress"]
 ```
 
-The reservation and business write must have a reliable consistency strategy. An in-memory map fails across replicas and restarts; a database uniqueness constraint or durable idempotency store prevents two nodes from processing the same key.
+The diagram is a logical flow, not a complete transaction protocol. A unique caller-scoped key prevents duplicate claims, but a separate business commit still leaves crash windows. For local effects, commit the effect and recorded result together, define in-progress duplicates, fingerprint mismatch and retention; a remote payment requires provider deduplication or another durable coordination strategy. An in-memory map cannot cover replicas/restarts.
 
-For lost-update protection, expose an entity version as an `ETag`. A client sends `If-Match: "7"`; the server updates only version 7, increments to 8, and returns `412` if another writer already changed it.
+For lost-update protection, use a strong representation ETag and compare `If-Match` atomically with the write. A separate read/compare followed by an unconditional update leaves a race. A row version is a usable validator only if every change to that selected representation advances it; weak `W/"7"` is unsuitable for If-Match. A failed protocol precondition normally returns `412`; the Task Tracker project API instead documents a body version/409 contract, without claiming ETag support.
 
 ### Versioning and compatible evolution
 
@@ -333,7 +339,7 @@ Common versioning strategies include:
 
 Choose one approach and apply it consistently. Document a deprecation window, emit deprecation and sunset metadata where useful, measure old-version traffic, and remove a version only after known clients migrate.
 
-Consumer-driven contract tests can prove that a provider still satisfies important client expectations. They complement, rather than replace, published schemas and end-to-end tests.
+Consumer-driven tests verify the expectations exercised by the captured contracts; they do not prove compatibility for every client or undocumented behavior. They complement, rather than replace, published schemas and end-to-end tests.
 
 ---
 
@@ -344,6 +350,8 @@ Consumer-driven contract tests can prove that a provider still satisfies importa
 Throwing an exception is an internal control-flow choice; publishing an error is an external protocol decision. A RestControllerAdvice applies controller advice semantics across REST controllers, while ExceptionHandler methods map known exception families to deliberate HTTP responses.
 
 Spring Framework supports RFC 9457 **Problem Details** through `ProblemDetail`. Its standard members include `type`, `title`, `status`, `detail`, and `instance`, and applications can add stable extension properties such as an error code, correlation ID, or validation errors.
+
+**Excerpt — Java 17 / Spring Boot 4.1.1, with imports and application types omitted; not a complete runnable class.**
 
 ```java
 @RestControllerAdvice
@@ -362,13 +370,13 @@ class ApiExceptionHandler {
 }
 ```
 
-The public detail must be safe and useful. Do not serialize stack traces, SQL text, class names, or raw exception messages; log those internally with a correlation ID and return a controlled description.
+Controller advice handles failures reaching MVC exception resolution; it does not automatically standardize security-filter, proxy or container error responses. Configure those boundaries separately and test real HTTP responses as well as MockMvc. The public detail must be safe and useful. Do not serialize stack traces, SQL text, class names, or raw exception messages; log those internally with a correlation ID and return a controlled description.
 
 A stable application code such as `ORDER_NOT_FOUND` is easier for clients to branch on than human prose. Keep that code stable even if the localized `title` or `detail` changes.
 
 ### Validation errors as field-level contracts
 
-MethodArgumentNotValidException represents request-body validation failure. The handler can translate every field error into a deterministic list rather than returning only the first failure.
+For individual object validation without an adjacent `BindingResult`, MVC normally raises `MethodArgumentNotValidException`. Direct constraints on method parameters, like page/size above, invoke built-in method validation and can raise `HandlerMethodValidationException`; return-value validation can be a server fault rather than a 400. Handle both under the intended contract. Controller-level `@Validated` selects proxy validation instead of the built-in path; these behaviors are reviewed against Framework 7.0.9.
 
 ```json
 {
@@ -480,7 +488,7 @@ Define a maximum size, deterministic default sort, tie-breaking unique key, and 
 
 **Q7. Why is POST not idempotent by default, and how can a payment API make it retry-safe?** `[medium]`
 
-Repeated POST requests normally create or trigger another side effect, so a timeout leaves the client uncertain whether retrying will duplicate work. A payment API can require an idempotency key, atomically reserve it with a request fingerprint, and persist the original outcome for replays. The store must be durable and shared by replicas, and reusing a key with different request data should fail rather than return an unrelated result.
+Repeated POST requests normally create or trigger another side effect, so a timeout leaves the client uncertain whether retrying will duplicate work. For a local effect, commit its caller-scoped key/fingerprint, business update and replay result atomically; reserving the key in a separate transaction is insufficient. External provider effects need a compatible deduplication/coordination design. The store must be durable and shared by replicas, and reusing a key with different request data should fail rather than return an unrelated result.
 
 **Q8. When would you choose 409, 412, and 422?** `[medium]`
 
@@ -496,7 +504,15 @@ Serialization can trigger lazy queries after the intended transaction, producing
 
 **Q11. Scenario: clients report duplicate orders after retrying requests that timed out. What would you inspect and change?** `[hard]`
 
-First inspect whether POST retries reuse an idempotency key and whether the server reserves that key atomically before creating the order. Correlate gateway timeouts with order creation records to determine whether work completed after clients disconnected, and check whether replicas use a shared durable deduplication store. Then require scoped keys, store a request fingerprint and original response, and protect uniqueness with a database constraint or equivalent atomic primitive.
+Inspect key reuse, fingerprint checks, concurrent claims and the crash window between reserving a key, creating an order and recording the result. Match gateway timeouts to durable order state: disconnection does not prove cancellation. Commit local creation and its deduplication result atomically under a unique caller-scoped key; define in-progress handling and retention, and separately coordinate external effects.
+
+**Answer rubric**
+- **Say it:** A unique key claim is necessary but insufficient if the business effect commits separately.
+- **Mechanism:** Trace concurrent retries and crash boundaries; atomically publish the local effect and recorded result.
+- **Example:** A crash after order commit but before result storage must not let a retry create another order.
+- **Limit:** A local transaction cannot automatically deduplicate a remote provider charge.
+- **Watch for:** Assuming an in-memory map or a uniqueness constraint alone closes every crash window.
+- **Follow-up:** How will you answer a duplicate while the first request is still running?
 
 **Q12. Why can accepting arbitrary sort and filter field names be dangerous?** `[hard]`
 
@@ -504,7 +520,7 @@ Dynamic field names can expose internal schema, trigger unindexed full scans, in
 
 **Q13. Scenario: page two sometimes repeats an order from page one during heavy writes. Why, and how do you fix it?** `[hard]`
 
-Offset pagination operates on a moving ordered set, so an insertion ahead of the current offset shifts rows between requests. First make ordering total with a unique tie-breaker, then use a cursor containing the last `(createdAt, id)` values so the next query continues after a stable boundary. Snapshotting the whole result is another option but carries state and storage costs that cursor pagination usually avoids.
+Offset pagination operates on a moving ordered set, so an insertion ahead of the current offset shifts rows between requests. Use a total order and a keyset cursor containing the last `(createdAt, id)` to avoid offset shifts. This is not snapshot isolation across requests: mutable keys, deleted rows and changed filters can still alter traversal. Choose immutable keys and filter/cursor rules, or pay for a retained snapshot when the product requires a frozen result.
 
 **Q14. How would you evolve a widely used API without breaking existing clients?** `[hard]`
 

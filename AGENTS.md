@@ -452,7 +452,7 @@ retaining their state. Existing theme and topic-completion stores remain separat
 Twenty-two Java/Spring lessons received introductory teaching improvements; OOP retains
 its reference lesson. This does not complete all planned foundational curriculum packages.
 Run the marked Java example verifier plus `mvn -f examples/java-spring/task-tracker/pom.xml test`
-when changing the runnable teaching examples. Task Tracker defaults to the memory milestone; its optional `persistence` profile uses JPA/H2, explicit schema initialization/validation and disabled OSIV. Security and versioned migrations remain pending.
+when changing the runnable teaching examples. Task Tracker defaults to the memory milestone; its optional `persistence` profile uses JPA/H2, explicit schema initialization/validation and disabled OSIV. Its optional production teaching profile now adds Flyway migrations and owner-scoped security; see the example README and October 2 checkpoint.
 
 ## October 1 learning audit remediation
 
@@ -479,7 +479,7 @@ with topic-by-topic next actions. It is a triage audit, not a corpus-wide expert
 sign-off. Its high-priority tracks are explicit beginner outcomes in the 33 non-Java core
 lessons, reproducible network/OS diagnosis, a seeded SQL lab, and extensions to the
 existing runnable Task Tracker. `JAVA_LEARNING_PLAN.md` now recognizes that first
-in-memory application and initial persistence/transaction milestone as shipped while relationship fetching, migrations and security remain open.
+in-memory application and initial persistence/transaction milestone as shipped with the follow-up milestones documented in the October 2 delivery checkpoint.
 
 ## Technical accuracy review
 
@@ -492,7 +492,35 @@ query-shape caveats, proxy interception, rollback defaults and version failures.
 Boot 4.1.1-managed Hibernate 7.4.5.Final/Spring 7.0.9/H2 2.4.240 on Java 17. Keep the default
 memory path database-free; activate `persistence` explicitly for the H2 file-backed adapter.
 Entities stay inside repository boundaries and are mapped to Task records; the current single-operation
-boundaries do not make multi-operation service workflows atomic. `schema.sql` is initial setup,
-not migrations. Run all twelve example tests after any example change, including temporary-file
+boundaries do not make multi-operation service workflows atomic. Flyway V1/V2 now replace the original `schema.sql` setup. Run the entire example suite after any example change, including temporary-file
 reopen evidence, plus the platform backend and corpus/parser gates for associated lesson changes.
 The source ledger records this as the third scoped lesson review, not corpus-wide certification.
+
+
+## October 2 curriculum-completion branch
+
+The example now has nineteen tests and a packaged real HTTP smoke. Run `mvn verify` and
+`python3 examples/java-spring/task-tracker/verify_http.py`; the latter needs the packaged jar and
+uses only its own random-port server/temporary directory. Preserve ERROR dispatch permission in
+the secure chain and the non-web condition: MockMvc alone missed a real 403-to-401 error dispatch
+regression. The runtime uses Java 17, Boot 4.1.1, Security 7.1.1 and Jupiter 6.0.3. Migrations have
+separate fresh/legacy adoption tests; never enable automatic baseline globally. Pagination tests
+assert bounded query shape and cascade behavior; cache tests assert rollback and after-commit effects.
+A local Docker daemon is needed to verify the teaching container; CI includes readiness/nonroot/shutdown.
+
+Review sessions use the existing client-only learning store. Backup envelopes are v3 (v1/v2 import
+compatible), while the local key and schema version remain v1. Keep histories bounded to ten actual
+recorded attempts per question, preserve imported draft alternatives, and remove history on answer
+deletion. The review queue is frozen during a session, loads canonical content by selected topic and
+uses stable normalized question keys. Retry must retain that selection; rebuild is an explicit action.
+The review scheduler is a transparent suggestion, not automatic grading. Keep the real browser
+attempt/history/Progress-to-review journey and both-theme axe coverage when changing the deck.
+
+`examples/labs/README.md` owns SQL/OS/network setup, expected observations and limitations. Run its
+PostgreSQL script with ON_ERROR_STOP and Python unittest suite. Use only owned child processes,
+temporary files and loopback sockets; observations are not production benchmarks.
+
+The source ledger now records nineteen of 56 core lessons reviewed, not a whole-curriculum sign-off.
+Twenty-two added rubrics bring the total to 42. Do not count structural validation as factual review,
+or prepared study protocols/AI personas as real learner sessions. The remaining 37 lesson reviews
+and participant observations stay visible in `CURRICULUM_COMPLETION_2026-10-02.md`.

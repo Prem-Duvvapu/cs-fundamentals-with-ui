@@ -26,6 +26,8 @@ Caching trades fresh work for reuse; asynchronous execution moves work to anothe
 **Predict:** a cache hit cannot reveal a database update it never learns about. **Change:** evict the task's cache entry after a successful update and test the next read. **Debug:** if `@Async` or `@Cacheable` appears ignored, check whether the call crosses the relevant Spring proxy. Also inspect executor capacity and error handling: accepting work without bounds can move overload into memory.
 
 
+**Try it:** [Task Tracker's cache milestone](../../examples/java-spring/task-tracker/README.md#cache-and-production-signals) compares repeated owner-scoped page reads, rolled-back writes and successful invalidation. Its local cache is deliberately bounded; the Redis and executor fences below are conceptual excerpts.
+
 ### Caching, asynchronous work, and scheduled execution
 
 A **cache** stores a reusable result closer to the caller so later requests avoid repeating expensive database, network, or computation work. Spring's Cacheable annotation reads through a cache abstraction, while CachePut and CacheEvict deliberately update or remove entries after writes.
@@ -97,7 +99,7 @@ product:v3:8142:EUR:GOLD:en-GB
 
 The version segment allows a coordinated schema migration. The value should be a stable cache DTO rather than a live JPA entity because lazy proxies and persistence context state do not survive serialization safely.
 
-**TTL**, or time to live, sets an upper bound on passive staleness and memory retention. A 10-minute TTL does not promise that data is fresh for 10 minutes; it promises an entry can remain stale for *up to* roughly 10 minutes unless actively invalidated.
+**TTL**, or time to live, can expire an entry after a configured age. With expire-after-write and no refresh, it bounds that entry's passive retention, not end-to-end freshness: a late stale reload can start another TTL, and sliding expiry can keep extending retention. Choose a policy and freshness contract explicitly.
 
 TTL selection depends on business tolerance:
 
@@ -129,6 +131,8 @@ public void delete(long productId) {
 ```
 
 Putting and evicting both require a consistency decision. Updating the database and then the cache creates a brief stale window; updating the cache first can publish a value for a database transaction that later rolls back.
+
+`@CacheEvict` after normal method return does not automatically mean after database commit. Configure transaction-aware cache operations or an after-commit synchronization; advisor order and outer transactions matter.
 
 Evicting after a successful commit is often safer because the next read repopulates from authoritative state. It costs an extra miss but avoids duplicating mapping logic between the write and read paths.
 
@@ -222,7 +226,7 @@ Useful strategies include:
 | Versioned keys | Readers switch generations | Old keys consume memory until expiry |
 | Write-through cache | Cache updated during write | Dual-write failure handling required |
 
-A transaction synchronization can delay local eviction until the database commits, preventing rollback from invalidating a still-valid entry. It does not eliminate the post-commit crash gap; an outbox event can close that gap durably.
+A transaction synchronization can delay local eviction until the database commits, preventing rollback from invalidating a still-valid entry. It does not eliminate the post-commit crash gap; an outbox can preserve an invalidation intent durably. Delivery still has lag, and old in-flight reads can repopulate stale state after eviction; version/fencing or authoritative checks address that separate race.
 
 For high-risk correctness data, bypass caching or include a version check against authoritative state. Faster wrong answers are still wrong.
 
@@ -292,7 +296,7 @@ ThreadPoolTaskExecutor emailExecutor() {
 
 ThreadPoolExecutor generally creates core workers first, then queues tasks, and only grows beyond the core after the queue fills. Setting a high maximum with a large queue may therefore never create the expected extra workers.
 
-Caller-runs rejection provides backpressure by making the submitting thread execute rejected work. Abort rejection fails fast. Silent discard policies are dangerous for business tasks because accepted-looking work can vanish.
+While the executor is running, CallerRunsPolicy executes rejected work on the submitting thread, so an Async call can occupy that caller. After executor shutdown, this policy discards the task; it is not an unconditional execution guarantee. Abort rejection fails fast. Silent discard policies are dangerous for business tasks because accepted-looking work can vanish.
 
 Use separate executors for workloads with different latency and failure characteristics. Slow email calls should not occupy every thread needed for fraud checks or cache refresh.
 
@@ -306,7 +310,7 @@ $$
 L = \lambda W = 80\text{ tasks/s} \times 0.100\text{ s} = 8\text{ tasks}
 $$
 
-Eight continuously available workers cover the mean load. A common I/O-bound estimate using four cores is:
+Eight is the mean active concurrency at this arrival rate, not a stable capacity recommendation: eight 100-ms workers would be fully utilized with no margin for variability or bursts. A common I/O-bound estimate using four cores is:
 
 $$
 N = 4 \times \left(1 + \frac{90}{10}\right) = 40\text{ threads}
@@ -314,7 +318,7 @@ $$
 
 The formulas answer different questions. Eight is the mean concurrency demanded by observed throughput, while 40 is an upper sizing heuristic based on CPU utilisation; downstream connection limits and tail latency may require a much smaller cap.
 
-If the dependency allows only 12 concurrent requests, configuring 40 threads merely moves the queue into sockets or the dependency. Start near 8 to 12 workers, use a bounded queue sized for a short burst, measure p95 queue wait, and load-test the complete path.
+If the dependency allows only 12 concurrent requests, configuring 40 threads merely moves the queue into sockets or the dependency. Choose measured headroom above the mean while respecting the 12-request cap, use a bounded queue sized for a short burst, measure p95 queue wait, and load-test the complete path.
 
 At 80 tasks per second, a 200-item queue represents about $200 / 80 = 2.5$ seconds of arrival backlog before accounting for active workers. If the request deadline is one second, that queue is already too deep because many tasks will begin after their value has expired.
 
@@ -379,7 +383,7 @@ sequenceDiagram
 
 A distributed lease needs a unique owner token, expiry, and compare-and-release semantics. Releasing by key alone can delete a newer owner's lease after the first worker pauses beyond expiry.
 
-Locks provide at-most-one concurrent attempt, not exactly-once business effects. The job itself should claim records atomically, record progress, and make writes idempotent so recovery after a crash can resume safely.
+A lease can expire while its former owner is still running, allowing overlap with a new owner. Fencing at the protected resource or an atomic business claim is needed when stale owners must be rejected; a lock name alone does not provide exactly-once effects. The job itself should claim records atomically, record progress, and make writes idempotent so recovery after a crash can resume safely.
 
 For durable or operationally critical schedules, Quartz, a platform scheduler, or a workflow engine offers persistent triggers, misfire policy, retries, and execution history beyond basic Scheduled methods.
 
@@ -401,7 +405,7 @@ Avoid shared mutable cached objects in local caches. If callers mutate a returne
 
 Thread-local context does not automatically become durable application context. Security identity, logging correlation, locale, diagnostic context, and transaction state may be absent on executor threads unless explicitly captured and restored.
 
-Spring transaction context is thread-bound. An Async method starts on another thread after the caller returns, so it does not participate in the caller's transaction merely because the caller was transactional. It may observe data before commit or never run if the process stops immediately after commit.
+Spring transaction context is thread-bound. An Async method can begin concurrently before the caller returns, so it does not participate in the caller's transaction merely because the caller was transactional. It may observe data before commit or never run if the process stops immediately after commit.
 
 Publish after-commit work deliberately. For lightweight best-effort work, a transaction event listener can submit only after successful commit; for required work, store an outbox record in the same transaction and let a durable dispatcher deliver it.
 
@@ -433,7 +437,7 @@ Every optimisation should have an escape hatch. A cache can be bypassed during c
 ### Common Misconceptions
 
 1. **"A cache with a TTL is always fresh enough."**
-   *Correction*: TTL only bounds passive retention; a value can be stale immediately after the source changes. Correctness-sensitive data needs active invalidation, versioning, or an authoritative read.
+   *Correction*: TTL bounds retention according to the chosen expiration policy; refresh and late stale reloads prevent it being a universal freshness bound; a value can be stale immediately after the source changes. Correctness-sensitive data needs active invalidation, versioning, or an authoritative read.
 2. **"Async makes a method execute faster."**
    *Correction*: Async moves execution to another thread and may improve caller responsiveness or overlap I/O. Total work and dependency latency remain, while queueing can make completion slower.
 3. **"A large unbounded executor queue prevents overload failures."**
@@ -483,7 +487,15 @@ Estimate observed concurrency with arrival rate times service time, then compare
 
 **Q10. How do Async and database transactions interact?** `[medium]`
 
-Spring transaction state is normally bound to the caller thread and does not propagate to an executor thread. An asynchronous method may start its own transaction, race the caller's uncommitted data, or never run after a process crash. Required after-commit work should use a deliberate transaction event or, more reliably, a durable outbox.
+Spring transaction state is normally bound to the caller thread and does not propagate to an executor thread. An asynchronous method may start its own transaction, race the caller's uncommitted data, or never run after a process crash. A transaction event can order best-effort submission after commit but is not durable; required work needs an outbox or equivalent durable handoff.
+
+**Answer rubric**
+- **Say it:** An executor thread does not inherit the caller's database transaction.
+- **Mechanism:** Submission can start work before commit; a best-effort after-commit callback orders it but cannot survive process loss.
+- **Example:** A receipt email queued before rollback can describe an order that never committed.
+- **Limit:** Caller-runs can change the thread handoff; annotation and rejection policy both matter.
+- **Watch for:** A future is a completion signal, not a durable queue or proof of transaction participation.
+- **Follow-up:** Which data must an outbox insert share with the order transaction?
 
 **Q11. Scenario: database load spikes every five minutes although cache hit ratio is normally high. What do you investigate?** `[hard]`
 
@@ -495,7 +507,15 @@ Each of the four application replicas owns a scheduler and independently fires t
 
 **Q13. How can stale data be repopulated immediately after a writer evicts a cache key?** `[hard]`
 
-A reader can miss before the write, load the old database version slowly, and put it after the writer commits and evicts. The eviction then occurs too early to remove the late stale value. Version-aware puts, outbox invalidation, delayed re-eviction, or a consistency-sensitive authoritative read can address the race with different cost and complexity.
+A reader can miss before the write, load the old database version slowly, and put it after the writer commits and evicts. The eviction then occurs too early to remove the late stale value. Version-aware puts or authoritative reads can enforce the chosen freshness rule. Outbox delivery and delayed re-eviction can reduce stale windows but do not alone prevent every late old reader from repopulating the key.
+
+**Answer rubric**
+- **Say it:** Eviction and an old in-flight cache loader can race.
+- **Mechanism:** An old reader starts before version 8 commits, then writes version 7 after eviction.
+- **Example:** A page cached after a rename can show the previous project name until another correction or expiry.
+- **Limit:** After-commit invalidation prevents rollback publication but does not guarantee linearizable cached reads.
+- **Watch for:** A TTL or outbox alone does not reject every stale put.
+- **Follow-up:** How would a stored generation or version fence reject an obsolete loader?
 
 **Q14. When should you replace Async or Scheduled with durable infrastructure?** `[hard]`
 
