@@ -59,7 +59,7 @@ Union and difference require **union compatibility**: the inputs have equal degr
 
 ### Derived operators and the join family
 
-Intersection, joins, semijoins, antijoins, and division can be expressed from the fundamental operators. Their names communicate intent and let optimizers choose specialised implementations.
+Intersection, inner joins, semijoins, antijoins, and division can be expressed from the fundamental operators. NULL-padding outer joins belong to an extended algebra, not the classic six-operator set algebra; the diagram groups them for comparison rather than deriving padding from theta join. Their names communicate intent and let optimizers choose specialised implementations.
 
 ```mermaid
 flowchart TD
@@ -177,7 +177,7 @@ Outer joins are not freely associative or commutative because padding introduces
 
 ### Semijoins, antijoins, and EXISTS
 
-A left semijoin returns each qualifying left tuple once regardless of how many right matches exist. It is the logical form of `EXISTS`:
+Under set semantics, a left semijoin returns each qualifying left tuple once regardless of how many right matches exist. SQL `EXISTS` preserves the original multiplicity of its left input: duplicate left rows are not automatically deduplicated. It is the logical form of `EXISTS`:
 
 ```sql
 SELECT d.*
@@ -247,7 +247,7 @@ WHERE NOT EXISTS (
 );
 ```
 
-Read it as: there does not exist a required certification for which there does not exist a matching held certification. If `Required` is empty, every candidate qualifies; confirm whether that mathematical vacuous truth matches the business rule.
+Assume non-null engineer and certification identifiers. Candidates here come from `Holds`, so someone with no held certification is outside the candidate relation, even when requirements are empty; use a separate `engineer` table when all engineers must be considered. Read it as: there does not exist a required certification for which there does not exist a matching held certification. If `Required` is empty, every candidate qualifies; confirm whether that mathematical vacuous truth matches the business rule.
 
 ### Tuple relational calculus
 
@@ -332,11 +332,11 @@ Join constraints reduce freedom. Outer joins, lateral references, semijoin seman
 
 ### Worked physical-plan cost comparison
 
-Suppose `Employee` occupies $B_E=10{,}000$ pages with 1,000,000 tuples, `Department` occupies $B_D=5$ pages with 100 tuples, and 102 buffer frames are available. A query requests employees in one department; predicate pushdown leaves 10,000 employees across about 100 clustered pages.
+Suppose `Employee` occupies $B_E=10{,}000$ pages with 1,000,000 tuples, `Department` occupies $B_D=5$ pages with 100 tuples, and 102 buffer frames are available. A query requests employees in one department; assume a usable access path locates its 10,000 employees across about 100 clustered pages without scanning the other pages. Filtering alone does not make those pages directly reachable.
 
 | Plan | Approximate page operations | Calculation |
 |---|---:|---|
-| Product then filter | Over 1,000,000 temp pages | Materialises up to 100 million pairs |
+| Materialized product then filter | About 1,000,000 temp pages if 100 joined tuples fit per page | 100 million pairs under that extra width assumption |
 | Hash join full inputs | 10,005 reads | $B_E+B_D$ if build fits |
 | Block nested loop full inputs | 10,500 reads | $B_E+\lceil B_E/(102-2)\rceil B_D$ |
 | Push filter, then join | About 105 reads | 5 department pages + 100 employee pages |
@@ -410,7 +410,7 @@ Set union, intersection, and difference require inputs with the same degree and 
 
 **Q4. What is a semijoin?** `[easy]`
 
-A semijoin returns left-side tuples that have at least one matching right-side tuple without returning right-side attributes. SQL commonly expresses it with `EXISTS`. Unlike a normal join, multiple right matches do not duplicate a qualifying left tuple.
+A semijoin returns left-side tuples that have at least one matching right-side tuple without returning right-side attributes. SQL commonly expresses it with `EXISTS`. Unlike a normal join, multiple right matches do not multiply a qualifying left tuple; existing duplicate left rows remain under SQL bag semantics.
 
 **Q5. Why is NATURAL JOIN risky in production SQL?** `[medium]`
 

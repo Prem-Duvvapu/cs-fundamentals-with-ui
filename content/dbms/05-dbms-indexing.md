@@ -100,7 +100,7 @@ flowchart TD
 | Internal node contents | Keys + data pointers (fat entries) | Routing keys + child pointers only |
 | Fanout | Lower (payload crowds out entries) | Higher (slim entries) |
 | Leaf linkage | Isolated nodes | Doubly-linked list |
-| Range scan | Tree-walk per key, revisits upper levels | One descent, then ride the leaf chain |
+| Range scan | One search plus ordered in-tree traversal with an ancestor stack | One descent, then traverse linked leaves |
 | Point lookup | Sometimes finds data early (no leaf visit) | Always descends to leaf |
 
 InnoDB and PostgreSQL ordered indexes use high-fanout page trees with linked levels/leaves. Implementations differ: SQLite index b-trees also contain payload in interior cells, so not every vendor exactly matches the textbook B+ tree. Linked logical order does not guarantee adjacent physical pages.
@@ -225,7 +225,7 @@ WHERE tenant_id = ? AND status = ? AND created_at > ?
 WHERE status = ?                               no single tight leading range; scan or versioned skip scan may help
 ```
 
-- **Design order**: equality predicates first, the range predicate last — an early range column prevents the following columns from contributing to the seek (they degrade to filters inside the scanned range).
+- **Design order**: equality predicates before a range often create one useful contiguous scan bound. Later columns can still be checked in the index, and versioned skip-scan rules may further reduce scanning; “a range disables every later column” is too strong.
 - **ORDER BY bonus**: an index on (a, b) satisfies ORDER BY a, b without a sort step.
 - **Versioned exception**: MySQL 8.4 has a restricted skip-scan optimization; PostgreSQL 18 added B-tree skip scan. The PostgreSQL 16 lab below does not demonstrate it. Low leading-column cardinality can help, but inspect the plan rather than assume every missing prefix is cheap.
 
@@ -290,8 +290,8 @@ A page-oriented tree normally places a node on one database page, not necessaril
 | slot directory | locate records for in-page search |
 | free/garbage space | room for changes and reclaimable records |
 
-- **In-page search**: the slot directory gives binary search inside the page; the tree search is thus binary search at every scale.
-- **PostgreSQL nbtree** normally uses 8 KiB database pages, a metapage and linked page levels. High keys/right links support recovery from concurrent splits without keeping every ancestor locked throughout a lookup; this is not a claim that readers never lock an internal page. Eligible duplicate keys can use posting-list deduplication; unique/INCLUDE indexes and operator classes have restrictions.
+- **In-page search**: ordered slots or directory entries support narrowed search, but layouts vary. InnoDB uses sparse directory slots plus short record-chain traversal; a B-tree descent is not literally identical binary search at every scale.
+- **PostgreSQL nbtree** normally uses 8 KiB database pages, a metapage and linked page levels. High keys/right links support recovery from concurrent splits without keeping every ancestor locked throughout a lookup; this is not a claim that readers never lock an internal page. Eligible duplicate keys can use posting-list deduplication; INCLUDE indexes cannot deduplicate, and operator classes/collations have restrictions. Eligible unique indexes can still deduplicate repeated MVCC versions of one logical key.
 
 ### Node Split Walkthrough (Order m = 4, Max 3 Keys per Node)
 Convention (matches this platform's simulator): order m ⇒ maximum m − 1 = 3 keys per node, minimum ⌈m/2⌉ − 1 = 1 key. Insert keys 10, 20, 30, 40, 50, then 60 into an empty tree:
@@ -323,7 +323,7 @@ Page B-trees typically update buffered pages and log changes. LSM engines first 
 
 | Property | B+ Tree (in-place) | LSM, Leveled (RocksDB-style) |
 | --- | --- | --- |
-| Point read | 1-3 page descents | Probe each level; bloom filters cut misses |
+| Point read | One root-to-leaf descent, then row/visibility work if needed | Probe candidate runs/levels; Bloom filters cut misses |
 | Range read | Excellent (linked leaves) | Merge across all levels |
 | Write amplification | page/log/split work varies with occupancy | WAL/flush/compaction work varies with policy and workload |
 | Space amplification | free space, dead versions and rebuild policies | obsolete versions, level overlap and compaction headroom |

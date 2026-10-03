@@ -130,7 +130,7 @@ The [AI/ML and DevOps learning path](AI_ML_DEVOPS_LEARNING_PATH.md) gives the fu
 All 68 lessons satisfy the authoring contract and coverage manifest: 32,531 curriculum lines,
 295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
 
-The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records sourced DBMS recovery/isolation and JPA/transaction reviews, including a PostgreSQL two-session lab, a durable queue claim, and executable Task Tracker persistence tests. Broader accuracy review remains open.
+The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records sourced DBMS recovery/isolation and JPA/transaction reviews, including a PostgreSQL two-session lab, a durable queue claim, and executable Task Tracker persistence tests. The [October 3 completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) completes all 56 core scoped reviews; AI/ML/DevOps freshness and learner validation remain open.
 
 Twenty high-value questions across Java, Spring MVC, OS processes, TCP, and DBMS now include
 an optional six-point answer rubric. Reveal the model answer first, then open **Answer checklist
@@ -319,8 +319,7 @@ Scheduling is transparent: needs review 1 day, partial 3 days, confident 7 days 
 30-day cap. Ratings are learner feedback, not automatic interview-readiness scores. Version-3
 backups include dates/history and still accept legacy version-1/2 files without replacing local drafts.
 
-The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records nineteen scoped lesson reviews;
-37 core accuracy reviews remain. Twenty-two new authored rubrics bring the total to 42. The
+The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) and [October 3 completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) record **56/56 scoped core lesson reviews**, including all 37 previously pending reviews. Twenty-two new authored rubrics bring the total to 42. The
 [learner study](LEARNER_USABILITY_STUDY.md) is prepared; actual participant sessions and retesting
 remain required. See [the delivery checkpoint](CURRICULUM_COMPLETION_2026-10-02.md) for evidence
 and the outstanding work rather than interpreting automated checks as learner validation.
@@ -328,3 +327,7 @@ and the outstanding work rather than interpreting automated checks as learner va
 Dark mode uses a LeetCode-inspired charcoal palette with quieter accents, readable syntax
 comments, theme-aware selection, native scrollbars and keyboard focus for editable controls.
 See [the design system](docs/DESIGN_SYSTEM.md) for the palette and verification contract.
+
+The SQL/Java [accuracy counterexamples](examples/labs/README.md#core-accuracy-counterexamples--october-3)
+run in CI alongside the existing labs. They check concrete null, bag, division, initialization,
+overload, SAM, Optional and comparator behavior on PostgreSQL 16 and Java 17.

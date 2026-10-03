@@ -44,9 +44,9 @@ It does not recover a dropped frame without a protocol that requests recovery.
 
 A switch learns a source MAC address from the port on which a frame arrives.
 
-It forwards a known unicast destination only to the learned port in the same VLAN.
+It forwards a known unicast destination to its eligible learned port in the same VLAN, or filters it when that port is the ingress port or policy blocks forwarding.
 
-It floods broadcasts and unknown unicasts to other ports in that VLAN.
+It normally floods broadcasts and unknown unicasts to eligible forwarding ports in that VLAN, excluding ingress; configured security and suppression policies can alter this.
 
 A router receives a link-layer frame, removes its local header, and forwards the enclosed IP packet using a new next-hop frame.
 
@@ -71,7 +71,7 @@ Cyclic redundancy check, or CRC, treats bits as a polynomial and computes a rema
 
 The receiver divides again and rejects a frame with a nonzero unexpected remainder.
 
-CRC detects all single-bit errors when the generator has multiple terms and many burst errors up to a selected length.
+With a suitable degree-$r$ generator, CRC detects all single-bit errors and all nonzero burst errors of length at most $r$ bits. Longer bursts can be undetected; an FCS is not a cryptographic integrity check.
 
 It is detection, not correction.
 
@@ -98,7 +98,7 @@ flowchart TD
     A -->|"no"| B
 ```
 
-The diagram describes a simplified contention cycle.
+The diagram describes a simplified contention cycle, not permission to transmit immediately whenever the channel is idle. Stations observe required inter-frame spacing and backoff rules.
 
 Real Wi-Fi includes inter-frame spaces, contention windows, retries, rate adaptation, and access categories.
 
@@ -162,9 +162,11 @@ sequenceDiagram
 
 | Protocol | Sender window | Receiver behavior | Loss cost |
 |---|---|---|---|
-| Stop-and-wait | 1 | One expected frame | One timeout per frame |
+| Stop-and-wait | 1 | One expected frame | Timeout/retransmission after loss |
 | Go-Back-N | N | Discard later frames | Retransmit suffix |
 | Selective Repeat | N | Buffer later frames | Retransmit missing only |
+
+The sequence diagram uses an illustrative cumulative acknowledgement. Classical Selective Repeat commonly acknowledges frames individually; ACK numbering must be defined by the particular protocol. With $m$ sequence bits, classic Go-Back-N needs a sender window at most $2^m-1$, while equal Selective Repeat windows are at most $2^{m-1}$ under the bounded-delay model. A finite sequence space cannot disambiguate arbitrarily old duplicates without a lifetime bound.
 
 ### Worked Example: Link Utilization
 
@@ -303,7 +305,7 @@ Correlate interface changes with topology events, access-point channel changes, 
 
 The maximum transmission unit, or MTU, is the largest network-layer payload a link can carry without lower-layer fragmentation.
 
-Ethernet commonly carries an IP MTU of 1500 bytes, but tunnel overhead, VLAN tags, VPNs, and provider links can reduce effective usable size.
+Ethernet commonly carries an IP MTU of 1500 bytes. Tunnels and VPNs can reduce the effective inner MTU; an ordinary VLAN tag increases the outer frame size and does not by itself require reducing the 1500-byte IP MTU on VLAN-capable equipment.
 
 An oversized packet may be fragmented, dropped, or trigger path-MTU discovery depending on protocol and configuration.
 
@@ -368,7 +370,7 @@ It uses a sequence number, usually alternating one bit for consecutive frames. T
 
 **Q6. Why does Selective Repeat limit its window relative to sequence space?** `[medium]`
 
-The sequence space must not wrap so soon that an old delayed frame looks like a new frame in the current receiver window. A common rule limits each window to at most half the sequence space. This keeps retransmissions and new transmissions unambiguous.
+The sequence space must not wrap so soon that an old delayed frame looks like a new frame in the current receiver window. A common rule limits each window to at most half the sequence space. This keeps retransmissions and new transmissions unambiguous within the protocol’s assumed maximum frame lifetime; it cannot protect against arbitrarily old duplicates after unlimited wraparound.
 
 **Q7. What happens for an unknown unicast on a switch?** `[medium]`
 
@@ -400,7 +402,7 @@ Check for a Layer 2 loop, inconsistent VLAN trunking, spanning-tree failure, or 
 
 **Q14. Scenario: an API records duplicate payments even though the Wi-Fi link retries frames. Where should correctness be fixed?** `[hard]`
 
-Fix it at the application or transaction boundary with an idempotency key and durable business state. Link retries only address one hop and can themselves duplicate delivery when acknowledgments are lost. End-to-end effects need end-to-end deduplication and recovery design.
+Fix it at the application or transaction boundary with an idempotency key and durable business state. Link retries only address one hop; their duplicate suppression is protocol-specific and cannot settle whether a remote payment committed before a response was lost. End-to-end effects need end-to-end deduplication and recovery design.
 
 ### Further Reading
 

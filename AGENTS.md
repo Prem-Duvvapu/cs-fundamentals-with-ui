@@ -533,3 +533,25 @@ quiet. Selection and scrollbar colors use theme tokens. Focus styling includes e
 and summaries. Maintain contrast pairs in `AppThemeStyles.test.js` and the browser toggle/reload
 journey. Regenerate/decode diagrams after CSS/token changes; palette tests do not replace axe
 or visual review. This LeetCode-inspired direction follows the user's stated preference.
+
+## October 3 core accuracy completion
+
+`CORE_ACCURACY_COMPLETION_2026-10-03.md` supersedes the earlier 19/56 and 37-pending core counts:
+all 56 core lessons now have scoped source-backed reviews. Keep the dated historical ledgers.
+Do not treat this as certification of every deployment or as real learner comprehension evidence.
+AI/ML/DevOps freshness is a separate twelve-lesson queue. Main Verify run 37104855707 supplies
+successful frontend/backend/lab/container execution evidence.
+
+Preserve canonical question prompts and diagram source unless a factual correction requires
+changing them. When correcting a sentence used by migration evidence, update only the target
+quote, preserve archived payload/digest, and run all 109 entries. The current corpus is 33,136
+lines, 295 diagrams, 953 questions and 42 rubrics across 68 lessons. Run marked Java examples,
+corpus/parser tests, content/diagram/migration gates and associated backend/example tests.
+
+The additional runtime fixtures are `examples/labs/sql/accuracy.sql` (transactional temporary
+objects, PostgreSQL 16+) and `examples/labs/java/AccuracyContracts.java` (Java 17). Both run in CI;
+run the documented lab commands after changing them. Keep model-versus-version distinctions:
+Batch 6 default resourceless repositories are not durable restart stores; concurrent processor
+threads do not inherit chunk transactions. PostgreSQL actual rows are per-loop averages,
+`work_mem` is per operation, buffer reads are not necessarily device I/O, and full-stripe writes
+are not an array-wide atomicity guarantee. No auto-grading or participant observations were added.

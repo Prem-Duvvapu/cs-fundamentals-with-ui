@@ -123,13 +123,13 @@ A strong algorithm with a key copied into logs is not a secure design.
 
 TLS protects a connection only after the client verifies the server identity it intended to reach.
 
-The client validates the certificate chain to a trusted root, hostname or subject alternative name, validity period, and key usage constraints.
+For a certificate-authenticated connection, the client validates the chain to a trusted root, validity and usage constraints, and the intended service name against the appropriate subjectAltName entry. Modern service identity rules do not use the subject Common Name as a fallback.
 
 TLS 1.3 commonly uses ephemeral Diffie-Hellman key agreement.
 
 The client and server derive shared traffic secrets without sending that secret directly.
 
-The server proves possession of its certificate private key by signing handshake data.
+In this certificate-authenticated example, the server proves possession of its certificate private key by signing handshake data. TLS 1.3 also supports PSK/resumption handshakes that can omit the certificate and its signature.
 
 ```mermaid
 sequenceDiagram
@@ -146,7 +146,7 @@ sequenceDiagram
 
 Perfect Forward Secrecy means compromising a long-term certificate key later should not reveal past sessions that used ephemeral key agreement and securely erased ephemeral secrets.
 
-It does not protect a session if the endpoint itself was compromised while the session was active.
+It does not protect a session if the endpoint itself was compromised while the session was active. PSK-only TLS 1.3 without fresh Diffie-Hellman does not supply this property, and 0-RTT early data is not forward secret and is replayable.
 
 Certificate pinning can reduce some CA-misissuance risks but creates rotation and recovery challenges.
 
@@ -168,7 +168,7 @@ The receiver rejects the request before processing it.
 
 If the attacker replays the untouched request one hour later, the MAC still verifies.
 
-The timestamp and event id must therefore be checked against an allowed time window and a replay store.
+The timestamp and event id must therefore be checked against an allowed time window and durable deduplication state. To justify “process once” in the diagram, the local business effect and event result must commit atomically, including concurrent deliveries; a remote payment still needs provider idempotency or reconciliation.
 
 ```mermaid
 flowchart LR
@@ -397,7 +397,7 @@ First verify whether the certificate hostname and chain were actually valid for 
 
 **Q12. Scenario: a webhook endpoint accepts the same valid signed payment event repeatedly. How do you fix it?** `[hard]`
 
-The HMAC proves authenticity and integrity but does not make an event unique. Store processed event identifiers atomically, enforce a timestamp freshness window, and reject duplicate deliveries after the first successful transaction. Keep the handler idempotent because legitimate delivery retries can also repeat an event.
+The HMAC proves authenticity and integrity but does not make an event unique. Commit the local effect and scoped event/result record in the same transaction, with a uniqueness constraint and payload-conflict checks; use a freshness window consistent with the provider’s legitimate retry contract. Acknowledge matching completed duplicates without repeating effects, rather than returning an error that causes endless delivery retries. Remote effects need provider idempotency or reconciliation; a separately stored event id alone does not make the operation atomic.
 
 **Q13. Why can a WAF not replace secure application coding?** `[hard]`
 
@@ -412,4 +412,5 @@ Enable and validate SYN cookies or equivalent stateless admission protection, ap
 - [RFC 8446: TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446) specifies the modern TLS handshake and record protocol.
 - [NIST SP 800-52 Rev. 2](https://csrc.nist.gov/pubs/sp/800/52/r2/final) gives TLS configuration guidance for federal systems.
 - [OWASP Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html) explains deployable TLS controls and operational pitfalls.
+- [RFC 9525: service identity](https://www.rfc-editor.org/rfc/rfc9525) defines certificate name matching and excludes Common Name fallback.
 - [RFC 4987: TCP SYN flooding attacks](https://www.rfc-editor.org/rfc/rfc4987) documents SYN-flood mitigation considerations.

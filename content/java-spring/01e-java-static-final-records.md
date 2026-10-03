@@ -108,6 +108,8 @@ An instance field belongs to each object; a `static` field belongs to the class 
 All instances see the same static variable.
 A static method has no receiver, so it cannot directly use `this`, `super`, or instance fields.
 
+**Excerpt:** import `java.util.concurrent.atomic.AtomicLong`; this counter is per class identity and can overflow.
+
 ```java
 public final class InvoiceIds {
     private static final AtomicLong NEXT = new AtomicLong(1);
@@ -124,7 +126,7 @@ public final class InvoiceIds {
 
 Static initialisation happens when the JVM actively initialises the class, not necessarily when it merely loads the class file.
 Static field initialisers and `static {}` blocks execute in source order inside the compiler-generated `<clinit>` method.
-If initialisation fails, the JVM throws `ExceptionInInitializerError`; later uses commonly fail with `NoClassDefFoundError`.
+If a non-`Error` exception escapes initialization, the JVM wraps it in `ExceptionInInitializerError`; an `Error` propagates directly. Later active uses fail with `NoClassDefFoundError` because initialization is not retried.
 
 Static mutable collections can retain an entire object graph for the lifetime of the class loader.
 This is a common memory-leak pattern in servers and application containers.
@@ -136,7 +138,7 @@ The meaning of `final` depends on where it appears:
 
 | Form | Guarantee | Does not guarantee |
 |---|---|---|
-| `final` primitive variable | value is assigned once | global constant semantics unless also `static` |
+| `final` primitive variable | value cannot be reassigned after initialization | compile-time constant status without a constant-expression initializer |
 | `final` reference | reference cannot point elsewhere | referenced object cannot mutate |
 | `final` method | subclasses cannot override it | method is automatically pure or thread-safe |
 | `final` class | class cannot be extended | instances are immutable |
@@ -147,8 +149,8 @@ roles.add("ADMIN");
 // roles = new ArrayList<>(); // illegal: reference reassignment
 ```
 
-A **blank final** field is assigned in every constructor rather than at declaration.
-The compiler performs definite-assignment analysis to ensure each successful constructor path assigns it exactly once.
+A **blank final** field has no declaration initializer. An instance field can be assigned in an instance initializer or along each constructor path, including constructor delegation; a blank static final is assigned by static initialization.
+Definite-assignment analysis ensures required fields are assigned exactly once along successful initialization paths. A `final` primitive or String initialized with a constant expression can be a compile-time constant even without `static`.
 `static final` is commonly used for constants, but only compile-time constants are inlined into client bytecode.
 
 ### Class Forms and Relationships
@@ -312,7 +314,7 @@ Equal objects must return equal hash codes throughout the time they are used as 
 
 Mutable fields participating in `equals` or `hashCode` make hash-based lookup unsafe.
 After insertion, mutation may move the logical hash without moving the entry's physical bucket.
-Immutable value objects and records avoid that failure mode.
+Deeply immutable value objects avoid that failure mode; a record with mutable equality-relevant components can still suffer it.
 
 `clone()` performs field-wise shallow copying and uses the awkward `Cloneable` marker protocol.
 Copy constructors and named factories express intent more clearly and can copy mutable children deliberately.
@@ -352,6 +354,7 @@ A sealed class or interface restricts which types may directly extend or impleme
 Permitted subclasses must be `final`, `sealed`, or `non-sealed`, making further extension policy explicit.
 
 ```java
+// Declaration excerpts: save each public type in its own matching file.
 public sealed interface PaymentResult permits Approved, Declined, Review {}
 
 public record Approved(String authorization) implements PaymentResult {}
@@ -372,12 +375,12 @@ Records model transparent product values; combining sealed interfaces and record
 
 ### Initialization Order, Safe Publication, and Constant Inlining
 
-For a newly initialised class, the JVM initialises its superclass first and then executes the subclass `<clinit>`.
-For an object, memory receives default values, the superclass constructor runs, then instance field initialisers and constructor bodies run down the hierarchy.
+Initializing a class first initializes its superclass and relevant superinterfaces declaring default methods; initializing an interface does not automatically initialize its parents.
+On Java 17, instance construction runs superclass construction before subclass field initializers and the remaining constructor body. Java 25 allows a restricted prologue before delegation.
 Leaking `this` during construction exposes a partially initialised object.
 
 The Java Memory Model gives final fields special visibility guarantees when construction completes normally and the reference does not escape during construction.
-Other threads that obtain the object through a safe publication path see the correctly assigned final fields.
+Even a reader obtaining a properly constructed object through a racy reference can see its initialized final fields under the final-field rule; safe publication is still the general protocol for reference visibility and non-final state.
 This guarantee does not make mutable objects referenced by those fields recursively immutable.
 
 Primitive and `String` compile-time constants declared `static final` may be copied into client class files.
@@ -400,6 +403,8 @@ Pattern matching reduces casts while retaining runtime type checks.
 An `instanceof` pattern variable exists only where the compiler proves the match succeeded.
 Pattern matching for `switch` combines especially well with sealed hierarchies because the compiler can check exhaustiveness.
 
+**Excerpt — Java 21+:** record patterns and pattern `switch` require Java 21; supply the `PaymentResult` declarations above and place this method in a class.
+
 ```java
 static String describe(PaymentResult result) {
     return switch (result) {
@@ -411,7 +416,7 @@ static String describe(PaymentResult result) {
 ```
 
 Switch expressions produce values and use `yield` when a block contains multiple statements.
-They avoid accidental fall-through associated with traditional colon-labelled switch statements.
+Arrow rules avoid fall-through; switch expressions can also use colon-labelled groups, where fall-through remains possible.
 An exhaustive enum or sealed-type switch can omit a broad `default`, allowing a compiler error when a new case requires handling.
 
 `var` requests local-variable type inference; Java remains statically typed.
@@ -434,6 +439,8 @@ String payload = """
 
 Java 21 introduced `SequencedCollection`, `SequencedSet`, and `SequencedMap` to describe collections with a defined encounter order and uniform access to both ends.
 They add operations such as `getFirst`, `getLast`, `addFirst`, `addLast`, and `reversed`, subject to the implementation's supported operations.
+
+**Excerpt — Java 21+:** import `java.util.SequencedMap`, `LinkedHashMap`, and `Map`; these interfaces are unavailable on Java 17.
 
 ```java
 SequencedMap<String, Integer> scores = new LinkedHashMap<>();
@@ -506,7 +513,7 @@ It guarantees that the variable is assigned once and cannot later point to a dif
 
 **Q3. Why is `String` immutable and final?** `[easy]`
 
-Immutability allows pooled strings to be shared safely, makes cached hash codes stable, and prevents security-sensitive values from changing after validation. Declaring `String` final prevents a subtype from violating those guarantees while being treated as a string. The trade-off is that transformations create new strings, so repeated concatenation should use `StringBuilder`.
+Immutability allows pooled strings to be shared safely, makes cached hash codes stable, and prevents security-sensitive values from changing after validation. Declaring `String` final prevents a subtype from violating those guarantees while being treated as a string. Transformations may return a new string or reuse the original when unchanged; incremental concatenation usually fits a thread-confined `StringBuilder`.
 
 **Q4. Can a Java record extend another class?** `[easy]`
 

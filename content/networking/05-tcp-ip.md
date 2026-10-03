@@ -168,7 +168,7 @@ Loss, ECN, or delay signals can reduce sending rate.
 
 On ordinary active close, the endpoint completing its FIN exchange enters TIME_WAIT; simultaneous close can put both peers there. Sending an arbitrary ACK does not imply this state.
 
-It keeps state long enough for delayed segments to expire and for a lost final ACK to be repeated.
+The specification uses a 2×MSL TIME_WAIT interval; operating systems choose concrete timer and reuse policies. State lets old segments expire and lets a repeated FIN elicit another final ACK.
 
 TIME_WAIT is normal for active closers, not automatically a leak.
 
@@ -328,7 +328,7 @@ Common options include maximum segment size, window scaling, selective acknowled
 
 Middleboxes that drop unfamiliar options or ICMP can break path behavior in ways not visible in local tests.
 
-A peer advertises the largest TCP segment payload it can receive; that MSS is not a measurement of every hop. The sender also applies path-MTU knowledge and actual IP/TCP option overhead. A 1,500-byte IPv4 path with 20-byte base headers yields the common 1,460-byte payload assumption.
+A peer advertises MSS using the effective receive MTU minus fixed IP/TCP headers; this is not a measurement of every hop and is not reduced in advance for optional headers. The sender also applies path-MTU knowledge and actual IP/TCP option overhead. A 1,500-byte IPv4 path with 20-byte base headers yields the common 1,460-byte payload assumption.
 
 Reducing MSS can avoid fragmentation through tunnels at the cost of more headers and packets.
 

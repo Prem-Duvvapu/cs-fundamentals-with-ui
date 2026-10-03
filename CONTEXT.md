@@ -452,3 +452,17 @@ retain tested contrast. Keyboard focus includes inputs, selects, textareas and s
 Mermaid assets are regenerated to match. Contrast unit tests and the browser smoke harness check
 the rendered dark surface, keyboard switching and reload persistence alongside responsive/axe
 journeys. The reference is stylistic, not an exact site clone.
+
+### Core accuracy completion — October 3
+
+The [completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) closes all 37 remaining core
+reviews, bringing scoped coverage to 56/56. Current APIs, registries, question prompts and
+Mermaid sources are preserved. The two migration evidence quotes follow corrected answers
+without changing archived questions or digests. `examples/labs/sql/accuracy.sql` and
+`examples/labs/java/AccuracyContracts.java` add actual runtime assertions to the existing CI
+labs/backend jobs. Java 17 and PostgreSQL 16.15 are live baselines; source-version distinctions
+include Batch 6, Java 21/25 and PostgreSQL 18. Updated learning contracts include nullable
+constraints, division universes, class initialization, SAMs, overload phases and Optional nulls.
+
+All main CI jobs pass in run 37104855707, including container execution. Actual learner sessions
+and the separate twelve-lesson AI/ML/DevOps freshness queue remain open.

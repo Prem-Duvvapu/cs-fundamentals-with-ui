@@ -192,7 +192,7 @@ It is not the GoF singleton pattern, because separate contexts can each have the
 class DraftEmail { }
 ```
 
-A prototype definition yields a fresh instance each time the container is asked for it.
+A prototype definition yields a fresh instance per container retrieval; directly injecting it into a singleton supplies one instance during that singleton's creation, not a fresh one per method call. Use `ObjectProvider` when repeated retrieval is intentional.
 Web applications also use request and session scopes where supported.
 Scope changes lifetime and ownership; it does not make a mutable object thread-safe.
 
@@ -221,7 +221,8 @@ sequenceDiagram
     Note over C: publish singleton reference
 ```
 
-The exact internal route has more branches for factories, circular references, and special bean types.
+`@PostConstruct` runs inside a before-initialization post-processor, before `afterPropertiesSet` and a custom init method. Some aware callbacks also run through post-processors, so the diagram is a normal lifecycle summary, not the order of every extension callback.
+The internal route has more branches for factories, circular references, and special bean types.
 The public mental model remains useful: construction is not the same as initialization, and initialization is not the same as proxy exposure.
 Do not call a bean from another thread until the container has completed its startup phase.
 
@@ -262,7 +263,7 @@ The context creates the pool, injects it into the client, executes the client's 
 @Component
 final class LedgerClient {
     private final DataSource dataSource;
-    private Connection probe;
+    // The probe is borrowed only within verifyConnection.
 
     LedgerClient(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -270,19 +271,17 @@ final class LedgerClient {
 
     @PostConstruct
     void verifyConnection() throws SQLException {
-        probe = dataSource.getConnection();
+        try (Connection probe = dataSource.getConnection()) {
+            if (!probe.isValid(2)) throw new SQLException("Database probe failed");
+        }
     }
 
-    @PreDestroy
-    void closeProbe() throws SQLException {
-        if (probe != null) probe.close();
-    }
 }
 ```
 
 At startup, one of the 20 possible connections is borrowed for the 80 ms handshake.
-After a successful verification, the client is ready, but production code should generally release the probe immediately rather than hold a scarce pool slot.
-At shutdown, `@PreDestroy` closes the resource before the pool itself is closed, avoiding a resource leak and an invalid close order.
+The example returns the probe to the pool immediately through try-with-resources, including on failure.
+A genuinely long-lived resource needs a shutdown owner, but a startup failure must also release acquisitions locally rather than assuming `@PreDestroy` is registered for a partially initialized bean.
 
 The numeric constraint matters.
 If 25 singleton clients each retain one connection, a 20-connection pool is exhausted before request handling starts.
@@ -315,7 +314,7 @@ This difference is fundamental: one customises recipes, the other customises obj
 
 Annotations such as `@Transactional`, `@Async`, and `@Cacheable` are commonly implemented by wrapping a target bean in a proxy.
 The proxy intercepts an external method call and runs advice before, around, or after it.
-This wrapping normally occurs in a post-processor after initialization.
+This wrapping normally occurs in a post-processor after initialization. A final concrete class cannot use a subclass proxy; use a compatible interface proxy or a non-final proxyable type when advice is required.
 
 An **aspect** groups one cross-cutting concern, such as transaction management or timing.
 **Advice** is the action executed by that aspect, a **pointcut** selects matching method executions, and a **join point** is a particular interceptable execution where advice can run.
@@ -374,6 +373,7 @@ The DEFAULT value delegates to the database configuration, while READ_COMMITTED,
 An inner REQUIRED method participates in the existing transaction, so declaring a different isolation level there does not replace the already chosen connection isolation.
 
 By default, Spring rolls back for unchecked `RuntimeException` and `Error` outcomes, but checked exceptions do not trigger rollback unless configured with `rollbackFor` or a matching rule.
+Spring 6.2+ also permits a global `rollbackOn=ALL_EXCEPTIONS` default; inspect application configuration instead of assuming all deployments retain the historical rule.
 If a method catches the exception and returns normally, the proxy sees success and normally commits; either rethrow, mark the transaction rollback-only deliberately, or translate the exception without losing its rollback semantics.
 
 A read-only transaction is an optimization hint and statement of intent, not a universal write firewall.
@@ -510,7 +510,7 @@ Singleton scope creates one bean instance per bean definition per ApplicationCon
 
 **Q5. Describe the normal bean lifecycle order.** `[medium]`
 
-Spring resolves the definition, constructs the raw object, injects dependencies, and invokes aware callbacks. It then runs before-initialization post-processors, initialization callbacks such as `@PostConstruct`, and after-initialization post-processors that may return a proxy. Consumers receive the final exposed object, not necessarily the raw instance built by the constructor.
+Spring resolves the definition, constructs the raw object, injects dependencies, and invokes aware callbacks. `@PostConstruct` is invoked by a before-initialization post-processor; it precedes `afterPropertiesSet`, a configured init method, and normal after-initialization proxy wrapping. Consumers receive the final exposed object, not necessarily the raw instance built by the constructor.
 
 **Q6. What is a BeanPostProcessor used for?** `[medium]`
 
@@ -522,7 +522,7 @@ Spring usually applies transaction advice through a proxy around the bean. A cal
 
 **Q8. When does Spring call `@PreDestroy`?** `[medium]`
 
-It calls the callback when a managed singleton is destroyed during a graceful context close. The callback should release resources quickly and tolerate partial initialization. Spring does not generally manage prototype destruction, so a prototype consumer must clean up its own instance.
+It calls the callback when a managed singleton is destroyed during a graceful context close. The callback should release resources quickly, but a bean that fails initialization may never have registered its destruction callback. Release startup acquisitions on their failure path as well. Spring does not generally manage prototype destruction, so a prototype consumer must clean up its own instance.
 
 **Q9. How does Boot auto-configuration back off?** `[medium]`
 

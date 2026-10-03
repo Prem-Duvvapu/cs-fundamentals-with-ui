@@ -135,7 +135,7 @@ Prefer composition when a class needs another object's capability rather than be
 
 Interfaces describe capabilities without inheriting implementation state.
 
-Java permits multiple interfaces because conflicting default methods must be resolved explicitly.
+Java permits multiple interface inheritance; explicit conflict resolution is one part of its default-method rules, not inheritance of multiple class states.
 
 ---
 
@@ -158,6 +158,8 @@ SRP suggests separating those responsibilities.
 OCP suggests adding a payment method by supplying another strategy rather than editing one giant switch.
 
 DIP suggests the checkout policy depends on a `PaymentGateway` contract rather than a concrete SDK.
+
+**Excerpt convention:** unmarked Java blocks show design relationships and omit imports, enclosing call-site methods, and application domain types.
 
 ```java
 interface PaymentGateway {
@@ -266,7 +268,7 @@ final class SimplePrinter implements Printer {
 }
 ```
 
-This is better than a `Machine` interface that makes `SimplePrinter` throw `UnsupportedOperationException` from scanning and faxing methods.
+This avoids unsupported scan/fax operations in a contract that promises those capabilities. An explicitly optional operation is different: the exception alone does not prove an LSP violation.
 
 The smaller contracts give each client a more accurate dependency.
 
@@ -363,7 +365,7 @@ For distributed events, consumers should be idempotent.
 
 They may receive the same event more than once after a retry.
 
-Store a processed event id or design operations whose repeated application is safe.
+Store the processed event ID in the same transaction as local effects, or design repeated application to be safe. Remote effects need a compatible idempotency/delivery protocol too.
 
 An outbox pattern can atomically store a domain change and pending event in one database transaction.
 
@@ -472,7 +474,7 @@ The broad interface violates ISP because the simple client and implementation ar
 
 **Q13. How should a distributed Observer consumer handle duplicate events?** `[hard]`
 
-Assume at-least-once delivery and make the consumer idempotent, for example by recording an event identifier transactionally or using a natural idempotency key. A retry after an acknowledgement loss should not create a second charge or duplicate email. The trade-off is storage and coordination overhead, but it is safer than assuming exactly-once delivery from a messaging library.
+Assume at-least-once delivery and make the consumer idempotent, for example by recording an event identifier transactionally or using a natural idempotency key. Store the deduplication decision atomically with local database effects. External effects such as charges or emails additionally require a downstream idempotency contract or durable delivery/reconciliation; recording an event ID alone cannot make a remote call atomic. The trade-off is storage and coordination overhead, but it is safer than assuming exactly-once delivery from a messaging library.
 
 **Q14. When is a direct conditional better than a design pattern?** `[hard]`
 
@@ -480,7 +482,7 @@ A direct conditional is better when the variants are few, stable, local, and eas
 
 ### Further Reading
 
-- [Java language specification: interfaces](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html) covers interface contracts and default-method resolution.
-- [Java tutorial: nested classes and builders](https://docs.oracle.com/javase/tutorial/java/javaOO/nested.html) provides the language mechanics commonly used by Builder implementations.
+- [Java language specification: interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html) covers interface contracts and default-method resolution.
+- [Java tutorial: nested-class mechanics](https://docs.oracle.com/javase/tutorial/java/javaOO/nested.html) provides the language mechanics commonly used by Builder implementations.
 - [Spring Framework reference: dependency injection](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html) explains constructor-based dependency injection and explicit dependencies.
 - [Martin Fowler: Inversion of Control Containers and the Dependency Injection pattern](https://martinfowler.com/articles/injection.html) gives the original practical framing for dependency injection.

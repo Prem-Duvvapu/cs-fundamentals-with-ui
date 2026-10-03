@@ -1,7 +1,7 @@
 # Quartz Scheduler Architecture, Clustering & Misfire Policies
 
 Quartz is a Java scheduling engine for work that must run at a defined time or recurrence, from one-off reminders to clustered maintenance jobs.
-Unlike a simple in-process timer, Quartz persists scheduling metadata, coordinates trigger acquisition, and exposes policies for missed executions, which makes its behavior under restart and overload central to production correctness.
+Quartz coordinates trigger acquisition and missed-execution policies; a JDBC JobStore can persist schedules, while RAMJobStore loses them on process exit. Restart and overload behavior depend on the selected store and configuration.
 Interviewers use Quartz to test whether a candidate distinguishes an execution schedule from business idempotency and understands that distributed scheduling is never a substitute for safe job design.
 
 ---
@@ -30,10 +30,10 @@ A persistent schedule helps survive a process restart; it does not prove that ev
 
 ### The Four Core Objects
 
-In Quartz, a JobDetail is the durable definition that binds a Job class to a stable identity, configuration, and job data. A Trigger points to that JobDetail, while the Scheduler resolves the pair and dispatches a fresh Job execution when the trigger becomes due. A persistent JobStore records both objects, and clustered Quartz nodes coordinate through that shared store so only one node deliberately acquires a firing. This explicit persisted model is the key distinction from Spring's simpler @Scheduled method invocation, which does not provide Quartz job identity, durable triggers, or database-backed cluster coordination by itself.
+In Quartz, a JobDetail binds a Job class to an identity, configuration, and job data. Its `durable` flag controls whether it may remain stored without an associated trigger; it does not choose disk persistence. A Trigger points to that JobDetail, while the Scheduler resolves the pair and dispatches a fresh Job execution when the trigger becomes due. A persistent JobStore records both objects, and clustered Quartz nodes coordinate through that shared store so only one node deliberately acquires a firing. This explicit persisted model is the key distinction from Spring's simpler @Scheduled method invocation, which does not provide Quartz job identity, durable triggers, or database-backed cluster coordination by itself.
 
 A `Job` contains the unit of work Quartz should execute.
-A `JobDetail` gives that job an identity, durable metadata, and a `JobDataMap`.
+A `JobDetail` supplies identity, metadata, and a `JobDataMap`; persistence belongs to the configured JobStore.
 A `Trigger` describes when a particular job detail should fire.
 A `Scheduler` owns the registry, chooses eligible triggers, and dispatches work to its thread pool.
 
@@ -67,6 +67,8 @@ For example, `0 15 2 ? * MON-FRI` means 02:15:00 Monday through Friday.
 The `?` field means no specific value for day-of-month or day-of-week when the other field supplies the schedule.
 Cron expressions can be precise, but precision does not remove timezone and daylight-saving decisions.
 
+**Excerpt — Quartz 2.5.x:** import Quartz builders and `TimeZone`, supply `CleanupJob`, and register the job/trigger with the Scheduler. Boot 4.1.1 manages Quartz 2.5.2.
+
 ```java
 JobDetail cleanup = JobBuilder.newJob(CleanupJob.class)
         .withIdentity("cleanup", "maintenance")
@@ -75,6 +77,7 @@ JobDetail cleanup = JobBuilder.newJob(CleanupJob.class)
 
 Trigger nightly = TriggerBuilder.newTrigger()
         .withIdentity("nightly-cleanup", "maintenance")
+        .forJob(cleanup)
         .withSchedule(CronScheduleBuilder
                 .cronSchedule("0 15 2 ? * MON-FRI")
                 .inTimeZone(TimeZone.getTimeZone("UTC")))
@@ -154,7 +157,7 @@ For example, preventing two monthly invoices for the same tenant is normally a d
 
 ### Trigger States and Priorities
 
-Quartz tracks trigger states such as waiting, acquired, executing, paused, complete, error, and blocked.
+The public `TriggerState` enum exposes NONE, NORMAL, PAUSED, COMPLETE, ERROR, and BLOCKED. Internal JDBC states such as WAITING/ACQUIRED and fired-trigger execution records are separate diagnostic concepts.
 The exact state transitions depend on trigger type, job annotations, and outcome.
 An acquired trigger has been selected for execution and should not be acquired independently by another scheduler instance.
 A trigger can become blocked when its job detail disallows concurrent execution and another firing is still running.
@@ -171,7 +174,7 @@ The service is unavailable from 10:01 until 10:17.
 At restart, the trigger has missed three nominal fire times: 10:05, 10:10, and 10:15.
 The next ordinary time is 10:20.
 
-With a “fire now” style misfire instruction, Quartz can perform one immediate catch-up execution around 10:17 and then continue with the normal schedule at 10:20.
+For a five-minute CronTrigger with `withMisfireHandlingInstructionFireAndProceed`, one immediate catch-up can run around 10:17 and ordinary cron firing resumes at 10:20.
 It does not necessarily run three back-to-back executions, which is useful when a report represents current state rather than every missed interval.
 With “do nothing,” it skips missed occurrences and waits for 10:20.
 The correct choice depends on business meaning, not on a desire to make dashboards look complete.
@@ -308,7 +311,7 @@ Quartz's reschedule behavior should be observable with trigger key, fire instanc
 For recovery after node failure, mark a job as requesting recovery only when replaying it is safe and meaningful.
 The recovered execution should use a business idempotency key derived from its intended unit of work.
 For example, a monthly invoice job can claim `(tenant_id, billing_month)` in a transactional table before calling an external payment provider.
-If a restart produces another Quartz execution, the unique claim tells it the month is already being handled.
+A unique claim identifies existing work, but must include recoverable status/ownership and reconciliation; a crash after claiming must not cause unfinished work to be skipped forever.
 
 Never make job state depend only on “this process got to the end of `execute`.”
 The process may die after committing an external side effect but before Quartz can record completion.
@@ -395,7 +398,7 @@ More workers can create more simultaneous database queries or partner API calls 
 
 **Q10. How should a job handle a retryable external failure?** `[medium]`
 
-Classify the failure, record enough context to retry safely, and use bounded backoff rather than immediate infinite re-execution. The job's side effect should accept a stable idempotency key or be protected by a durable business claim. Alert after a defined retry budget so a permanent error is not hidden by scheduler churn.
+Classify the failure, record enough context to retry safely, and use bounded backoff rather than immediate infinite re-execution. Use a stable downstream idempotency key and recoverable domain status; a local claim alone cannot atomically protect a remote side effect. Alert after a defined retry budget so a permanent error is not hidden by scheduler churn.
 
 **Q11. What business guarantee should be paired with clustered scheduling?** `[medium]`
 
@@ -415,7 +418,7 @@ It is likely the timezone's daylight-saving transition: a local wall time can be
 
 ### Further Reading
 
-- [Quartz Scheduler tutorial](https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/) introduces jobs, triggers, scheduling, and job stores from the project maintainers.
-- [Quartz `JobStoreTX` configuration reference](https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJobStoreTX.html) documents transactional JDBC persistence and clustering settings.
-- [Quartz `CronTrigger` API](https://www.quartz-scheduler.org/api/2.3.0/org/quartz/CronTrigger.html) specifies calendar trigger behavior and misfire instructions.
+- [Quartz Scheduler tutorial](https://www.quartz-scheduler.org/documentation/quartz-2.5.x/tutorials/) introduces jobs, triggers, scheduling, and job stores from the project maintainers.
+- [Quartz `JobStoreTX` configuration reference](https://www.quartz-scheduler.org/documentation/quartz-2.5.x/configuration/ConfigJobStoreTX.html) documents transactional JDBC persistence and clustering settings.
+- [Quartz `CronTrigger` API](https://www.quartz-scheduler.org/api/2.5.x/org/quartz/CronTrigger.html) specifies calendar trigger behavior and misfire instructions.
 - [Spring Framework Quartz integration reference](https://docs.spring.io/spring-framework/reference/integration/scheduling.html#scheduling-quartz) explains `SchedulerFactoryBean` and Spring-managed jobs.

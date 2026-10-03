@@ -51,7 +51,7 @@ Read
 ### Collection interfaces and implementation trade-offs
 
 `Iterable<E>` promises traversal with an iterator or enhanced `for` loop.
-`Collection<E>` adds shared operations such as `add`, `remove`, `contains`, `size`, and `clear`.
+`Collection<E>` adds operations such as `add`, `remove`, `contains`, `size`, and `clear`; mutators can be optional and throw `UnsupportedOperationException`.
 `List<E>`, `Set<E>`, and `Queue<E>` specialize those operations with different semantic rules.
 `Map<K, V>` is a related but independent hierarchy because it maps keys to values instead of storing elements alone.
 
@@ -99,6 +99,8 @@ then ordering, null policy, memory locality, mutation frequency, thread ownershi
 failure behaviour determine the implementation. Vector and Hashtable remain important for reading
 legacy APIs, but synchronized wrappers or purpose-built concurrent structures usually communicate
 modern intent more clearly.
+
+**Excerpt convention:** unmarked Java blocks omit enclosing methods/imports; use the complete program above for a runnable starting point.
 
 ```java
 List<String> names = new ArrayList<>();
@@ -262,14 +264,14 @@ An immutable key is safer than a mutable entity whose identity changes through i
 ### PriorityQueue: Heap Instead of Sorted List
 
 `PriorityQueue` stores a complete binary heap in an array.
-For zero-based index `k`, the parent is `(k - 1) >>> 1`.
+For a non-root zero-based index `k > 0`, the parent is `(k - 1) >>> 1`; index zero has no parent.
 The left child is `2k + 1` and the right child is `2k + 2`.
 The invariant says each parent precedes or equals each child under the comparator.
 
 On `offer`, a value starts in the final array slot and sifts upward.
 On `poll`, the final value moves to the root and sifts downward through the smaller child.
 Each repair follows at most one root-to-leaf path.
-That produces $O(\log n)$ insertion and removal with $O(1)$ access to the minimum head.
+That gives $O(\log n)$ `offer`/`poll` and $O(1)$ head access; `contains(Object)` and `remove(Object)` instead require a linear search.
 
 ### Worked Example: Four Scheduled Jobs
 
@@ -359,7 +361,7 @@ Be cautious when an ORM assigns an identifier after an entity has already entere
 `TreeSet` uses a comparator or natural ordering to decide uniqueness.
 Two values that compare as zero are one set member even if `equals` says they differ.
 A comparator that only reads last name therefore collapses different people named Smith.
-Add a stable tie-breaker when both must remain in the collection.
+Add a stable tie-breaker when both must remain, and make comparator equality agree with `equals` if the set must satisfy the general `Set` contract.
 
 `PriorityQueue` uses its comparator to select an eligible head.
 Comparator equality there does not deduplicate items.
@@ -472,7 +474,7 @@ A `List` represents an ordered sequence with positional access and possible dupl
 
 **Q5. How does `PriorityQueue` implement a min-heap without tree node pointers?** `[medium]`
 
-It stores a complete binary tree in a zero-based array, with parent `(k - 1) >>> 1` and children `2k + 1` and `2k + 2`. `offer` sifts upward and `poll` moves the final entry to root then sifts downward. This gives $O(1)$ peek and $O(\log n)$ update operations, but it does not create sorted iteration.
+It stores a complete binary tree in a zero-based array, with parent `(k - 1) >>> 1` for non-root nodes and children `2k + 1` and `2k + 2`. `offer` sifts upward and `poll` moves the final entry to root then sifts downward. This gives $O(1)$ peek and $O(\log n)$ head removal/insertion; arbitrary `remove(Object)` is linear and iteration is unsorted.
 
 **Q6. Why must hash and equality fields stay stable while an object belongs to a `HashSet`?** `[medium]`
 
@@ -496,7 +498,7 @@ The backing table resizes when size exceeds capacity times load factor; at capac
 
 **Q11. Why can `TreeSet` discard a value that is not equal to an existing value?** `[medium]`
 
-`TreeSet` treats comparator result zero as duplicate membership. A comparator that only compares a person's last name therefore treats distinct people with that last name as the same set value. Add a stable tie-breaker when the application must retain both values.
+`TreeSet` treats comparator result zero as duplicate membership. A comparator that only compares a person's last name therefore treats distinct people with that last name as the same set value. Use a tie-breaker that preserves the intended identity, and keep comparator equality consistent with `equals` to satisfy the general Set contract.
 
 **Q12. Scenario: a service heap grows until failure while an in-memory `PriorityQueue` holds millions of delayed jobs. What do you inspect and change?** `[hard]`
 
@@ -515,4 +517,4 @@ The exception exposes unsynchronized shared mutation, and catching it does not m
 - [Java `Collection` interface documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html) explains common operations and optional-operation semantics.
 - [Java `ArrayList` documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ArrayList.html) documents list behavior and its non-synchronized contract.
 - [Java `PriorityQueue` documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PriorityQueue.html) specifies head ordering and iteration limitations.
-- [OpenJDK `ArrayList` source](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/ArrayList.java) supports deeper inspection of capacity-growth implementation details.
+- [OpenJDK `ArrayList` source](https://github.com/openjdk/jdk/blob/jdk-17%2B35/src/java.base/share/classes/java/util/ArrayList.java) supports deeper inspection of capacity-growth implementation details.

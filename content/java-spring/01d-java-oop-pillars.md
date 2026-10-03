@@ -221,9 +221,10 @@ You can write useful Java without a large inheritance tree. The next tier separa
 
 ### How overload resolution works
 
-Overloading chooses a method from the compile-time types of arguments. The compiler prefers an
-exact match, then primitive widening, then boxing, then varargs. It does not inspect the runtime
-class of a reference to choose an overload.
+Overloading uses compile-time argument types. JLS §15.12.2 first considers fixed-arity strict
+invocation (including primitive/reference widening), then loose invocation (allowing boxing and
+unboxing), and finally variable arity. It chooses a most-specific applicable method in the first
+successful phase, or reports ambiguity; runtime argument classes do not choose an overload.
 
 **Excerpt — method declarations and call-site lines shown together; put the declarations in a class and the call inside a method.**
 
@@ -351,7 +352,9 @@ Start with the narrowest visibility that supports a real collaborator.
 
 Package-private types and members are valuable for keeping implementation details available to nearby code without exporting them as a public framework promise.
 
-`protected` exposes members to subclasses, including subclasses in other packages.
+`protected` also permits same-package access. Outside the declaring package, subclass access to an
+instance member is restricted through a receiver of that subclass type or its subtype; it is not
+a general permission to access any superclass instance.
 
 It is therefore a stronger extension commitment than many designs intend.
 
@@ -525,7 +528,7 @@ Any subtype should work wherever its parent is expected without surprising calle
 **Answer rubric**
 - **Say it:** A subtype must preserve the promises that callers of its parent rely on.
 - **Mechanism:** Check accepted inputs, results, invariants, and failure behavior when the subtype is substituted.
-- **Example:** A read-only subtype that rejects a promised `add` operation breaks a mutable collection contract.
+- **Example:** A read-only subtype breaks substitution only when the parent contract promises that `add` succeeds; Java Collection deliberately permits optional mutators.
 - **Limit:** Shared implementation alone is not enough reason to inherit; composition can reuse behavior without promising substitutability.
 - **Watch for:** Do not reduce Liskov substitution to matching method signatures.
 - **Follow-up:** How would you redesign an interface if one implementation cannot support an operation?
@@ -556,7 +559,7 @@ First measure with a profiler and inspect whether the hot draw call became megam
 
 **Q13. Scenario: a subclass throws `UnsupportedOperationException` from a parent method used by callers. What is wrong?** `[hard]`
 
-The subtype likely violates the parent contract because callers reasonably expect the inherited operation to work. Split the interface, use composition, or model a narrower capability so clients do not depend on unsupported behaviour. Documenting the exception does not repair a broken substitution relation.
+Check the actual parent contract first: refusing an operation promised to succeed violates substitution, but Java collection mutators can explicitly be optional. Split the interface, use composition, or model a narrower capability so clients do not depend on unsupported behaviour. A subtype cannot weaken an already promised capability merely by documenting its exception; an exception explicitly permitted by the shared contract is different.
 
 **Q14. Scenario: an overridden hook reads null configuration during object creation. How do you fix it?** `[hard]`
 
@@ -575,4 +578,4 @@ The parent constructor called an overridable method before subclass construction
 - [Java classes and objects tutorial](https://dev.java/learn/classes-objects/) — constructors, fields, methods and object references.
 - [Java 17 method inheritance, overriding and overloading](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.8) — return types, access and method-selection rules.
 - [JVM method invocation instructions](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-6.html#jvms-6.5.invokevirtual) — the bytecode behind ordinary virtual method calls.
-- [Java language changes through Java 21](https://docs.oracle.com/en/java/javase/21/language/java-language-changes-summary.html) — when sealed classes and pattern matching became permanent.
+- [Java language changes through Java 25](https://docs.oracle.com/en/java/javase/25/language/java-language-changes-summary.html) — when sealed classes and pattern matching became permanent.

@@ -75,6 +75,8 @@ Plain files remain appropriate for immutable media, application binaries, append
 
 ### Schema, instance, tables, and constraints
 
+SQL examples in this lesson use PostgreSQL syntax; equivalent types and DDL behavior differ in other engines.
+
 A **schema** defines structure: relation names, columns, types, keys, constraints, views, and indexes. A database **instance** is the data stored at a particular moment.
 
 ```sql
@@ -91,7 +93,7 @@ CREATE TABLE customer_order (
 );
 ```
 
-The primary key identifies a row. The foreign key prevents an order from referencing a missing customer. `NOT NULL`, `UNIQUE`, `CHECK`, and domain types turn business invariants into reusable database rules rather than relying on every application code path to remember them.
+The primary key identifies a row. The foreign key prevents an order from referencing a missing customer, and `NOT NULL` makes the reference mandatory. In PostgreSQL, a nullable foreign key can omit the reference; `CHECK` accepts true or unknown, while ordinary `UNIQUE` allows multiple nulls. The example combines these rules deliberately. `NOT NULL`, `UNIQUE`, `CHECK`, and domain types turn business invariants into reusable database rules rather than relying on every application code path to remember them.
 
 Rows are unordered unless a query uses `ORDER BY`. Physical page order, insertion order, or one observed execution plan is not a query contract.
 
@@ -207,7 +209,7 @@ flowchart LR
 
 The parser checks syntax and builds an internal representation. Semantic analysis resolves names, types, functions, and privileges. The optimiser estimates alternative plan costs from statistics. The executor runs operators such as scans, joins, sorts, and aggregates.
 
-The buffer manager caches fixed-size pages in RAM and coordinates reads and dirty writes. The transaction manager assigns identities or snapshots, tracks locks or versions, and records changes in a write-ahead log. Recovery replays or reverses logged work after a crash.
+The buffer manager caches fixed-size pages in RAM and coordinates reads and dirty writes. The transaction manager assigns identities or snapshots, tracks locks or versions, and records changes in a write-ahead log. Recovery mechanisms differ by engine. PostgreSQL replays WAL and uses transaction status/MVCC to hide uncommitted tuples; it does not apply a generic physical undo pass to every aborted row.
 
 The **system catalogue** is a database about the database. It stores relations, columns, indexes, constraints, users, privileges, functions, and statistics that both administrators and the optimiser query.
 

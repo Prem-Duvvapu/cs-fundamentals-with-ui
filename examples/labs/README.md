@@ -101,3 +101,28 @@ Those require additional explicitly configured experiments; do not present loopb
 - [RFC 9293 TCP](https://www.rfc-editor.org/rfc/rfc9293.html),
   [RFC 9110 HTTP semantics](https://www.rfc-editor.org/rfc/rfc9110.html) and
   [RFC 768 UDP](https://www.rfc-editor.org/rfc/rfc768.html).
+
+## Core accuracy counterexamples — October 3
+
+[The review ledger](../../CORE_ACCURACY_COMPLETION_2026-10-03.md) explains the corrected claims.
+Run these additional fixtures; CI executes both:
+
+```sh
+psql -X -v ON_ERROR_STOP=1 -d postgres -f examples/labs/sql/accuracy.sql
+accuracy_classes=$(mktemp -d)
+javac --release 17 -d "$accuracy_classes" examples/labs/java/AccuracyContracts.java
+java -cp "$accuracy_classes" AccuracyContracts
+rm -r "$accuracy_classes"
+```
+
+SQL asserts nullable UNIQUE/CHECK/foreign-key behavior, rejection of false/missing-parent
+values, retained duplicate left rows with EXISTS, division, and the empty-requirement case.
+Grace has no held certification: she qualifies with an explicit candidate table and an empty
+requirement set, but is absent from a candidate universe derived only from Holds. All objects
+are temporary, the transaction rolls back, and any failed assertion makes psql fail.
+
+Java asserts failed versus erroneous class initialization, direct propagation of initializer
+Errors, primitive widening before boxing during overload resolution, a compatible inherited
+logical SAM, Optional.map versus flatMap null results, and comparator-zero TreeSet identity.
+Expect one PASS line and exit status zero; these are language/API counterexamples, not JVM
+performance measurements. Compilation output is confined to the disposable directory.

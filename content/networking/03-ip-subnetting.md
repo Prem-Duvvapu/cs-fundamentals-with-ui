@@ -18,7 +18,7 @@ The subnet mask for `/24` is `255.255.255.0`.
 
 Routers compare destination prefixes with route prefixes to choose the next hop.
 
-Hosts first decide whether a destination is local or requires the default gateway.
+Hosts consult their routing table: a connected route can deliver locally, a more-specific route can select another gateway, and a default route is the fallback. The diagram shows the common single-subnet/default-gateway case.
 
 ```mermaid
 flowchart LR
@@ -29,7 +29,7 @@ flowchart LR
     G --> R["Router forwards by IP route"]
 ```
 
-The IP destination remains the remote host across routed hops.
+The IP destination normally remains the remote host across routed hops; destination NAT can rewrite it, and a terminating proxy creates a separate connection.
 
 The Ethernet source and destination MAC addresses change at each link.
 
@@ -151,7 +151,7 @@ flowchart LR
 
 The usable-host formula is a convention for broadcast-capable IPv4 LANs.
 
-Point-to-point links and special prefixes can have different rules.
+RFC 3021 `/31` point-to-point links use both addresses. A `/32` names one IPv4 address, commonly a host route or loopback; it has no separate network/broadcast pair. Do not apply $2^{32-p}-2$ to either case.
 
 ### VLSM and route planning
 
@@ -273,7 +273,7 @@ Start diagnosis with address, prefix, route table, gateway reachability, ARP or 
 
 CIDR permits one route advertisement to represent several adjacent smaller networks.
 
-For example, `198.51.100.0/22` covers four contiguous `/24` blocks beginning at `.0`, `.1`, `.2`, and `.3` in the third octet position.
+For example, `198.51.100.0/22` covers `198.51.100.0/24`, `198.51.101.0/24`, `198.51.102.0/24`, and `198.51.103.0/24`: the third octet runs from 100 through 103. This is an arithmetic example only; the whole `/22` is not a documentation-reserved block.
 
 An upstream router can keep one `/22` entry instead of four `/24` entries when all four use the same next hop.
 
@@ -316,7 +316,7 @@ The server selects an address scope based on relay information.
 
 Leases have a duration so addresses can return to the pool when devices disappear.
 
-Clients normally attempt renewal before lease expiry with the original server.
+Clients normally attempt unicast renewal with the original server at T1, defaulting to 50% of the lease. At T2, defaulting to 87.5%, they broadcast a rebinding request if renewal failed. Servers can supply different timers; after expiry the client must stop using the leased address.
 
 They later attempt rebinding more broadly if that server is unavailable.
 
@@ -328,7 +328,7 @@ Use redundant servers or failover design for networks where new-device availabil
 
 Do not use an overly long lease merely to hide exhausted-pool monitoring.
 
-Conversely, very short leases increase broadcast and server load for mobile clients.
+Conversely, very short leases increase renewal traffic and server load; ordinary successful renewals are typically unicast, not broadcasts.
 
 ### Common Misconceptions
 

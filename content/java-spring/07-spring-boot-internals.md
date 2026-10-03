@@ -75,7 +75,7 @@ flowchart LR
 
 A starter is a small dependency descriptor for a capability such as web, validation, data JPA, or security.
 
-`spring-boot-starter-web` brings the MVC stack, JSON support, logging integration, and an embedded servlet container.
+On Boot 4, prefer `spring-boot-starter-webmvc` for servlet MVC, JSON, and the default embedded Tomcat server; the older `spring-boot-starter-web` is a deprecated compatibility starter.
 
 The starter does not contain the entire framework.
 
@@ -88,7 +88,7 @@ Applications can override a version, but then they own the compatibility risk.
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
+    <artifactId>spring-boot-starter-webmvc</artifactId>
 </dependency>
 ```
 
@@ -105,6 +105,8 @@ The SpringBootApplication marker is therefore the conventional root of a Boot se
 - `@SpringBootConfiguration`, which marks the primary configuration class.
 - `@EnableAutoConfiguration`, which imports Boot's conditional configuration mechanism.
 - `@ComponentScan`, which discovers components below the application's package.
+
+**Excerpt convention:** framework Java blocks omit imports and application dependencies. Boot 4 defaults to Jackson 3 (`tools.jackson` packages); older Jackson 2 converter/import recipes need migration.
 
 ```java
 @SpringBootApplication
@@ -181,9 +183,9 @@ sequenceDiagram
 
 Startup events allow infrastructure to observe phases, but application logic should usually live in beans rather than listeners.
 
-`ApplicationRunner` and `CommandLineRunner` execute after the context is ready.
+`ApplicationRunner` and `CommandLineRunner` execute after context refresh but before `ApplicationReadyEvent` and the normal ACCEPTING_TRAFFIC readiness transition. An open server connector is not proof that these runners completed.
 
-Long runner work delays readiness and can cause orchestrators to restart a healthy process.
+Long runner work delays readiness; an incorrectly configured liveness/startup policy can then restart the process prematurely.
 
 ### How auto-configuration makes decisions
 
@@ -233,7 +235,7 @@ Full configuration proxying is useful only when inter-bean method calls require 
 
 The servlet web application context locates a `ServletWebServerFactory`.
 
-The default web starter commonly supplies a Tomcat factory, while dependencies can select Jetty or Undertow.
+Boot 4's servlet starter defaults to Tomcat; Jetty is a supported alternative. Undertow support was removed in Boot 4, so older Boot 3 recipes cannot be copied unchanged.
 
 Boot creates the server, registers the servlet context, starts network connectors, and publishes the effective port.
 
@@ -349,7 +351,7 @@ Liveness answers whether the process should be restarted.
 
 Readiness answers whether it should receive traffic.
 
-A temporary downstream outage should often remove readiness without forcing a restart loop.
+Keep transient dependency outages out of liveness. Whether to include a dependency in readiness is an application decision: removing every replica because one shared dependency failed can worsen an outage; Boot excludes extra dependency checks from readiness by default.
 
 Startup probes protect slow initialization from premature liveness failures.
 
@@ -379,7 +381,7 @@ Choose AOT because measured deployment constraints justify it, not because start
 
 - **“Profiles are a security mechanism.”** Profiles select configuration and beans. Authorization must still be enforced by security controls.
 
-- **“Embedded means lightweight or unlimited.”** Embedded Tomcat, Jetty, or Undertow has real thread, queue, connection, and timeout constraints.
+- **“Embedded means lightweight or unlimited.”** Boot 4's embedded Tomcat or Jetty still has real thread, queue, connection, and timeout constraints.
 
 ### Interview Questions
 
@@ -425,7 +427,7 @@ The same key can exist in packaged defaults, profile files, environment variable
 
 **Q11. A service repeatedly fails Kubernetes liveness while its database is briefly unavailable. What is wrong?** `[hard]`
 
-The application has likely treated a dependency-readiness failure as proof that the process is dead. Database health should normally affect readiness, while liveness should detect an unrecoverable process state. Separating probes prevents restarts from amplifying a temporary downstream outage.
+The application has likely treated a dependency-readiness failure as proof that the process is dead. Keep dependency outages out of liveness; decide explicitly whether database health belongs in readiness or whether the service should degrade while remaining routable. Boot readiness does not include database health by default. Separating probes prevents restarts from amplifying a temporary downstream outage.
 
 **Q12. Why can an `ApplicationRunner` be dangerous?** `[hard]`
 

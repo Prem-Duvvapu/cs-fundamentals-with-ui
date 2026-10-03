@@ -1034,7 +1034,7 @@
       "disposition": "migrated",
       "evidence": {
         "type": "lesson-content",
-        "contains": "Sort-merge is attractive when both inputs already arrive ordered on the join key"
+        "contains": "Sort-merge is attractive when inputs are already ordered on eligible join keys"
       }
     },
     {
@@ -1738,7 +1738,7 @@
       "disposition": "migrated",
       "evidence": {
         "type": "lesson-content",
-        "contains": "Yes, because the SAM rule counts abstract obligations, not methods with implementations."
+        "contains": "Yes, for a non-sealed interface whose single logical abstract obligation satisfies the SAM rules; methods with implementations do not add abstract obligations."
       }
     },
     {

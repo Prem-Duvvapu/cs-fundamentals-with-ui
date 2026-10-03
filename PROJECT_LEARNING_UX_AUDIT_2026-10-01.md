@@ -1,5 +1,7 @@
 # Learning, content, interview preparation and UX audit
 
+**Latest status — October 3:** the [37-review completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) completes the remaining core queue: **56/56 scoped core reviews**. Earlier counts below are dated snapshots. AI/ML/DevOps freshness review and real learner evidence remain separate.
+
 **Date:** 2026-10-01
 **Audited commit:** `ddeba3d` (`main` at the start of this audit)
 **Purpose:** turn a substantial reference library into a dependable, understandable learning and interview-preparation experience.

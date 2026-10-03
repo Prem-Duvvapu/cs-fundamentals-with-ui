@@ -160,7 +160,7 @@ Hold-down timers can suppress rapid acceptance of a potentially false better rou
 
 In link-state routing, each router discovers its directly connected neighbours and link costs.
 It originates a link-state advertisement, or LSA, that is reliably flooded through the routing domain.
-Every participating router builds a link-state database representing the same topology, then independently runs shortest-path first computation.
+Participating routers aim to synchronize a topology database within the relevant flooding scope, such as an OSPF area, then independently run shortest-path first computation. Their databases can differ during convergence or across areas.
 
 ```mermaid
 flowchart LR
@@ -181,20 +181,26 @@ Large deployments use hierarchy, areas or levels, route summarisation, throttlin
 
 ### Dijkstra's algorithm builds a shortest-path tree
 
-Dijkstra's algorithm starts with the local router at distance zero.
+Dijkstra's algorithm requires nonnegative edge costs and starts with the local router at distance zero.
 It repeatedly selects the unsettled node with the smallest tentative distance, then relaxes each outgoing edge.
 Relaxing an edge means testing whether the path through the selected node improves the neighbour's known distance.
 
 ```text
+set all distances to infinity and all predecessors to none
 dist[source] = 0
-put source in priority queue
+push (0, source) into min-priority queue
 while queue is not empty:
-  u = lowest-distance unsettled node
-  for each edge u -> v:
-    dist[v] = min(dist[v], dist[u] + cost(u, v))
+  (d, u) = pop minimum
+  if d != dist[u]: continue  # stale entry
+  for each edge u -> v with nonnegative cost:
+    candidate = d + cost(u, v)
+    if candidate < dist[v]:
+      dist[v] = candidate
+      predecessor[v] = u
+      push (candidate, v)
 ```
 
-With a binary heap priority queue, the common complexity is $O((V + E)\log V)$.
+With indexed binary-heap decrease-key, the common complexity is $O((V + E)\log V)$. The lazy duplicate-entry sketch instead bounds heap work by $O((V+E)\log(V+E))$, commonly written $O(E\log V)$ for connected simple graphs. It records one predecessor; equal-cost multipath needs additional tie handling.
 The result is a shortest-path tree rooted at the calculating router.
 The router derives next hops from the first edge of each resulting tree path, not from a central controller's command.
 
@@ -227,13 +233,13 @@ flowchart TB
 ```
 
 Authentication protects routing exchanges from unauthorised neighbours but does not replace interface and control-plane protection.
-Route filtering and prefix limits remain important where routing domains connect.
+Route filtering and prefix limits remain important at supported domain and redistribution boundaries. Ordinary per-neighbor prefix filtering within one OSPF area cannot replace consistent LSA flooding.
 An attacker or configuration error that injects many routes can consume memory and CPU even if every LSA is authenticated.
 
 ### BGP is path vector and policy, not shortest path
 
 Border Gateway Protocol, or BGP, exchanges reachability between autonomous systems.
-An announcement includes a destination prefix and attributes such as AS_PATH, NEXT_HOP, LOCAL_PREF, MED, communities, and origin information.
+BGP exchanges prefixes and attributes such as AS_PATH, NEXT_HOP, MED, communities, and origin information. LOCAL_PREF communicates preference within an AS over iBGP and is normally not sent to ordinary eBGP peers.
 Routers apply policy before and after advertising routes to neighbours.
 
 AS_PATH records the autonomous systems an advertisement traversed.
@@ -279,8 +285,7 @@ Detecting and limiting leaks requires export policy, communities, AS-path filter
 ### Route selection combines several decision layers
 
 A router can learn the same prefix from connected interfaces, static configuration, an interior gateway protocol, and BGP.
-It first compares the preference between those route sources using the platform's administrative-distance or protocol-preference rules.
-Only comparable candidates then reach metric and protocol-specific best-path decisions.
+Each protocol selects its eligible candidates using its own metric and best-path rules. The routing table then arbitrates between selected candidates for the same prefix using platform administrative-distance or protocol-preference rules; implementation details vary.
 
 This explains why an OSPF route with a lower numerical cost does not automatically replace a BGP route, or vice versa.
 The numbers belong to different algorithms and have no universal unit.

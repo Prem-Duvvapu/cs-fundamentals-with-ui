@@ -165,7 +165,7 @@ This is not a defect in delayed allocation; it is the consequence of buffering f
 ### Buffered I/O, Memory Mapping, and Coherency
 
 Ordinary buffered `read` and `write` use the page cache.
-Memory mapping exposes file-backed pages in a process address space, so a load or store can fault and access file content through the same cache.
+File-backed mappings can use the page cache, but `MAP_PRIVATE` writes create private copy-on-write changes rather than updating the file; `MAP_SHARED` writes have separate visibility/writeback rules.
 The kernel tries to preserve coherency between mapped and buffered access, but visibility and durability rules still require care with concurrent writers and `msync` or fsync boundaries.
 Direct I/O can bypass or reduce use of page cache under alignment and filesystem-specific constraints.
 
@@ -197,7 +197,7 @@ The file system and storage device also need honest flush behavior; virtualized 
 This is why databases and durable queues test crash recovery rather than assuming source-code call order proves persistence.
 
 `fdatasync` can avoid waiting for metadata that is not needed to retrieve file data, subject to its documented behavior.
-`sync` starts broader system writeback and is not a targeted replacement for an application-level commit protocol.
+`sync` flushes broadly; Linux waits for I/O completion, while the portable POSIX contract allows scheduling rather than completion. It is not a targeted replacement for a checked application-level commit protocol.
 Opening with synchronous flags can reduce the gap between write and persistence at a throughput and latency cost.
 Choose the narrowest durable boundary that satisfies the business record's recovery requirement.
 
@@ -277,7 +277,7 @@ sequenceDiagram
     F->>D: write inode and directory updates
 ```
 
-The order in the diagram is a conceptual model rather than a claim about every mount mode or device cache setting.
+The diagram sketches metadata journaling with data written later, not ext4 ordered-mode sequencing: ordered mode requires relevant data writeout before the exposing metadata transaction commits. Mode and device flush guarantees must be stated explicitly.
 Applications needing a durable “file contents and name are committed” point must use and test `fsync` on the relevant file and, for creation or rename, often the containing directory.
 The exact protocol depends on the operating system and file-system documentation.
 
@@ -286,7 +286,7 @@ The exact protocol depends on the operating system and file-system documentation
 Rename within one mounted file system is typically atomic with respect to namespace visibility.
 This makes a common publish protocol possible: write a new version to a temporary name, fsync it, rename it over the destination, then fsync the containing directory when crash durability of the name change matters.
 Readers see either the old name target or the new one, not a half-written path entry.
-Cross-file-system rename is not one atomic operation because it becomes copy plus remove.
+`rename(2)` across mounted filesystems fails with `EXDEV`; a tool such as `mv` may fall back to copy plus remove, which is not one atomic replacement.
 
 Atomic namespace replacement does not make a file's application-level content valid.
 The writer must finish and flush the temporary data before publishing it.
@@ -357,7 +357,7 @@ A hard link is another directory entry for the same inode, so it shares data and
 
 **Q3. Why can a deleted file still consume disk space?** `[easy]`
 
-Removing a name decrements its link count but does not remove the inode while a process still has it open. The process can keep reading or writing through its descriptor. Space becomes reclaimable when no directory links and no open references remain.
+Removing a name decrements its link count but does not remove the inode while a process still has it open. The process can keep reading or writing through its descriptor. Space becomes reclaimable when no links or live file references remain; mappings and filesystem snapshots can also retain storage. Closing a descriptor alone does not remove a surviving mapping.
 
 **Q4. What does VFS provide?** `[easy]`
 
@@ -401,7 +401,7 @@ Check inode availability, quota, permissions, read-only mount status, and filesy
 
 **Q14. Scenario: a process keeps filling disk after its log was deleted. How do you diagnose and fix it safely?** `[hard]`
 
-Look for deleted-but-open files held by processes and correlate them with the application's log descriptors. The pathname is gone but the inode remains allocated until the process closes it. Rotate using the application's supported mechanism or restart it safely, then confirm space release instead of deleting more names.
+Look for deleted-but-open files held by processes and correlate them with the application's log descriptors. The pathname is gone but live descriptors or mappings retain the inode; snapshots can retain blocks separately even after those references end. Rotate using the application's supported mechanism or restart it safely, then confirm space release instead of deleting more names.
 
 ### Further Reading
 

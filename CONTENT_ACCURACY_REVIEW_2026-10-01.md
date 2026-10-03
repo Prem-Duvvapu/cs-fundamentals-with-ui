@@ -1,5 +1,7 @@
 # Technical accuracy review — 2026-10-01
 
+**Latest status — October 3:** the [37-review completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) completes the remaining core queue: **56/56 scoped core reviews**. Earlier counts below are dated snapshots. AI/ML/DevOps freshness review and real learner evidence remain separate.
+
 This ledger implements the accuracy work identified in [the learning/UX audit](PROJECT_LEARNING_UX_AUDIT_2026-10-01.md) (A06) and [the core curriculum audit](CORE_CS_CONTENT_AUDIT_2026-10-01.md) (C05). Its purpose is to prevent learners from memorizing an engine-specific implementation as a universal guarantee or repeating an unsupported production claim in an interview.
 
 ## Scope and completion rules
@@ -224,3 +226,24 @@ Each changed lesson receives real-Mermaid structural validation and focused rend
 question parsing. The preceding 683 frontend / 59 backend / 19 example test baseline remains valid
 for unchanged application code. Full curriculum factual approval, real learner sessions, Docker
 execution and main-thread integration remain open.
+
+## October 3 — all remaining core accuracy reviews
+
+[The completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) records all 37 requested
+reviews: 15 Java/Spring, 10 networking, eight DBMS and four OS. Together with the previous
+nineteen this completes **56/56 core scoped technical reviews**. Corrections preserve question
+identity and all diagram sources. Model answers and applicable authored rubrics were reviewed
+alongside the explanations; this package does not add automated grading.
+
+Two migration evidence quotes were updated after correcting their target answers; archived
+question payloads and digests remain unchanged. Additional Java 17 and PostgreSQL contract
+fixtures now run in CI. The 68-lesson structural gate, 83 mappings, 109 migration entries,
+210 corpus/parser tests, fifteen marked Java examples, 59 backend tests and 19 Spring-example
+tests pass. A strict C11 fork trace and PostgreSQL covering/visibility demonstration also pass.
+
+The main-branch [Verify run](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/37104855707)
+is successful in frontend, backend, labs and containers. This supplies real CI container evidence;
+the earlier local Docker limitation remains local. The twelve AI/ML/DevOps lessons still need
+a separate freshness pass; real participant sessions, broader learning exercises and rubric
+coverage remain open. Scoped review is not a claim that every snippet is standalone, every
+performance estimate is measured, or every reader has understood the material.

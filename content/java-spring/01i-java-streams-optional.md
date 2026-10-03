@@ -48,7 +48,7 @@ flowchart LR
     R --> O["GRACE and ALAN"]
 ```
 
-`name -> name.length() >= 4` tests one value. `String::toUpperCase` is a method reference: call that method on each retained string. `toList()` is the terminal operation that asks for results; intermediate operations describe the pipeline lazily. The source list is unchanged.
+`name -> name.length() >= 4` tests one value. `String::toUpperCase` is a method reference: call that method on each retained string. `toList()` is the terminal operation that asks for results; intermediate operations describe the pipeline lazily. The source list is unchanged. This uppercase example assumes ordinary English casing; use `Locale.ROOT` for locale-independent identifiers.
 `Stream.toList()` returns an unmodifiable list by contract; use `collect(Collectors.toCollection(ArrayList::new))` when a mutable result is required.
 **Predict:** changing the threshold to five leaves only GRACE. **Change:** write a loop with an `if` and a separate result list; compare its output. **Debug:** keeping a stream in a variable and calling two terminal operations on it is not two reusable queries; create a new stream for the second traversal.
 
@@ -291,7 +291,7 @@ It becomes less clear when lambdas carry mutable state, checked exceptions, or s
 
 ### Primitive streams and avoiding accidental boxing
 
-`Stream<Integer>` stores boxed `Integer` references.
+`Stream<Integer>` carries boxed Integer values through its pipeline; the stream is not itself a stored collection.
 
 Each conversion between `int` and `Integer` adds indirection and can add allocation pressure.
 
@@ -330,7 +330,7 @@ The Date/Time API uses immutable `Instant`, `LocalDate`, `ZonedDateTime`, and `D
 
 A Java 21 sequenced collection exposes encounter-order operations such as `getFirst`, `getLast`, and `reversed`; `SequencedSet` and `SequencedMap` extend the same first-to-last model without turning unordered implementations into ordered ones.
 
-`map` transforms a present value and leaves an absent value absent.
+`Optional.map` transforms a present value and treats a null mapper result as empty; `Optional.flatMap` requires its mapper to return a non-null Optional.
 
 `flatMap` is for a mapper that already returns an `Optional`.
 
@@ -451,7 +451,7 @@ List<String> names = orders.parallelStream()
 
 For a concurrent grouping, verify both the collector and downstream accumulator are suitable.
 
-`groupingByConcurrent` can reduce merge work, but it does not make arbitrary downstream operations safe.
+`groupingByConcurrent` can coordinate a valid non-concurrent downstream collector, but the returned value lists need not be thread-safe. Later mutation, external side effects, and invalid custom collectors require their own coordination.
 
 Benchmark with production-shaped data and measure tail latency, not only average throughput.
 
@@ -492,7 +492,7 @@ The shortest pipeline is not necessarily the safest production implementation.
 
 `peek` is intended mainly for debugging and inspection.
 
-Putting business side effects in `peek` makes correctness depend on evaluation order and whether a short-circuit terminal operation reaches an element.
+Required side effects must not rely on `peek`: short-circuiting may skip elements, and optimizations can omit an entire stage when it cannot affect the result.
 
 Mutating the source collection while its stream is traversing can produce `ConcurrentModificationException` or undefined application-level behaviour.
 
@@ -555,7 +555,7 @@ Vertical loop fusion means one source element generally passes through `filter`,
 
 **Q6. What is the difference between `map` and `flatMap`?** `[medium]`
 
-`map` produces one mapped output per input, so mapping a list to a stream creates a stream of lists. `flatMap` accepts a function that produces a stream and then concatenates those produced streams into one output stream. Use it for nested collections or optional-returning operations, but keep the flattening boundary obvious so a complex pipeline remains readable.
+`map` produces one mapped value per input: mapping each element to a List creates `Stream<List<T>>`, while mapping it to a Stream creates `Stream<Stream<T>>`. `flatMap` accepts a function that produces a stream and then concatenates those produced streams into one output stream. Use it for nested collections or optional-returning operations, but keep the flattening boundary obvious so a complex pipeline remains readable.
 
 **Q7. Why can `orElse` be unexpectedly expensive compared with `orElseGet`?** `[medium]`
 
@@ -567,7 +567,7 @@ Java evaluates the argument supplied to `orElse` before invoking the method, eve
 
 **Q9. Why is `peek` a poor place for business side effects?** `[medium]`
 
-`peek` is primarily an inspection operation and its execution depends on the terminal operation actually pulling each element. Short-circuiting, exceptions, and parallel execution can make the timing and ordering of side effects unsuitable for business logic. Put required writes in an explicit loop or a clearly named terminal action with well-defined error handling.
+`peek` is an inspection operation whose callbacks may be skipped entirely when the implementation can derive the terminal result without traversal, such as `count()` on a sized source. Short-circuiting, exceptions, and parallel execution can make the timing and ordering of side effects unsuitable for business logic. Put required writes in an explicit loop or a clearly named terminal action with well-defined error handling.
 
 **Q10. What makes `sorted` more expensive than `map` in a large stream?** `[medium]`
 

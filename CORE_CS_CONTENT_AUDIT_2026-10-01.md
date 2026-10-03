@@ -1,5 +1,7 @@
 # Core CS curriculum audit — 2026-10-01
 
+**Latest status — October 3:** the [37-review completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) completes the remaining core queue: **56/56 scoped core reviews**. Earlier counts below are dated snapshots. AI/ML/DevOps freshness review and real learner evidence remain separate.
+
 **Scope:** the 56 registered Operating Systems (8), Computer Networks (12), DBMS (13), and Java/Spring (23) lessons. This complements [the project learning and UX audit](PROJECT_LEARNING_UX_AUDIT_2026-10-01.md) and the [AI/ML and DevOps learning path](AI_ML_DEVOPS_LEARNING_PATH.md). The intended learner knows variables, conditions, loops, and simple functions and is working toward day-to-day backend engineering and 2+ year interviews.
 
 ## What was checked, and what was not

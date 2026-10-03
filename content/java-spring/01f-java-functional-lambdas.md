@@ -58,7 +58,7 @@ final class CardGateway implements PaymentGateway {
 }
 ```
 
-The implementation method must be `public` because interface methods are public by contract.
+An implementation of this public abstract method must be `public`; private interface helpers, described below, are not implementation obligations.
 
 An interface can extend one or more interfaces.
 
@@ -120,7 +120,7 @@ interface Formatter {
 }
 ```
 
-Interface fields are implicitly `public static final` constants.
+Interface fields are implicitly `public static final`; only primitive/String fields initialized by constant expressions are compile-time constants, and a referenced object can remain mutable.
 
 Interface abstract methods are implicitly `public abstract` unless another permitted form is written.
 
@@ -169,7 +169,7 @@ They should express behaviour derivable from the public contract, not assumption
 
 ### Functional Interfaces and the SAM Rule
 
-A functional interface has exactly one abstract method, called its Single Abstract Method or SAM.
+A functional interface is non-sealed and has one logical abstract function contract (SAM), excluding public `Object` method signatures. Compatible inherited declarations can represent that one contract.
 
 The `@FunctionalInterface` annotation asks the compiler to enforce that rule.
 
@@ -482,7 +482,7 @@ The signature communicates input and output shapes but not every semantic constr
 
 Documentation must state whether callbacks may be invoked zero, once, or many times; sequentially or concurrently; and whether `null` is accepted.
 
-Standard interfaces do not declare checked exceptions.
+The `java.util.function` interfaces shown here do not declare checked exceptions. Other standard functional interfaces, such as `Callable.call()`, do allow them.
 
 Wrapping an `IOException` in a generic `RuntimeException` can erase useful error taxonomy and rollback behaviour.
 
@@ -519,11 +519,11 @@ Use explicit command records with versioned fields at persistence boundaries.
 
 **Q1. Can an interface with one abstract method and three default methods be a functional interface?** `[easy]`
 
-Yes, because the SAM rule counts abstract obligations, not methods with implementations. Default, static, and private methods do not add abstract obligations, so any number of them may coexist with the single abstract method. `@FunctionalInterface` is optional but useful because the compiler rejects later changes that accidentally add a second SAM.
+Yes, for a non-sealed interface whose single logical abstract obligation satisfies the SAM rules; methods with implementations do not add abstract obligations. Default, static, and private methods do not add abstract obligations, so any number of them may coexist with the single abstract method. `@FunctionalInterface` is optional but useful because the compiler rejects later changes that accidentally add a second SAM.
 
 **Q2. What are the roles of default, static, and private interface methods?** `[easy]`
 
-A default method supplies inheritable behaviour, chiefly so an interface can evolve without breaking every existing implementation. A static method belongs to the interface namespace and commonly serves as a factory or utility, while a private method shares code only among methods inside that interface. Static and private methods are not inherited as implementation instance methods, which keeps their contracts different from defaults.
+A default method supplies inheritable behaviour, often easing interface evolution; newly conflicting defaults can still break an existing implementation. A static method belongs to the interface namespace and commonly serves as a factory or utility, while a private method shares code only among methods inside that interface. Static and private methods are not inherited as implementation instance methods, which keeps their contracts different from defaults.
 
 **Q3. What do `Predicate`, `Function`, `Consumer`, and `Supplier` represent?** `[easy]`
 
@@ -575,7 +575,7 @@ Define a narrowly scoped throwing functional interface or adapt the exception at
 
 ### Further Reading
 
-- [Java Language Specification: Interfaces](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html) defines interface members, inheritance, functional interfaces, and default-method rules.
-- [Java Language Specification: Lambda Expressions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.27) specifies target typing, bodies, scoping, and capture.
-- [Java `java.util.function` package](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/package-summary.html) documents the standard functional shapes and composition methods.
-- [JVM Specification: `invokedynamic`](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-6.html#jvms-6.5.invokedynamic) describes dynamic call-site resolution and linkage.
+- [Java Language Specification: Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html) defines interface members, inheritance, functional interfaces, and default-method rules.
+- [Java Language Specification: Lambda Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.27) specifies target typing, bodies, scoping, and capture.
+- [Java `java.util.function` package](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/package-summary.html) documents the standard functional shapes and composition methods.
+- [JVM Specification: `invokedynamic`](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-6.html#jvms-6.5.invokedynamic) describes dynamic call-site resolution and linkage.

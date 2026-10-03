@@ -1,5 +1,7 @@
 # Curriculum delivery checkpoint — October 2, 2026
 
+**Current status — October 3:** the remaining 37 reviews are complete; see [the review ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md). Core coverage is **56/56**. CI frontend/backend/labs/containers pass on main. Historical statements below describe the October 2 checkpoint; real learner sessions and AI/ML/DevOps freshness remain open.
+
 Status: active implementation in `feat/2026-10-02-curriculum-completion`, isolated from the
 main thread's dark-theme branch. This checkpoint records delivered work and explicit remaining
 criteria. The four requested tracks are **not all complete**: 37 core accuracy reviews, actual
@@ -50,60 +52,60 @@ The Docker Desktop Linux engine is unavailable locally. The authored Dockerfile/
 not been executed against a local daemon. H2, teaching identities and Caffeine do not establish
 remote TLS, disaster recovery, multi-replica coherence or production load capacity.
 
-## Remaining accuracy queue
+## Core accuracy queue — completed October 3
 
-These are **pending**, not sign-offs inferred from line counts. Each unit must read the whole
+The 37 entries below are now reviewed, with evidence in the October 3 ledger. Each unit read the whole
 lesson, verify consequential claims with primary sources, correct answers together, run relevant
 examples, retain question identity/migration evidence, and record its scope in the source ledger.
 
 ### java-spring: 15 lessons
 
-- [ ] [Java Execution Pipeline & JVM Architecture](content/java-spring/01b-java-execution-pipeline.md)
-- [ ] [Java Memory Model: Values, Objects, Strings, and Concurrency](content/java-spring/01c-java-memory-model.md)
-- [ ] [OOP Pillars & Dynamic Method Dispatch](content/java-spring/01d-java-oop-pillars.md)
-- [ ] [Java Classes, Immutability, Records & Modern Language Features](content/java-spring/01e-java-static-final-records.md)
-- [ ] [Java Interfaces, Functional Interfaces & Lambda Expressions](content/java-spring/01f-java-functional-lambdas.md)
-- [ ] [Java Collections Framework: List, Set, Queue & PriorityQueue](content/java-spring/01h-java-collections-framework.md)
-- [ ] [Java Streams API, Lazy Pipelines, and Optional](content/java-spring/01i-java-streams-optional.md)
-- [ ] [HashMap Bucket Internals, Treeification & ConcurrentHashMap](content/java-spring/01j-java-hashmap-internals.md)
-- [ ] [Java Reflection, Annotations, and Exception Handling](content/java-spring/01k-java-reflection-exceptions.md)
-- [ ] [SOLID Principles and Java Design Patterns](content/java-spring/01m-design-patterns-solid.md)
-- [ ] [Spring IoC Container, Bean Lifecycles & Auto-Configuration](content/java-spring/02-spring-bean-lifecycle.md)
-- [ ] [Spring MVC Request Lifecycle, Filters & Exception Resolution](content/java-spring/03-spring-mvc-lifecycle.md)
-- [ ] [Spring Batch Architecture, Chunk Execution Lifecycle & Fault Tolerance](content/java-spring/05-spring-batch-lifecycle.md)
-- [ ] [Quartz Scheduler Architecture, Clustering & Misfire Policies](content/java-spring/06-quartz-scheduler.md)
-- [ ] [Spring Boot Internals, Auto-Configuration, and Production Configuration](content/java-spring/07-spring-boot-internals.md)
+- [x] [Java Execution Pipeline & JVM Architecture](content/java-spring/01b-java-execution-pipeline.md)
+- [x] [Java Memory Model: Values, Objects, Strings, and Concurrency](content/java-spring/01c-java-memory-model.md)
+- [x] [OOP Pillars & Dynamic Method Dispatch](content/java-spring/01d-java-oop-pillars.md)
+- [x] [Java Classes, Immutability, Records & Modern Language Features](content/java-spring/01e-java-static-final-records.md)
+- [x] [Java Interfaces, Functional Interfaces & Lambda Expressions](content/java-spring/01f-java-functional-lambdas.md)
+- [x] [Java Collections Framework: List, Set, Queue & PriorityQueue](content/java-spring/01h-java-collections-framework.md)
+- [x] [Java Streams API, Lazy Pipelines, and Optional](content/java-spring/01i-java-streams-optional.md)
+- [x] [HashMap Bucket Internals, Treeification & ConcurrentHashMap](content/java-spring/01j-java-hashmap-internals.md)
+- [x] [Java Reflection, Annotations, and Exception Handling](content/java-spring/01k-java-reflection-exceptions.md)
+- [x] [SOLID Principles and Java Design Patterns](content/java-spring/01m-design-patterns-solid.md)
+- [x] [Spring IoC Container, Bean Lifecycles & Auto-Configuration](content/java-spring/02-spring-bean-lifecycle.md)
+- [x] [Spring MVC Request Lifecycle, Filters & Exception Resolution](content/java-spring/03-spring-mvc-lifecycle.md)
+- [x] [Spring Batch Architecture, Chunk Execution Lifecycle & Fault Tolerance](content/java-spring/05-spring-batch-lifecycle.md)
+- [x] [Quartz Scheduler Architecture, Clustering & Misfire Policies](content/java-spring/06-quartz-scheduler.md)
+- [x] [Spring Boot Internals, Auto-Configuration, and Production Configuration](content/java-spring/07-spring-boot-internals.md)
 
 ### os: 4 lessons
 
-- [ ] [Process Management](content/os/01-process-management.md)
-- [ ] [Process Synchronization: Locks, Semaphores, Atomics, and RCU](content/os/04-synchronization.md)
-- [ ] [File Systems, Inodes, Journaling & Copy-on-Write](content/os/06-file-systems.md)
-- [ ] [Disk Scheduling & File Allocation](content/os/08-disk-scheduling.md)
+- [x] [Process Management](content/os/01-process-management.md)
+- [x] [Process Synchronization: Locks, Semaphores, Atomics, and RCU](content/os/04-synchronization.md)
+- [x] [File Systems, Inodes, Journaling & Copy-on-Write](content/os/06-file-systems.md)
+- [x] [Disk Scheduling & File Allocation](content/os/08-disk-scheduling.md)
 
 ### networking: 10 lessons
 
-- [ ] [Computer Network Fundamentals, Devices & Topologies](content/networking/00-network-fundamentals.md)
-- [ ] [Physical Layer: Transmission Media, Encoding, and Channel Capacity](content/networking/00b-physical-layer-media.md)
-- [ ] [Computer Networks: OSI & TCP/IP Reference Models](content/networking/01-osi-model.md)
-- [ ] [Data Link Layer, MAC, Framing & ARQ](content/networking/02-data-link-layer.md)
-- [ ] [IP Addressing, CIDR Subnetting, ARP, DHCP, and NAT](content/networking/03-ip-subnetting.md)
-- [ ] [Routing Algorithms, Link State & Distance Vector](content/networking/04-routing-algorithms.md)
-- [ ] [Transport Layer: TCP vs UDP & Connection Management](content/networking/05-tcp-ip.md)
-- [ ] [TCP Flow and Congestion Control: Windows, Loss, and Pacing](content/networking/06-tcp-congestion.md)
-- [ ] [Network Security: Cryptography, TLS, Filtering, and Resilience](content/networking/08-network-security.md)
-- [ ] [Network QoS, Traffic Shaping & Modern Networking](content/networking/09-network-performance-qos.md)
+- [x] [Computer Network Fundamentals, Devices & Topologies](content/networking/00-network-fundamentals.md)
+- [x] [Physical Layer: Transmission Media, Encoding, and Channel Capacity](content/networking/00b-physical-layer-media.md)
+- [x] [Computer Networks: OSI & TCP/IP Reference Models](content/networking/01-osi-model.md)
+- [x] [Data Link Layer, MAC, Framing & ARQ](content/networking/02-data-link-layer.md)
+- [x] [IP Addressing, CIDR Subnetting, ARP, DHCP, and NAT](content/networking/03-ip-subnetting.md)
+- [x] [Routing Algorithms, Link State & Distance Vector](content/networking/04-routing-algorithms.md)
+- [x] [Transport Layer: TCP vs UDP & Connection Management](content/networking/05-tcp-ip.md)
+- [x] [TCP Flow and Congestion Control: Windows, Loss, and Pacing](content/networking/06-tcp-congestion.md)
+- [x] [Network Security: Cryptography, TLS, Filtering, and Resilience](content/networking/08-network-security.md)
+- [x] [Network QoS, Traffic Shaping & Modern Networking](content/networking/09-network-performance-qos.md)
 
 ### dbms: 8 lessons
 
-- [ ] [DBMS Introduction & Architecture](content/dbms/00-dbms-introduction.md)
-- [ ] [DBMS Architecture, ANSI-SPARC & Data Independence](content/dbms/01-dbms-architecture.md)
-- [ ] [Entity-Relationship Modeling and Relational Mapping](content/dbms/02-er-model.md)
-- [ ] [Relational Algebra, Calculus & Advanced Joins](content/dbms/03-relational-algebra-calculus.md)
-- [ ] [Keys, Functional Dependencies, and Canonical Covers](content/dbms/04-functional-dependencies-keys.md)
-- [ ] [Database Indexing & B/B+ Tree Data Structures](content/dbms/05-dbms-indexing.md)
-- [ ] [Storage Engines, RAID, and Advanced Indexing](content/dbms/05c-storage-raid-indexing.md)
-- [ ] [Query Processing, Relational Trees, and Cost-Based Optimization](content/dbms/08-query-optimization.md)
+- [x] [DBMS Introduction & Architecture](content/dbms/00-dbms-introduction.md)
+- [x] [DBMS Architecture, ANSI-SPARC & Data Independence](content/dbms/01-dbms-architecture.md)
+- [x] [Entity-Relationship Modeling and Relational Mapping](content/dbms/02-er-model.md)
+- [x] [Relational Algebra, Calculus & Advanced Joins](content/dbms/03-relational-algebra-calculus.md)
+- [x] [Keys, Functional Dependencies, and Canonical Covers](content/dbms/04-functional-dependencies-keys.md)
+- [x] [Database Indexing & B/B+ Tree Data Structures](content/dbms/05-dbms-indexing.md)
+- [x] [Storage Engines, RAID, and Advanced Indexing](content/dbms/05c-storage-raid-indexing.md)
+- [x] [Query Processing, Relational Trees, and Cost-Based Optimization](content/dbms/08-query-optimization.md)
 
 ## Closure still needs external evidence
 
@@ -143,3 +145,16 @@ are independently rejected by javac --release 17. Changed-lesson rendering, corp
 structural validation and the unchanged migration evidence are checked before this batch's commit.
 The generics gate caught seven unformatted angle-bracket types; inline code formatting fixes them,
 and the lesson's real-Mermaid structural validation now passes (RCA-2026-10-02-13).
+
+## October 3 completion and next work
+
+All 37 checkboxes above are closed with source-backed corrections and runnable evidence,
+completing 56 core reviews. Main CI run 37104855707 passes all four jobs, including the real
+teaching-container check; PR #44 and the charcoal dark theme are already merged.
+
+Next: review freshness of the seven AI/ML and five DevOps lessons, extend targeted exercises
+and authored feedback, then revise from actual beginner/backend-engineer study observations.
+The original Docker-daemon, branch-integration and frontend-CI pending statements above are
+superseded by that evidence. Learner testing still requires participants; automated checks do
+not substitute for them. Current corpus: **33,136 lines**, **68 lessons**, **295 Mermaid sources**,
+**953 interview questions**, **42 authored rubrics**. Counts describe coverage, not teaching quality.
