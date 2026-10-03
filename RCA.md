@@ -439,4 +439,4 @@ unsupported state controlling whether the Simulation tab should appear.
 - Resolution: retain the corrected answer and synchronize both affected `evidence.contains` references; archived question/payload/digest remain unchanged.
 - Verification: all 109 migration entries pass; nineteen gate regression tests, 210 corpus/parser tests and 68/68 lesson validation checks pass.
 - Prevention: inspect target evidence before each content unit and run the gate after each review package; do not restore an inaccurate sentence to satisfy a literal check.
-- Resolving commit: recorded after the accuracy package commit.
+- Resolving commit: `9963f4a`; this documentation follow-up records the completed package.

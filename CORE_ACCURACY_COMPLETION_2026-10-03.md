@@ -103,3 +103,5 @@ Priority: complete the remaining 37 core reviews before other product work. Each
 The baseline is Java 17, PostgreSQL 16.15 for live SQL, and the repository’s Boot 4.1.1 BOM (Framework 7.0.9, Batch 6.0.5, Quartz 2.5.2). Source review also uses Java 21/25, PostgreSQL 18, MySQL 8.4 and current normative RFCs with their boundaries identified. Dated textbook author slides support stable ER/FD theory, not current engine implementation claims.
 
 Scope: **37/37 requested reviews completed**, completing **56/56 core scoped reviews** together with the previous 19. AI/ML and DevOps freshness review is a separate twelve-lesson queue. Technical review and bounded fixtures do not establish beginner comprehension, every algorithm proof, hardware crash tolerance, or performance guarantees. No learner observations are invented.
+
+Implementation and verification commit: **`9963f4a`** on `feat/2026-10-03-core-accuracy-completion`.
