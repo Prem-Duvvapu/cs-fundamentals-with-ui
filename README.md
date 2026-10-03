@@ -335,3 +335,5 @@ overload, SAM, Optional and comparator behavior on PostgreSQL 16 and Java 17.
 ### AI/ML and DevOps review — October 3
 
 All seven AI/ML and five DevOps lessons now have a [dated source-backed review](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md), completing scoped technical review of all 68 lessons. Worked examples clarify evaluation metrics, feature availability, memory/cost budgets, rollout rounding, proxy rate limiting and rollback limits. The [offline AI and PostgreSQL labs](examples/labs/README.md) make key distinctions reproducible without a model API or cloud account. The corpus contains 33,450 lines, 295 diagrams, 953 questions and 56 authored rubrics. Broader exercises/rubrics and actual participant sessions remain roadmap work.
+
+The freshness release also fixes an existing reader-test timing race: await the accessible TOC link after heading extraction rather than treating mounted lesson text as finished navigation. `RCA-2026-10-03-04` records the failed/passing same-head CI evidence and verification.

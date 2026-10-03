@@ -100,3 +100,9 @@ both pass all jobs; they are baseline evidence, not verification of this new pac
    Automated checks and authored personas do not demonstrate actual beginner understanding.
 4. Periodic rechecks of upstream defaults and model/tool contracts; a dated review is not an
    indefinite “latest” guarantee. Actual Nginx burst arrivals vary from the idealized source trace.
+
+## Release-check follow-up
+
+Initial push CI passed backend, containers and labs but failed one of 712 frontend tests: an existing reader assertion queried the TOC link before the heading-extraction effect finished. The same-head PR run passed all 712. The test now awaits the actual accessible link before checking scroll behavior; RCA-2026-10-03-04 records the timing evidence. This is a deterministic assertion correction, not a retry-only treatment of a red pipeline. Final resolving-head results are linked from PR #47.
+
+Reader assertion correction: **`98a1ad5`**, with **21/21** focused interaction tests passing. The content implementation is **`05a3642`**; delivery is [PR #47](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/47).
