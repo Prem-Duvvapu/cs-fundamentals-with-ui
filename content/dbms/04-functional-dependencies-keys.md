@@ -366,6 +366,14 @@ A composite key is necessary when the business identity is unique only as a comb
 
 Compute $X^+$ by repeatedly applying every dependency whose left side is already in the closure. If the fixed point contains every attribute of the relation, $X$ is a super key. To prove it is a candidate key, also show that no proper subset has full closure.
 
+**Answer rubric**
+- **Say it:** Full attribute closure proves a super key; minimality is an additional requirement for a candidate key.
+- **Mechanism:** Start with the proposed attributes, repeatedly add the right side of every applicable dependency, and stop when nothing changes. For minimality, test removing each proposed attribute; none of those smaller sets may reach all attributes.
+- **Example:** On `R(A,B,C,D,E,F)` with `A → C`, `B → D`, `CD → EF`, and `F → A`, `AB+` reaches all six attributes. `A+ = AC` and `B+ = BD`, so `AB` is minimal; `CD+ = ACDEF` misses `B` and is not a super key.
+- **Limit:** These are declared rules over every legal relation state, not patterns inferred from a small data sample. A nullable SQL `UNIQUE` column needs separate null-policy analysis before it models a candidate key.
+- **Watch for:** Stopping after one pass through dependencies, or declaring a set a candidate key merely because its closure is full.
+- **Follow-up:** With the same dependencies, does `BF` form a candidate key, and which closure and minimality checks prove your answer?
+
 **Q6. Why are Armstrong's axioms important?** `[medium]`
 
 They provide sound and complete inference rules for functional dependencies. Soundness prevents derivation of rules not implied by the original semantics, while completeness means every implied dependency can be derived. Attribute closure turns those axioms into a practical decision procedure for implication and key finding.
@@ -393,6 +401,14 @@ Dependency preservation means the union of locally enforced projected dependenci
 **Q12. Scenario: two requests both query for an email, see no row, and then insert duplicate customers. What should change?** `[hard]`
 
 Add a database `UNIQUE` constraint on the normalized email representation and treat the insert as the atomic arbitration point. The pre-insert query is a time-of-check/time-of-use race because concurrent transactions can observe the same absence. Handle the constraint violation or use a vendor-supported upsert, while ensuring retries return the already-created identity.
+
+**Answer rubric**
+- **Say it:** Let a database uniqueness constraint arbitrate concurrent creation; an application-level absence check cannot guarantee uniqueness.
+- **Mechanism:** Both requests can read absence before either inserts. A unique key on the domain's canonical email value prevents two committed rows with that key, and the caller must handle the conflict or a supported upsert result.
+- **Example:** Requests A and B both try to create customer `sam@example.com`. One row wins; the other request returns that row's identity or the documented conflict response instead of creating a second customer ID.
+- **Limit:** Define normalization and uniqueness scope from the domain, such as per tenant, and add `NOT NULL` if email is the required key. Returning an existing customer must still respect authorization and privacy rules.
+- **Watch for:** Claiming that two separate check-then-insert operations become atomic because they sit in one ordinary transaction, or removing the unique business key after adding a surrogate ID.
+- **Follow-up:** If the existing customer's email matches but another supplied field differs, what should an idempotent create API return rather than silently overwriting that row?
 
 **Q13. Scenario: adding a foreign key to a large production table fails after a long scan. What do you investigate?** `[hard]`
 

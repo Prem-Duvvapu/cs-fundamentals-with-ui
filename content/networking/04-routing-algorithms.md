@@ -348,6 +348,14 @@ Forwarding is the data-plane action of sending one packet to a next hop using a 
 
 When multiple routes match a destination address, the router chooses the route with the most matching prefix bits. A `/24` route therefore wins over a matching `/16`, and either wins over a default route. This lets operators advertise broad reachability while overriding it with more specific paths where needed.
 
+**Answer rubric**
+- **Say it:** Forwarding chooses the most specific matching prefix among the eligible installed routes.
+- **Mechanism:** Match the destination against the forwarding table and prefer the greatest matching prefix length. Control-plane preferences choose eligible routes for a prefix; they do not turn a less-specific prefix into a longer match.
+- **Example:** Destination `10.20.7.9` matches `10.20.7.0/24`, `10.20.0.0/16`, and `0.0.0.0/0`; the installed `/24` supplies the next hop.
+- **Limit:** The example assumes one normal forwarding-table lookup. Policy routing can first choose a different table, and an absent or withdrawn `/24` leaves a less-specific match.
+- **Watch for:** Comparing BGP AS_PATH lengths or protocol metrics across these different prefix lengths before performing longest prefix match.
+- **Follow-up:** Which route carries the packet if the `/24` is withdrawn while the matching `/16` and default route remain installed?
+
 **Q3. How do distance-vector and link-state protocols differ?** `[easy]`
 
 Distance-vector routers exchange destination costs with neighbours and infer routes through iterative local calculations. Link-state routers flood link descriptions, build a topology database, and independently run shortest-path calculation. Distance vector is simpler but can converge slowly after failures, while link state uses more control-plane resources for faster informed convergence.
@@ -391,6 +399,14 @@ Apply a maximum-prefix limit and inbound prefix filter so unexpected announcemen
 **Q13. Why can a link-state network still have microloops after a failure?** `[hard]`
 
 LSAs and SPF results reach and are installed by routers at different times, so adjacent routers may temporarily disagree on their best next hop. One router can send traffic back to a neighbour that has already changed its route, forming a short-lived loop. Ordered FIB updates, hierarchy, fast reroute designs, and measured timers reduce the window but do not make asynchronous updates instantaneous.
+
+**Answer rubric**
+- **Say it:** Correct shortest-path calculations can still produce a temporary forwarding loop when routers install different versions of the result.
+- **Mechanism:** Failure information, shortest-path computation, and forwarding-table installation complete at different times. Mixed old and new next hops can send the same packet back and forth before convergence.
+- **Example:** Before a failure, A reaches D through B. B installs its new route through A before A installs its new route through C, leaving A forwarding to B and B forwarding to A temporarily.
+- **Limit:** Faster detection alone does not coordinate forwarding updates. Ordered updates or suitable fast reroute can reduce exposure, but their topology assumptions and behavior must be tested.
+- **Watch for:** Assuming identical eventual link-state databases imply instantaneous identical forwarding state, or that a low packet TTL fixes the route itself.
+- **Follow-up:** Which failure, route-computation, and forwarding-installation timestamps would distinguish slow detection from inconsistent update ordering?
 
 **Q14. A service path has a longer AS_PATH but lower real latency than the selected BGP path. Should you force shortest AS_PATH?** `[hard]`
 

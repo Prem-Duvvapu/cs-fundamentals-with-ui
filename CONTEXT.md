@@ -466,3 +466,14 @@ constraints, division universes, class initialization, SAMs, overload phases and
 
 All main CI jobs pass in run 37104855707, including container execution. Actual learner sessions
 and the separate twelve-lesson AI/ML/DevOps freshness queue remain open.
+
+### Interview feedback extension — October 3
+
+Twelve additional answer rubrics in six reviewed lessons bring the total to 56.
+They remain in canonical topic Markdown, so topic practice and paginated category
+practice expose the same model answer and optional checklist without a second question
+bank. Question IDs, prompts, model answers and diagram sources are unchanged.
+The corpus is now 33,232 lines, 68 lessons, 295 diagrams and 953 interview questions.
+See [the feedback ledger](INTERVIEW_FEEDBACK_2026-10-03.md) for question IDs and sources.
+Corpus parsing verifies all 56 checklists separate from model answers; backend tests
+verify the twelve new question IDs retain their six labels across category pages.

@@ -384,6 +384,14 @@ A mutex protects exclusive ownership of a critical section, usually with the acq
 
 A wakeup does not guarantee the predicate is now true because another awakened task can consume the resource first. Many APIs also permit spurious wakeups without an application signal. Rechecking the predicate while holding the monitor makes correctness depend on state rather than notification timing.
 
+**Answer rubric**
+- **Say it:** Wait in a loop because a notification is a reason to check shared state again, not permission to proceed.
+- **Mechanism:** Check the condition under its lock, release that lock through the wait operation, reacquire it before returning, and check again. Another consumer or a spurious wakeup may leave the condition false.
+- **Example:** Two consumers wake for one queued item; the first removes it before the second reacquires the lock. The second must wait again instead of removing from an empty queue.
+- **Limit:** The same lock must protect the condition and its updates. Java `wait()` releases only the monitor of the object being waited on, so holding an unrelated lock can still block progress.
+- **Watch for:** Replacing `while` with `if`, treating notification as a stored permit, or checking the predicate outside its protecting lock.
+- **Follow-up:** How would you add a shutdown flag so an empty queue can wake all consumers and let them terminate safely?
+
 **Q4. What does compare-and-swap do?** `[easy]`
 
 CAS compares a memory value with an expected value and writes a replacement only if they match, as one atomic operation. A strong failure indicates a mismatch, while weak compare-exchange can also fail spuriously. Recompute from the observed value and retry without assuming every failure proves another writer ran. It is a building block for atomics and lock-free algorithms, not a solution for every multi-variable invariant.
@@ -419,6 +427,14 @@ Inspect whether a producer or consumer holds the mutex while doing work outside 
 **Q12. Scenario: an urgent task misses a deadline while a lower-priority logger owns a lock and medium-priority work runs. What is happening?** `[hard]`
 
 This is priority inversion because the urgent task waits on a lower-priority resource owner while medium work prevents that owner from running. Apply priority inheritance or a priority-ceiling protocol where appropriate and minimise the lock-held work. Do not perform logging I/O under the shared lock because no priority mechanism can bound arbitrary external delay.
+
+**Answer rubric**
+- **Say it:** The urgent task is indirectly delayed by medium-priority work because its lock owner cannot run to release the lock.
+- **Mechanism:** A low-priority task acquires the lock, a high-priority task blocks on it, and a medium-priority runnable task preempts the owner. Priority inheritance temporarily raises the owner's effective priority to help it finish.
+- **Example:** A background logger owns a shared queue lock when an urgent worker arrives. CPU-heavy medium-priority work keeps the logger from running, so the urgent worker waits despite its priority.
+- **Limit:** Inheritance depends on scheduler and lock support and does not bound slow disk or network I/O. Move that work outside the critical section and measure lock hold time.
+- **Watch for:** Calling this starvation of an unlocked runnable task, or assuming that simply raising the blocked worker's priority lets it acquire an owned lock.
+- **Follow-up:** If the boosted owner is itself waiting on another lock, what would you inspect before claiming that inheritance bounds the deadline delay?
 
 **Q13. Why can `tryLock` retries cause livelock?** `[hard]`
 

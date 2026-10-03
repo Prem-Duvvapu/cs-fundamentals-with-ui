@@ -440,3 +440,12 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: all 109 migration entries pass; nineteen gate regression tests, 210 corpus/parser tests and 68/68 lesson validation checks pass.
 - Prevention: inspect target evidence before each content unit and run the gate after each review package; do not restore an inaccurate sentence to satisfy a literal check.
 - Resolving commit: `9963f4a`; this documentation follow-up records the completed package.
+
+## RCA-2026-10-03-03 — Authored rubric totals inherited an outdated snapshot
+
+- Evidence: the new whole-corpus frontend/backend assertions expected 54 rubrics after twelve additions, but both found 56. Reading the parent commit confirms 44 existing blocks; the status documents had reported 42.
+- Root cause: the current report inherited an earlier tally rather than recounting all canonical lesson answers after the core accuracy package. The five-subject pilot test verified only its original twenty rubrics.
+- Resolution: correct the current total to 56, preserve dated historical records, and state the recounted baseline of 44 in the follow-up ledger. No questions or model answers were removed to make a count pass.
+- Verification: whole-corpus frontend parsing checks all 56 authored blocks are complete and separate from model answers; backend pagination checks the same total and all twelve newly authored question IDs. Final run results are recorded in the feedback ledger.
+- Prevention: recount canonical content and run both whole-corpus checks before publishing a new feedback total. Update the assertions intentionally when adding or removing authored rubrics.
+- Resolving commit: recorded in the feedback ledger after the package commit.
