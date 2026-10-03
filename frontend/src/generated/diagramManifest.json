@@ -41,13 +41,6 @@
     "height": 695,
     "widened": 0
   },
-  "69189595": {
-    "source": "content/aiml/01-embeddings-vector-db.md",
-    "renderFingerprint": "61de7259757b9aec",
-    "width": 978,
-    "height": 312,
-    "widened": 4
-  },
   "70448906": {
     "source": "content/os/03-cpu-scheduling.md",
     "renderFingerprint": "61de7259757b9aec",
@@ -62,7 +55,7 @@
     "height": 824,
     "widened": 10
   },
-  "8df19fd5": {
+  "768cf830": {
     "source": "content/aiml/01-embeddings-vector-db.md",
     "renderFingerprint": "61de7259757b9aec",
     "width": 978,
@@ -90,6 +83,13 @@
     "height": 1743,
     "widened": 24
   },
+  "b72f57ef": {
+    "source": "content/aiml/01-embeddings-vector-db.md",
+    "renderFingerprint": "61de7259757b9aec",
+    "width": 978,
+    "height": 354,
+    "widened": 4
+  },
   "f72044a3": {
     "source": "content/aiml/02-rag-architecture.md",
     "renderFingerprint": "61de7259757b9aec",
@@ -97,10 +97,10 @@
     "height": 90,
     "widened": 11
   },
-  "6d444001": {
+  "de9c575c": {
     "source": "content/aiml/02-rag-architecture.md",
     "renderFingerprint": "61de7259757b9aec",
-    "width": 2493,
+    "width": 2564,
     "height": 292,
     "widened": 21
   },
@@ -720,12 +720,12 @@
     "height": 275,
     "widened": 21
   },
-  "12de8aa7": {
+  "f4079223": {
     "source": "content/devops/01-docker-fundamentals.md",
     "renderFingerprint": "61de7259757b9aec",
-    "width": 1441,
-    "height": 90,
-    "widened": 11
+    "width": 1712,
+    "height": 125,
+    "widened": 14
   },
   "7c2b3c84": {
     "source": "content/devops/01-docker-fundamentals.md",
@@ -755,11 +755,11 @@
     "height": 396,
     "widened": 22
   },
-  "feb208d1": {
+  "857436f5": {
     "source": "content/devops/02-kubernetes-fundamentals.md",
     "renderFingerprint": "61de7259757b9aec",
-    "width": 798,
-    "height": 539,
+    "width": 820,
+    "height": 435,
     "widened": 0
   },
   "ba286276": {
@@ -818,11 +818,11 @@
     "height": 641,
     "widened": 12
   },
-  "73ef5a77": {
+  "4309a419": {
     "source": "content/devops/05-cloud-native-operations.md",
     "renderFingerprint": "61de7259757b9aec",
     "width": 815,
-    "height": 277,
+    "height": 298,
     "widened": 7
   },
   "474935d9": {

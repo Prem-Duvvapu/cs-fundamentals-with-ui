@@ -155,7 +155,7 @@ A cross-encoder that jointly processes every user-item pair may be more expressi
 ### Approximate Nearest-Neighbour Search
 
 Exact nearest-neighbour search compares the query with every item vector.
-Approximate nearest-neighbour (ANN) indexes trade a small amount of recall for large latency and cost reductions.
+Approximate nearest-neighbour (ANN) indexes trade potentially missed neighbors for less search work. The recall loss and latency benefit depend on data, filters and search settings; neither is guaranteed to be small or large.
 Common families include graph indexes such as HNSW and partition-based indexes such as IVF.
 
 Important tuning dimensions are:
@@ -169,6 +169,9 @@ Important tuning dimensions are:
 An ANN index is not the source of truth for eligibility.
 Deleted, blocked, or unavailable items require a fast filter and timely index updates.
 When filtering removes too many results, retrieve more than the final candidate count or query multiple sources.
+Keep **ANN recall** separate from **product retrieval recall**: matching an exact vector
+top-$K$ set tests the index, while finding items users actually value tests the embedding
+and candidate sources. Perfect ANN recall can reproduce a poor semantic ranking perfectly.
 
 ### Training Retrieval Models and Negative Sampling
 
@@ -229,6 +232,8 @@ For clarity, use exact dot products even though production retrieval uses far mo
 | E | $(-0.6, 0.1)$ | $0.8(-0.6)+0.6(0.1)=-0.42$ |
 
 Retrieval selects A and B.
+Only the user vector is unit-normalized in this arithmetic example; the item vectors
+are not. These are raw dot-product scores, not cosine similarities or click probabilities.
 The ranker then adds context unavailable to the dot-product search:
 
 | Item | pCTR | pPurchase after click | Margin units | Expected margin score |
@@ -238,6 +243,11 @@ The ranker then adds context unavailable to the dot-product search:
 
 The final order is B then A even though A had higher embedding similarity.
 Retrieval answered “which items are plausibly relevant?” while ranking answered “which candidate has higher contextual utility?”
+
+**Try it:** if B becomes unavailable after ranking, may its higher expected margin
+override the inventory rule? **Answer:** no. Recheck eligibility before returning the
+list and select another eligible candidate or a validated fallback. The utility score
+optimizes among allowed items; it does not grant access or reserve stock.
 
 Suppose the true relevant set for this request is `{A, B, C, F}` and retrieval returns `{A, B, D, E}`.
 Then Recall@4 is $2/4=0.50$ because A and B were recovered.
@@ -275,6 +285,10 @@ That creates selection bias: unshown items have no outcomes.
 | System | p95/p99 latency, error rate, index freshness | Can the model satisfy the serving contract? |
 
 An online A/B test measures causal product outcomes under actual exposure.
+That interpretation requires valid random assignment, a defined analysis unit and
+attention to interference between users or shared inventory. An observational click
+comparison is not automatically an A/B test, and logged propensities need support
+for the target policy before off-policy estimators can estimate its value.
 Primary metrics might be qualified watch time, purchase conversion, or retention.
 Guardrails should include hides, complaints, latency, cancellations, creator concentration, and revenue quality.
 
@@ -321,6 +335,10 @@ Consider a 100 ms p99 service target:
 | Network and serialization reserve | 20 ms |
 | Failure reserve | 10 ms |
 | **Total** | **100 ms** |
+
+These are planning allocations, not measured per-stage p99 values whose sum establishes
+end-to-end p99. Measure the complete request distribution at representative concurrency;
+parallel fan-out adds coordination, timeouts and downstream load.
 
 Batch candidate inference to use vectorized CPU or GPU work.
 Parallelize independent candidate sources, but cap fan-out so one request cannot overload every downstream service.

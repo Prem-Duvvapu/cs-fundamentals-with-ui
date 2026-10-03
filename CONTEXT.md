@@ -477,3 +477,9 @@ The corpus is now 33,232 lines, 68 lessons, 295 diagrams and 953 interview quest
 See [the feedback ledger](INTERVIEW_FEEDBACK_2026-10-03.md) for question IDs and sources.
 Corpus parsing verifies all 56 checklists separate from model answers; backend tests
 verify the twelve new question IDs retain their six labels across category pages.
+
+### AI/ML and DevOps freshness completion — October 3
+
+The [freshness ledger](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md) closes the twelve-lesson queue; all 68 lessons now have a scoped technical review. This supersedes earlier freshness-pending counts. Canonical prompts and registrations remain unchanged; model answers and six diagram sources receive accuracy corrections, with regenerated theme assets and manifest. Current corpus: 33,450 lines, 295 diagrams, 953 questions and 56 rubrics.
+
+`examples/labs/aiml/observe.py` is a standard-library synthetic evaluation exercise, not a model integration. Its six checks join the two OS/network checks in `test_labs.py`. `examples/labs/sql/feature-availability.sql` verifies event-time versus actual availability, missing values and deterministic ties using temporary PostgreSQL objects and rollback; the CI labs job now executes it. Provider/engine snippets remain explicitly scoped excerpts. No production AI credentials, cloud resources, external SDK workloads or participant sessions are added.

@@ -130,7 +130,7 @@ The [AI/ML and DevOps learning path](AI_ML_DEVOPS_LEARNING_PATH.md) gives the fu
 All 68 lessons satisfy the authoring contract and coverage manifest: 32,531 curriculum lines,
 295 Mermaid diagrams, and 953 validated interview Q&As across six preparation areas.
 
-The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records sourced DBMS recovery/isolation and JPA/transaction reviews, including a PostgreSQL two-session lab, a durable queue claim, and executable Task Tracker persistence tests. The [October 3 completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) completes all 56 core scoped reviews; AI/ML/DevOps freshness and learner validation remain open.
+The [technical accuracy ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records sourced DBMS recovery/isolation and JPA/transaction reviews, including a PostgreSQL two-session lab, a durable queue claim, and executable Task Tracker persistence tests. The [October 3 completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) completes all 56 core scoped reviews. The [AI/ML and DevOps freshness review](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md) closes the remaining twelve technical reviews; real learner validation remains open.
 
 Twenty high-value questions across Java, Spring MVC, OS processes, TCP, and DBMS now include
 an optional six-point answer rubric. Reveal the model answer first, then open **Answer checklist
@@ -331,3 +331,7 @@ See [the design system](docs/DESIGN_SYSTEM.md) for the palette and verification 
 The SQL/Java [accuracy counterexamples](examples/labs/README.md#core-accuracy-counterexamples--october-3)
 run in CI alongside the existing labs. They check concrete null, bag, division, initialization,
 overload, SAM, Optional and comparator behavior on PostgreSQL 16 and Java 17.
+
+### AI/ML and DevOps review — October 3
+
+All seven AI/ML and five DevOps lessons now have a [dated source-backed review](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md), completing scoped technical review of all 68 lessons. Worked examples clarify evaluation metrics, feature availability, memory/cost budgets, rollout rounding, proxy rate limiting and rollback limits. The [offline AI and PostgreSQL labs](examples/labs/README.md) make key distinctions reproducible without a model API or cloud account. The corpus contains 33,450 lines, 295 diagrams, 953 questions and 56 authored rubrics. Broader exercises/rubrics and actual participant sessions remain roadmap work.

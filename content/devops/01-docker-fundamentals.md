@@ -31,8 +31,7 @@ one place fail in another, and the failure was often silent until it hit product
 
 Virtual machines solved isolation but not the drift problem cheaply. A VM bundles a full
 guest operating system — its own kernel, its own init system, its own copy of every system
-library — so it is heavyweight to build, slow to boot (tens of seconds), and large to
-distribute (gigabytes, even for a trivial app). Containers solve the same packaging problem
+library — so it is heavyweight to build, often more expensive to boot and distribute because it includes a guest kernel. Containers solve the same packaging problem
 without a second kernel: a container is a process that thinks it has its own filesystem,
 network stack, and process tree, but it is still just a process running on the host's
 existing kernel.
@@ -45,42 +44,43 @@ Docker itself:
 
 - **Namespaces** control what a process can *see* — its own process IDs, its own network
   interfaces, its own mounted filesystem, its own hostname — so a process inside a container
-  cannot observe or address anything outside its namespace by default.
+  gets a scoped view. Mounted host paths and configured network access still expose selected resources.
 - **Control groups (cgroups)** control what a process can *consume* — CPU shares, memory,
-  I/O bandwidth, number of processes — and enforce hard or soft limits, so one container
-  cannot starve every other process on the host.
+  I/O bandwidth, number of processes — and enforce configured limits. Docker containers have no CPU or memory limit by default; namespaces alone do not prevent resource exhaustion.
 
 Docker did not invent either mechanism. Its contribution was a consistent CLI, an image
 format, and a distribution model (registries) built on top of primitives the kernel already
-exposed. This is why a container starts in milliseconds and a VM takes seconds to tens of
-seconds: there is no second kernel to boot, no hypervisor layer to cross for every system
-call — only new namespaces and cgroup limits applied to an existing kernel.
+exposed. A container need not boot another kernel, which can reduce startup overhead.
+Application initialization, image downloads and storage still determine observed startup;
+a VM does not cross a hypervisor boundary for every ordinary guest system call.
 
 | | Container | Virtual Machine |
 |---|---|---|
 | Isolation boundary | Kernel namespaces + cgroups | Hardware-level, via a hypervisor |
 | Kernel | Shared with the host | Each VM runs its own kernel |
-| Typical startup time | Tens to hundreds of milliseconds | Seconds to tens of seconds |
-| Typical image size | Megabytes to low hundreds of MB | Gigabytes |
-| Density per host | Hundreds of containers | Tens of VMs |
+| Startup work | Start isolated processes, plus application initialization | Boot/resume guest, then initialize application |
+| Distribution size | Application and user-space dependencies | Guest OS and application; compare actual artifacts |
+| Density per host | Lower per-instance kernel overhead; workload-dependent | Guest overhead; workload-dependent |
 | Attack surface if compromised | Host kernel is a shared resource | Guest kernel is isolated from host |
 
 ### Images, Layers, and the Union Filesystem
 
 A Docker **image** is a read-only template built from a stack of **layers**, where each
-layer is the filesystem delta produced by one instruction in a Dockerfile. Layers are
+filesystem layer records a build step's changes. Metadata instructions such as `CMD` need not create a filesystem layer. Layers are
 content-addressed (identified by a hash of their contents) and shared across images: if two
-images both start `FROM node:20`, they share every layer up to that point on disk, and a
+images both start `FROM node:24`, they share every layer up to that point on disk, and a
 registry only needs to transfer a layer once even if many images depend on it.
 
-A **union filesystem** (Docker's default is `overlay2` on Linux) presents this stack of
+A **union filesystem** (commonly Linux OverlayFS) presents this stack of
 read-only layers as one merged view, and adds one thin **writable layer** on top when a
 container starts from the image. Writes inside a running container — a temp file, a log
 line, an edited config — land only in that writable layer using copy-on-write: if the
 container modifies a file that exists in a lower read-only layer, the filesystem copies that
 file up into the writable layer first, then applies the change there. The underlying image
 is never mutated. Delete the container and its writable layer is gone; the image, and every
-other container built from it, is untouched.
+other container built from it, is untouched. Fresh Docker Engine 29+ installations default
+to the containerd image store with an OverlayFS snapshotter; upgraded installations may
+retain the legacy `overlay2` storage driver. Inspect the actual engine rather than assuming either.
 
 ```mermaid
 flowchart LR
@@ -88,15 +88,18 @@ flowchart LR
     B --> C["Image: layers L1..Ln (read-only)"]
     C --> D["docker run"]
     D --> E["Container: L1..Ln + writable layer"]
-    E --> F["docker commit / docker push"]
+    E --> F["Optional docker commit: new image"]
+    F --> G["Push image to registry"]
+    C --> G
 ```
 
 ### Writing a Dockerfile
 
+This excerpt assumes `package.json`, a lockfile and `server.js` listening on `0.0.0.0:3000`.
 A Dockerfile is a sequence of build instructions; filesystem-changing steps contribute to image layers:
 
 ```dockerfile
-FROM node:20-alpine
+FROM node:24-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
@@ -121,7 +124,7 @@ change often (copying application source) avoids re-running expensive steps on e
 
 ```bash
 docker build -t myapp:1.0 .
-docker run -d --name myapp -p 8080:3000 -e NODE_ENV=production myapp:1.0
+docker run -d --name myapp -p 127.0.0.1:8080:3000 -e NODE_ENV=production myapp:1.0
 docker ps
 docker logs -f myapp
 docker exec -it myapp sh
@@ -129,8 +132,9 @@ docker stop myapp
 docker rm myapp
 ```
 
-`-d` runs detached (in the background). `-p 8080:3000` publishes container port 3000 on host
-port 8080. `-e` sets an environment variable inside the container. `docker exec` runs an
+`-d` runs detached (in the background). `-p 127.0.0.1:8080:3000` publishes container port 3000
+on the host loopback interface, suitable for this local example. Omitting the host IP, as in
+`-p 8080:3000`, normally publishes on all host interfaces; firewall and network configuration still matter. `-e` sets an environment variable inside the container. `docker exec` runs an
 additional process inside an already-running container — useful for debugging, but the
 correct way to run a container's actual workload is still `CMD`/`ENTRYPOINT`, not `exec`
 after the fact.
@@ -151,7 +155,8 @@ stateDiagram-v2
 
 `docker run` is shorthand for `docker create` followed by `docker start`. A **Paused**
 container has every process inside it frozen (via the freezer cgroup) without being
-terminated — useful for point-in-time filesystem snapshots without losing process state. An
+terminated. Pausing does not flush application buffers or guarantee an application-consistent
+snapshot; use the database's backup protocol for its data. An
 **Exited** container still exists on disk (its writable layer and logs are retained) until
 explicitly removed, which is why `docker ps -a` still lists stopped containers and why disk
 usage grows over time without `docker system prune`.
@@ -162,7 +167,8 @@ usage grows over time without `docker system prune`.
 
 ### Namespaces and Cgroups: What Actually Isolates a Container
 
-Six namespace types make up the isolation Docker relies on by default:
+These are common Linux namespace types; which are isolated depends on runtime flags.
+User namespace remapping is optional in rootful Docker, not enabled merely by using a container:
 
 | Namespace | Isolates |
 |---|---|
@@ -173,18 +179,18 @@ Six namespace types make up the isolation Docker relies on by default:
 | `ipc` | System V IPC objects, POSIX message queues |
 | `user` | UID/GID mapping — root inside the container can map to a non-root host UID |
 
-A process inside a container with PID namespace isolation sees itself as PID 1 even though
+The initial process inside a container with PID namespace isolation sees itself as PID 1 even though
 the host sees it as, say, PID 48213. This matters operationally: PID 1 has special
-signal-handling semantics in Linux — it does not receive default signal dispositions unless
-it explicitly installs a handler — so an application that does not handle `SIGTERM` inside a
+signal-handling semantics in Linux — many signals with default terminating actions are ignored unless
+it installs a handler; `SIGKILL` and `SIGSTOP` remain special exceptions — so an application that does not handle `SIGTERM` inside a
 container can ignore `docker stop` entirely until the grace period expires and Docker sends
 `SIGKILL`. This is a very common source of containers that "don't shut down cleanly."
 
 Cgroups are configured per container from `docker run` flags: `--memory=512m` sets a hard
 memory ceiling enforced by the kernel, `--cpus=1.5` sets a CPU quota, `--pids-limit=100`
-caps the number of processes the container can fork. Exceeding the memory limit does not
-throttle the process gracefully — the kernel's OOM killer terminates it, covered in the
-Expert tier.
+caps the number of processes the container can fork. The kernel first tries reclaiming memory. If it cannot satisfy an allocation within the
+configured limit, a cgroup out-of-memory event can kill a process; inspect evidence rather
+than assuming every memory spike kills the container.
 
 ### Layer Caching and Multi-Stage Builds
 
@@ -211,24 +217,22 @@ production image bloats it and expands the attack surface. A multi-stage Dockerf
 several `FROM` blocks and copies only the finished artifact between them:
 
 ```dockerfile
-FROM golang:1.22 AS build
+FROM golang:1.27 AS build
 WORKDIR /src
 COPY . .
 RUN CGO_ENABLED=0 go build -o /out/server .
 
-FROM alpine:3.19
+FROM alpine:3.24
 COPY --from=build /out/server /server
 ENTRYPOINT ["/server"]
 ```
 
-Worked comparison, real numbers from building the same Go service both ways: a naive
-single-stage build `FROM golang:1.22` that ships the full Go toolchain, module cache, and
-source tree alongside the compiled binary produces an image around **900 MB**. The
-multi-stage version above, which discards everything except the statically-linked binary and
-starts the final image from `alpine:3.19` (roughly 7 MB base), produces an image around
-**15-20 MB** — a reduction of more than 40x, with zero change to the running application's
-behavior, because the `golang:1.22` build stage never becomes part of the shipped image at
-all.
+A multi-stage build leaves the compiler and source tree in the build stage. For an
+illustrative comparison, 900 MB versus 20 MB would be a 45× size reduction; these are
+not measurements of a repository fixture. Measure the actual image and test the runtime:
+CA certificates, time-zone data and dynamically linked libraries may still be required.
+The example uses Go 1.27 and Alpine 3.24 supported release lines checked on October 3, 2026;
+choose maintained patches and pin digests for a reproducible deployment.
 
 ### Container Networking Modes
 
@@ -253,11 +257,11 @@ flowchart TD
 | `overlay` | Own namespace, routed across multiple hosts via VXLAN | Multi-host container networking (Swarm, and conceptually what Kubernetes's CNI layer provides) |
 
 In default `bridge` mode, each container gets a private IP on a virtual subnet created by
-the `docker0` bridge; `docker run -p 8080:3000` adds an `iptables` NAT rule that forwards
+the `docker0` bridge; `docker run -p 8080:3000` configures port forwarding through the engine's networking implementation that forwards
 traffic arriving on the host's port 8080 to the container's private IP on port 3000. This is
 why two containers on the same bridge network can reach each other directly on their
-container ports without any `-p` mapping at all — the mapping is only needed to reach a
-container *from outside the host*.
+container ports without any `-p` mapping at all — publication provides a host-port entry point. Peers, and on native Linux often the host,
+can reach the bridge address directly; Docker Desktop networking differs.
 
 ### Volumes, Bind Mounts, and tmpfs
 
@@ -266,14 +270,14 @@ single container's lifetime — a database's data directory, uploaded files — 
 outside it:
 
 - **Volumes** are storage areas fully managed by Docker (`docker volume create`), stored
-  under Docker's own data directory, portable across hosts that share the same driver, and
+  under Docker's own data directory, whose portability depends on the storage backend or an explicit backup/restore, and
   the recommended default for persistent application data.
 - **Bind mounts** map an exact path on the host filesystem into the container
   (`-v /host/path:/container/path`). They are the natural choice for local development (live
   source-code editing) but tie the container to that host's exact directory layout, which
   makes them a poor fit for production portability.
-- **tmpfs mounts** live in host memory only, never touch disk, and are wiped when the
-  container stops — appropriate for secrets or scratch data that must never be persisted.
+- **tmpfs mounts** use memory-backed storage and are removed when the container stops.
+  Their pages can be written to swap; they are not a guarantee that secrets never reach disk.
 
 ### Docker Compose for Multi-Container Applications
 
@@ -284,12 +288,23 @@ describes them declaratively in one YAML file and manages them as a unit:
 services:
   api:
     build: .
-    ports: ["8080:3000"]
-    depends_on: [db]
+    ports: ["127.0.0.1:8080:3000"]
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgres://db:5432/app
+      DATABASE_URL: postgres://app:local-demo-only@db:5432/app
   db:
     image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_DB: app
+      POSTGRES_PASSWORD: local-demo-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     volumes: ["dbdata:/var/lib/postgresql/data"]
 volumes:
   dbdata:
@@ -297,8 +312,10 @@ volumes:
 
 Compose creates a private bridge network per project automatically, so `api` can reach `db`
 by its service name as a DNS hostname — the string `db` resolves to that container's private
-IP without any manual network configuration. `depends_on` only orders container *start*, not
-readiness: Postgres accepting connections can take longer than the container starting, which
+IP without any manual network configuration. The short form `depends_on: [db]` only orders container start;
+the shown `service_healthy` condition waits for the database healthcheck. Demo credentials
+are for local learning, not production secrets. Even a passed healthcheck does not prove a
+schema migration is complete or that the database will remain available. With the short form, Postgres accepting connections can take longer than the container starting, which
 is a common source of "connection refused" on first boot and is normally solved with an
 application-level retry loop or a Compose `healthcheck`, not by assuming start order implies
 ready order.
@@ -308,7 +325,7 @@ ready order.
 `docker push`/`docker pull` move images to and from a **registry** (Docker Hub, a private
 registry, a cloud provider's container registry). A **tag** (`myapp:1.0`, `myapp:latest`) is
 a mutable, human-friendly pointer that can be reassigned to a different image at any time —
-`latest` is not "the newest version," it is just whatever tag was pushed last, which is
+`latest` is not "the newest version," it is whatever image was explicitly assigned to the `latest` tag, which is
 exactly why pinning a specific version tag (or better, a digest) matters for reproducible
 deployments. A **digest** (`myapp@sha256:abc123...`) is the immutable, content-addressed
 identity of an exact image — the same digest always resolves to bit-for-bit identical
@@ -345,13 +362,13 @@ limits — runc is the reference implementation of the **OCI Runtime Specificati
 industry-standard contract that any compliant runtime (runc, `crun`, `gVisor`'s `runsc`) can
 satisfy, which is why the ecosystem is not locked to one vendor's implementation.
 
-### Storage Drivers: `overlay2` Internals
+### Legacy `overlay2` and OverlayFS Copy-Up
 
 `overlay2` implements the union filesystem using four directories per container: `lowerdir`
 (the stacked read-only image layers), `upperdir` (the writable layer), `workdir` (internal
 scratch space required by the kernel overlay driver), and `merged` (the single view the
-container actually sees, combining all of the above). Reading a file that exists in a lower
-layer is effectively free — it is served directly from that layer. The first *write* to a
+container actually sees, combining all of the above). Reading a lower-layer file still costs ordinary filesystem I/O and lookup work; it
+does not require copying that file into the writable layer. The first *write* to a
 file that only exists in a lower layer triggers **copy-up**: the whole file is copied into
 `upperdir` before the write is applied, which means a single-byte write to a large file
 incurs a full-file copy the first time it happens. This is a known performance trap for
@@ -360,41 +377,35 @@ to a mounted volume.
 
 ### Security: Capabilities, Seccomp, and Rootless Containers
 
-Root inside a container is not root on the host, but it is closer to it than most engineers
-assume. Docker drops a subset of Linux **capabilities** by default (a container does not get
-`CAP_SYS_ADMIN`, for instance, which would allow mounting arbitrary filesystems), but it does
-not drop all of them, and a container run with `--privileged` disables this entirely,
-granting every capability and access to every host device — effectively erasing the
-isolation boundary. **Seccomp** (secure computing mode) filters which syscalls a container's
-processes are allowed to make at all; Docker's default seccomp profile blocks around 44
-syscalls, including ones with a history of container-escape vulnerabilities, like
-`clone` with certain flag combinations. **Rootless mode** runs the Docker daemon itself as a
-non-root user, using user namespaces to map a container's root user to an unprivileged host
-UID, so that even a full container escape does not hand an attacker host root — this trades
-some functionality (binding to ports below 1024 needs extra configuration) for a materially
-smaller blast radius if a container is compromised.
+Without user namespace remapping, container UID 0 is host UID 0, constrained by
+namespaces, capabilities and other controls. Docker drops capabilities such as
+`CAP_SYS_ADMIN`; `--privileged` restores broad capabilities and device access, greatly
+weakening those protections. Access to a rootful Docker daemon socket is also powerful
+and should not be treated as an ordinary application mount.
+
+**Seccomp** filters system calls; the default profile varies with version and architecture,
+so a fixed count of blocked calls is not a reliable contract. **Rootless mode** runs the
+daemon and containers under an unprivileged host account using user namespaces. This
+reduces exposure to host-root privileges; it cannot guarantee that a kernel vulnerability
+or another privilege-escalation flaw is harmless. Check networking and resource-control
+support before choosing it for a workload.
 
 ### Production Failure Modes and Operational Gotchas
 
-**OOM kills.** When a container's cgroup memory usage exceeds its `--memory` limit, the
-kernel's OOM killer terminates a process inside that cgroup — not gracefully, no signal
-handler runs, the process is killed outright. `docker inspect` reports `OOMKilled: true` and
-the container typically exits with code **137** (128 + signal 9, `SIGKILL`). This is
-distinct from an application-level out-of-memory error and cannot be caught or logged from
-inside the process; the only evidence is the exit code and the daemon's own event log.
+**OOM kills.** If reclaim cannot satisfy memory demand within a cgroup limit, the kernel
+can send `SIGKILL` to a process in that group. A killed main process commonly exits 137
+(128 + signal 9); this code alone does not prove OOM. Check `docker inspect`
+`OOMKilled`, daemon events, kernel logs and cgroup `memory.events`. Killing a child does
+not necessarily terminate the container. A Java `OutOfMemoryError` is a separate event.
 
-**Zombie processes.** If a container's `CMD` spawns child processes but the main process
-never calls `wait()` on them, exited children become zombies that PID 1 must reap. Outside a
-container the init system reaps orphans automatically; inside a minimal container image with
-no real init system, this reaping never happens, and zombies accumulate until the
-`--pids-limit` is hit. The standard fix is running a minimal init (`tini`, or Docker's
-built-in `--init` flag) as PID 1 instead of the application directly.
+**Zombie processes.** A parent must call `wait()` for exited children. A minimal init
+(`--init`) reaps orphaned children adopted by it and helps forward signals; it cannot reap
+a zombie still owned by a living parent. Fix that parent's subprocess handling as well.
 
-**Signal handling on shutdown.** `docker stop` sends `SIGTERM`, waits a grace period
-(10 seconds by default), then sends `SIGKILL` if the container has not exited. An application
-that does not install a `SIGTERM` handler is killed ungracefully every time, dropping
-in-flight requests and skipping cleanup — this is one of the most common causes of "container
-restarts are causing errors" reports in production.
+**Signal handling on shutdown.** `docker stop` sends the configured stop signal, normally
+`SIGTERM`, then `SIGKILL` after the timeout. The default timeout is 10 seconds for Linux
+containers and 30 for Windows, and is configurable. Use an exec-form entrypoint and test
+that the actual application receives the signal and drains within the configured grace period.
 
 ### Common Misconceptions
 
@@ -403,12 +414,12 @@ restarts are causing errors" reports in production.
   different kernel than its host (a Linux container cannot run on a Windows kernel without a
   compatibility layer) and why a kernel vulnerability is a container-escape risk in a way it
   is not for a VM.
-- **"`docker stop` immediately kills the container."** It sends `SIGTERM` first and only
+- **"`docker stop` immediately kills the container."** It sends the configured stop signal (normally `SIGTERM`) first and only
   escalates to `SIGKILL` after the grace period elapses — an application that handles
   `SIGTERM` gets a real chance to shut down cleanly.
 - **"Volumes and bind mounts are interchangeable."** Both persist data outside the writable
-  layer, but volumes are Docker-managed and portable, bind mounts are tied to an exact host
-  path — using a bind mount in production for stateful data creates a hidden dependency on
+  layer. Volumes are Docker-managed, but local volumes still belong to a host; bind mounts
+  use an exact host path — using a bind mount in production for stateful data creates a hidden dependency on
   that specific host's filesystem layout.
 - **"A smaller base image is always more secure."** It reduces attack surface (fewer
   installed packages to have vulnerabilities), but it does not replace actually scanning
@@ -416,28 +427,27 @@ restarts are causing errors" reports in production.
   still ship a known-vulnerable library.
 - **"`EXPOSE` in a Dockerfile publishes a port."** It only documents intent for humans and
   tooling; the port is actually published at `docker run` time with `-p`, and omitting `-p`
-  means the port is not reachable from outside the container regardless of what `EXPOSE`
-  says.
+  means no host port is published. Reachability from peers or the native Linux host
+  is a separate networking question.
 
 ### Interview Questions
 
 **Q1. What is the actual difference between a container and a virtual machine?** `[easy]`
 
-A container is an isolated process sharing the host's existing kernel, using namespaces to
-restrict what it can see and cgroups to limit what it can consume — no second kernel, no
-hypervisor. A virtual machine runs its own complete guest kernel on top of a hypervisor that
-emulates hardware, which is why VMs take seconds to boot and containers take milliseconds.
-The practical consequence is density: a host can run hundreds of containers in the memory
-footprint of a few dozen VMs, because there is no per-instance kernel overhead.
+A container shares the kernel of its Linux host, using namespaces for scoped views and
+cgroups for configured resource controls. A VM has a guest kernel and virtual hardware;
+it need not cross a hypervisor for every guest system call. Containers avoid per-instance
+kernel boot overhead, but application startup and density depend on the workload. On
+Docker Desktop, Linux containers normally share the kernel of a Linux VM.
 
 **Q2. What does the `-p 8080:3000` flag actually do when you run a container?** `[easy]`
 
-It publishes container port 3000 on host port 8080 by adding a NAT rule (via `iptables` in
-the default bridge network) that forwards traffic arriving on the host's port 8080 to the
+It publishes container port 3000 on host port 8080 by adding a NAT rule (through the configured engine networking implementation) that forwards traffic arriving on the host's port 8080 to the
 container's private bridge IP on port 3000. Without `-p`, the container is still reachable on
 port 3000 from other containers on the same bridge network, since they can address it
 directly by its private IP or Compose service name — the mapping is only required to reach it
-from outside the host. The common failure this causes is binding the server inside the
+through a host-port entry point. Omitting the host IP normally publishes on all interfaces;
+use `127.0.0.1:8080:3000` for this local exercise. The common failure this causes is binding the server inside the
 container to `127.0.0.1` instead of `0.0.0.0`: the NAT rule delivers the packet to the
 container's bridge IP, nothing is listening on that address, and the connection is refused
 even though the mapping is correct.
@@ -454,22 +464,20 @@ order backwards forces a full dependency reinstall on every single code change.
 **Q4. What's the difference between `CMD` and `ENTRYPOINT`?** `[easy]`
 
 `CMD` sets a default command that a user can fully override by passing arguments to
-`docker run`; `ENTRYPOINT` sets a fixed command that always runs, with any `docker run`
+`docker run`; an exec-form `ENTRYPOINT` sets the executable, with ordinary `docker run`
 arguments (or `CMD`, if both are present) appended to it rather than replacing it. A common
 pattern combines both: `ENTRYPOINT ["python", "app.py"]` with `CMD ["--port", "8080"]` lets a
 user override just the port with `docker run myapp --port 9090` without being able to
-accidentally replace the interpreter being invoked.
+accidentally replace the interpreter being invoked. The user can still override it with
+`--entrypoint`; it is not a security boundary.
 
 **Q5. Your container exits immediately with code 137 right after startup. What do you check first?** `[medium]`
 
-Exit code 137 is 128 plus signal 9, meaning the process received `SIGKILL` — in a container
-this is almost always the kernel's OOM killer terminating a process that exceeded its
-cgroup's `--memory` limit. I would run `docker inspect` on the container and check the
-`OOMKilled` field, then check what memory limit was actually set versus what the application
-needs at startup; a common cause is a JVM or Node process whose default heap sizing assumes
-the full host's memory rather than the container's cgroup limit, so it allocates well past a
-tight `--memory` ceiling. If `OOMKilled` is false, I would look at the application's own logs
-for an unhandled startup exception instead.
+Exit code 137 suggests termination by `SIGKILL`; it does not identify the cause by itself.
+Check `docker inspect` for `OOMKilled`, the configured limit, cgroup memory events and
+kernel/daemon logs. For a JVM, budget heap plus native memory, thread stacks and buffers,
+not just `-Xmx`. If OOM evidence is absent, investigate an explicit kill, an orchestrator
+shutdown timeout or another supervisor; an ordinary uncaught exception is not proof of SIGKILL.
 
 **Q6. Explain what happens, step by step, from `docker run` to a process executing inside a new container.** `[medium]`
 
@@ -496,18 +504,19 @@ traffic, since volumes bypass the union filesystem's copy-up behavior entirely.
 **Q8. What's the difference between a Docker volume and a bind mount, and when would you use each?** `[medium]`
 
 A volume is storage fully managed by Docker — created and tracked under Docker's own data
-directory, portable across hosts using the same driver, and the recommended default for
+directory for the local driver, with cross-host portability requiring a suitable backend
+or backup/restore, and commonly used for
 persistent application data like a database's files. A bind mount maps an exact host
 filesystem path into the container, which is ideal for local development (editing source on
 the host and seeing it live inside the container) but creates a hard dependency on that
 specific host's directory layout, making it a poor choice for anything meant to be deployed
 consistently across different machines. In production, I would use volumes for persistent
-data and avoid bind mounts except for well-understood cases like mounting a host's Docker
-socket or a known-fixed configuration path.
+data and avoid bind mounts except for well-understood cases like a known-fixed, read-only configuration path. Mounting the Docker socket grants
+powerful daemon access and is not an ordinary application-storage example.
 
 **Q9. A service depends on Postgres in Docker Compose and fails with connection-refused on the first deploy but works on every restart after. Why?** `[medium]`
 
-`depends_on` in Compose controls start order, not readiness — it guarantees the Postgres
+The short form of `depends_on` in Compose controls start order, not readiness — it guarantees the Postgres
 *container* starts before the application container, but not that Postgres has finished
 initializing and is actually accepting connections yet, and Postgres's own startup (creating
 the data directory, running recovery) can take longer than the application's own boot time.
@@ -542,27 +551,20 @@ default fix for a permissions error.
 
 **Q12. How does rootless Docker reduce the blast radius of a container escape, given that container root is not host root either way by default?** `[hard]`
 
-Even in normal (non-rootless) Docker, the *daemon* itself runs as root on the host, so a
-vulnerability that lets an attacker escape a container and reach the daemon can still lead to
-host root. Rootless mode runs `dockerd` itself as an unprivileged host user, and uses Linux
-user namespaces to map the container's root user to that same unprivileged host UID rather
-than to actual host root. If a container escape occurs under rootless mode, the attacker
-lands as an unprivileged user on the host, not as root, which contains the damage to whatever
-that unprivileged account can reach. The trade-off is real: some operations that assume host
-root, like binding to ports below 1024 or certain storage driver features, need extra
-configuration or are unavailable under rootless mode.
+The question's premise needs correction: without user namespace remapping, container
+UID 0 is host UID 0, albeit constrained by namespaces and reduced capabilities. Rootless
+Docker also runs the daemon under an unprivileged account and remaps container identities.
+This reduces exposure if a compromised process reaches host resources; it does not prove
+that every escape remains unprivileged, because kernel privilege escalation is still possible.
+Check workload compatibility, including resource limits and networking, before adopting it.
 
 **Q13. Your team keeps seeing zombie processes accumulate inside long-running containers until the container eventually hits its process limit and stops accepting new work. What's the root cause and the fix?** `[hard]`
 
-Outside a container, the OS init process (PID 1) automatically reaps orphaned child processes
-when they exit, preventing zombies from accumulating. Inside a minimal container image, the
-application itself is usually PID 1, and most application code — unlike a real init system —
-never calls `wait()` on child processes it did not directly spawn or lose track of, so exited
-children become permanent zombie entries in the process table until the container itself is
-killed. The fix is running a minimal init process as PID 1 instead of the application
-directly — either Docker's built-in `--init` flag (which wraps the entrypoint with `tini`) or
-an explicit `tini`/similar binary as the actual entrypoint — so a real reaper is in place and
-the application process runs as its child instead of as PID 1 itself.
+Exited children remain zombies until their parent collects the exit status with `wait()`.
+An init process reaps orphaned children that it adopts; minimal application PID 1 often
+does not implement that role. Docker's `--init` or a minimal init can supply orphan reaping
+and signal forwarding. Also fix any living parent that fails to wait for its own children: an
+init process cannot reap children that still belong to another living process.
 
 **Q14. Two images, `myapp:latest` pulled today and `myapp:latest` pulled yesterday, produce different behavior in production. How is this possible, and how do you prevent it?** `[hard]`
 
@@ -574,10 +576,15 @@ alone is not reproducible. The fix is referencing an image by its immutable dige
 (`myapp@sha256:...`) in deployment manifests instead of a mutable tag, or at minimum pinning
 to a specific version tag that a team's process guarantees is never reassigned once pushed —
 digests are the only reference that is guaranteed to resolve to bit-for-bit identical content
-every time.
+every time. A multi-platform digest may identify an image index, so also record the
+platform-specific image and runtime configuration when comparing observed behavior.
 
-Further reading: the [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec)
+### Further Reading
+
+ the [OCI Runtime Specification](https://github.com/opencontainers/runtime-spec)
 defines the contract `runc` and its alternatives implement; the
 [Docker `overlay2` storage driver documentation](https://docs.docker.com/engine/storage/drivers/overlayfs-driver/)
 covers copy-up behavior in more depth; [containerd's architecture docs](https://containerd.io/docs/)
 describe the shim/runtime split referenced in Q6.
+
+The [containerd image store guide](https://docs.docker.com/engine/storage/containerd/) explains the Engine 29+ default; [resource constraints](https://docs.docker.com/engine/containers/resource_constraints/) describes explicit limits; [tmpfs documentation](https://docs.docker.com/engine/storage/tmpfs/) covers swap. The [Compose startup-order guide](https://docs.docker.com/compose/how-tos/startup-order/) explains health-gated dependencies; [stop semantics](https://docs.docker.com/reference/cli/docker/container/stop/) and [port publishing](https://docs.docker.com/engine/network/port-publishing/) define the shutdown and local networking examples.

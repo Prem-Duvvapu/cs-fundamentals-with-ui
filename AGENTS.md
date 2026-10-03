@@ -566,3 +566,11 @@ and InterviewDeck suites plus backend DiscoveryService coverage after changing t
 The full-corpus test checks every authored block can be separated into six nonempty labels;
 the backend test checks the added question IDs survive pagination without following-question
 or Further Reading leakage. AI/ML/DevOps freshness and real learner observations remain open.
+
+## October 3 AI/ML and DevOps freshness completion
+
+`AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md` supersedes earlier twelve-lesson freshness-pending statements. All 68 lessons have scoped technical reviews; real learner comprehension and live external AI/DevOps capstone execution are not certified. Current corpus: 33,450 lines, 295 diagrams, 953 questions and 56 authored rubrics. Preserve canonical question identity while correcting false premises in answers. Six diagram sources were corrected and both themes regenerated; run the render/check/decode pipeline when visual teaching claims change.
+
+`examples/labs/aiml/observe.py` uses synthetic fixtures and standard-library metric arithmetic, without model calls; its six new checks run with the existing two lab tests. `examples/labs/sql/feature-availability.sql` uses temporary PostgreSQL tables and rollback, and is executed by CI. Test the declared online-availability policy, not an assumption that event timestamps prove historical serving visibility. Keep score/ranking, relevance/ANN overlap, hit-rate/recall and planning-budget/measured-percentile distinctions explicit.
+
+Version-sensitive examples distinguish Docker 29+ fresh image-store defaults from legacy upgrades, Kubernetes 1.37 policies, bounded pgvector iterative scans, MCP 2026-07-28 transport/business authorization, and current action runner prerequisites. Do not turn documentation excerpts, invented-rate cost calculations, source-traced proxy behavior or generated diagrams into claims of live deployment/performance evidence. Remaining roadmap work is broader exercises and question-specific feedback plus real learner sessions.

@@ -89,6 +89,10 @@ It also raises the chance of an undesired token, so it needs an evaluation and g
 | Presence penalty | Discourages tokens seen at least once | Topic exploration | It can push the model off topic |
 
 Treat these settings as a decoding policy, not as a single universal "creativity" dial.
+This is a conceptual list, not a set of fields supported by every API. Some reasoning
+models restrict sampling controls or use provider-specific effort settings. Read the
+selected model's request contract; do not copy a temperature/top-k configuration from
+another model and assume it is accepted or equivalent.
 An SQL assistant, a medical summarizer, and an ideation tool should have different policies and acceptance tests.
 Changing several controls at once makes a regression hard to attribute.
 
@@ -200,7 +204,7 @@ With `top_p = 0.90`, the smallest ranked set whose mass reaches at least $0.90$ 
 The set is `logarithmic`, `efficient`, `fast`, and `a` because the first three total only $0.84$.
 After renormalization, `logarithmic` has probability $0.46 / 0.92 = 0.50$.
 
-Top-p adapts to confidence.
+Top-p adapts to the concentration of next-token scores, not calibrated factual confidence.
 If the leading token already has probability $0.93$, `top_p = 0.90` can leave only one candidate.
 A fixed `top_k = 40` would still retain forty candidates if the vocabulary has them.
 
@@ -245,6 +249,9 @@ Prefer structured response formats where the platform supports them.
 A tool definition should describe a narrow action with typed arguments.
 For example, an inventory lookup can accept a SKU and return availability without granting write access to orders.
 The schema helps the model form a request, but it is not a security boundary by itself.
+The JSON below illustrates a tool contract, not a complete request for a particular
+provider. API wrappers and supported JSON Schema keywords differ; the backend still
+enforces the full intended validation rule even if the model API supports only a subset.
 
 A structured JSON tool call is a **proposal**, not an instruction the backend must execute.
 Conversation history and prompt text provide task context but cannot establish identity, resource ownership, or permission.
@@ -312,8 +319,20 @@ Two strings with the same character count can consume very different token count
 An attacker can exploit this mismatch by supplying input that is short in characters but expensive in tokens.
 
 Measure prompt tokens, completion tokens, cached tokens if applicable, latency to first token, total latency, tool-turn count, and termination reason.
+Reasoning models may spend output-budget tokens on internal reasoning that is not visible
+as answer text. Prompt caching can reduce billed or processed input only under the
+provider's cache contract; a cache hit does not make private prompts public-safe or free.
 Break down latency into queueing, tokenization, model prefill, token generation, tool invocation, and post-processing.
 Without this split, a slow agent often gets incorrectly blamed on the model when a downstream tool is the bottleneck.
+
+**Worked cost example, using invented rates:** suppose 1,000 model attempts each use
+2,000 billed input tokens and 200 billed output tokens. At USD 2 per million input
+tokens and USD 8 per million output tokens, input costs USD 4 and output costs USD 1.60,
+for USD 5.60 total. If only 800 attempts yield an accepted result, model cost per
+accepted result is `5.60 / 800 = USD 0.007`, not `5.60 / 1000`.
+These are arithmetic examples, not a current provider price quote. Include charged
+failed attempts, retries, tool calls, cached-token rates and reasoning tokens when
+applicable; measure total accepted-result cost rather than visible answer length alone.
 
 Context limits create a second correctness problem.
 Blindly trimming the oldest messages can drop an authorization instruction or a prior tool result that disambiguates the user request.
@@ -325,7 +344,7 @@ Treat sampling settings as versioned production configuration.
 An innocent change from `top_p = 0.9` to `top_p = 1.0` can change refusal wording, JSON validity rate, support-answer consistency, and code-test pass rate.
 The appropriate value depends on task loss, not a universal creative-writing scale.
 
-For deterministic transformation tasks, start near greedy decoding and evaluate exactness, schema validity, and calibrated abstention.
+For deterministic transformation tasks, use the supported policy that gives the needed consistency and evaluate exactness, schema validity and abstention. If sampling controls are unavailable, compare prompts, model choices and supported effort settings instead of submitting an unsupported temperature.
 For diverse candidate generation, deliberately increase diversity, generate several candidates, then rank or verify them with a separate mechanism.
 For tool selection, prefer constrained outputs and test precision, recall, invalid-call rate, unnecessary-call rate, and side-effect prevention.
 
@@ -395,11 +414,18 @@ an agent adds latency, failure states, cost, and a need for turn limits.
 The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/specification/2026-07-28/server)
 standardizes how an application can discover tools, resources, and prompt templates from
 an external server. It is an integration protocol, not a reasoning model or a permission
-system. The backend still authenticates users, maps their permissions to each tool,
+system that automatically authorizes business actions. MCP also defines authentication
+and authorization mechanisms for supported transports; those do not replace ownership
+and business-policy checks. The backend still authenticates users, maps their permissions to each tool,
 validates arguments, limits calls, and audits side effects. Prefer a direct internal API
 for one known operation; use a protocol integration when multiple clients and tool
 providers genuinely need a shared contract. Pin the protocol/SDK version because these
 interfaces evolve.
+
+Treat tool descriptions, resources and prompt templates from a server as supplied data
+until that server is trusted for the task. Validate remote endpoints, token audience and
+requested scopes; do not forward an unrelated service's access token to an MCP server.
+Maintain authorization and a bounded audit trail across reconnects and multi-turn calls.
 
 ### Common Misconceptions
 
@@ -483,7 +509,7 @@ The safest pattern persists a key with the result and lets subsequent calls retu
 **Q11. Scenario: A support bot returns valid JSON at `temperature = 0.8`, but different runs route the same customer to different teams. What do you investigate first?** `[hard]`
 
 First inspect whether the routing task is framed as an open-ended generation task rather than a constrained classification contract.
-Lower the diversity setting, require a fixed enum schema, and evaluate routing accuracy and invalid-output rate on a labeled fixture rather than judging a few examples.
+Use supported consistency controls, require a fixed enum schema, and evaluate routing accuracy and invalid-output rate on a labeled fixture rather than judging a few examples.
 Also record the model version, prompt, tool schemas, and configuration because a parameter setting alone cannot reproduce the behaviour.
 
 **Q12. Scenario: An order agent timed out while calling `create_order`, then a retry produced two orders. What design flaw caused this, and how do you repair it?** `[hard]`
@@ -510,3 +536,5 @@ Versioning the complete configuration with test fixtures makes regressions detec
 - [The Curious Case of Neural Text Degeneration — nucleus sampling](https://arxiv.org/abs/1904.09751)
 - [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629)
 - [JSON Schema 2020-12 Core specification](https://json-schema.org/draft/2020-12/json-schema-core)
+- [Claude thinking documentation](https://platform.claude.com/docs/en/build-with-claude/thinking) illustrates model-specific reasoning controls; model/API support must be checked before configuration is reused.
+- [MCP security guidance](https://modelcontextprotocol.io/docs/2025-11-25/tutorials/security/security_best_practices) explains token audience, confused-deputy and token-passthrough boundaries; use guidance appropriate to the negotiated protocol version.

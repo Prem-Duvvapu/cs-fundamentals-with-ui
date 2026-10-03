@@ -35,3 +35,9 @@ For daily engineering work, use an AI assistant to explain unfamiliar code, draf
 **Interview rehearsal:** Draw the request and deployment paths separately. Explain where secrets enter, what readiness checks, how a bad image is rolled back, and which evidence tells you whether the failure is in the app, proxy, network, or orchestration layer. Give one trade-off for each technology choice.
 
 The lessons link to their primary project or standards documentation where version-sensitive details matter. The Kubernetes Service proxy section and LLM tool-interface section were checked against current upstream docs on October 1, 2026; recheck them when preparing for a later interview or deployment.
+
+## October 3 verification and practice extension
+
+The [freshness ledger](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md) reviews all twelve lessons against current primary sources, superseding the earlier two-section date. Start with the [offline evaluation lab](examples/labs/README.md#ai-evaluation-make-a-prediction-before-reading-the-metric): predict the confusion matrix, tied-score AUC and multi-passage retrieval recall before running Python. Then use the [feature-history fixture](examples/labs/README.md#feature-history-event-time-is-not-serving-availability) to explain why a past event arriving late could not have been served earlier. Both have automated checks and need no paid model API.
+
+For DevOps interviews, calculate the 10-replica default rollout bounds (surge 3, unavailable 2), explain the HPA CPU-request denominator, and distinguish Nginx read inactivity from an overall deadline. Describe a rollback that restores routing but cannot undo completed writes. Real container/cloud/provider capstones are separate from these source and arithmetic checks; record actual versions and evidence when implementing them.

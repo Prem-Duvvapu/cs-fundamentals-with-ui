@@ -58,7 +58,9 @@ flowchart TB
     API <-->|"watch / report"| KUBELET2
 ```
 
-The **control plane** makes decisions but runs no application workloads itself:
+The **control plane** makes cluster decisions. Production clusters commonly reserve its
+nodes using taints; this is a deployment policy, not a rule that application Pods can never
+run there. Single-node learning clusters may use the same machine for both roles:
 
 - **API server** is the single front door. Clients such as `kubectl`, controllers and
   kubelets use the Kubernetes HTTP API; the API server persists cluster data in
@@ -68,7 +70,8 @@ The **control plane** makes decisions but runs no application workloads itself:
   backup and the cluster's history and configuration are gone even if every workload
   container is still running somewhere.
 - **Scheduler** watches for newly created Pods with no node assigned and picks a node for
-  each one, based on requested resources, constraints, and current node load.
+  each one, based on requested resources, constraints, and configured scoring policies; ordinary resource placement uses requests,
+  not simply a live CPU-utilization reading.
 - **Controller manager** runs the reconciliation loops (Deployment controller, ReplicaSet
   controller, Node controller, and others) that continuously push actual state toward
   desired state.
@@ -96,11 +99,11 @@ tightly coupled helper processes — a **sidecar** that ships logs, a service-me
 intercepts all traffic — that must live and die with the main container and never need to
 scale independently of it.
 
-A Pod is meant to be disposable. It has no stable identity: if it dies, Kubernetes does not
+A Pod is meant to be disposable. Its object has a UID, but a replacement has a new UID: if it dies, Kubernetes does not
 resurrect that exact Pod, it creates a brand new one with a new name and usually a new IP.
 This is the single most important mental model shift from managing individual servers —
-nothing in a healthy Kubernetes design should depend on a specific Pod's identity
-surviving.
+stateless clients should use Services. StatefulSets deliberately supply stable ordinal
+identities and storage associations across replacement Pod objects.
 
 ### Deployments and ReplicaSets
 
@@ -147,47 +150,46 @@ ReplicaSet back up rather than rebuilding it from scratch.
 
 ## 🟡 Intermediate Level
 
-### Rolling Updates: How a Deployment Replaces Pods Without Downtime
+### Rolling Updates: Preserving Capacity During Replacement
 
-When a Deployment's Pod template changes, the Deployment controller does not stop every old
-Pod and start every new one at once — that would mean a window with zero capacity. Instead
-it performs a **rolling update**, governed by two fields:
+When a Deployment's Pod template changes, its controller adjusts old and new ReplicaSets.
+A rolling update aims to preserve serving capacity; it is not an unconditional guarantee
+of zero downtime. Two fields control the rollout:
 
-- `maxSurge` — how many Pods *above* the desired replica count are allowed temporarily
-- `maxUnavailable` — how many Pods *below* the desired replica count are allowed temporarily
+- `maxSurge` — extra Pods above the desired count, with percentages rounded **up**.
+- `maxUnavailable` — allowed unavailable capacity, with percentages rounded **down**.
 
-Worked example, real numbers: a Deployment with `replicas: 10`, `maxSurge: 25%`,
-`maxUnavailable: 25%` (Kubernetes' own defaults). 25% of 10 rounds to `2` (surge, rounded
-up) and `2` (unavailable, rounded down) by default. The rollout proceeds:
+For `replicas: 10` and the defaults of 25% each, surge is `ceil(2.5) = 3`, and
+unavailable is `floor(2.5) = 2`. The intended bounds allow 13 non-terminating Pods and
+require at least 8 available Pods. Terminating Pods may temporarily add resource usage.
 
-1. Start: 10 old Pods running, 0 new.
-2. Controller creates up to `maxSurge` = 2 new Pods (12 total) *before* removing any old
-   ones — this is why surge exists: to avoid dropping below capacity while new Pods are
-   still starting.
-3. As each new Pod passes its **readiness probe** (see below), the controller removes one
-   old Pod, keeping total count near 10-12 and never below `10 - maxUnavailable` = 8.
-4. This repeats in small batches — new Pods created, waited on for readiness, old Pods
-   removed — until all 10 Pods are the new version and 0 are old.
+One permitted sequence is to create 3 new Pods, wait for availability, then remove old Pods
+and repeat. This is **one sequence**, not a rule that every new Pod must become ready
+before any old Pod can be removed: `maxUnavailable: 2` allows losing two available old
+Pods even before the replacements are ready. Availability also accounts for
+`minReadySeconds`; merely seeing `Running` is not enough.
 
 ```mermaid
 sequenceDiagram
     participant D as Deployment controller
     participant RSold as Old ReplicaSet (10 Pods)
     participant RSnew as New ReplicaSet (0 Pods)
-    D->>RSnew: scale to 2 (surge)
-    RSnew-->>D: 2 Pods Ready
-    D->>RSold: scale down to 8
-    D->>RSnew: scale to 4
-    RSnew-->>D: 4 Pods Ready
-    D->>RSold: scale down to 6
-    Note over D,RSnew: repeats in batches until RSold=0, RSnew=10
+    D->>RSnew: example: scale to 3 (surge)
+    RSnew-->>D: 3 Pods become available
+    D->>RSold: example: scale down to 7
+    Note over D,RSnew: Repeat within surge=3 and unavailable=2 bounds
+    Note over D,RSold: Other permitted sequences can remove old Pods earlier
 ```
 
-If a new Pod never becomes Ready — a bad image, a crash loop — the rollout **stalls**
-rather than proceeding, since the controller is waiting on readiness before removing more
-old Pods. This is the built-in safety net: a broken rollout leaves you at partial old/new
-capacity, not at 100% broken new capacity, and `kubectl rollout undo` scales the previous
-ReplicaSet back to full size to revert.
+**Predict before deploying:** with four replicas and 25% defaults, both bounds are 1.
+One unavailable replica is permitted, so readiness alone cannot promise uninterrupted
+traffic. Setting `maxUnavailable: 0` protects available capacity during the rollout but
+requires scheduling headroom and correct probes, routing and graceful termination.
+
+If replacements cannot become available, the rollout can stall. Diagnose image pulls,
+scheduling, application crashes and readiness. A progress deadline reports failure; it
+does not automatically roll back. `kubectl rollout undo` restores an earlier template,
+not database data or external effects of the failed version.
 
 ### Services: Stable Networking for Ephemeral Pods
 
@@ -198,9 +200,9 @@ changes.
 
 | Service type | Reachable from | Typical use |
 |---|---|---|
-| `ClusterIP` (default) | Only inside the cluster | Internal service-to-service traffic |
-| `NodePort` | Any node's IP, on a fixed high port (30000-32767) | Quick external access, dev/test |
-| `LoadBalancer` | The public internet, via a cloud provider's LB | Production external entry point |
+| `ClusterIP` (default) | Normally reachable on cluster networks | Internal service-to-service traffic |
+| `NodePort` | Selected node addresses, default port range 30000–32767 | Quick external access, dev/test |
+| `LoadBalancer` | Implementation-provisioned LB, which may be internal or public | Production external entry point |
 | `ExternalName` | Returns a CNAME, no proxying at all | Pointing at an external service by DNS |
 
 A Service does not sit in the data path itself doing the load balancing — it is a policy
@@ -242,18 +244,19 @@ kernel rules and edge behaviour depend on the configured implementation.
 
 ### DNS-Based Service Discovery
 
-Every Service also gets a DNS name automatically, served by the cluster's internal DNS
+Services get DNS records when the cluster DNS integration is configured, served by the cluster's internal DNS
 (**CoreDNS**, running as its own Deployment): a Service named `checkout-api` in namespace
-`prod` resolves at `checkout-api.prod.svc.cluster.local` (or just `checkout-api` from
-within the same namespace). Application code never needs to know a Service's actual virtual
-IP, and never needs a service registry client library — it just makes a normal DNS lookup,
+`prod` normally resolves at `checkout-api.prod.svc.cluster.local` (the cluster domain is
+configurable; a headless Service resolves to endpoint addresses), or just `checkout-api` from
+within the same namespace. Application code never needs to know a Service's actual virtual
+IP, and usually needs no separate service registry client library — it just makes a normal DNS lookup,
 which is why "connect to the hostname, not an IP" is close to a hard rule in Kubernetes
 application code.
 
 ### ConfigMaps and Secrets
 
 Application configuration should not be baked into a container image — the same image must
-run identically in staging and production with different config. **ConfigMaps** hold
+be promoted between staging and production with environment-specific config. **ConfigMaps** hold
 non-sensitive configuration (feature flags, URLs) as key-value data, injected into a Pod as
 environment variables or mounted files. **Secrets** hold the same shape of data for
 sensitive values (credentials, tokens) — base64-encoded by default (not encrypted at rest
@@ -271,7 +274,8 @@ a different action:
   aggressive liveness probe restarting a container that is merely under heavy load makes an
   overload situation worse by adding restart churn on top of it.
 - **Readiness probe** — "is this container ready to receive traffic right now?" A failure
-  **removes the Pod from Service endpoints** without restarting it — used for startup
+  **marks the Pod unready** without restarting it; normal Service routing stops selecting
+  it after endpoint and data-plane updates. Existing connections do not necessarily close — used for startup
   warm-up and for temporarily shedding load (a Pod that is busy with a long GC pause can
   fail readiness briefly and quietly stop receiving new requests without being killed).
 - **Startup probe** — gates the other two probes until an initial condition is met, for
@@ -295,13 +299,15 @@ flowchart LR
     A --> W
 ```
 
-This loop runs continuously and idempotently — if a Pod is deleted (a node crashes, someone
-runs `kubectl delete pod` by hand), the ReplicaSet controller notices on its very next
-reconciliation pass that observed count (`4`) no longer matches desired count (`5`) and
-creates a replacement, with no special-case code for "pod was deleted" versus any other
-reason the counts might diverge. This uniformity is why Kubernetes self-heals from almost
-any kind of partial failure: every controller is always asking the same question — "does
-reality match the spec?" — rather than reacting to specific named failure events.
+Controllers repeat convergent actions, retrying partial failures. If a managed Pod is
+deleted, the ReplicaSet can create a replacement to satisfy its count. A node crash takes
+additional mechanisms: heartbeats/Leases, node-health detection, taints and eviction.
+Those are failure-specific logic; the reconciliation pattern does not eliminate them.
+
+A partitioned node may still be running containers. Replacing a stateful writer without
+fencing the old writer can create duplicate ownership, so recovery is a correctness and
+availability trade-off, not just a delay. Controllers cannot repair every application bug,
+lost storage or unavailable external dependency.
 
 ### Horizontal Pod Autoscaling: Mechanics and a Worked Example
 
@@ -313,14 +319,21 @@ $$\text{desiredReplicas} = \left\lceil \text{currentReplicas} \times \frac{\text
 
 Worked example: a Deployment target of 50% average CPU utilization, currently running 4
 replicas, observed average utilization of 90%. `desiredReplicas = ceil(4 × 90/50) =
-ceil(7.2) = 8`. The HPA scales the Deployment to 8 replicas; assuming the added replicas
+ceil(7.2) = 8`. The simplified calculation recommends 8 replicas; assuming the added replicas
 spread the same total load, average utilization per Pod should fall back toward 45-50%. If
 utilization then drops to 30% at 8 replicas, the next computation is `ceil(8 × 30/50) =
-ceil(4.8) = 5`, scaling back down — but scale-down is deliberately conservative by default
+ceil(4.8) = 5`, recommending a scale-down — but scale-down is deliberately conservative by default
 (a stabilization window, commonly 5 minutes, before acting on a scale-down signal) to avoid
 flapping replica counts up and down on every noisy metric sample.
 
-HPA only ever changes **replica count** — it never changes a Pod's CPU/memory
+**Check the denominator:** with a CPU request of `250m`, measured usage of `225m` is
+90% utilization for this HPA calculation. It is 45% of a `500m` CPU limit; that limit is
+not the denominator. CPU utilization targets require suitable requests and a working
+metrics pipeline. Missing metrics, unready Pods, tolerance, stabilization policies and
+`minReplicas`/`maxReplicas` can alter or block the actual change. More replicas also need
+node capacity and a workload that benefits from parallelism.
+
+HPA changes **replica count** — it never changes a Pod's CPU/memory
 request/limit. Scaling the *size* of individual Pods (increasing per-Pod resource limits)
 is a separate mechanism, the Vertical Pod Autoscaler, and the two are not interchangeable:
 HPA assumes the workload parallelizes across more identical instances, VPA assumes a single
@@ -331,13 +344,13 @@ instance needs more room.
 For every unscheduled Pod, the scheduler runs two phases: **filtering** (which nodes could
 possibly run this Pod at all — do they have enough allocatable CPU/memory left given the
 Pod's `resources.requests`, do they satisfy any node selector or taint/toleration rules),
-then **scoring** (among the nodes that passed filtering, which is the *best* placement — by
-default favoring nodes with more free resources remaining after this Pod, to spread load
-rather than pack it onto already-busy nodes). A Pod's `requests` are what the scheduler
-reserves against — not the same as `limits`, which the kernel enforces at runtime but the
-scheduler does not use for placement decisions, a distinction that matters because a node
-can be scheduled at its full requested capacity while individual Pods still burst above
-their requests up to their limits, right up until the node's actual resources run out.
+then **scoring** (rank feasible nodes using configured plugins for resources, affinity,
+spread and other policies). There is no universal rule that the least busy node wins.
+Requests count against node allocatable capacity for placement; CPU requests also set
+relative scheduling weight at runtime. A CPU limit can throttle execution, while a memory
+limit is enforced through memory controls and potentially OOM killing. A memory request
+is not proof that a process can never be OOM-killed. Bursting and node/system overhead
+still need capacity planning.
 
 ### Production Failure Modes
 
@@ -425,24 +438,27 @@ memory or in an `emptyDir` is gone.
 
 **Q3. What's the difference between `ClusterIP`, `NodePort`, and `LoadBalancer` Service types?** `[easy]`
 
-`ClusterIP`, the default, is reachable only from inside the cluster and is the right choice
+`ClusterIP`, the default, is normally reached through cluster networks and is the right choice
 for internal service-to-service calls. `NodePort` additionally exposes the Service on a
-fixed high port (30000-32767) on every node's own IP, useful for quick external access in
+port in a configurable range (default 30000–32767) on configured node addresses, useful for quick external access in
 development. `LoadBalancer` provisions an actual external load balancer from the cloud
 provider pointing at the Service, which is the standard way to expose a production Service
-to the public internet.
+externally. It may provision an internal or public LB depending on the implementation and configuration.
 
 **Q4. Why does a Service keep working even though the Pods behind it are constantly being replaced?** `[easy]`
 
-A Service is a stable virtual IP and DNS name decoupled from any specific Pod; its
+A usual ClusterIP Service is a stable virtual IP and DNS name decoupled from any specific Pod; its
 EndpointSlices track eligible, ready backends as Pods come and go. Clients only ever
 talk to the Service's stable address, never to an individual Pod's IP directly, so Pod
-churn underneath is invisible to them.
+replacement avoids changing the Service address. Existing connections can still reset;
+readiness propagation, draining and client retry behavior matter.
 
 **Q5. What does a readiness probe actually do when it fails, and how is that different from a liveness probe failing?** `[medium]`
 
 A failing readiness probe marks the Pod unready in EndpointSlices — it stops
-receiving new traffic — without restarting the container, which is the correct behavior for
+being selected for normal new Service connections after routing updates — without
+restarting the container. Existing connections may continue; `publishNotReadyAddresses`
+and custom data planes require checking their own behavior, which is the correct behavior for
 temporary unavailability like a slow startup warm-up or a long GC pause. A failing liveness
 probe instead causes the kubelet to restart the container entirely, which should be
 reserved for genuine hangs or deadlocks; using an aggressive liveness check for what is
@@ -453,21 +469,20 @@ really a "temporarily busy" condition turns brief overload into unnecessary rest
 The Deployment controller creates a new ReplicaSet for the new Pod template and begins
 scaling it up while scaling the old ReplicaSet down, bounded by `maxSurge` (how far above
 the desired count total Pods may temporarily go) and `maxUnavailable` (how far below).
-New Pods must pass their readiness probe before the controller removes an equivalent number
-of old Pods, so the rollout proceeds in small batches rather than all at once, and a broken
-new image simply stalls the rollout at partial old/new capacity instead of taking down the
-whole service. The cost of that safety is spare capacity: with `maxUnavailable: 0` the
-rollout needs room for `maxSurge` extra Pods before it can start, and on a full cluster it
-will sit pending indefinitely. A stalled rollout also does not roll itself back —
-`progressDeadlineSeconds` only marks the Deployment as failed; reverting is still a manual
-`kubectl rollout undo`.
+With ten replicas, default 25% values permit three extra Pods and two unavailable Pods;
+old Pods can therefore be removed before an equivalent number of new ones is ready.
+`minReadySeconds` also affects availability. A broken new image may stall progress while
+some old capacity remains, but incorrect probes or inadequate available capacity can still
+cause an outage. With `maxUnavailable: 0`, replacement needs scheduling headroom.
+`progressDeadlineSeconds` reports failure rather than rolling back automatically; undoing
+a template change does not undo a database migration or a completed external write.
 
 **Q7. Your rollout is stuck with some old and some new Pods, and it's been ten minutes. What do you check first?** `[medium]`
 
 I'd check whether the new ReplicaSet's Pods are passing their readiness probes at all —
 `kubectl get pods` for their status and `kubectl describe pod`/`kubectl logs` on one of the
-new ones for the actual failure. A stalled rollout almost always means the new Pods never
-became Ready, which is the deliberate safety mechanism preventing the controller from
+new ones for the actual failure. Check pending scheduling events, image pulls, quota and crash logs as well as readiness.
+A stalled rollout can mean the new Pods never became available, which is the deliberate safety mechanism preventing the controller from
 scaling down more of the known-good old Pods; the fix is either fixing the new version or
 running `kubectl rollout undo` to revert to the last working ReplicaSet.
 
@@ -484,7 +499,9 @@ data plane entirely, so identify the running implementation before proposing a f
 **Q9. A Deployment's HPA target is 50% CPU. It's running 4 replicas at 90% average CPU utilization. What does the HPA compute as the new replica count, and why isn't it a round number?** `[medium]`
 
 The HPA computes `ceil(currentReplicas × currentMetric / desiredMetric)` = `ceil(4 × 90 /
-50)` = `ceil(7.2)` = 8 replicas. It always rounds up rather than truncating, because
+50)` = `ceil(7.2)` = 8 replicas in the simplified formula. Actual scaling also applies bounds,
+missing/unready metric handling and behavior policies. CPU utilization is relative to requests,
+not limits or node CPU percentage. The formula rounds up rather than truncating, because
 rounding down could leave the cluster under-provisioned relative to the target even after
 scaling — better to slightly over-provision than to under-shoot and stay above the target
 utilization. The HPA also will not act on every small deviation: a default tolerance of
@@ -507,30 +524,22 @@ regardless of how well etcd is protected.
 
 **Q11. Why does Kubernetes separate `requests` and `limits` for a container's resources instead of using one number?** `[hard]`
 
-`requests` is what the scheduler reserves against when deciding whether a node has room for
-a Pod, guaranteeing that amount is available; `limits` is what the kernel enforces at
-runtime as a hard ceiling, which can be set higher than `requests` to let a container burst
-above its guaranteed share when spare capacity happens to exist on the node. This lets a
-cluster be scheduled at its collectively requested capacity while still allowing genuine
-bursts, at the cost of a node that can become resource-starved if too many Pods burst to
-their limits simultaneously — a tension every capacity-planning decision in Kubernetes has
-to account for.
+Requests count against node allocatable capacity when placing a Pod; CPU requests also
+influence relative runtime CPU weight. Limits constrain runtime consumption: CPU can be
+throttled, while memory pressure can result in an OOM kill after reclaim fails. Requests
+are not a dedicated physical core or an unconditional no-OOM guarantee. A workload can
+use spare capacity above its request, so scheduling budgets, limits and measured demand
+must be considered together.
 
 **Q12. How does Kubernetes' reconciliation-loop model make it self-healing from a node crash, without any special-case "node died" logic?** `[hard]`
 
-Every controller continuously compares desired state (the spec, stored in etcd) against
-observed state (status reported by kubelets) and takes convergent action whenever they
-differ, with no distinction in that logic for *why* they differ. When a node crashes, its
-kubelet stops reporting, the Node controller eventually marks it unhealthy and evicts its
-Pods from consideration, and the ReplicaSet controller for those Pods' Deployments simply
-observes fewer matching Pods than desired — the same code path that handles any other cause
-of a Pod disappearing recreates them elsewhere, with the node failure never needing its own
-special branch of logic. The trade-off is latency, not correctness: the controller cannot
-distinguish a dead node from an unreachable one, so it waits out the node-monitor grace
-period and then the eviction timeout — several minutes by default — before declaring the
-Pods gone, and for a StatefulSet it will not recreate them at all until the old Pod is
-positively confirmed deleted, because two Pods with the same identity writing the same
-volume is worse than downtime.
+The question's "without special-case logic" premise needs qualification. ReplicaSets use
+a general desired-count loop, but node recovery depends on failure-specific heartbeats,
+health detection, taints and eviction. Once a Pod is removed from the count, a controller
+can create its replacement if capacity and policy permit. A network partition is not proof
+that the old workload stopped; stateful writers need fencing before assuming replacement
+is safe. Forced deletion removes an API object and does not itself stop a process on an
+unreachable node, so it can create duplicate writers rather than establish correctness.
 
 **Q13. Your team sets `maxUnavailable: 100%` on a Deployment to speed up an emergency rollout, and it makes an outage worse. What went wrong?** `[hard]`
 
@@ -544,18 +553,21 @@ removing capacity before new instances are proven ready.
 
 **Q14. Why can two Pods with identical `requests` still receive very different amounts of actual CPU time under load?** `[hard]`
 
-`requests` only affects scheduling — how the scheduler decides a node has room for the Pod —
-and does not itself guarantee a proportional share of CPU time once multiple Pods are
-actually competing on a busy node; `limits`, cgroup CPU shares, and the kernel's CPU
-scheduler determine the actual runtime split, and a Pod with no `limits` set can burst to
-consume far more than its `requests` whenever the node has spare capacity, starving a
-neighboring Pod that happens to need its share at that exact moment even though both were
-scheduled identically.
+CPU requests affect both placement accounting and relative runtime CPU weight; the
+question does not imply they are irrelevant after scheduling. Identical requests still do
+not promise identical measured CPU time: Pods may be on differently loaded nodes, have
+different limits, blocked I/O, affinity constraints or different runnable work. A Pod
+without a limit can borrow idle capacity, but that does not erase the neighbor's CPU weight
+under contention. Inspect placement, actual demand and throttling before changing limits.
 
-Further reading: the [Kubernetes documentation on Pods](https://kubernetes.io/docs/concepts/workloads/pods/)
+### Further Reading
+
+ the [Kubernetes documentation on Pods](https://kubernetes.io/docs/concepts/workloads/pods/)
 and [Services](https://kubernetes.io/docs/concepts/services-networking/service/) cover the
 object model referenced throughout; the
 [Horizontal Pod Autoscaler walkthrough](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/)
 works through the scaling formula in more depth; the
 [Kubernetes Service proxy reference](https://kubernetes.io/docs/reference/networking/virtual-ips/)
 documents the current iptables, nftables and deprecated IPVS behaviour.
+
+The [Deployment controller reference](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) defines percentage rounding and availability; [resource management](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) explains CPU requests and limits. The [HPA algorithm](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/) covers requests, missing metrics and stabilization. The [Pod lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/) documents restart backoff and replacement boundaries.

@@ -15,7 +15,7 @@ retrieval evaluation matter more than choosing a fashionable vector database.
 ## 🟢 Beginner Level
 
 ### The Core Problem: Searching Unstructured Data
-Traditional databases store and index structured scalar attributes (e.g., integers, dates, strings) and match them using exact equality (`WHERE status = 'ACTIVE'`) or lexicographical range queries via B+ Trees. However, unstructured human language and media cannot be compared using exact string matches: "automobile" and "car" share zero identical characters, yet express identical conceptual meaning. Similarly, a user searching an e-commerce catalog for "durable waterproof winter footwear" should seamlessly match product listings titled "heavy-duty snow boots" even if none of the query words appear in the product description.
+Traditional databases store and index structured scalar attributes (e.g., integers, dates, strings) and match them using exact equality (`WHERE status = 'ACTIVE'`) or lexicographical range queries via B+ Trees. However, unstructured human language and media cannot be compared using exact string matches: "automobile" and "car" are different strings that can refer to the same kind of object. Similarly, a user searching an e-commerce catalog for "durable waterproof winter footwear" should seamlessly match product listings titled "heavy-duty snow boots" even if none of the query words appear in the product description.
 
 Keyword search engines use inverted indexes and ranking algorithms such as BM25.
 They are excellent for exact IDs and terms; analyzers, stemming, synonyms and fuzzy
@@ -75,7 +75,7 @@ silently mixed in one nearest-neighbor ranking.
 
 By default, embedding coordinates are stored as 32-bit single-precision floating-point numbers (`float32`), meaning each dimension occupies 4 bytes of memory. A single 1536-dimensional vector consumes:
 $$\text{Vector Size} = 1536 \times 4\text{ bytes} = 6{,}144\text{ bytes } (\approx 6\text{ KB})$$
-Storing $10{,}000{,}000$ such vectors in uncompressed RAM requires $\approx 60\text{ GB}$ of dedicated memory exclusively for the raw vector payloads, excluding index overhead.
+Ten million such raw vectors occupy 61.44 GB, or about 57.22 GiB, before row headers, graph links, payloads, replicas and allocator overhead. Storage types and engine layouts add their own costs; raw coordinates are only the starting budget.
 
 **Small worked example:** for two unit vectors $A=(1,0)$ and
 $B=(0.8,0.6)$, cosine similarity is $A\cdot B=0.8$. For
@@ -92,13 +92,13 @@ flowchart TD
         direction TB
         Cos["Cosine Similarity<br/>• Measures angle θ between vectors<br/>• Ignores magnitude: Range [-1.0, 1.0]<br/>• Ideal for text & document retrieval"]
         Dot["Dot Product (Inner Product)<br/>• Combines angle and vector magnitude<br/>• Fast hardware execution (FMA instructions)<br/>• Equals Cosine Similarity when ||A|| = ||B|| = 1"]
-        Euc["Euclidean Distance (L2)<br/>• Straight-line distance between vector endpoints<br/>• Range [0, ∞); Lower distance = Higher similarity<br/>• Sensitive to document length & token counts"]
+        Euc["Euclidean Distance (L2)<br/>• Straight-line distance between vector endpoints<br/>• Range [0, ∞); Lower distance = Higher similarity<br/>• Sensitive to vector magnitude"]
     end
 ```
 
 | Metric | Mathematical Formula | Range | Best Used For |
 |---|---|---|---|
-| **Cosine Similarity** | $\cos(\theta) = \frac{A \cdot B}{\|A\| \|B\|} = \frac{\sum_{i=1}^d A_i B_i}{\sqrt{\sum A_i^2} \sqrt{\sum B_i^2}}$ | $[-1, 1]$ ($1 = \text{identical}$) | Natural language text, document search, topic clustering |
+| **Cosine Similarity** | $\cos(\theta) = \frac{A \cdot B}{\|A\| \|B\|} = \frac{\sum_{i=1}^d A_i B_i}{\sqrt{\sum A_i^2} \sqrt{\sum B_i^2}}$ | $[-1, 1]$ ($1 = \text{same direction}$) | Natural language text, document search, topic clustering |
 | **Dot Product** | $A \cdot B = \sum_{i=1}^d A_i B_i$ | $(-\infty, \infty)$ | Normalized embeddings, neural network classification |
 | **Euclidean ($L_2$)** | $d(A, B) = \sqrt{\sum_{i=1}^d (A_i - B_i)^2}$ | $[0, \infty)$ ($0 = \text{identical}$) | Computer vision, facial recognition, physical coordinates |
 | **Manhattan ($L_1$)** | $d(A, B) = \sum_{i=1}^d \|A_i - B_i\|$ | $[0, \infty)$ | High-dimensional sparse categorical feature vectors |
@@ -173,23 +173,23 @@ retrieved candidates—it cannot recover a relevant chunk that candidate retriev
 ### Exact Nearest Neighbors (KNN) vs Approximate Nearest Neighbors (ANN)
 Given a query vector $Q$ and a database containing $N$ stored vectors, finding the top-$K$ most similar vectors can be approached in two ways:
 
-1. **Exact K-Nearest Neighbors (Flat / Brute-Force KNN)**: Computes the exact cosine or $L_2$ distance between $Q$ and every single one of the $N$ stored vectors, sorting the resulting scores.
+1. **Exact K-Nearest Neighbors (Flat / Brute-Force KNN)**: Scores every eligible stored vector using the selected metric and retains the best $K$; a bounded heap or selection algorithm avoids sorting the whole corpus.
    - *Time Complexity*: $O(N \cdot d)$.
    - *Accuracy (Recall)*: $100\%$ perfect recall.
-   - *Limitation*: For $N = 10{,}000{,}000$ and $d = 1536$, answering a single query requires evaluating $\sim 15.36\text{ billion}$ floating-point operations, causing query latencies $> 500\text{ ms}$ and overwhelming CPU cores.
-2. **Approximate Nearest Neighbors (ANN)**: Constructs specialized pre-computed graph or cluster indexes that prune the search space, examining only a tiny fraction ($< 1\%$) of candidate vectors.
-   - *Time Complexity*: $O(\log N)$ or $O(\sqrt{N})$.
-   - *Accuracy (Recall)*: $95\%\text{ to }99\%$ recall (statistically indistinguishable from exact search for practical applications).
-   - *Query Latency*: Sub-$5\text{ ms}$ responses under high queries per second (QPS).
+   - *Limitation*: For $N = 10{,}000{,}000$ and $d = 1536$, a scan compares 15.36 billion coordinate pairs. This is a work estimate, not an instruction count or latency guarantee; hardware, batching, SIMD, GPU use and memory layout change the elapsed time.
+2. **Approximate Nearest Neighbors (ANN)**: Constructs specialized pre-computed graph or cluster indexes that prune the search space, often examining fewer candidates at the cost of potentially missing exact neighbors.
+   - *Work*: Depends on the index, search budget, vector geometry and filters; a universal logarithmic worst-case bound does not apply.
+   - *Recall*: Measure overlap with exact top-$K$ results for the same authorized subset; recall below 100% can materially affect the product.
+   - *Latency*: Measure p50/p95/p99 at representative concurrency rather than adopting a benchmark from another dataset.
 
 ### The Mathematics of the Curse of Dimensionality
-In standard 2D or 3D Euclidean space, spatial partitioning structures such as $k$-d trees, quadtrees, and R-Trees divide space into recursive bounding boxes, achieving $O(\log N)$ exact search times. However, as the dimensionality $d$ increases past $\sim 20$ dimensions, these geometric partitioning structures break down completely due to three mathematical realities:
+In standard 2D or 3D Euclidean space, spatial partitioning structures such as $k$-d trees, quadtrees, and R-Trees divide space into recursive bounding boxes, can prune many points on suitable low-dimensional data, although worst-case exact queries may still scan all points. High intrinsic dimensionality can weaken this pruning; there is no universal twenty-dimension cutoff. Three useful intuitions are:
 
 1. **Exponential Volume Expansion**: The volume of a hypercube of dimension $d$ scales as $L^d$. To maintain constant point density as dimensionality increases, the number of required data points grows exponentially.
 2. **Surface Area Concentration**: In high dimensions, virtually all the volume of a hypersphere is concentrated in a paper-thin shell immediately adjacent to its outer surface. The volume of a sphere of radius $r$ in $d$ dimensions is $V_d(r) = \frac{\pi^{d/2}}{\Gamma(d/2 + 1)} r^d$. The fraction of volume contained in the inner shell of radius $(1 - \epsilon)r$ is $(1 - \epsilon)^d \to 0$ as $d \to \infty$.
-3. **Distance Equidistance Phenomenon**: As $d \to \infty$, the relative difference between the distance to the nearest neighbor and the distance to the farthest neighbor vanishes:
+3. **Distance Equidistance Phenomenon**: For suitable high-dimensional data distributions, relative distance contrast can shrink; this is an illustrative concentration limit, not a theorem about every embedding dataset:
    $$\lim_{d \to \infty} \frac{d_{\max} - d_{\min}}{d_{\min}} = 0$$
-   Because every point becomes nearly equidistant from every other point in high-dimensional space, tree partitioning algorithms end up inspecting every single leaf node, degrading into an $O(N)$ brute-force linear scan. This mathematical constraint is why graph-based and quantization-based ANN indexing became mandatory.
+   When pruning loses effectiveness, exact tree search can approach a full scan. Structured data can still have useful distance contrast, and exact scans remain appropriate for small filtered subsets or recall baselines. ANN is an engineering trade-off, not a mandatory replacement for every dataset.
 
 ### Core ANN Indexing Algorithms
 
@@ -215,7 +215,7 @@ $$P(h(u) = h(v)) = 1 - \frac{\theta}{\pi}$$
 By combining $K$ random projections into hash keys, vectors falling into identical hash buckets are examined as candidate nearest neighbors. While fast to build, LSH is largely superseded by HNSW in modern systems due to lower recall per unit of memory.
 
 #### 3. Hierarchical Navigable Small World (HNSW)
-HNSW is the industry gold-standard graph-based ANN algorithm. It builds a multi-layer geometric graph inspired by probabilistic skip lists:
+HNSW is a widely used graph-based ANN algorithm. It builds a multi-layer geometric graph inspired by probabilistic skip lists:
 
 ```mermaid
 flowchart TD
@@ -239,7 +239,7 @@ flowchart TD
 
 - **Search Procedure**: The search starts at an entry point in the topmost sparse layer, greedily jumping to neighbors closest to query vector $Q$. When no closer neighbor exists in Layer 2, the algorithm drops to Layer 1, repeating until reaching the bottom Layer 0 for fine-grained local beam search.
 - **HNSW Parameters**:
-  - `M`: Maximum number of bi-directional connection links per node (typical: $16\text{ to }64$). Higher $M$ improves recall on high-dimensional data but increases RAM consumption and index build time.
+  - `M`: A graph connectivity parameter; base-layer limits may differ from upper-layer limits by implementation (typical: $16\text{ to }64$). Higher $M$ improves recall on high-dimensional data but increases RAM consumption and index build time.
   - `efConstruction`: Size of the dynamic candidate priority queue evaluated during index build (typical: $100\text{ to }400$).
   - `efSearch`: Size of the dynamic candidate list evaluated during live queries (typical: $32\text{ to }128$). Tuning `efSearch` at runtime lets operators dial the exact speed-vs-recall trade-off without rebuilding the index.
 
@@ -254,14 +254,17 @@ When storing millions of vectors in RAM, memory consumption is the primary cost 
 5. **Quantized Vector Storage**: Replace each 24-dimension float sub-vector with the 1-byte ID of its nearest centroid.
 
 $$\text{Compressed Vector Size} = 64\text{ sub-vectors} \times 1\text{ byte} = 64\text{ bytes}$$
-$$\text{Compression Ratio} = \frac{6{,}144\text{ bytes}}{64\text{ bytes}} = 96\times \text{ Reduction } (98.96\%\text{ RAM savings!})$$
+$$\text{Compression Ratio} = \frac{6{,}144\text{ bytes}}{64\text{ bytes}} = 96\times \text{ smaller codes } (98.96\%\text{ raw-code savings})$$
+
+These code savings exclude the shared codebooks, IDs, graph or posting-list structure, payloads, and any retained full vectors for reranking. They do not imply the whole database uses 98.96% less RAM.
 
 #### Asymmetric Distance Computation (ADC):
 When query vector $Q$ arrives:
 1. Deconstruct $Q$ into 64 sub-vectors.
 2. Compute the exact float distance between each of $Q$'s 64 sub-vectors and all 256 pre-computed centroids, populating an in-memory lookup table of size $64 \times 256$ floats ($\sim 65\text{ KB}$).
 3. To compute the distance between $Q$ and any stored quantized vector, simply sum 64 byte lookups from the table:
-$$d(Q, \vec{v}) \approx \sum_{m=1}^{64} \text{LookupTable}[m][\vec{v}_m]$$
+$$d_{L_2}^2(Q, \vec{v}) \approx \sum_{m=1}^{64} \text{LookupTable}[m][\vec{v}_m]$$
+Here the table contains squared Euclidean distances to subspace centroids; the sum approximates squared distance to the original vector.
 This replaces thousands of floating-point multiplications with 64 CPU memory lookups and additions.
 
 ### Concrete Similarity Calculation Example
@@ -278,10 +281,10 @@ Let vector $A = [0.6, 0.8, 0.0]$ and vector $B = [0.0, 0.8, 0.6]$:
    $$d(A, B) = \sqrt{(0.6 - 0.0)^2 + (0.8 - 0.8)^2 + (0.0 - 0.6)^2} = \sqrt{0.36 + 0.0 + 0.36} = \sqrt{0.72} \approx 0.8485$$
 
 ### Matryoshka Representation Learning (MRL)
-Recent embedding architectures (e.g., OpenAI `text-embedding-3` and Nomic Embed) employ **Matryoshka Representation Learning (MRL)**. During training, the loss function forces the most critical semantic features into the earliest dimensions of the vector (like nested Russian Matryoshka dolls):
-- A 1536-dimensional vector can be truncated to its first 256 or 512 dimensions by simple slice notation (`v[:256]`).
-- Truncating from 1536 to 256 dimensions yields a $6\times$ storage reduction and $6\times$ faster distance calculations while retaining $> 97\%$ of the full embedding's downstream retrieval recall.
-- **Two-Stage Cascaded Retrieval**: Production systems use truncated 256-dim embeddings for rapid candidate retrieval of the top-500 items, followed by exact reranking of those 500 items using the full 1536-dim vectors.
+Some embedding models are trained with **Matryoshka Representation Learning (MRL)**: shorter prefixes of the representation receive training supervision too. Only use shorter dimensions that the model or provider supports, and normalize again when the selected metric requires unit vectors.
+- Shortening 1536 float32 coordinates to 256 reduces raw coordinate storage and comparison work by $6\times$; it does not promise a sixfold request-speed improvement or a fixed recall percentage.
+- Compare quality at each supported dimension on your own queries. Arbitrarily slicing a model not trained for this can destroy useful information.
+- **Two-stage retrieval:** shorter vectors can retrieve candidates and full vectors can rerank them. This needs storage for both representations and cannot recover an item missed in the first stage.
 
 ---
 
@@ -301,17 +304,17 @@ Handling metadata filters in high-dimensional vector spaces introduces critical 
 flowchart TD
     subgraph Strategies["Vector + Metadata Filtering Strategies"]
         direction TB
-        Pre["1. Pre-Filtering<br/>• Apply scalar WHERE filter first<br/>• Run vector search on matching subset<br/>• Problem: Breaks HNSW graph connectivity if filtered set is small"]
+        Pre["1. Pre-Filtering<br/>• Apply scalar WHERE filter first<br/>• Run vector search on matching subset<br/>• Exact scan is useful for small subsets<br/>• Naively deleting graph nodes may hurt connectivity"]
         Post["2. Post-Filtering<br/>• Run ANN vector search first to get top-1000<br/>• Discard candidates failing metadata filter<br/>• Problem: May return 0 results if filter is highly restrictive"]
-        Iter["3. Single-Stage Iterative Graph Filtering (Qdrant/Milvus)<br/>• Traverse HNSW graph while dynamically evaluating payload boolean filter<br/>• Bypasses invalid nodes without leaving index graph<br/>• Guarantees exact K results with high recall"]
+        Iter["3. Single-Stage Iterative Graph Filtering (Qdrant/Milvus)<br/>• Traverse HNSW graph while dynamically evaluating payload boolean filter<br/>• Bypasses invalid nodes without leaving index graph<br/>• Search budget and eligible count still matter<br/>• Measure recall; no fixed latency guarantee"]
     end
 ```
 
 | Filtering Approach | Execution Order | Failure Mode / Limitation |
 |---|---|---|
-| **Pre-Filtering** | 1. Filter metadata records $\to$ 2. Brute-force scan surviving vectors. | If $100{,}000$ rows match the filter, searching them requires an expensive brute-force scan because the pre-filtered subset cannot use the global HNSW graph. |
+| **Pre-Filtering** | 1. Filter metadata records $\to$ 2. Brute-force scan surviving vectors. | An exact scan is attractive for a small eligible subset; larger subsets may need a filter-aware index or partition. Restricting traversal to an arbitrary induced subgraph is not equivalent to all pre-filtering strategies. |
 | **Post-Filtering** | 1. Retrieve top-$K$ vectors via HNSW $\to$ 2. Discard rows failing metadata filter. | If the metadata filter matches only $0.1\%$ of the dataset, none of the top-$K$ vector candidates may satisfy the filter, returning an empty result set to the user. |
-| **Single-Stage Filtered HNSW** | Evaluates metadata predicates dynamically *during* HNSW graph traversal. | Optimal industry approach. Keeps traversing neighboring nodes until $K$ valid matching items are found, preserving both sub-10ms query speeds and complete recall. |
+| **Single-Stage Filtered HNSW** | Evaluates metadata predicates dynamically *during* HNSW graph traversal. | Can improve filtered candidate coverage, but exploration limits, topology and the number of eligible records still bound results. Approximate traversal does not promise complete recall or a fixed latency. |
 
 ### Vector Database Architectural Landscape
 Vector retrieval capabilities are provided by two distinct system paradigms:
@@ -319,14 +322,14 @@ Vector retrieval capabilities are provided by two distinct system paradigms:
 1. **Purpose-Built Vector Databases (Qdrant, Pinecone, Milvus, Weaviate, Chroma)**:
    - Written in high-performance native systems languages (Rust for Qdrant, C++/Go for Milvus).
    - Designed from the ground up for dynamic vector indexing, custom SIMD/AVX-512 distance evaluation hardware acceleration, and integrated payload storage.
-   - Separate compute and storage nodes, supporting horizontal scaling across distributed shards.
+   - Deployment, replication, sharding and storage designs vary by product and edition; a dedicated vector engine is not automatically a disaggregated cluster.
 2. **Relational / Generalized Databases with Vector Extensions (`pgvector`, ClickHouse, Elasticsearch)**:
-   - Integrate vector data types directly into existing ACID relational tables (`CREATE EXTENSION vector;`).
+   - PostgreSQL/pgvector keeps vectors in ACID relational tables (`CREATE EXTENSION vector;`). Other search or analytical engines have their own transaction and consistency contracts.
    - Allow seamless relational joins between vector search results and transactional business tables in a single SQL query.
    - Ideal when operational simplicity and transactional ACID consistency outweigh the need for tens of thousands of vector QPS.
 
-### Complete pgvector Configuration Example
-In PostgreSQL, setting up high-performance vector search requires choosing the appropriate distance operator and index parameters:
+### pgvector configuration excerpt
+Install the pgvector extension on the server first. This SQL excerpt uses application-bound `:query_vector`; it is not a complete psql script or a relevance benchmark. For pgvector 0.8.0+, iterative scans can continue a filtered ANN scan until enough results or a configured limit is reached:
 
 ```sql
 -- 1. Enable the pgvector extension
@@ -349,6 +352,7 @@ WITH (m = 16, ef_construction = 128);
 
 -- 4. Tune runtime query beam-search depth
 SET hnsw.ef_search = 64;
+SET hnsw.iterative_scan = strict_order; -- pgvector 0.8.0+; still approximate recall
 
 -- 5. Execute similarity query (<=> denotes Cosine Distance; <#> denotes Negative Dot Product; <-> denotes L2)
 SELECT id, title, 1 - (embedding <=> :query_vector) AS cosine_similarity
@@ -359,26 +363,27 @@ LIMIT 10;
 ```
 
 ### Python Qdrant Client Implementation Example
-Modern vector databases expose clean SDKs for managing collections, payload schemas, and payload-filtered vector searches:
+This current Qdrant client API excerpt uses `create_collection` and `query_points`. Install compatible client/server versions and run a local Qdrant server first. The padded vectors are synthetic geometry for learning, not real text embeddings or measured semantic relevance:
 
 ```python
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
+from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue, PayloadSchemaType
 
 # 1. Connect to Qdrant cluster
 client = QdrantClient(url="http://localhost:6333")
 
 # 2. Create collection with Cosine Distance
-client.recreate_collection(
-    collection_name="enterprise_knowledge_base",
-    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
-)
+if not client.collection_exists("enterprise_knowledge_base"):
+    client.create_collection(
+        collection_name="enterprise_knowledge_base",
+        vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+    )
 
 # 3. Create payload index on metadata fields for fast filtering
 client.create_payload_index(
     collection_name="enterprise_knowledge_base",
     field_name="tenant_id",
-    field_schema="keyword",
+    field_schema=PayloadSchemaType.KEYWORD,
 )
 
 # 4. Insert vectors with structured payload
@@ -392,9 +397,9 @@ points = [
 client.upsert(collection_name="enterprise_knowledge_base", points=points)
 
 # 5. Search with single-stage payload filter
-results = client.search(
+results = client.query_points(
     collection_name="enterprise_knowledge_base",
-    query_vector=[0.021, -0.080, 0.405] + [0.0] * 1533,
+    query=[0.021, -0.080, 0.405] + [0.0] * 1533,
     query_filter=Filter(
         must=[
             FieldCondition(key="tenant_id", match=MatchValue(value="acme_corp")),
@@ -402,24 +407,26 @@ results = client.search(
         ]
     ),
     limit=5
-)
+).points
 ```
 
 ### Index Comparison Table
 
-| Index Strategy | Query Latency | Recall Accuracy | RAM Footprint | Build / Update Time | Best Suited For |
-|---|---|---|---|---|---|
-| **Flat (Exact)** | $O(N \cdot d)$ (Slow) | $100\%$ | Lowest (Raw Vectors) | Instant (0 Build) | Datasets $< 50{,}000$ vectors; Ground truth evaluation |
-| **HNSW** | $O(\log N)$ (Sub-5ms) | $95\% - 99\%$ | **High** ($1.5\times - 2\times$ raw size) | Moderate | Production real-time RAG & search with high QPS |
-| **IVF-Flat** | $O(\sqrt{N})$ ($10-30\text{ms}$) | $90\% - 95\%$ | Low (Centroids only) | Fast | Moderate datasets ($1\text{M} - 10\text{M}$) with modest RAM |
-| **IVF-PQ** | $O(\sqrt{N})$ ($5-15\text{ms}$) | $80\% - 92\%$ | **Ultra-Low** ($95\%$ savings) | Slow (Clustering step) | Massive scale ($100\text{M}+$ vectors) on cost-constrained RAM |
-| **DiskANN (Vamana)**| $O(\log N)$ ($10-25\text{ms}$) | $95\% - 98\%$ | Very Low (Compressed in RAM, graph on SSD) | Slow | Billion-scale datasets utilizing fast NVMe drives |
+| Index strategy | Main trade-off | Measure before choosing |
+|---|---|---|
+| **Flat/exact** | Scores all eligible vectors; exact metric top-$K$ | Filtered subset size, memory bandwidth, batching and latency |
+| **HNSW** | Graph links and exploration trade memory/work for recall | Recall per filter, build cost, update behavior and tail latency |
+| **IVF-Flat** | Searches selected clusters using full stored vectors | Cluster balance, probes, drift and missed-neighbor rate |
+| **IVF-PQ** | Clustered search with compressed approximate distances | Codebook quality, total storage and reranking cost |
+| **DiskANN family** | Uses disk-resident graph data with in-memory support | SSD I/O, caching, implementation version and loaded concurrency |
+
+There is no universal dataset-size cutoff, recall percentage or millisecond latency for these algorithms. Compare like-for-like dimensions, filters, hardware and concurrent load.
 
 ### Production Gotchas & Scaling Bottlenecks
-1. **Unnormalized Embedding Cosine Discrepancy**: If an application stores unnormalized embeddings and configures the vector index for Inner Product (`dot product`), queries will return vectors with large raw magnitudes rather than true directional similarity. Always L2-normalize vectors prior to insertion or strictly configure Cosine distance operators (`vector_cosine_ops` in `pgvector`).
-2. **Graph Degeneration on Frequent Deletions**: In graph-based indexes like HNSW, deleting vectors leaves "tombstone" holes in the graph network, severing navigational links between remaining nodes and degrading recall over time. Vector engines require periodic background index compaction or vacuuming to reconstruct optimal graph topologies.
-3. **RAM Starvation in High-Dimensional Spaces**: Indexing 5 million 1536-dimensional vectors with HNSW ($M=32, ef=200$) easily consumes $> 40\text{ GB}$ of RAM. In production, under-provisioning RAM forces OS page faults and SSD swapping, causing query latencies to spike from $5\text{ ms}$ to $> 800\text{ ms}$. Use scalar quantization (SQ8) or product quantization (PQ) when RAM is constrained.
-4. **Embedding Model Drift**: Generating embeddings with a new or updated model version (e.g., upgrading from `text-embedding-ada-002` to `text-embedding-3-small`) invalidates the entire existing vector index. Vectors generated by different model architectures or training runs live in completely incompatible geometric vector spaces and cannot be compared. Upgrading embedding models requires a complete re-indexing batch job across the entire historical dataset.
+1. **Unnormalized Embedding Cosine Discrepancy**: If an application stores unnormalized embeddings and configures the vector index for Inner Product (`dot product`), queries will return vectors with large raw magnitudes rather than true directional similarity. Use the metric and normalization required by the embedding model; for cosine search, configure appropriate distance operators (`vector_cosine_ops` in `pgvector`).
+2. **Update and deletion cost**: Engines differ in tombstones, vacuuming, graph repair and background compaction. Measure recall after realistic updates; follow that engine's maintenance contract rather than assuming every deletion severs all links.
+3. **RAM budget**: Five million 1536-dimensional float32 vectors alone occupy 30.72 GB. Graphs, metadata, replicas and any retained originals add to that; paging can damage tail latency, but no specific slowdown follows without measurement.
+4. **Embedding version migration**: Keep query/document encoders, preprocessing and dimensions compatible. For an incompatible model change, create a separate versioned index, backfill and capture ongoing writes, evaluate it, then switch ingestion and queries together with a rollback path. Equal dimensions do not prove compatibility.
 
 ---
 
@@ -432,7 +439,7 @@ results = client.search(
 3. **"HNSW indexes can be queried instantly as soon as vectors are written to disk."**
    *Correction*: Inserting a vector into an HNSW graph requires traversing existing layers and performing $M$ nearest-neighbor evaluations to establish bi-directional links, making ingestion significantly more CPU-heavy than appending to a flat log or B+ Tree.
 4. **"You can compare embeddings generated from two different embedding models if they have the same number of dimensions."**
-   *Correction*: Even if two models both output 1536-dimensional vectors, their internal coordinate axes and latent semantic representations are completely different. Comparing vectors across different models produces meaningless random noise.
+   *Correction*: Even if two models both output 1536-dimensional vectors, their internal coordinate axes and latent semantic representations are completely different. Equal dimensions alone do not establish compatibility; compare vectors only within a documented, evaluated query/document encoder pair.
 
 ---
 
@@ -451,16 +458,16 @@ The `efSearch` parameter defines the size of the dynamic candidate priority queu
 Dense embeddings represent text as compact arrays whose non-zero coordinates capture semantic relationships learned by a model. Sparse representations such as BM25 or SPLADE have vocabulary-linked dimensions and excel at exact names, technical terms, and identifiers. Hybrid retrieval combines both because semantic recall and lexical precision fail on different queries.
 
 **Q5. How does Product Quantization (PQ) achieve up to 95% memory reduction on high-dimensional vectors?** `[medium]`
-Product Quantization divides a high-dimensional vector into $M$ smaller sub-vectors and clusters each sub-space into $K^*$ centroids using K-Means. Each original float sub-vector is then replaced by the 1-byte integer ID of its nearest centroid. For a 1536-dimensional float32 vector ($6{,}144\text{ bytes}$), dividing into 64 sub-vectors of 24 dimensions compressed to 1-byte centroid IDs reduces the total vector footprint to just $64\text{ bytes}$.
+Product Quantization divides a high-dimensional vector into $M$ smaller sub-vectors and clusters each sub-space into $K^*$ centroids using K-Means. Each original float sub-vector is then replaced by the 1-byte integer ID of its nearest centroid. For a 1536-dimensional float32 vector ($6{,}144\text{ bytes}$), dividing into 64 sub-vectors of 24 dimensions compressed to 1-byte centroid IDs reduces the per-vector code to $64\text{ bytes}$. Shared codebooks and any retained original vectors add storage, so this is not a whole-index memory reduction.
 
 **Q6. What is the "Curse of Dimensionality" and how does it impact nearest-neighbor search?** `[medium]`
 As dimensions increase into the hundreds or thousands, space volume grows exponentially and sampled points become sparse. Nearest and farthest distances become less distinguishable, causing KD-Trees and similar spatial partitions to inspect most leaves. ANN graphs and quantization trade exact recall for useful latency rather than eliminating the mathematical problem.
 
 **Q7. Explain why Post-Filtering often fails in production vector search queries with restrictive metadata.** `[medium]`
-Post-filtering retrieves global ANN candidates and only then applies the metadata predicate. If a tenant filter matches $0.1\%$ of rows, none of the initial top-$K$ may belong to that tenant even though valid results exist deeper in the index. Oversampling helps only probabilistically; iterative filtered traversal or isolated indexes provide a more reliable recall guarantee.
+Post-filtering retrieves global ANN candidates and only then applies the metadata predicate. If a tenant filter matches $0.1\%$ of rows, none of the initial top-$K$ may belong to that tenant even though valid results exist deeper in the index. Oversampling helps only probabilistically; iterative scans, suitable partitions or an exact filtered baseline can improve coverage, but an ANN recall guarantee must not be assumed.
 
 **Q8. How does Single-Stage Iterative Graph Filtering solve the limitations of Pre-Filtering and Post-Filtering?** `[medium]`
-Single-Stage Iterative Graph Filtering evaluates scalar metadata predicates directly during the HNSW graph traversal step. When visiting candidate nodes in the proximity graph, the engine dynamically checks payload attributes; if a node fails the filter, its payload is skipped from the result list while its graph edges are still traversed to reach valid connected neighbors. This guarantees returning exactly $K$ valid matching records while preserving sub-10ms graph retrieval speeds.
+Single-Stage Iterative Graph Filtering evaluates scalar metadata predicates directly during the HNSW graph traversal step. When visiting candidate nodes in the proximity graph, the engine dynamically checks payload attributes; if a node fails the filter, its payload is skipped from the result list while its graph edges are still traversed to reach valid connected neighbors. This can improve coverage of eligible candidates, but traversal budgets and fewer than $K$ eligible records can still yield fewer results. Benchmark against an exact filtered baseline; neither complete recall nor sub-10ms latency is guaranteed.
 
 **Q9. What are the trade-offs of choosing `pgvector` in PostgreSQL versus a standalone vector database like Qdrant?** `[medium]`
 `pgvector` keeps embeddings beside ACID business data, reducing synchronization work and enabling normal SQL joins. A dedicated engine can offer stronger distributed sharding, ingestion throughput, vector-specific compression, and filtered traversal at very high QPS. Choose from measured scale and operational ownership rather than assuming a specialized database is automatically necessary.
@@ -475,15 +482,17 @@ The chunks are likely too small or split without respecting document structure, 
 Hybrid search runs dense ANN for semantic intent and sparse BM25 for exact keywords, acronyms, and identifiers. It combines their rankings with Reciprocal Rank Fusion or sends the union to a cross-encoder reranker. Fusion protects candidate recall, while reranking improves ordering but adds latency and cannot recover a document omitted by both retrievers.
 
 **Q13. Scenario: A legal search engine using an HNSW index reports that search recall dropped from 97% to 62% for queries containing strict client account filters. What is the root cause and architectural fix?** `[hard]`
-The system is using Post-Filtering or disconnected Pre-Filtering. Because each client account represents a small fraction of the total legal corpus, standard HNSW top-$K$ search returns candidates belonging to other clients that are subsequently discarded by the metadata filter, leaving fewer than $K$ (or low-quality) results. The architectural fix is to migrate to a vector engine supporting Single-Stage Iterative Graph Filtering (evaluating the client ID predicate during graph exploration) or partition vectors into per-client isolated index namespaces/collections.
+Investigate whether filtering, search-budget limits, stale payloads or the evaluation denominator changed; the percentage drop alone does not prove one root cause. Because each client account represents a small fraction of the total legal corpus, standard HNSW top-$K$ search returns candidates belonging to other clients that are subsequently discarded by the metadata filter, leaving fewer than $K$ (or low-quality) results. Compare exact search within the authorized subset, iterative/filter-aware search and tenant partitioning before migrating databases. Tune and evaluate the chosen design per filter; changing engines alone does not guarantee recall.
 
 **Q14. Scenario: After updating an LLM embedding model from `text-embedding-ada-002` to `text-embedding-3-large`, users complain that newly ingested documents are never returned for search queries. What happened?** `[hard]`
-The application stored new embeddings in the existing vector index alongside historical vectors generated by the older model. Even though both models output floating-point vectors, their semantic vector spaces are completely incompatible geometrically—a vector from model A cannot be meaningfully compared against a vector from model B. The remediation requires generating a new index collection, backfilling and re-embedding the entire historical dataset using the new model, and atomically switching live query traffic to the new index once backfill is complete.
+Check stored model IDs and dimensions first: incompatible dimensions may have been rejected at ingestion, while compatible-sized but unrelated vectors can be silently mixed. Even though both models output floating-point vectors, their semantic vector spaces are completely incompatible geometrically—a vector from model A cannot be meaningfully compared against a vector from model B. The remediation requires generating a new index collection, backfilling and re-embedding the entire historical dataset using the new model, capturing concurrent writes during backfill, and switching query and ingestion versions together only after completeness and relevance checks pass.
 
 ### Further Reading
 
 - [Sentence Transformers: semantic-search patterns](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html) explains the separate query and document encoders used by asymmetric retrieval systems.
 - [Elasticsearch reciprocal rank fusion reference](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion) documents rank-based fusion, including the rank constant and candidate-window trade-offs.
+- [pgvector filtering and iterative scans](https://github.com/pgvector/pgvector#filtering) documents the 0.8.0+ scan controls and their limits.
+- [Qdrant Python client source](https://github.com/qdrant/qdrant-client/blob/master/qdrant_client/qdrant_client.py) defines the current collection and query methods used in the excerpt.
 - [HNSW: Efficient and robust approximate nearest-neighbor search](https://arxiv.org/abs/1603.09320) is the original paper behind the hierarchical graph structure used by many vector indexes.
 
 Use an exact flat index as a recall baseline before adopting ANN. An ANN setting that improves p99 latency but silently drops recall for important filters is not an optimisation; it is a product regression.

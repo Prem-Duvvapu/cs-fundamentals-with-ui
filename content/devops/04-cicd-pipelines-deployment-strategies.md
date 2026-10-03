@@ -72,28 +72,40 @@ flaky failures has effectively moved that failure point all the way to productio
 
 ### A Basic Pipeline Definition
 
+This excerpt assumes an npm project with a lockfile and test/build scripts. Registry
+publication belongs in a separately authenticated, trusted-branch job. Untrusted PR code
+must not receive production credentials. Major action tags below are readable teaching
+references checked October 3, 2026; production workflows should pin reviewed action
+commit SHAs and maintain them.
+
 ```yaml
 name: ci
-on: [push]
+on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - name: Build and push image
-        run: |
-          docker build -t registry.example.com/app:${{ github.sha }} .
-          docker push registry.example.com/app:${{ github.sha }}
+      - name: Build local image for validation
+        run: docker build -t app:${{ github.sha }} .
 ```
 
-Tagging the built image with the commit SHA (`${{ github.sha }}`), not a mutable name like
-`latest`, is the single habit that makes everything downstream traceable: any running
-instance's exact source code is one `docker inspect` away, and rolling back means
-redeploying a specific prior SHA rather than hoping a mutable tag still points at what it
-used to.
+A commit-SHA label helps trace the source revision, but it is still a mutable registry
+tag and rebuilding that source can produce different bytes. Record the resulting image
+digest and provenance, then deploy that digest. The PR workflow above builds locally; it
+does not publish an artifact or configure a real registry login. For PR events, record
+whether the tested revision was a merge revision or the branch head.
 
 ### Your first safe release, from pull request to rollback
 
@@ -125,11 +137,11 @@ A common mistake is rebuilding the application separately for staging and produc
 with identical source code, a separate build can pull a slightly different dependency
 version (an unpinned transitive dependency resolved differently on a different day),
 producing an artifact that is not actually bit-for-bit what was tested. The correct pattern
-is **build once, promote everywhere**: one artifact is built and tested exactly once, then
+is **build once, promote everywhere**: one versioned artifact is built and validated, then
 that exact same artifact — the same container image digest, the same jar file — is
 promoted through staging, then production, unchanged. What passed testing is, by
-construction, bit-for-bit identical to what runs in production; there is no gap in which
-"the tested thing" and "the deployed thing" could silently diverge.
+construction, bit-for-bit identical to what runs in production; verify the deployed digest rather than trusting a mutable tag. Different configuration,
+platform variants, external services and data can still produce different behavior.
 
 ### Deployment Strategies: Rolling, Blue-Green, and Canary
 
@@ -148,21 +160,21 @@ flowchart TB
 
 | Strategy | How it works | Rollback speed | Cost |
 |---|---|---|---|
-| Rolling update | Old instances replaced by new ones gradually, in place | Slow — must roll forward or reverse the same gradual process | Low — no duplicate infrastructure |
-| Blue-green | Two complete environments; traffic switches all at once | Instant — switch traffic back to the untouched old environment | High — double the infrastructure runs simultaneously (briefly) |
-| Canary | New version receives a small traffic percentage, increased gradually if healthy | Fast — cut canary traffic back to 0% | Low-moderate — only a small extra fraction of capacity |
+| Rolling update | Gradual instance replacement | Usually another rollout | Lower overlap; surge still needs capacity |
+| Blue-green | Separate fleets; route new traffic to the other | Fast if old fleet and data remain compatible; routing/draining take time | Often substantial duplicate capacity |
+| Canary | Explicit controlled exposure and measured promotion | Shift new traffic back; completed writes remain | Depends on minimum fleet size and routing design |
 
 A **rolling update** (the Kubernetes Deployment default) replaces instances gradually with
 no second full environment, but a rollback means running the same gradual process in
 reverse, which takes real time either direction. A **blue-green** deploy keeps two complete,
 independent environments — the currently-live one ("blue") and the new version fully
 deployed but receiving no traffic ("green") — then switches all traffic at once (a load
-balancer or DNS change), making rollback as fast as switching back, at the cost of running
+balancer or DNS change), making routing rollback potentially fast; DNS caches and existing connections can delay it, at the cost of running
 double infrastructure for the overlap period. A **canary** deploy sends a small, real
 percentage of production traffic to the new version first — real users, real requests — and
 only increases that percentage if the new version's error rate and latency stay healthy,
-which is the only one of the three that validates the new version against real production
-traffic patterns *before* it serves everyone, at the cost of running a real (if small)
+making exposure and metric-based promotion explicit. A rolling update also exposes early
+new instances to real traffic and can pause; that alone is not a controlled canary, at the cost of running a real (if small)
 production risk on that initial slice of traffic.
 
 ### Feature Flags: Decoupling Deploy from Release
@@ -171,14 +183,16 @@ A **feature flag** wraps new code in a runtime-toggleable condition, separating 
 decisions that deploy strategies alone conflate: *is the code running in production* versus
 *is the feature visible to users*. Code can be deployed dark (flag off, running but
 invisible) well ahead of the actual release, tested against real production infrastructure
-with zero user-facing risk, then enabled for 1% of users, then 100% — entirely independent
-of any deploy event. This also makes **rollback** nearly instant for a feature-level
+with reduced exposure, though startup changes, background jobs and shared resource use
+can still affect users, then enabled for 1% of users, then 100% — entirely independent
+of any deploy event. This can make **disabling** a problematic code path fast for a feature-level
 problem: flipping a flag off is a config change, not a redeploy, so it can happen in
-seconds instead of waiting for a new pipeline run.
+seconds instead of waiting for a new pipeline run. It does not reverse completed writes,
+messages or schema changes; configuration propagation and both flag states must be tested.
 
 ### Pipeline Caching and Parallelization
 
-Worked example, real numbers: a pipeline with three independent test suites (unit: 4
+Worked example with assumed durations: a pipeline with three independent test suites (unit: 4
 minutes, integration: 6 minutes, end-to-end: 8 minutes) run **sequentially** takes 18
 minutes total. Run in **parallel** across three runners, the pipeline's wall-clock time is
 bounded by the slowest suite alone — 8 minutes — plus fixed overhead (checkout, dependency
@@ -238,10 +252,9 @@ sequenceDiagram
 ```
 
 The critical property is that rollback is triggered by the same automated analysis, with no
-human in the loop required to catch it — a regression that only manifests under real
-traffic (a specific query pattern, a cache-cold-start effect that only shows up past a
-certain load) is caught and reverted within the analysis window, typically minutes, rather
-than however long it takes a human to notice a dashboard and decide to act.
+human in the loop required to catch it — a regression visible to the configured metrics can be detected during analysis, rather than waiting only for a dashboard review. Missing data is not success: define
+minimum samples, error handling and an inconclusive/pause policy. A controller does not
+guarantee detection of data corruption invisible to the metrics or undo completed writes.
 
 ### GitOps: Git as the Single Source of Deployment Truth
 
@@ -264,13 +277,12 @@ flowchart LR
     end
 ```
 
-This has two concrete operational benefits beyond philosophy: **no CI system ever needs
-direct production credentials** (only the in-cluster agent does, and it only ever pulls, it
-is never reachable from outside to be pushed to), and **Git history becomes a complete,
-auditable deployment history** — every change to what's running in production is a
+This has two concrete operational benefits beyond philosophy: **CI need not hold direct deployment credentials** when its job only updates desired state,
+and **Git records reviewable desired-state changes** — every change to what's running in production is a
 reviewable, revertable commit, so "what changed, when, and who approved it" is answered by
-`git log` rather than by reconstructing it from a CI system's separate, often
-shorter-retention deploy logs.
+`git log` plus reconciliation status and deployment audit logs. A commit is an intended
+state, not proof that it was successfully applied. Agents may expose APIs/webhooks, and
+manual cluster writes or external secret/config changes still need separate auditing.
 
 ### Production Failure Modes
 
@@ -314,7 +326,7 @@ that log might have already been copied, cached, or forwarded to.
   *percentage* of traffic and validates it against real metrics before proceeding — a
   canary catches a bad release affecting only its small traffic slice, while blue-green's
   instant full-traffic switch means a bad release is instantly full-traffic too, just
-  instantly revertible.
+  potentially fast to route back if the old fleet and shared data remain compatible.
 - **"A feature flag is the same thing as a deployment strategy."** A flag controls whether
   code that is already running is *visible*; a deployment strategy controls how new code
   actually *gets deployed and receives traffic* in the first place — they solve different
@@ -341,12 +353,12 @@ absence of a human gate is a real, meaningful difference in practice.
 
 **Q2. Why should a build artifact be tagged with a commit SHA instead of a mutable name like `latest`?** `[easy]`
 
-A commit SHA uniquely and permanently identifies the exact source code that produced that
-artifact, so any running instance can be traced back to its precise code with certainty. A
+A commit SHA identifies a source revision and is a useful traceability label. By itself,
+that label does not prove the build inputs or bytes, because tags and rebuilds can differ. A
 mutable tag like `latest` can be reassigned to a completely different build at any time,
 which means the same tag string can refer to different actual content depending on when it
 was pulled, making rollback and incident investigation far harder — you can't be certain
-what code is actually running. The immutable tag is only half the guarantee, though — an
+what code is actually running. The source label is only part of the evidence, though — an
 image digest pins the bytes, while a SHA tag can still be force-pushed over in most
 registries, so environments that need a hard guarantee deploy by digest and keep the SHA tag
 as the human-readable label.
@@ -365,20 +377,17 @@ environment build but is what makes the promotion meaningful.
 
 **Q4. What problem does a canary deployment solve that a rolling update does not?** `[easy]`
 
-A rolling update replaces instances gradually but every replaced instance still receives its
-full share of production traffic once it's up — there is no deliberate, controlled exposure
-of the new version to only a small slice of real traffic first. A canary deployment
-specifically routes a small percentage of real production traffic to the new version and
-validates its behavior against real usage patterns before increasing that percentage,
-catching problems that would otherwise only show up under genuine production load. What it
-costs is time and machinery — traffic splitting, a metrics baseline to compare against, and
-a soak period long enough to be statistically meaningful — so a canary at 1% of low-volume
-traffic can sit for hours without collecting enough errors to decide anything.
+A plain rolling update gradually replaces capacity and also exposes new replicas to real
+traffic. A canary adds an explicit exposure policy, version-separated measurement and
+promotion decisions; a Pod percentage is not necessarily a request percentage when load
+is uneven or connections are long-lived. It costs routing machinery and enough observations
+to detect meaningful harm. At low traffic, one healthy request is not evidence that a
+1% canary is safe; pause on insufficient data rather than promoting by absence of errors.
 
 **Q5. Why does a feature flag make rollback of a bad feature faster than redeploying?** `[medium]`
 
 A feature flag is a runtime configuration toggle, so disabling a problematic feature means
-flipping that flag off — a config change that typically takes effect in seconds. Redeploying
+flipping that flag off — a config change whose speed depends on propagation and application behavior. Redeploying
 a previous version instead requires running an entire pipeline (or at minimum a deploy
 stage) again, which takes meaningfully longer and depends on the previous artifact still
 being readily available to redeploy at all. The price is carried in the code: every flag is
@@ -391,9 +400,9 @@ Running previously-sequential test suites in parallel across multiple runners me
 pipeline's wall-clock time is bounded by the single slowest suite rather than the sum of all
 of them — three suites taking 4, 6, and 8 minutes sequentially total 18 minutes, but in
 parallel the pipeline only waits on the 8-minute suite plus per-runner overhead. Dependency
-caching, keyed on a lockfile hash, skips a full dependency reinstall whenever the lockfile
-hasn't changed since the last cached run, cutting a step that can otherwise take several
-minutes down to a few seconds on a cache hit. Both changes trade determinism for speed —
+caching can avoid repeated package downloads, but `npm ci` still installs the tree and
+restoring a cache has overhead. Neither optimization inherently trades determinism for
+speed: isolated test suites and validated lockfile/platform cache keys can preserve it —
 parallel suites surface order-dependence between tests that sequential runs hid, and a cache
 keyed on anything looser than the lockfile can serve a stale dependency tree that makes a
 build pass for reasons unrelated to the commit.
@@ -405,7 +414,8 @@ old instances (the version being rolled back to) must be brought back up and new
 drained, gradually, the same way the original rollout proceeded gradually. This takes real
 time proportional to the same batching and readiness-checking the forward rollout used,
 unlike a blue-green deploy's rollback, which is just switching traffic back to an
-environment that was never actually torn down and is instantly available. That speed is
+environment that was never actually torn down and may be available quickly, subject to routing propagation, connection draining and
+compatibility with data written by the new version. That speed is
 bought with capacity: blue-green holds two full production environments at once, which is
 why teams accept the slower rolling rollback for services where doubling the footprint is
 not worth the faster undo.
@@ -453,26 +463,21 @@ business-level metrics to the analysis rather than relying on the default signal
 
 In a traditional push-based pipeline, the CI system itself must hold direct credentials to
 the production cluster in order to apply changes to it, meaning a compromised CI pipeline is
-a direct path to production access. In a GitOps model, only an in-cluster agent holds those
-credentials, and it operates purely by pulling from a Git repository and reconciling toward
+a direct path to production access. In a GitOps model, the deployment agent holds target credentials and retrieves from a Git repository and reconciling toward
 it — the CI pipeline only needs permission to commit to that Git repository, never direct
-cluster access, which meaningfully shrinks the blast radius if the CI system itself is ever
-compromised. The Git repository becomes the new high-value target in exchange — anyone who
+cluster access, which removes one direct access path. CI that can change the desired-state repository
+can still influence production indirectly, so the protection is not complete isolation. The Git repository becomes the new high-value target in exchange — anyone who
 can merge to it can change production — so the protection moves to branch rules, required
 reviews and commit signing rather than disappearing.
 
 **Q12. Why does GitOps's pull-based reconciliation model make Git history function as a complete deployment audit log, in a way push-based CD typically doesn't?** `[hard]`
 
-Because the cluster's desired state is defined entirely as files in a Git repository and the
-in-cluster agent's only job is reconciling toward whatever is currently committed there,
-every change to what runs in production necessarily exists as a reviewable, timestamped Git
-commit with an author — there is no other path to changing production state. Push-based CD
-typically logs deploys in the CI system itself, which is a separate system with its own
-retention policy and is not inherently tied to a reviewable commit-and-approval workflow the
-way a Git-based pull request naturally is. The audit trail only holds while Git is the sole
-path: a `kubectl edit` against the live cluster still changes production, and it shows up as
-drift the agent reverts rather than as a commit, so the history is complete only if direct
-cluster write access is locked down.
+Git records the proposed desired state and its review history, but it is not a complete
+record of observed deployments. A reconciliation may fail, a manual change may temporarily
+affect users, or an external secret may change without a Git commit. Correlate commit,
+artifact digest, controller status and target audit events to establish what actually ran.
+Restrict direct writes, record emergency access and reconcile the final desired state
+after an incident rather than claiming every production effect appears in `git log`.
 
 **Q13. A canary deployment at 25% traffic shows a slightly elevated error rate, but it's within the automated rollback threshold, so the rollout proceeds to 50%. At 50% traffic the error rate spikes sharply and triggers automatic rollback. What does this progression suggest about the actual bug, and why didn't 25% catch it?** `[hard]`
 
@@ -483,10 +488,10 @@ is reached, such as a connection pool being sized for the smaller traffic slice,
 contention issue, or a cache that only starts thrashing past a certain hit rate. At 25%
 traffic the absolute load on the canary simply hadn't crossed whatever threshold triggers
 the underlying problem yet, which is exactly the class of bug a canary strategy is
-specifically designed to surface progressively rather than all at once. The lesson for the
-pipeline is that the 25% step was not actually a pass — it was a signal below the threshold,
-and a canary analysis that compares each step against the *previous* step rather than only
-against a fixed limit would have caught the trend before 50%.
+specifically designed to surface progressively rather than all at once. This is a hypothesis, not proof: compare request volume, composition, capacity and the
+concurrent stable baseline. A trend check may help but cannot guarantee earlier detection;
+the prior step may have had too few samples or never reached the failing load. Add suitable
+load tests, minimum sample criteria and business-effect checks before rerunning promotion.
 
 **Q14. Why is "our test suite passed" not the same claim as "this is safe to release to 100% of production traffic," even in a mature CI/CD setup?** `[hard]`
 
@@ -499,9 +504,13 @@ specifically because production is the only environment that reliably exercises 
 distribution of real usage, which no test suite fully replicates no matter how
 comprehensive it is.
 
-Further reading: [Google's SRE book chapter on release engineering](https://sre.google/sre-book/release-engineering/)
+### Further Reading
+
+ [Google's SRE book chapter on release engineering](https://sre.google/sre-book/release-engineering/)
 covers the build-once/promote-everywhere principle in depth; the
 [Argo Rollouts documentation on canary analysis](https://argo-rollouts.readthedocs.io/en/stable/features/canary/)
 describes automated progressive-delivery mechanics referenced above; the
 [GitOps principles from the OpenGitOps project](https://opengitops.dev/) define the
 pull-based reconciliation model as a formal specification.
+
+The [GitHub secure-use reference](https://docs.github.com/en/actions/reference/security/secure-use) explains action pinning and untrusted workflow inputs. Current [checkout](https://github.com/actions/checkout) and [Node setup](https://github.com/actions/setup-node) documentation defines runner prerequisites. [Argo analysis](https://argo-rollouts.readthedocs.io/en/stable/features/analysis/) distinguishes successful, failed and inconclusive measurements.
