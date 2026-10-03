@@ -430,4 +430,4 @@ unsupported state controlling whether the Simulation tab should appear.
   thirteen responsive route families in both themes and sixteen axe scans pass.
 - Prevention: use persistent checkouts for work spanning restarts and checkpoint reviewable
   changes in commits; do not treat temporary worktree state as durable task storage.
-- Resolving commit: recorded after the verified theme package is committed.
+- Resolving commit: `55f2468`; the follow-up documentation commit records this hash.
