@@ -156,5 +156,14 @@ Next: review freshness of the seven AI/ML and five DevOps lessons, extend target
 and authored feedback, then revise from actual beginner/backend-engineer study observations.
 The original Docker-daemon, branch-integration and frontend-CI pending statements above are
 superseded by that evidence. Learner testing still requires participants; automated checks do
-not substitute for them. Current corpus: **33,136 lines**, **68 lessons**, **295 Mermaid sources**,
-**953 interview questions**, **42 authored rubrics**. Counts describe coverage, not teaching quality.
+not substitute for them. Current corpus: **33,232 lines**, **68 lessons**, **295 Mermaid sources**,
+**953 interview questions**, **56 authored rubrics**. The [October 3 feedback extension](INTERVIEW_FEEDBACK_2026-10-03.md) adds twelve answer-specific checklists in six reviewed lessons. Counts describe coverage, not teaching quality.
+
+### October 3 feedback follow-up
+
+The 37-review priority is merged in PR #45; main Verify run **37108096621** passes
+all four jobs. Twelve new answer rubrics extend the recounted baseline of 44 to 56, including
+remote retry ambiguity, spurious wakeups, route update ordering and atomic uniqueness.
+The remaining 897 questions still receive the existing generic comparison prompts.
+This bounded extension does not close the wider exercise/feedback program, the twelve
+AI/ML/DevOps freshness reviews, or the participant study.

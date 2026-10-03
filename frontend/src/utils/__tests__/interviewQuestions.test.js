@@ -229,4 +229,28 @@ describe('curriculum interview-question parsing', () => {
     })
     expect(rubricCounts).toEqual([4, 4, 4, 4, 4])
   })
+
+  it('keeps all authored checklists separate and attaches the new feedback to its intended questions', () => {
+    const questions = topicFiles.flatMap(({ filename, filePath }) =>
+      parseInterviewQuestions(fs.readFileSync(filePath, 'utf8'), filename.match(topicFilename)[1]))
+    const authored = questions.filter(question => question.answerMarkdown.includes('**Answer rubric**'))
+    expect(authored).toHaveLength(56)
+    for (const question of authored) {
+      const { answerMarkdown, rubric } = splitInterviewAnswer(question.answerMarkdown)
+      expect(rubric, question.id).not.toBeNull()
+      expect(Object.keys(rubric), question.id).toEqual(['Say it', 'Mechanism', 'Example', 'Limit', 'Watch for', 'Follow-up'])
+      expect(Object.values(rubric).every(value => value.trim().length > 0), question.id).toBe(true)
+      expect(answerMarkdown, question.id).not.toContain('**Answer rubric**')
+      expect(answerMarkdown.trim().length, question.id).toBeGreaterThan(0)
+    }
+    const addedIds = [
+      'java-streams-optional-q7', 'java-streams-optional-q9',
+      'spring-batch-lifecycle-q4', 'spring-batch-lifecycle-q12',
+      'synchronization-q3', 'synchronization-q12',
+      'physical-layer-media-q5', 'physical-layer-media-q12',
+      'routing-algorithms-q2', 'routing-algorithms-q13',
+      'functional-dependencies-keys-q5', 'functional-dependencies-keys-q12'
+    ]
+    expect(authored.filter(question => addedIds.includes(question.id))).toHaveLength(12)
+  })
 })

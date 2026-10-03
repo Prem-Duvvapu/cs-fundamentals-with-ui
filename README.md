@@ -319,7 +319,7 @@ Scheduling is transparent: needs review 1 day, partial 3 days, confident 7 days 
 30-day cap. Ratings are learner feedback, not automatic interview-readiness scores. Version-3
 backups include dates/history and still accept legacy version-1/2 files without replacing local drafts.
 
-The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) and [October 3 completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) record **56/56 scoped core lesson reviews**, including all 37 previously pending reviews. Twenty-two new authored rubrics bring the total to 42. The
+The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) and [October 3 completion ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md) record **56/56 scoped core lesson reviews**, including all 37 previously pending reviews. The [October 3 feedback extension](INTERVIEW_FEEDBACK_2026-10-03.md) brings the total to **56 authored answer rubrics**, with concrete mechanisms, examples, limits and follow-ups. The
 [learner study](LEARNER_USABILITY_STUDY.md) is prepared; actual participant sessions and retesting
 remain required. See [the delivery checkpoint](CURRICULUM_COMPLETION_2026-10-02.md) for evidence
 and the outstanding work rather than interpreting automated checks as learner validation.

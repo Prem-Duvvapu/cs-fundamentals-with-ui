@@ -544,8 +544,8 @@ successful frontend/backend/lab/container execution evidence.
 
 Preserve canonical question prompts and diagram source unless a factual correction requires
 changing them. When correcting a sentence used by migration evidence, update only the target
-quote, preserve archived payload/digest, and run all 109 entries. The current corpus is 33,136
-lines, 295 diagrams, 953 questions and 42 rubrics across 68 lessons. Run marked Java examples,
+quote, preserve archived payload/digest, and run all 109 entries. The current corpus is 33,232
+lines, 295 diagrams, 953 questions and 56 rubrics across 68 lessons. Run marked Java examples,
 corpus/parser tests, content/diagram/migration gates and associated backend/example tests.
 
 The additional runtime fixtures are `examples/labs/sql/accuracy.sql` (transactional temporary
@@ -555,3 +555,14 @@ Batch 6 default resourceless repositories are not durable restart stores; concur
 threads do not inherit chunk transactions. PostgreSQL actual rows are per-loop averages,
 `work_mem` is per operation, buffer reads are not necessarily device I/O, and full-stripe writes
 are not an array-wide atomicity guarantee. No auto-grading or participant observations were added.
+
+## October 3 interview feedback extension
+
+`INTERVIEW_FEEDBACK_2026-10-03.md` records twelve additional rubrics in Streams/Optional,
+Spring Batch, synchronization, physical media, routing, and functional dependencies/keys.
+The current 56 rubrics are author-reviewed comparison aids, not automated grading.
+Preserve their canonical question IDs and standalone model answers. Run the corpus/parser
+and InterviewDeck suites plus backend DiscoveryService coverage after changing them.
+The full-corpus test checks every authored block can be separated into six nonempty labels;
+the backend test checks the added question IDs survive pagination without following-question
+or Further Reading leakage. AI/ML/DevOps freshness and real learner observations remain open.

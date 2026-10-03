@@ -392,6 +392,14 @@ It coordinates transactional writes and checkpoint state, assuming the selected 
 
 A persistent JobRepository stores job instances, executions, step metrics, parameters, and checkpoint context; a resourceless repository lacks durable restart evidence. It lets Spring Batch decide whether an instance may run, diagnose failures, and restart from committed state. It is framework metadata, so business facts should also be written to domain-owned storage.
 
+**Answer rubric**
+- **Say it:** JobRepository records batch execution state; durable restart requires a persistent implementation rather than just a repository interface.
+- **Mechanism:** Identifying parameters select the logical job instance, and committed step context supplies a restart checkpoint. A resourceless repository cannot recover that evidence after the process disappears.
+- **Example:** A reader that records its committed position after row 1,000 can resume from that checkpoint after a failure, provided its input and restart behavior remain compatible.
+- **Limit:** Repository metadata is not the customer or payment record. It also cannot prove that a remote API effect completed when no shared transaction covers that effect.
+- **Watch for:** Assuming every Spring Batch 6 repository is database-backed, or that selecting JobRepository automatically makes every reader and writer restart-safe.
+- **Follow-up:** What identifying parameters and input-stability checks would make a daily import restart the same business run rather than create a new one?
+
 **Q5. What happens if an unhandled processor exception occurs in a chunk?** `[medium]`
 
 The current chunk transaction rolls back, so none of that chunk's writer changes commit. Earlier chunks remain committed and the step normally fails unless a fault-tolerant policy handles the exception. A skip policy can isolate a known bad item and allow the remaining valid items to proceed within its configured limit.
@@ -423,6 +431,14 @@ Classify the corruption with a specific exception, configure a conservative skip
 **Q12. A job crashed after sending a partner API request but before its chunk checkpoint committed. How do you prevent duplicate partner actions on restart?** `[hard]`
 
 Use an idempotency key accepted by the partner, or persist an outbox record in the same local transaction and deliver it separately with deduplication. The repository checkpoint alone cannot prove whether the external system completed the request. Replaying the input without such a protocol can repeat a charge, notification, or shipment.
+
+**Answer rubric**
+- **Say it:** A checkpoint cannot resolve an uncertain remote result; retries need a partner-supported idempotency or reconciliation protocol.
+- **Mechanism:** The partner may commit before the local process crashes. A retry repeats the request unless the receiver recognizes the same logical operation; a local outbox atomically records delivery intent but can still deliver more than once.
+- **Example:** For invoice `INV-42`, persist one operation identity and reuse it for every charge retry. The partner must bind that key to the same request and return the original result instead of charging again.
+- **Limit:** An outbox alone does not deduplicate the partner action. Key retention, scope, payload matching, and a way to investigate uncertain outcomes are part of the contract.
+- **Watch for:** Claiming that a local chunk rollback undoes a completed API call, or generating a new idempotency key on each retry.
+- **Follow-up:** If the partner has no idempotency support but exposes a reference lookup, how would you reconcile an ambiguous timeout before deciding to retry?
 
 **Q13. A larger chunk reduces commit count but makes production recovery worse. How do you decide the final size?** `[hard]`
 

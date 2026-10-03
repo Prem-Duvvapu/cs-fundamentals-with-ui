@@ -561,6 +561,14 @@ Vertical loop fusion means one source element generally passes through `filter`,
 
 Java evaluates the argument supplied to `orElse` before invoking the method, even when the optional already holds a value. `orElseGet` receives a supplier and invokes it only for an empty optional. Use the lazy form for remote calls, database lookups, or non-trivial object creation, while a constant fallback is fine with `orElse`.
 
+**Answer rubric**
+- **Say it:** `orElse` receives an already-evaluated fallback; `orElseGet` receives work to run only when the optional is empty.
+- **Mechanism:** Ordinary Java argument evaluation calls `loadCustomer()` before `orElse` can inspect the optional. A supplier such as `() -> loadCustomer()` delays that call until requested.
+- **Example:** With a present customer, `cached.orElse(loadCustomer())` still hits the database, while `cached.orElseGet(() -> loadCustomer())` avoids that fallback query.
+- **Limit:** A constant fallback does not need laziness. Creating the supplier must itself avoid eager expensive work, and an empty optional still triggers the lookup.
+- **Watch for:** Saying that `orElse` always returns the fallback, or that `orElseGet` runs asynchronously. Evaluation timing and the selected return value are different questions.
+- **Follow-up:** What happens to the fallback call if it throws while the optional is present, and how does the supplier form change that outcome?
+
 **Q8. How do primitive streams help a numeric pipeline?** `[medium]`
 
 `IntStream`, `LongStream`, and `DoubleStream` provide primitive-specialised operations such as `sum`, `average`, and `summaryStatistics`. They avoid repeatedly boxing primitive values into wrapper objects during the pipeline. The trade-off is conversion between object and primitive stream forms, so use them where numeric work or allocation volume makes that benefit meaningful.
@@ -568,6 +576,14 @@ Java evaluates the argument supplied to `orElse` before invoking the method, eve
 **Q9. Why is `peek` a poor place for business side effects?** `[medium]`
 
 `peek` is an inspection operation whose callbacks may be skipped entirely when the implementation can derive the terminal result without traversal, such as `count()` on a sized source. Short-circuiting, exceptions, and parallel execution can make the timing and ordering of side effects unsuitable for business logic. Put required writes in an explicit loop or a clearly named terminal action with well-defined error handling.
+
+**Answer rubric**
+- **Say it:** A required business action cannot depend on `peek` being called for every element.
+- **Mechanism:** Stream implementations may omit stages that cannot affect the terminal result. Short-circuit terminals may also consume only part of the source.
+- **Example:** `List.of("A", "B").stream().peek(this::sendReceipt).count()` may return `2` without sending either receipt because the source size already determines the count.
+- **Limit:** An explicit loop or terminal action makes the intended work visible, but exceptions and retries still need a delivery protocol; traversal does not guarantee exactly-once remote effects.
+- **Watch for:** Saying that a terminal operation guarantees every intermediate callback runs, or that sequential mode makes `peek` a reliable delivery mechanism.
+- **Follow-up:** If the first receipt succeeds and the second request times out, how would you resume safely without sending the first receipt twice?
 
 **Q10. What makes `sorted` more expensive than `map` in a large stream?** `[medium]`
 

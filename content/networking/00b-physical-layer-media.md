@@ -363,6 +363,14 @@ Multimode fiber has a larger core and supports several light paths, making it pr
 
 Nyquist relates ideal noiseless baseband bandwidth and signal levels to a zero-ISI signalling limit. The stated Shannon formula bounds a band-limited additive white Gaussian noise channel using bandwidth and signal-to-noise power ratio. Neither includes application headers, contention, or a specific real modem implementation.
 
+**Answer rubric**
+- **Say it:** Nyquist links bandwidth and chosen signal levels under a noiseless model; Shannon links bandwidth and noise to an ideal channel-capacity bound.
+- **Mechanism:** Use $2B\log_2 M$ for the stated Nyquist model and $B\log_2(1+S/N)$ for the stated Gaussian-noise model. Convert power SNR from decibels before substituting it.
+- **Example:** At 3 kHz, four signal levels give a Nyquist rate of 12 kbps; 30 dB SNR gives a Shannon bound of about 29.9 kbps. Those numbers use different assumptions and do not promise either payload rate.
+- **Limit:** More signal levels increase the noiseless formula's rate but become harder to distinguish with noise. Coding, framing, implementation loss, and the actual channel still determine achievable throughput.
+- **Watch for:** Using `30` as the linear SNR for 30 dB, or confusing symbols per second with bits per second.
+- **Follow-up:** If bandwidth stays fixed and the receiver distinguishes more signal levels, which constraint remains unchanged when the power SNR is unchanged?
+
 **Q6. Why does higher-order QAM need a cleaner channel?** `[medium]`
 
 Higher-order QAM places more possible symbols closer together in amplitude and phase space. Noise, fading, and distortion can then move a received point across a decision boundary more easily. Adaptive systems lower modulation order when SNR falls to maintain an acceptable error rate.
@@ -390,6 +398,14 @@ Check cable category, termination quality, grounding and shielding design, routi
 **Q12. Scenario: a 3 kHz channel has 30 dB SNR and a team claims it can carry exactly 29.9 kbps. What correction do you make?** `[hard]`
 
 About 29.9 kbps is the bound for the stated ideal Gaussian-noise channel model, after converting 30 dB to a linear power ratio of 1000. A real system must operate below it because modulation, coding, finite block length, framing, and implementation loss consume margin. The chosen constellation may impose a lower Nyquist-style or practical limit as well.
+
+**Answer rubric**
+- **Say it:** About 29.9 kbps is an ideal channel-capacity calculation, not a guaranteed application throughput.
+- **Mechanism:** Convert the power ratio with $10^{30/10}=1000$, then calculate $3000\log_2(1+1000)\approx 29{,}902$ bits per second. State the Gaussian-noise model rather than presenting the result as a measured link rate.
+- **Example:** Even a modem approaching that channel limit leaves less rate for a file transfer after coding choices, framing, and other protocol overhead are accounted for.
+- **Limit:** Shannon capacity describes an asymptotic reliability limit; a finite-length implementation needs an error target and practical margin. Different noise or channel assumptions require an appropriate model.
+- **Watch for:** Claiming that increasing the modulation alphabet alone can exceed this bound at the same bandwidth and SNR, or equating capacity with a speed-test result.
+- **Follow-up:** What measurements and protocol accounting would you request before comparing the calculation with observed file-transfer throughput?
 
 **Q13. Why can an OFDM link fail in multipath even when received power is strong?** `[hard]`
 
