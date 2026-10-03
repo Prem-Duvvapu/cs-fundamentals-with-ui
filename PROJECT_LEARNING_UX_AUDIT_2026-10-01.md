@@ -593,3 +593,15 @@ The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) now covers nineteen s
 37 core reviews remain. [Learner study tasks](LEARNER_USABILITY_STUDY.md) are prepared, but real
 sessions, revisions informed by them and retesting remain open. Container checks require a running
 daemon/CI result. Do not close those items from structural tests or an automated browser pass alone.
+
+## October 3 checkpoint — requested charcoal dark mode
+
+The user requested LeetCode-inspired dark mode. The shared theme now has neutral charcoal
+surfaces, quieter accents, readable syntax comments, theme-aware selection/scrollbars and focus
+outlines for editable controls/summaries. The [design system](docs/DESIGN_SYSTEM.md) records
+palette decisions and desktop previews. Twenty-seven theme tests pass, including contrast pairs
+in both themes; the complete frontend suite passes 711/711 and the backend passes 59/59. The production build, 590 diagram browser decodes and responsive browser harness
+pass: thirteen route families at five widths in both themes, keyboard theme switching/reload,
+exact-question review and sixteen axe scans with no violations. Desktop/mobile previews were
+manually inspected. These checks support A14/A17; real learner sessions, zoom/reduced-motion
+coverage and comprehension/performance evidence remain separate acceptance work.

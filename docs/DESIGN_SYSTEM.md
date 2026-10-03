@@ -27,8 +27,7 @@ the generic `--cat-*` tokens. A runtime success state must use `--state-success`
 Raw colour literals belong only in the theme token blocks.
 
 The `useTheme` hook stores an explicit choice under `cs-fundamentals-theme`. With no saved value,
-the app follows `prefers-color-scheme`. It dispatches `cs-fundamentals:theme-change`, allowing mounted
-Mermaid diagrams to re-read live CSS tokens and render without a reload.
+the app follows `prefers-color-scheme`. It dispatches `cs-fundamentals:theme-change`. Mermaid blocks select prebuilt theme assets without a reload; regenerate those assets after token changes.
 
 ## Typography and layout
 
@@ -82,3 +81,33 @@ The Progress page's `.saved-answers` section uses the existing surface, border, 
 spacing tokens. Keep review/all filters, each question's exact Practice link, alternate-draft
 comparison, and two-step destructive-action confirmation visible and keyboard operable. The
 current and alternative drafts stay separate in storage and remain exportable after adoption.
+
+## Charcoal dark mode — October 3
+
+The dark theme follows the requested LeetCode-inspired neutral direction: page `#1a1a1a`,
+article/cards `#262626`, raised controls `#333333`, and code `#202020`. Prose uses `#d6d6d6`
+and secondary/muted text stays readable on every neutral surface. Category colors are restrained
+accents; Java and the brand glyph use warm amber, while dark logo text stays neutral.
+These are this project's palette choices, not an exact reproduction of LeetCode's CSS.
+
+Selection and scrollbar colors are theme tokens with explicit light overrides. Native scrollbars
+keep their normal width and behavior. Editable controls, summaries and interactive links/buttons
+receive a visible keyboard focus outline. Code-toolbar hover exposes click targets. Syntax
+comments meet the same 4.5:1 contrast bar as code rather than becoming nearly invisible.
+
+`AppThemeStyles.test.js` checks text/syntax/action contrast mathematically in both themes;
+`scripts/test-responsive-layout.mjs` verifies the rendered dark surface, keyboard theme switching,
+choice persistence across reload, responsive pages and axe findings. Generated diagrams must be
+rendered and browser-decoded after CSS changes, including changes affecting their fingerprints.
+Automated checks support this design; they do not establish universal preference or replace
+manual reader feedback.
+
+Desktop previews: [home](previews/charcoal-dark-home.png) and
+[reader](previews/charcoal-dark-reader.png). Screenshots use the canonical catalog/content
+with API fixtures; they demonstrate presentation rather than real-backend integration.
+
+Release verification: 711/711 frontend tests, 59/59 platform backend tests, production build,
+590/590 diagram browser decodes, thirteen route families at five widths in both themes and
+sixteen axe scans pass with no violations. Keyboard theme switching and reload persistence
+are included. The checks run against API fixtures for browser presentation; real learner
+preference, zoom/reduced-motion coverage and comprehension remain separate evidence.

@@ -524,3 +524,12 @@ The source ledger now records nineteen of 56 core lessons reviewed, not a whole-
 Twenty-two added rubrics bring the total to 42. Do not count structural validation as factual review,
 or prepared study protocols/AI personas as real learner sessions. The remaining 37 lesson reviews
 and participant observations stay visible in `CURRICULUM_COMPLETION_2026-10-02.md`.
+
+## October 3 charcoal dark theme
+
+Keep the neutral dark hierarchy (`#1a1a1a` page, `#262626` surface, `#333333` raised, `#202020`
+code) and readable muted/syntax text. Category/status accents carry meaning; keep dark chrome
+quiet. Selection and scrollbar colors use theme tokens. Focus styling includes editable controls
+and summaries. Maintain contrast pairs in `AppThemeStyles.test.js` and the browser toggle/reload
+journey. Regenerate/decode diagrams after CSS/token changes; palette tests do not replace axe
+or visual review. This LeetCode-inspired direction follows the user's stated preference.

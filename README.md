@@ -324,3 +324,7 @@ The [source ledger](CONTENT_ACCURACY_REVIEW_2026-10-01.md) records nineteen scop
 [learner study](LEARNER_USABILITY_STUDY.md) is prepared; actual participant sessions and retesting
 remain required. See [the delivery checkpoint](CURRICULUM_COMPLETION_2026-10-02.md) for evidence
 and the outstanding work rather than interpreting automated checks as learner validation.
+
+Dark mode uses a LeetCode-inspired charcoal palette with quieter accents, readable syntax
+comments, theme-aware selection, native scrollbars and keyboard focus for editable controls.
+See [the design system](docs/DESIGN_SYSTEM.md) for the palette and verification contract.

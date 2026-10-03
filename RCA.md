@@ -416,3 +416,18 @@ unsupported state controlling whether the Simulation tab should appear.
 - Prevention: format Java types as inline code while authoring; keep the raw-HTML gate even when
   compiler and renderer smoke checks pass.
 - Resolving commit: pending this local review batch.
+
+## RCA-2026-10-03-01 — Uncommitted theme work lost from a temporary checkout
+
+- Evidence: after the environment restart, `/tmp/cs-fundamentals-jpa` was absent; its branch
+  remained at `94e545e`, while the new theme edits/tests had not been committed. The merged
+  JPA package remained intact, and newer curriculum work was already on main (`ff8a80b`).
+- Root cause: an unfinished task relied on an ephemeral worktree surviving an environment
+  restart. A Git branch alone cannot preserve uncommitted working files.
+- Resolution: restore the theme on a new branch from current main, using the persistent project
+  checkout; preserve the newer curriculum changes and rerun verification before merge.
+- Verification: all 711 frontend and 59 backend tests, production build, 590 diagram decodes,
+  thirteen responsive route families in both themes and sixteen axe scans pass.
+- Prevention: use persistent checkouts for work spanning restarts and checkpoint reviewable
+  changes in commits; do not treat temporary worktree state as durable task storage.
+- Resolving commit: recorded after the verified theme package is committed.

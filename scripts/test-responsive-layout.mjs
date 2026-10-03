@@ -73,6 +73,18 @@ try {
   })
 
   await page.goto(origin)
+  await page.evaluate(() => localStorage.setItem('cs-fundamentals-theme', 'dark'))
+  await page.reload()
+  await page.locator('html[data-theme="dark"]').waitFor()
+  const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  if (darkBackground !== 'rgb(26, 26, 26)') failures.push(`Dark page did not use the neutral charcoal surface: ${darkBackground}`)
+  await page.getByRole('button', { name: 'Switch to light theme' }).focus()
+  await page.keyboard.press('Enter')
+  await page.locator('html[data-theme="light"]').waitFor()
+  await page.reload()
+  await page.locator('html[data-theme="light"]').waitFor()
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click()
+  await page.locator('html[data-theme="dark"]').waitFor()
 
   const routes = [
     '/',
@@ -225,4 +237,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('Responsive layout smoke passed: 11 route families × 5 widths × 2 themes; 16 axe scans; exact-question spaced-review journey.')
+console.log('Responsive layout smoke passed: 13 route families × 5 widths × 2 themes; 16 axe scans; exact-question spaced-review journey.')

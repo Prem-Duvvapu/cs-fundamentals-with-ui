@@ -442,3 +442,13 @@ filter/MVC error separation, cursor/ETag/deduplication limits, a SQL BCNF depend
 and a runnable Java 17 reifiable-array/type-test example. Compilation also verifies three forbidden
 forms fail; a final-class method does not automatically qualify for SafeVarargs. These are sourced
 lesson/executable checks, not a new cursor, idempotency or method-validation feature in Task Tracker.
+
+### Charcoal theme refinement — October 3
+
+Dark surfaces are neutral charcoal, with separate page, card, raised and code tones. All styling
+lives in semantic `App.css` tokens and shared rules. Selection/scrollbar tokens have explicit light
+overrides; system and explicit theme persistence behavior is unchanged. Syntax and category actions
+retain tested contrast. Keyboard focus includes inputs, selects, textareas and summaries. Prebuilt
+Mermaid assets are regenerated to match. Contrast unit tests and the browser smoke harness check
+the rendered dark surface, keyboard switching and reload persistence alongside responsive/axe
+journeys. The reference is stylistic, not an exact site clone.
