@@ -34,7 +34,7 @@ smaller solution:
 flowchart TD
     A["How many services, how much scaling/failover complexity?"] -->|"One service, one host is enough"| B["Plain VM or a single managed container service"]
     A -->|"A handful of services on one host"| C["Docker Compose"]
-    A -->|"Many services, need auto-scaling, self-healing, multi-host"| D["Kubernetes (or a managed equivalent)"]
+    A -->|"Many services, need auto-scaling, self-healing, multi-host"| D["Compare managed platforms and Kubernetes against requirements"]
 ```
 
 A single VM running the application directly, or a managed single-container platform (a
@@ -44,8 +44,9 @@ with modest scale. Docker Compose is the natural next step once an application b
 several cooperating containers on one host but does not yet need multi-host scheduling or
 automatic failover. Kubernetes earns its complexity once a system genuinely needs
 multi-host scheduling, automated healing across machine failures, and workload elasticity —
-reaching for it before that point is choosing operational overhead the team does not yet
-need.
+managed container platforms can also offer multi-host scaling and failover without
+requiring the team to operate Kubernetes. Compare availability, networking, portability,
+operating effort and total cost against requirements rather than service count alone.
 
 ### Infrastructure as Code: The Core Idea
 
@@ -54,8 +55,12 @@ clicking through a cloud console or running one-off CLI commands — repeatable 
 but in practice undocumented, easy to do slightly differently the second time, and
 impossible to review before it happens. **IaC** describes infrastructure the same way code
 describes application logic: in version-controlled, declarative configuration files that a
-tool reconciles the real infrastructure toward, the same reconciliation-loop idea covered
-for Kubernetes applied one layer down, to the infrastructure the cluster itself runs on.
+tool can reconcile real infrastructure toward when it runs. Terraform is normally invoked
+for plan/apply; it is not automatically a continuously running controller like Kubernetes, to the infrastructure the cluster itself runs on.
+
+This configuration excerpt needs an AWS provider, region, credentials, a real supported
+AMI ID and appropriate network settings; the AMI below is a placeholder, not a runnable
+cloud provisioning recipe.
 
 ```hcl
 resource "aws_instance" "web" {
@@ -93,15 +98,15 @@ much the customer manages:
 | Model | Provider manages | Customer manages | Example |
 |---|---|---|---|
 | IaaS (Infrastructure as a Service) | Physical hardware, virtualization, networking | OS, runtime, application, data | A raw virtual machine (EC2, a Compute Engine instance) |
-| PaaS (Platform as a Service) | Hardware through OS and runtime | Application code and data only | A managed app-hosting platform (App Engine, Elastic Beanstalk) |
-| SaaS (Software as a Service) | Everything, including the application itself | Just usage/configuration | A finished product (a hosted email service, a SaaS CRM) |
+| PaaS (Platform as a Service) | Hardware through OS and runtime | Application, data, access and service-specific configuration | A managed app-hosting platform (App Engine, Elastic Beanstalk) |
+| SaaS (Software as a Service) | Service infrastructure and application | Access, tenant configuration, data use and applicable obligations | A finished product (a hosted email service, a SaaS CRM) |
 
 Moving down this list trades control for operational simplicity: IaaS gives the most
 flexibility (any OS, any runtime) at the cost of managing all of it yourself; SaaS gives
 zero infrastructure to manage at the cost of using someone else's application exactly as
-built. Most systems in this curriculum's other topics — a Kubernetes cluster, a Docker
-host — sit at the IaaS layer or just above it, since the team is still responsible for the
-OS, the container runtime, and everything the application itself needs.
+built. A Docker host on a raw VM leaves the guest OS with the customer. Managed Kubernetes or
+container offerings can transfer control-plane or node responsibilities; read the selected
+service's contract instead of assuming every container platform has the same boundary.
 
 ---
 
@@ -110,7 +115,8 @@ OS, the container runtime, and everything the application itself needs.
 ### Terraform: State, Plan, and Apply
 
 A tool like Terraform tracks infrastructure it manages in a **state file** — a record of
-what it believes actually exists and the exact configuration that produced it. The core
+bindings between resource addresses and remote object identities, plus attributes needed
+for planning. It is not merely a copy of configuration or a backup of application data. The core
 workflow has two distinct steps for a reason:
 
 ```mermaid
@@ -130,7 +136,7 @@ so a human can review exactly what
 is about to happen (a resource being destroyed and recreated instead of updated in place is
 a common, sometimes destructive surprise this step exists to catch) before `terraform
 apply` actually executes it. This separation of "compute the diff" from "execute the diff"
-is the single biggest safety mechanism IaC tooling provides over manually clicking through a
+is an important review mechanism IaC tooling provides over manually clicking through a
 console, where there is no equivalent preview step before an action takes effect.
 
 **State drift** occurs when real infrastructure changes outside the tool's knowledge — a
@@ -139,6 +145,37 @@ matches reality; the next `plan` then proposes changes to reconcile that drift, 
 surprising a team that forgot about the manual change entirely. This is why "never make a
 manual change to IaC-managed infrastructure" is close to an absolute rule in disciplined
 teams: every drift instance is a future surprise in a diff nobody expects.
+
+### Review the Saved Plan and Protect State
+
+`terraform plan -out=review.tfplan` saves a plan that can be reviewed with
+`terraform show review.tfplan` and applied with `terraform apply review.tfplan`. Without
+that saved file, `apply` computes a new plan; approval of yesterday's printed diff does
+not approve today's new actions. Even a saved plan is not a guarantee of success: stale
+state, API failures, quotas and outside changes can stop execution or cause partial effects.
+
+State and saved plan files can contain secrets. `sensitive = true` suppresses ordinary
+CLI display; it does not encrypt a state file. Restrict access, use encrypted remote storage,
+enable versioning/recovery, and keep these files out of Git and broadly visible CI artifacts.
+Locking prevents competing state writers; it does not lock every cloud API or prevent drift.
+
+For the current Terraform S3 backend, `use_lockfile = true` enables native state locking;
+it defaults to false. DynamoDB-based locking is deprecated. A backend excerpt might be:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket       = "replace-with-your-state-bucket"
+    key          = "learning/service.tfstate"
+    region       = "us-east-1"
+    use_lockfile = true
+    encrypt      = true
+  }
+}
+```
+
+This is not a provisioned bucket: configure IAM, bucket encryption, access restrictions
+and versioning separately. Lock-file operations also require their own permissions.
 
 ### Observability: The Three Pillars
 
@@ -156,7 +193,7 @@ from three complementary data types:
 None of the three alone answers every question: metrics tell you *that* p99 latency spiked
 at 14:32 but not *why*; logs from the right service at the right time might explain a
 specific error but require already knowing which service to look at; a **trace** connects
-a single request's journey across every service it touched, which is exactly what's needed
+recorded spans across the instrumented parts of one request, which is exactly what's needed
 once a problem clearly involves more than one service and it isn't obvious which one is
 actually slow.
 
@@ -167,13 +204,14 @@ provider: the provider is responsible for the security *of* the cloud (physical 
 center security, the hypervisor, the underlying network), while the customer remains
 responsible for security *in* the cloud (their own access controls, their own data
 encryption choices, their own application vulnerabilities) — a cloud outage from a
-misconfigured storage bucket permission is squarely the customer's failure, not the
+misconfigured customer storage policy is within the customer's responsibilities, not the
 provider's, regardless of how the incident gets described colloquially. **Elasticity** — a
 cloud auto-scaling group adding instances as load rises and removing them as it falls — is
 the direct cloud-level analog of Kubernetes' Horizontal Pod Autoscaler, one layer further
 out: it scales the number of *machines* available to a fleet, not the number of *Pods*
-scheduled onto a fixed set of machines, and both mechanisms are frequently used together in
-a real deployment.
+scheduled onto a fixed set of machines, and both mechanisms can be coordinated. Node autoscalers commonly react to unschedulable
+Pods and provision backing capacity; a generic VM autoscaling group needs suitable cluster
+integration and a policy, not merely an HPA object.
 
 ### Cloud identity and a small reliability target
 
@@ -202,6 +240,20 @@ different things.
 ---
 
 ## 🔴 Expert Level
+
+### Read Latency Without Adding Percentiles
+
+Suppose a 100 ms request budget allocates 20 ms to an API stage and 80 ms to database work.
+Those are planning allocations. Adding each stage's measured p99 does not establish the
+endpoint p99: slow stages may occur on different requests, and parallel calls overlap.
+Measure the endpoint distribution over eligible requests and inspect its slow traces.
+Across replicas, aggregate compatible histogram buckets before estimating a quantile;
+averaging per-instance p99 values does not recover the fleet p99.
+
+A span duration includes nested child work. A 950 ms gateway span and an 800 ms database
+span in it are not 1,750 ms of serial latency. Inspect parent/child timing, critical path,
+queueing and gaps, then confirm the suspected cause with logs or targeted measurement.
+
 
 ### The Real Cost/Complexity Crossover Point
 
@@ -240,9 +292,10 @@ sequenceDiagram
 A single request entering at the Gateway is tagged with one **trace ID** that every
 downstream service propagates forward through its own calls and includes in its own logs
 and spans — this is what makes it possible to answer "why was this one specific request
-slow" by pulling every span sharing that trace ID and finding exactly which hop (in the
-diagram above, the database query) actually accounted for the latency, rather than
-guessing from each service's aggregate metrics independently. Without a propagated trace ID,
+slow" by pulling every span sharing that trace ID and locating where recorded time was spent (in the example, much of it is the database query), rather than
+guessing from each service's aggregate metrics independently. The slow span identifies
+a symptom location, not necessarily root cause; missing instrumentation, queueing, retries
+and sampling can leave gaps. Propagate supported trace context across async boundaries too. Without a propagated trace ID,
 correlating one slow user-facing request back to one specific slow downstream call across
 several independently-deployed services is close to impossible at any real scale — you have
 metrics saying each service is "usually fine on average" and no way to connect them to the
@@ -270,11 +323,11 @@ investigating, which is the exact same trust-erosion failure mode as a flaky CI 
 danger isn't any single false alarm, it's that the *next* alert, which happens to be real,
 gets the same reflexive dismissal.
 
-**Unbounded cloud auto-scaling cost surprises.** An auto-scaling group with no maximum
+**Unbounded cloud auto-scaling cost surprises.** A scaling policy with an excessively high maximum
 instance count, reacting to a traffic spike from a bug (an infinite retry loop, a bot
 crawling aggressively) rather than genuine legitimate load, can scale to a very large,
 very expensive instance count before anyone notices — the fix is always setting a sane
-maximum alongside the minimum, and alerting on scaling events themselves, not just on the
+maximum alongside the minimum, plus rate/concurrency controls and budget alerts, and alerting on scaling events themselves, not just on the
 downstream symptom.
 
 ### Common Misconceptions
@@ -310,10 +363,9 @@ solves — or whether their current setup already meets their uptime and scale r
 I'd also ask whether the team has, or is willing to build, the operational expertise
 Kubernetes requires, since its complexity cost is ongoing, not a one-time setup cost, and
 adopting it without a genuine need just adds operational overhead without solving a real
-problem. The honest framing is that the decision is reversible in one direction only — two
-services on a host can move to Kubernetes later at modest cost, while a team that adopts it
-early and then discovers it cannot operate it has already reshaped its deploy tooling,
-networking and on-call around it.
+problem. Neither migration direction is automatically cheap or irreversible. Evaluate availability,
+data/storage dependencies, deployment tooling and operational expertise; a managed platform
+may meet the same scaling requirements with less team effort.
 
 **Q2. What does "idempotent" mean in the context of Infrastructure as Code, and why does it matter?** `[easy]`
 
@@ -330,18 +382,20 @@ assumption — which is why drift detection exists rather than being unnecessary
 
 IaaS provides raw infrastructure — virtual machines, networking — leaving the customer to
 manage everything from the OS upward. PaaS additionally manages the OS and runtime,
-leaving the customer responsible only for their application code and data. SaaS is a
+leaving application, data, identity and service-specific configuration responsibilities
+with the customer. SaaS is a
 complete, ready-to-use application where the customer manages only their own usage and
-configuration, with no infrastructure or code to maintain at all.
+configuration, without maintaining the provider's infrastructure or application code. Access, tenant
+settings and data handling still require the customer's attention.
 
 **Q4. Why does `terraform plan` exist as a separate step from `terraform apply` instead of just applying changes directly?** `[easy]`
 
 `plan` computes and displays exactly what would change — resources created, modified, or
-destroyed — without actually making any changes, giving a human the chance to review that
+destroyed — without applying the proposed infrastructure mutations, giving a human the chance to review that
 diff before anything happens. This catches surprising or destructive actions, like a
 resource being destroyed and recreated instead of updated in place, before they actually
 occur, which is a safety step a direct console change or an unreviewed script has no
-equivalent of. The plan is a prediction, not a contract, though — it is computed against
+equivalent of. The plan is a proposal, not a guarantee of successful execution, though — it is computed against
 state as of that moment, so anything that changes between plan and apply can make the
 applied result differ, which is why pipelines save the plan file and apply exactly that
 artifact rather than re-planning at apply time.
@@ -360,23 +414,23 @@ question, and relying on only one leaves real gaps — metrics without traces ca
 
 Drift occurs when real infrastructure changes outside the IaC tool's tracked state — most
 commonly a manual console fix made during an incident — so the state file and reality
-diverge silently. The danger is that the *next* unrelated `apply`, run by someone with no
-memory of that manual fix, will propose reverting it back to the old configuration as part
+diverge silently. The danger is that the next plan may propose, and an approved apply may perform, reverting it back to the old configuration as part
 of reconciling the drift, potentially reintroducing the original problem weeks later with
-no obvious connection to its cause. The fix is always committing the change back into the
-IaC configuration itself as soon as possible after any manual intervention.
+no obvious connection to its cause. Decide whether to adopt the emergency change into reviewed configuration or deliberately
+revert it; record the incident and reconcile state and configuration afterward.
 
 **Q7. A metrics dashboard shows overall API latency looks fine on average, but users are reporting specific slow requests. What tool from this topic addresses that gap, and why?** `[medium]`
 
 Distributed tracing addresses this specifically: it tags one request with a single trace ID
-propagated through every service it touches, so pulling all spans for that trace ID reveals
-exactly which hop accounted for the latency for that specific request. Aggregate metrics
+propagated through instrumented services and supported asynchronous boundaries, so pulling all spans for that trace ID reveals
+where recorded spans spent time for that request. Aggregate metrics
 average across many requests and can look healthy even when a meaningful subset of
 individual requests are slow for a reason specific to their own path through the system,
-which only a per-request trace can actually surface. Tracing has its own cost: full
+which per-request traces, correlated logs and targeted measurements can help diagnose. Tracing has its own cost: full
 capture is prohibitively expensive at volume, so systems sample — and a sampling policy that
-drops the slow outliers defeats the purpose, which is why tail-based sampling that decides
-after seeing the whole trace is preferred for exactly this problem.
+drops the slow outliers defeats the purpose, which is why tail-based sampling can retain slow/error traces after observing spans. It adds buffering
+and routing requirements, and incomplete or previously dropped spans cannot be recovered
+merely by switching the sampler.
 
 **Q8. Why can adding a seemingly harmless label to a metric cause a monitoring system to slow down or crash?** `[medium]`
 
@@ -422,23 +476,21 @@ relative to a specific service.
 An auto-scaling group operates one layer below Kubernetes, adding or removing actual
 machines from the cluster's available capacity as aggregate load changes; the Horizontal
 Pod Autoscaler operates one layer above that, adding or removing Pod replicas scheduled onto
-whatever machines currently exist. The two are complementary, not redundant: HPA can only
-add Pods up to the capacity of the machines already available, so a workload that needs to
+whatever machines currently exist. The two are complementary, not redundant: HPA can request more replicas than current node capacity can run, so a workload that needs to
 scale beyond current node capacity needs the auto-scaling group to add nodes first (or
-concurrently, in a well-tuned setup) for HPA's added Pods to actually have anywhere to
-schedule.
+concurrently, in a well-tuned setup) for pending replicas to become scheduled and running. Node autoscaling needs its own
+limits, provisioning latency and cloud quota checks.
 
 **Q12. A team's Kubernetes cluster costs less in raw compute than an unbounded cloud auto-scaling incident that happened last month. Does this mean their orchestration choice was wrong?** `[hard]`
 
-Not necessarily — the auto-scaling incident is a symptom of a missing safety control (no
-maximum instance count, no alert on scaling events themselves) rather than evidence that
+Not necessarily — the auto-scaling incident is a symptom of a missing safety control (an excessively permissive maximum, no effective budget or scaling alerts) rather than evidence that
 the underlying orchestration choice was inappropriate for the workload's actual service
 count and scaling needs. The right diagnostic question is separate: does this workload's
 service count, traffic variability, and required uptime actually justify Kubernetes'
 ongoing operational cost, independent of this one incident — conflating "we had a
 cost-control gap" with "we chose the wrong platform" risks fixing the wrong problem. It is
-worth noting the incident is still evidence of something — an unbounded autoscaler reaching
-a runaway state usually means nobody owned the cost guardrails, and that same gap will
+worth noting the incident is still evidence of something — a permissive autoscaler reaching
+a runaway cost state usually means nobody owned the cost guardrails, and that same gap will
 reappear on whatever platform the team runs next.
 
 **Q13. Why is `terraform plan` reviewed by a human considered a stronger safety mechanism than a code review of the Terraform configuration file alone?** `[hard]`
@@ -456,18 +508,20 @@ plan is where consequences are.
 
 **Q14. Explain, end to end, how a trace ID lets you find the true root cause of one slow user request across five services, when each service's own metrics look normal on average.** `[hard]`
 
-A single trace ID is generated when the request first enters the system and propagated as
-context through every downstream call the original request triggers; each service emits
-spans tagged with that same trace ID, recording its own entry and exit time for that
-specific request. Pulling every span sharing that trace ID reconstructs the request's exact
-path and per-hop duration, and the hop with disproportionate duration relative to its
-typical performance is the actual root cause — this works precisely because it isolates one
-specific request's journey rather than relying on each service's aggregate metrics, which
-average away exactly the kind of outlier this investigation needs to find.
+Supported trace context connects spans emitted by instrumented components for a request.
+Inspect the parent-child timeline and critical path rather than adding nested durations.
+A long database span can reflect locks, network waiting or retry work, so it is a location
+for investigation, not proof of root cause. Correlate logs and database observations;
+sampling and missing async propagation may mean the trace is incomplete. Validate the
+hypothesis with targeted evidence before calling the longest span the true cause.
 
-Further reading: [Terraform's own documentation on state](https://developer.hashicorp.com/terraform/language/state)
+### Further Reading
+
+ [Terraform's own documentation on state](https://developer.hashicorp.com/terraform/language/state)
 covers drift and the plan/apply workflow in more depth; [Google's SRE book chapter on
 monitoring distributed systems](https://sre.google/sre-book/monitoring-distributed-systems/)
 is the standard reference on the metrics/logs/traces distinction; the
 [AWS Shared Responsibility Model documentation](https://aws.amazon.com/compliance/shared-responsibility-model/)
 defines the split referenced above from a major cloud provider's own framing.
+
+The [Terraform plan reference](https://developer.hashicorp.com/terraform/cli/commands/plan) explains saved plans; [sensitive-data guidance](https://developer.hashicorp.com/terraform/language/manage-sensitive-data) covers state and plan exposure. [S3 backend locking](https://developer.hashicorp.com/terraform/language/backend/s3) documents native lock files and deprecated DynamoDB locking. [OpenTelemetry context propagation](https://opentelemetry.io/docs/concepts/context-propagation/) and [Prometheus histograms](https://prometheus.io/docs/practices/histograms/) support the tracing and percentile explanations.

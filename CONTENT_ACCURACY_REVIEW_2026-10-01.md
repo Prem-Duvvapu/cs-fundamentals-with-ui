@@ -247,3 +247,9 @@ the earlier local Docker limitation remains local. The twelve AI/ML/DevOps lesso
 a separate freshness pass; real participant sessions, broader learning exercises and rubric
 coverage remain open. Scoped review is not a claim that every snippet is standalone, every
 performance estimate is measured, or every reader has understood the material.
+
+## October 3 — AI/ML and DevOps freshness queue complete
+
+The [twelve-lesson ledger](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md) records seven AI/ML and five DevOps complete lesson/interview reviews. Together with the core ledger this brings scoped technical coverage to **68/68**. Corrections clarify approximate search limits, evaluation denominators, authorization boundaries, feature availability, retained-token memory, deployment math, proxy behavior and state/audit limits. All prompts remain stable; six corrected diagrams have regenerated assets in both themes.
+
+The offline evaluation and PostgreSQL availability fixtures supply reproducible teaching counterexamples and run in CI. Current corpus: 33,450 lines, 295 diagrams, 953 questions, 56 authored rubrics. This closes the prior separate freshness queue; live provider/cluster workload verification, broader exercises/feedback and actual learner sessions remain open. See the new ledger for sources, version boundaries and exact verification scope.

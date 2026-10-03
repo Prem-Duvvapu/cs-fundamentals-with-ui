@@ -1,6 +1,6 @@
 # Curriculum delivery checkpoint — October 2, 2026
 
-**Current status — October 3:** the remaining 37 reviews are complete; see [the review ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md). Core coverage is **56/56**. CI frontend/backend/labs/containers pass on main. Historical statements below describe the October 2 checkpoint; real learner sessions and AI/ML/DevOps freshness remain open.
+**Current status — October 3:** the remaining 37 reviews are complete; see [the review ledger](CORE_ACCURACY_COMPLETION_2026-10-03.md). Core coverage is **56/56**. CI frontend/backend/labs/containers pass on main. The [AI/ML/DevOps freshness review](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md) now also closes all twelve remaining technical reviews, for 68/68 scoped reviews. Historical statements below describe earlier checkpoints; real learner sessions and broader practice remain open.
 
 Status: active implementation in `feat/2026-10-02-curriculum-completion`, isolated from the
 main thread's dark-theme branch. This checkpoint records delivered work and explicit remaining
@@ -167,3 +167,9 @@ remote retry ambiguity, spurious wakeups, route update ordering and atomic uniqu
 The remaining 897 questions still receive the existing generic comparison prompts.
 This bounded extension does not close the wider exercise/feedback program, the twelve
 AI/ML/DevOps freshness reviews, or the participant study.
+
+## October 3 continuation — freshness queue complete
+
+All seven AI/ML and five DevOps lessons now have a [source-backed freshness review](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md), closing the separate technical queue and bringing scoped coverage to **68/68**. The preceding interview-feedback package is merged in PR #46; Verify runs 37109023971 and 37109007093 pass all jobs. Current corpus: 33,450 lines, 295 diagrams, 953 questions and 56 authored rubrics.
+
+The new package corrects worked examples and model answers, regenerates six changed diagrams in both themes, adds six offline AI evaluation checks and four PostgreSQL feature-availability assertions, and documents provider/version limits. Remaining work: broader guided practice and authored feedback (897 questions retain general guidance), live AI/DevOps capstones with actual execution evidence, and real learner sessions followed by revisions/retesting. Structural or source checks do not close participant validation.

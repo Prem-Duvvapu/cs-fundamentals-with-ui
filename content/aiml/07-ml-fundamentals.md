@@ -177,7 +177,7 @@ The regularisation strength $\lambda$ is a hyperparameter selected using validat
 
 Feature engineering converts raw data into useful, available, and stable signals. Examples include logarithms for skewed amounts, cyclical encoding for hour-of-day, interaction terms, text tokenisation, and time-window aggregates.
 
-Avoid target leakage. A "refund completed" timestamp cannot predict fraud at payment-authorisation time because it occurs after the decision. Leakage also arises indirectly when records from the same customer appear in both training and test sets or when aggregate features include future events.
+Avoid target leakage. A "refund completed" timestamp cannot predict fraud at payment-authorisation time because it occurs after the decision. Aggregate features that include future events also leak information. Repeated entities need a split matching deployment: use grouped splits to estimate performance on unseen customers, while predictions for existing customers still require chronological features and labels.
 
 Numerical scaling matters for distance- and gradient-based algorithms such as KNN, SVM, and logistic regression. Trees generally do not require standardisation because they split on ordered thresholds.
 
@@ -275,9 +275,18 @@ The 90% accuracy sounds strong but is worse than the naive "never fraud" classif
 
 ### ROC-AUC and regression metrics
 
-The ROC curve plots true-positive rate against false-positive rate over thresholds. ROC-AUC is the probability that a randomly chosen positive receives a higher score than a randomly chosen negative. It measures ranking, not calibration or performance at one operational threshold.
+The ROC curve plots true-positive rate against false-positive rate over thresholds. For binary classification, ROC-AUC counts a positive-negative pair as 1 when the positive score is higher, 0 when lower, and 0.5 when tied, then averages those values. Thus a constant score gives AUC 0.5 when both classes are present. It measures ranking, not calibration or performance at one operational threshold.
 
 On severely imbalanced data, precision-recall curves are often more informative because false positives directly affect precision. Always report a confusion matrix or threshold-specific metrics alongside an aggregate area.
+
+**Check your understanding:** a ticket classifier sees 100 tickets, of which 10 really
+need escalation. It correctly escalates 8, incorrectly escalates 2, and misses 2.
+What are accuracy, precision and recall? Would always predicting "no escalation" win?
+
+**Answer:** there are 88 true negatives, so accuracy is `(8 + 88) / 100 = 96%`,
+precision is `8 / (8 + 2) = 80%`, and recall is `8 / (8 + 2) = 80%`.
+The all-negative baseline has 90% accuracy but zero recall. Which design is useful
+still depends on missed-ticket cost and the capacity to review ten daily alerts.
 
 For regression errors $e_i=y_i-\hat{y}_i$:
 
@@ -329,7 +338,7 @@ A **recurrent neural network (RNN)** processes a sequence while carrying a hidde
 
 An **LSTM** adds gated memory paths controlling what to write, retain, and expose. The gates improve long-range gradient flow, although recurrence still limits parallel training.
 
-A **Transformer** uses attention to let tokens directly combine information from other positions. It trains sequences in parallel and models long-range relationships, but standard self-attention has quadratic time and memory in sequence length.
+A **Transformer** uses attention to let tokens directly combine information from other positions. Training can process positions in parallel, while ordinary autoregressive generation still proceeds token by token. Dense self-attention has quadratic arithmetic in sequence length; implementations that materialize the attention matrix also need quadratic matrix storage. Memory-efficient attention kernels can avoid storing that whole matrix without removing all dense pairwise work.
 
 | Architecture | Core inductive bias | Strength | Constraint |
 |---|---|---|---|
@@ -430,7 +439,7 @@ The majority class can dominate the total, letting a model achieve high accuracy
 
 **Q7. What does ROC-AUC measure?** `[medium]`
 
-ROC-AUC measures how often a random positive receives a higher score than a random negative across all thresholds. It assesses ranking rather than probability calibration or one operating point. On highly imbalanced problems, precision-recall analysis and a threshold-specific confusion matrix can be more actionable.
+For binary classification, ROC-AUC measures positive-negative score ordering, counting ties as half a successful pair. It assesses ranking rather than probability calibration or one operating point. On highly imbalanced problems, precision-recall analysis and a threshold-specific confusion matrix can be more actionable.
 
 **Q8. Compare random forests and gradient boosting.** `[medium]`
 
@@ -454,7 +463,7 @@ Check leakage, random splitting across time or repeated entities, training-servi
 
 **Q13. Scenario: A delivery-time model has MAE 4 minutes and RMSE 18 minutes. What does that gap suggest?** `[hard]`
 
-RMSE's squared penalty indicates a smaller number of very large errors are dominating even though the typical absolute error is modest. Segment residuals by route, weather, distance, missing features, and target range to identify the tail population. Decide whether to improve those cases, use robust losses, or report quantile predictions based on the product cost of extreme misses.
+RMSE's squared penalty suggests large errors contribute disproportionately compared with the average absolute error. MAE is an average, not the median error, so inspect the actual residual distribution before claiming most predictions are close. Segment by route, weather, distance and missing features, then choose improvements or quantile predictions according to the cost of extreme misses.
 
 **Q14. Scenario: A team tunes 500 models against the same validation set and publishes the best result. Why might it fail to reproduce?** `[hard]`
 
@@ -466,3 +475,6 @@ Repeated model selection has overfit the validation set even though gradient tra
 - [Google Rules of Machine Learning](https://developers.google.com/machine-learning/guides/rules-of-ml) provides production-oriented guidance on baselines, features, pipelines, and monitoring.
 - [Deep Learning](https://www.deeplearningbook.org/) by Goodfellow, Bengio, and Courville develops neural-network optimisation and generalisation from first principles.
 - [Attention Is All You Need](https://arxiv.org/abs/1706.03762) is the original Transformer architecture paper.
+- [FlashAttention](https://arxiv.org/abs/2205.14135) explains how exact attention can avoid materializing the full attention matrix in device memory.
+
+Reproduce the ticket confusion matrix and tied-score ROC AUC in the [offline evaluation lab](../../examples/labs/README.md): run `python3 examples/labs/aiml/observe.py` from the repository root. The labels are synthetic teaching fixtures, not a measured model benchmark.

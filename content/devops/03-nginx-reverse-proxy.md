@@ -66,14 +66,18 @@ flowchart TB
     W3 --> E3["Event loop: epoll"]
 ```
 
-A small, fixed number of **worker processes** (commonly one per CPU core) each run a single
-event loop handling potentially thousands of connections simultaneously — a worker never
-blocks waiting on one slow client or one slow backend, it registers interest in a socket
+A configurable number of **worker processes** (commonly one per CPU core) each run a single
+event loop handling potentially thousands of connections simultaneously — network waiting normally does not block a worker, it registers interest in a socket
 becoming readable/writable and moves on to whatever other connection is ready right now.
-This is covered in full in the Expert tier; the beginner-level takeaway is that Nginx's
+Blocking disk operations or third-party module work can still stall a worker. This is covered in full in the Expert tier; the beginner-level takeaway is that Nginx's
 concurrency scales with the number of connections, not the number of OS threads.
 
 ### Basic Reverse Proxy Configuration
+
+This is an `http`-context excerpt, assuming a public edge proxy directly receiving client
+connections and reachable example backends. A complete `nginx.conf` also needs `events {}`.
+For a proxy behind another load balancer, configure its trusted address ranges and real-IP
+handling rather than accepting arbitrary incoming forwarded headers.
 
 ```nginx
 http {
@@ -91,7 +95,8 @@ http {
             proxy_pass http://backend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
     }
 }
@@ -99,8 +104,7 @@ http {
 
 An `upstream` block names a pool of backend servers. `proxy_pass` forwards matching
 requests to that pool. The `proxy_set_header` lines matter more than they look: without
-them, the backend sees every request as coming from Nginx's own IP on the `Host` header
-Nginx chooses, losing the real client's address and the original hostname entirely —
+them, the backend sees Nginx as the TCP peer and a default upstream-oriented `Host` header, unless the original client and host are conveyed by a trusted forwarding contract —
 `X-Forwarded-For` and `X-Real-IP` are how the backend recovers the actual client IP for
 logging, rate limiting, or geo-based logic. Trust these headers only when requests
 arrive through a known proxy; a direct client can forge them.
@@ -128,8 +132,7 @@ the better choice when requests have wildly uneven durations — plain round rob
 several slow, long-running requests onto one backend by coincidence of arrival order, while
 `least_conn` actively routes new requests away from an already-busy backend. `ip_hash`
 trades load-balancing precision for **session affinity**: the same client IP is
-deterministically routed to the same backend every time, useful for backends holding
-in-memory session state with no shared session store — at the cost that a single
+deterministically routed to the same backend every time, sometimes used for affinity, but not a durability guarantee for in-memory sessions — at the cost that a single
 backend going down disrupts every client hashed to it, and any client behind a NAT sharing
 one public IP with many other clients all land on the same backend regardless of load.
 
@@ -142,7 +145,10 @@ Nginx marks that backend unavailable and stops routing new requests to it for th
 seconds, after which it tries again. This means the *first* few real client requests during
 an outage are the ones that discover the backend is down — there is no proactive probing
 loop catching it in advance, unlike an active-health-check system (available in Nginx Plus,
-or bolted on via a sidecar/service-mesh health check in Kubernetes-based deployments).
+or supplied by another traffic-management layer). Which failures count depends on
+`proxy_next_upstream`; a one-server group ignores `max_fails` and `fail_timeout`.
+Retrying after a response has started is not possible, and retrying a write after it may
+have committed needs an idempotency contract, not just a second healthy backend.
 
 ```mermaid
 sequenceDiagram
@@ -182,31 +188,38 @@ location /api/ {
     proxy_pass http://backend;
     proxy_cache api_cache;
     proxy_cache_valid 200 5m;
-    proxy_cache_key "$request_uri";
+    proxy_cache_key "$scheme$proxy_host$request_uri";
+    proxy_cache_bypass $http_authorization $http_cookie;
+    proxy_no_cache $http_authorization $http_cookie;
     add_header X-Cache-Status $upstream_cache_status;
 }
 ```
 
-`proxy_cache_valid 200 5m` caches successful responses for 5 minutes, keyed by the request
-URI — a repeated identical request within that window is served entirely from Nginx's disk
-cache without ever reaching the backend, which matters enormously for read-heavy,
-infrequently-changing endpoints. `$upstream_cache_status` (exposed as a response header
-above) reports `HIT`, `MISS`, `EXPIRED`, or `BYPASS`, which is the first thing to check when
-debugging "why is this endpoint serving stale data" — a cache set to 5 minutes will
-legitimately serve 5-minute-old data by design, not by bug.
+This `server`-context location excerpt is for public, user-independent GET/HEAD responses;
+the `proxy_cache_path` line belongs in `http`, and its cache directory must be writable.
+`proxy_cache_valid 200 5m` supplies a default freshness period for eligible 200 responses.
+Response cache headers, `Set-Cookie`, bypass rules, eviction and other settings can change
+whether an entry is stored or served. It does not guarantee a HIT for every repeated request.
+
+The example bypasses both lookup and storage when Authorization or Cookie is present.
+That is a teaching safeguard, not a universal personalization detector: keep personalized
+routes out of a shared cache unless their complete identity and authorization rules are
+explicitly designed. `$upstream_cache_status` helps distinguish HIT, MISS, EXPIRED and
+BYPASS before attributing stale data to the application. Read the response's cache headers too.
 
 ### Request Buffering and Timeouts
 
-By default Nginx buffers a client's full request body before forwarding it to the backend,
-and buffers the backend's full response before sending it to the client — this protects a
-backend from a slow client trickling in a request body byte by byte (a slow client ties up
-Nginx's fast event loop briefly, not a backend worker/thread for the whole duration).
-`proxy_read_timeout` bounds how long Nginx waits for the backend to send data before giving
-up; a value set too low aborts genuinely slow-but-working requests (a large report
-generation, a slow database query) with a `504 Gateway Timeout`, and a value set too high
-lets one hung backend hold a connection open indefinitely, which is why this number is
-almost always a deliberate, workload-specific trade-off rather than a default left
-untouched.
+Default request buffering reads the full request body before forwarding. Default response
+buffering uses memory buffers and potentially temporary files to decouple a fast upstream
+from a slow client; it does **not** require receiving the whole response before sending
+any bytes to the client. For streaming or Server-Sent Events, inspect `proxy_buffering`,
+application flush behavior and any intermediate proxies.
+
+`proxy_read_timeout` is the allowed inactivity between successive upstream reads, not an
+end-to-end deadline. With a 60-second setting, a report that sends nothing for 70 seconds
+can time out; a stream sending data every 20 seconds can last longer than 60 seconds.
+An application or gateway overall deadline is a separate control. If headers have already
+been sent, a later timeout can truncate a response rather than produce a fresh 504 page.
 
 ---
 
@@ -215,7 +228,7 @@ untouched.
 ### The Master-Worker Model and Zero-Downtime Config Reloads
 
 The master process's most operationally important job is handling `nginx -s reload`
-without dropping a single connection:
+while normally preserving active traffic through a graceful worker transition:
 
 ```mermaid
 flowchart LR
@@ -226,11 +239,12 @@ flowchart LR
     E --> F["Only new workers remain"]
 ```
 
-The master never stops accepting connections during this process: new workers are started
+The listening sockets remain available while workers transition: new workers are started
 alongside the old ones, and old workers are told to finish whatever requests they are
 currently handling and then exit gracefully rather than being killed outright — no new
-connections are routed to an old worker once new workers exist, but no in-flight request is
-ever abruptly cut off either. A syntactically invalid config is rejected *before* any new
+connections are routed to an old worker once new workers exist, and old workers drain their active requests. A configured
+`worker_shutdown_timeout`, resource exhaustion or worker failure can still interrupt work;
+long-lived WebSockets may keep old workers around until closed. A syntactically invalid config is rejected *before* any new
 worker is spawned, so a bad reload leaves the previous, known-good workers running
 untouched rather than taking the service down — this is why `nginx -t` (test configuration)
 before every reload is close to a non-negotiable operational habit.
@@ -245,9 +259,9 @@ use **epoll** (on Linux; equivalent mechanisms exist on other platforms) — a k
 letting one thread register interest in thousands of file descriptors and be woken only for
 the ones that actually became readable or writable, rather than the process having to poll
 or block on each one individually. A single worker's event loop can therefore hold open,
-genuinely idle-but-connected clients (a long-polling connection, a websocket, a slow
-upload) essentially for free — the cost is proportional to active I/O events, not to the
-raw count of open connections, which is exactly the property that lets one worker process
+idle-but-connected clients without a dedicated thread; each still consumes
+socket state, file descriptors and buffers — the cost is proportional to active I/O events, not to the
+raw count of open connections for idle CPU work, which is exactly the property that lets one worker process
 per CPU core serve far more concurrent connections than that many OS threads ever could on
 the same hardware.
 
@@ -262,18 +276,20 @@ location /api/ {
 }
 ```
 
-`rate=10r/s` allows a steady 10 requests per second per client IP, implemented as a
-**leaky bucket**: requests arriving faster than that rate are queued, not immediately
-rejected, up to `burst=20` additional requests. Worked example: a client sends 25 requests
-in a single instant. The first 10 are accepted at the steady rate immediately (this second's
-allowance); the next `burst=20` are queued and released at the steady 10/s rate over the
-following roughly 2 seconds (`nodelay` changes this specific behavior — it releases
-burst-allowed requests immediately instead of smoothing their delivery, trading a smoother
-downstream rate for lower client-perceived latency); the remaining requests beyond `rate +
-burst` = 30 total are rejected outright with `503 Service Unavailable`. This shape — a
-steady sustainable rate plus a bounded burst allowance — is deliberately more forgiving than
-a hard per-second cutoff, since real client traffic is naturally bursty even from a single
-well-behaved client.
+`rate=10r/s` leaks accumulated excess at about one request every 100 ms; it is not a
+fresh allowance of ten immediate requests at each wall-clock second. `burst=20` allows
+20 excess requests. Under an idealized empty bucket with 25 requests at the exact same
+instant, one has no excess, 20 fit the burst and four are rejected.
+
+Without `nodelay`, those 20 are delayed in roughly 100 ms steps, through about 2 seconds.
+With the shown `nodelay`, the allowed 21 proceed immediately, while the excess accounting
+still drains over time. Actual arrivals are not perfectly simultaneous; measure against
+real timings before calling an observed count a bug. Rejection defaults to 503; configure
+`limit_req_status 429` if that is the API contract you intend.
+
+The shared zone coordinates workers of **one instance**, not an entire fleet. Ten
+independent instances could permit much more traffic if a client reaches all ten. A
+per-user fleet-wide quota needs an appropriate shared enforcement design.
 
 ### Production Failure Modes
 
@@ -299,8 +315,9 @@ application code.
 
 **Slowloris-style attacks.** A client that opens many connections and sends request data
 extremely slowly, one byte at a time, can exhaust available worker connections if timeouts
-are not tuned defensively; `client_body_timeout` and `client_header_timeout` bound how long
-Nginx waits for a slow client to finish sending data at all, closing connections that stall
+are not tuned defensively; `client_body_timeout` measures inactivity between body reads, while
+`client_header_timeout` bounds header reading. They do not represent one universal
+whole-request deadline, closing connections that stall
 past that window rather than holding them open indefinitely on the hope the client
 eventually finishes.
 
@@ -312,12 +329,12 @@ eventually finishes.
   scales past connection counts that would exhaust a thread-per-connection model.
 - **"Reloading Nginx's config causes a brief outage."** A valid reload starts new workers
   alongside old ones and lets old workers drain in-flight requests before exiting — no
-  connection is dropped and no new connection is ever refused during a normal reload.
+  normal traffic can continue. A forced shutdown deadline or failure can still interrupt work.
 - **"Round robin distributes load evenly."** It distributes *request count* evenly, not
   actual load — a mix of fast and slow requests routed round-robin can still leave one
   backend disproportionately busy purely by the coincidence of which requests it happened
   to receive; `least_conn` targets actual concurrent load instead.
-- **"`ip_hash` guarantees perfectly even load."** It guarantees session affinity, which is a
+- **"`ip_hash` guarantees perfectly even load."** It aims for client-IP affinity while the usable pool is stable, which is a
   different goal — clients sharing one IP (common behind NAT) all land on the same backend
   regardless of that backend's real load, which can create hot spots invisible to per-request
   load metrics.
@@ -355,10 +372,11 @@ Without them, every request the backend receives appears to originate from Nginx
 address, since Nginx is the one making the actual TCP connection to the backend — the real
 client's IP is otherwise lost entirely. These headers carry the original client IP through
 explicitly so backend logging, rate limiting, or geo-based logic can use the real client
-address instead of Nginx's. They are only trustworthy at the first proxy, though: a client
-can send its own `X-Forwarded-For`, so the edge Nginx must overwrite rather than append it,
-and a backend that rate-limits on a spoofable header is worse off than one that never saw
-the client IP at all.
+address instead of Nginx's. Trust depends on the whole proxy chain, not just whether the header exists. A public edge
+can overwrite incoming forwarded-client values; a proxy behind a known load balancer must
+validate its immediate peer and parse the trusted chain. Configure the application to trust
+only the authorized proxies, and carry the original scheme for secure redirects. Otherwise
+a client can forge an identity used for logging, rate limits or access decisions.
 
 **Q4. Explain the difference between round robin, least connections, and IP hash load balancing.** `[easy]`
 
@@ -374,9 +392,9 @@ holds in-memory session state with no shared store.
 The master process reads and validates the new configuration first; if it's valid, the
 master spawns new worker processes running the new configuration while the existing workers
 keep running unaffected. New connections are routed only to the new workers, while old
-workers are told to finish any requests they are currently handling and then exit — no
-in-flight request is cut off and no new connection is ever refused during this transition,
-which is why reloading is considered safe to do during live traffic.
+workers are told to finish any requests they are currently handling and then exit — the intended behavior is graceful draining. A forced shutdown timeout or worker failure
+can interrupt active requests, and long-lived connections may delay old-worker exit. Test
+syntax with `nginx -t`, then verify actual requests and the error log after the reload.
 
 **Q6. Why might round-robin load balancing still leave one backend meaningfully more loaded than the others, even though each receives an equal request count?** `[medium]`
 
@@ -386,30 +404,27 @@ accumulate several long-running expensive requests purely by the coincidence of 
 order, while another backend's requests all happen to be cheap and finish quickly. Least
 connections targets this directly by routing new requests toward whichever backend
 currently has the fewest requests actually in flight, rather than by a fixed rotation.
-Least-connections is not free, though — it needs shared per-backend state across workers,
-and it still measures concurrency rather than cost, so a backend holding one very expensive
+Least-connections is not free, though — it uses per-worker state unless an upstream shared `zone` is configured,
+and measures active connections rather than request cost, so a backend holding one very expensive
 request still looks idle next to one holding three cheap ones.
 
 **Q7. A client reports intermittent `504 Gateway Timeout` errors only for one specific, slow report-generation endpoint. What's the likely cause and fix?** `[medium]`
 
-`proxy_read_timeout` bounds how long Nginx waits for the backend to respond before giving up
-and returning a 504 to the client; a value tuned for typical fast endpoints is very likely
-too short for a genuinely slow report-generation request that legitimately takes longer to
-complete. The fix is either a longer, endpoint-specific `proxy_read_timeout` for that
-location block, or making the endpoint asynchronous (return immediately, let the client poll
-for completion) so no single request needs to stay open that long in the first place.
+Correlate the 504 with the error log and upstream timings. `proxy_read_timeout` is an
+inactivity timer between upstream reads, not a total request duration; a report that stays
+silent too long can hit it while a longer stream with periodic data may not. Check backend
+saturation and database time before increasing it. An endpoint-specific timeout or an
+asynchronous job API can be appropriate, with an explicit overall deadline and cancellation
+contract rather than allowing unbounded work.
 
 **Q8. What does `proxy_cache_valid 200 5m` actually guarantee, and what's the first thing to check if a cached endpoint is serving data that should have already changed?** `[medium]`
 
-It guarantees that a successful (200) response is served from Nginx's own cache for 5
-minutes after being cached, without contacting the backend again for an identical cache key
-during that window — this is by design, not a bug, so up to 5-minute-stale data is the
-expected behavior. The first thing to check is the `$upstream_cache_status` response header
-(`HIT`, `MISS`, `EXPIRED`, `BYPASS`) to confirm whether the response actually came from cache
-at all before assuming the backend itself returned stale data. The subtler cause is the
-cache key: `proxy_cache_key` defaults to scheme, host and URI, so two responses that differ
-by a header or cookie collapse onto one entry, and a per-user response can be served to
-everyone until it expires.
+It supplies a default five-minute freshness period for eligible 200 responses, not a
+promise that every response is cached or every lookup is a HIT. Upstream cache headers,
+Set-Cookie, authorization, bypass/no-cache settings and eviction also matter. Inspect
+`$upstream_cache_status`, cache key and response headers. Use complete public-response
+identity and bypass both lookup and storage for personalized traffic unless the application
+has deliberately designed a safe identity-aware cache.
 
 **Q9. Why does `ip_hash` load balancing sometimes create a hot backend that receives far more traffic than the others, even under otherwise uniform traffic?** `[medium]`
 
@@ -426,17 +441,12 @@ the pool is resized.
 
 **Q10. Walk through what `limit_req_zone ... rate=10r/s` combined with `limit_req ... burst=20` actually does when a client sends 25 requests at once.** `[hard]`
 
-This is a leaky-bucket rate limiter: the steady rate allows 10 requests per second per
-client, and `burst=20` allows up to 20 additional requests to queue beyond that steady rate
-rather than being rejected immediately. Of 25 simultaneous requests, roughly 10 are accepted
-under the current second's allowance, up to 20 more are queued and released at the 10/s
-steady rate over the following couple of seconds (or released immediately if `nodelay` is
-set, trading smoothed delivery for lower perceived latency), and anything beyond `rate +
-burst` total is rejected outright with a 503 — the design intentionally tolerates natural
-burstiness rather than enforcing a hard per-second wall. The catch is that the shared
-memory zone is per Nginx instance, not per fleet: with ten instances behind a load balancer
-the effective limit is ten times the configured rate, so the number in the config is not the
-number the backend actually sees.
+Assume an empty bucket and exactly simultaneous arrivals: one request proceeds without
+excess, 20 fit `burst=20`, and four are rejected. At 10r/s, without `nodelay`, those excess
+requests are delayed approximately 100 ms apart; with `nodelay`, the allowed burst proceeds
+immediately but still consumes excess capacity until it drains. This is not a ten-request
+fixed-window allowance plus twenty more. Default rejection is 503, configurable with
+`limit_req_status`; a shared zone coordinates one instance's workers, not a whole fleet.
 
 **Q11. Why is `nginx -t` before every reload considered close to mandatory operational practice?** `[hard]`
 
@@ -482,17 +492,20 @@ about this jitter their timeouts rather than relying on restarts always being st
 **Q14. Why can a client's authentication token size alone cause `400 Bad Request` errors at the proxy layer that have nothing to do with the backend application?** `[hard]`
 
 Nginx allocates fixed-size buffers for request headers via directives like
-`large_client_header_buffers`, and a request whose combined headers (including a large
-bearer token or an oversized cookie in the `Authorization`/`Cookie` header) exceed that
-configured buffer size is rejected by Nginx itself before the request ever reaches the
-backend application — the application code is never at fault and never even sees the
-request. The fix is either increasing the relevant buffer-size directive to accommodate the
+`large_client_header_buffers`, and a request with a single header field too large for one configured large-header buffer, or
+aggregate headers beyond the available buffers is rejected by Nginx itself before the request ever reaches the
+backend application. The handler never sees the rejected request, although the
+application's token design may be what made the header excessively large. The fix is either increasing the relevant buffer-size directive to accommodate the
 actual token size in use, or reducing what is carried in the header (a shorter session
 reference instead of an inline token) if the token size itself is avoidable.
 
-Further reading: [Nginx's own documentation on load balancing](https://nginx.org/en/docs/http/load_balancing.html)
+### Further Reading
+
+ [Nginx's own documentation on load balancing](https://nginx.org/en/docs/http/load_balancing.html)
 covers every algorithm and its exact directives; the
 [Nginx architecture whitepaper on connection processing](https://nginx.org/en/docs/events.html)
 explains the event-loop model referenced throughout; the
 [C10K problem essay](http://www.kegel.com/c10k.html) is the original write-up of the
 scaling problem event-driven servers like Nginx were built to solve.
+
+The [proxy module reference](https://nginx.org/en/docs/http/ngx_http_proxy_module.html) defines buffering, caching and inactivity timeouts; [request limiting](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html) defines burst handling. [Controlling Nginx](https://nginx.org/en/docs/control.html) explains graceful reloads; the [HTTP core reference](https://nginx.org/en/docs/http/ngx_http_core_module.html) defines header buffers and shutdown timeouts. [Upstream configuration](https://nginx.org/en/docs/http/ngx_http_upstream_module.html) covers failure accounting and shared worker state.

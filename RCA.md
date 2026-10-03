@@ -449,3 +449,12 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: whole-corpus frontend parsing checks all 56 authored blocks are complete and separate from model answers; backend pagination checks the same total and all twelve newly authored question IDs. Final run results are recorded in the feedback ledger.
 - Prevention: recount canonical content and run both whole-corpus checks before publishing a new feedback total. Update the assertions intentionally when adding or removing authored rubrics.
 - Resolving commit: `f01f46a`; this follow-up records the verified implementation commit.
+
+## RCA-2026-10-03-04 — Reader control assertion raced TOC extraction
+
+- Evidence: push Verify run 37117838915 failed one of 712 frontend tests at `TopicViewer.test.jsx:182`: lesson headings were mounted, but the table-of-contents list was still empty. The same-head PR Verify run 37117848524 passed all 712 tests. Application and test source were unchanged in the initial content commit `05a3642`.
+- Root cause: the existing interaction test awaited the Markdown content and reader shell, then synchronously queried a TOC link. `TopicViewer` extracts headings into section state in an effect after renderer readiness; visible lesson text did not prove that later update had finished.
+- Resolution: await the actual accessible `Read Beginner Level` link before clicking it and asserting scrolling. Preserve the behavior assertions rather than retrying the whole suite or adding arbitrary sleeps.
+- Verification: all 21 focused TopicViewer tests pass after the correction; the full frontend CI suite must pass on the resolving head before merge. The release ledger/PR records final results.
+- Prevention: assertions for derived navigation must await the navigation target itself, not only the content or controls that precede it. This parallels the earlier lazy-Markdown browser race in RCA-2026-10-01-06.
+- Resolving commit: `98a1ad5`.

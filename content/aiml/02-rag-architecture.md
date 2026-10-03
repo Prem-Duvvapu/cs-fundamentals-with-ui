@@ -102,7 +102,7 @@ flowchart LR
         E --> I["Lexical and vector indexes"]
     end
     subgraph Answer["Online retrieval and generation"]
-        Q["Authenticated question"] --> R["Hybrid retrieval"]
+        Q["Authenticated question"] --> R["Authorized hybrid retrieval"]
         R --> X["Reranking and diversification"]
         X --> G["Grounded context injection"]
         G --> A["Answer, citations, or abstention"]
@@ -169,6 +169,18 @@ Treat the vector index as derived data. A document update emits a versioned even
 
 Tenant IDs, ACLs, classifications, and effective dates are server-controlled retrieval filters. They are not instructions the model may infer from a prompt. Recheck selected source IDs before generation because a semantically relevant document from another tenant is still a data leak.
 
+Check authorization before fetching candidate text or sending it to an external reranker,
+summarizer or model. A final-answer filter cannot undo an earlier disclosure. Permission
+changes also invalidate retrieval/answer caches; include a permission version or recheck
+access on cache hits. Parent sections and displayed citation snippets need the same checks.
+
+**Try it:** candidate A is the current policy for your tenant, B is a newer policy for
+another tenant, and C is your tenant's withdrawn policy. Which may enter the prompt?
+
+**Answer:** only A, after the caller's access is checked. Newer timestamps do not authorize
+B, and a high similarity score does not reactivate C. If A does not answer the question,
+ask for clarification or abstain; do not substitute forbidden or withdrawn evidence.
+
 ### Query transformation and routing
 
 Users rarely phrase questions in the vocabulary used by source authors.
@@ -222,7 +234,7 @@ Every model call has a finite token budget.
 
 Reserve tokens for system instructions, the user question, retrieved evidence, model output, and safety margin.
 
-If a model supports 16,000 input tokens, allocating 14,000 to context leaves little room for a detailed answer or tool result.
+For an illustrative model with a shared 16,000-token input/output context limit, 14,000 evidence tokens leave only 2,000 for all other input and output. Providers may impose separate input, output and reasoning-token limits; budget using the deployed contract rather than assuming all limits are interchangeable.
 
 Budgeting should be explicit in code and trace data.
 
@@ -256,7 +268,7 @@ Consider a labelled evaluation set of 200 support questions.
 
 For each question, reviewers mark the source passages required for a complete answer.
 
-If 176 questions retrieve at least one required passage in the first five results, recall@5 is $176 / 200 = 0.88$.
+If 176 questions retrieve at least one required passage in the first five results, the query-level hit rate at 5 is $176 / 200 = 0.88$. It equals recall@5 only when each query has exactly one relevant passage. With multiple relevant passages, compute each query's retrieved-relevant count divided by its total relevant count, then state how those per-query values are averaged.
 
 If those five-result lists contain 1,000 total passages and 260 are judged useful, precision@5 is $260 / 1000 = 0.26$.
 
@@ -295,8 +307,8 @@ Use representative restrictive filters in test data, not just an unrestricted pu
 ### Advanced RAG Optimization & Hallucination Guardrails
 
 - **Parent-Child Chunk Retrieval**: Embeds small child chunks (128 tokens) for precise vector matching, but passes the parent document context (1024 tokens) to the LLM.
-- **RAG Triad Metrics (Ragas Framework)**:
-  1. **Faithfulness**: Is the LLM answer strictly derived from the retrieved context? (Prevents hallucination).
+- **Separate evaluation dimensions**; tools such as Ragas offer implementations with different reference and judge requirements:
+  1. **Faithfulness**: Are answer claims supported by the retrieved context? This measures support; it does not prevent hallucinations or establish that the source itself is correct.
   2. **Answer Relevance**: Does the LLM answer address the user query?
  3. **Context Precision**: Are the top retrieved chunks actually relevant to the prompt?
 
@@ -336,7 +348,7 @@ Quantisation can reduce memory, but it changes recall.
 
 Evaluate scalar or product quantisation against labelled questions before using it to meet a budget.
 
-Cache only deterministic boundaries.
+Cache only with explicit identity, version, freshness and privacy rules.
 
 Embedding a repeated query can be cached using a normalised query and embedding-model version.
 
@@ -427,7 +439,7 @@ It states that retrieved sources do not support a confident answer instead of fi
 
 **Q5. Why is a reranker placed after ANN retrieval?** `[medium]`
 
-A cross-encoder reads a query and passage together, so it is precise but expensive per pair. ANN retrieval cheaply narrows millions of chunks to a candidate set first. Running the cross-encoder across the corpus would make interactive latency impractical.
+A cross-encoder reads a query and passage together, allowing finer relevance scoring at higher per-pair cost. Candidate retrieval first narrows the corpus to a bounded, authorized set. Its benefit must be evaluated because a reranker can misorder evidence and cannot recover a source omitted by retrieval.
 
 **Q6. Why use reciprocal rank fusion for hybrid search?** `[medium]`
 
@@ -435,7 +447,7 @@ RRF combines ranked lists without assuming vector and BM25 scores share a numeri
 
 **Q7. How should a policy update reach a vector index?** `[medium]`
 
-Emit a versioned change event, parse and chunk the source, embed it, and publish the new chunk set atomically. Retire older chunks so search cannot blend conflicting versions. Monitor event lag and extraction counts because successful jobs can still create unusable text.
+Emit a versioned change event, parse and chunk the source, and embed its complete new chunk set. Use a transaction, version-gated publication or an index alias supported by the chosen engine so readers select a complete version, then retire old chunks. Monitor event lag and extraction counts because successful jobs can still create unusable text.
 
 **Q8. What is parent-child retrieval's trade-off?** `[medium]`
 
@@ -459,7 +471,7 @@ Compare the CMS version and timestamp with indexed chunk versions and ingestion-
 
 **Q13. Scenario: an employee receives a cited answer about another customer. What failed?** `[hard]`
 
-The retrieval path treated authorisation as optional metadata rather than a server-enforced filter. Disable the affected collection, inspect traces for cross-tenant results, and follow incident policy for exposure. Remediate with authenticated filters, retrieval tests, and tenant-isolated indexes where appropriate.
+Contain the exposure and inspect retrieval filters, cached answers, parent-chunk expansion and citation rendering; the symptom alone does not identify one faulty stage. Follow incident policy and compare source permissions with the authenticated principal at each boundary. Add server-controlled access checks and permission-change tests before restoring the affected path.
 
 **Q14. Scenario: relevance falls after top-k rises from 8 to 40. Why?** `[hard]`
 
@@ -470,3 +482,5 @@ The larger context likely introduced marginal, duplicate, or contradictory passa
 - [Lewis et al., Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401) introduces the original RAG formulation.
 - [Sentence Transformers semantic-search documentation](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html) explains query and document encoders.
 - [Elasticsearch reciprocal rank fusion reference](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion) documents practical RRF parameters and trade-offs.
+- [Ragas context recall](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/) distinguishes reference coverage from finding just one relevant result.
+- [Azure AI Search query-time access enforcement](https://learn.microsoft.com/en-us/azure/search/search-query-access-control-rbac-enforcement) illustrates a server-enforced document-access boundary; capabilities depend on the service and feature version.

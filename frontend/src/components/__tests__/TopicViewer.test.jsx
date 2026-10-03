@@ -179,7 +179,7 @@ Apply it.`
       expect(screen.getByTestId('markdown-content')).toHaveTextContent('Beginner Level')
     })
 
-    const continueButton = screen.getByRole('link', { name: /Read Beginner Level/i })
+    const continueButton = await screen.findByRole('link', { name: /Read Beginner Level/i })
     fireEvent.click(continueButton)
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'instant', block: 'start' })
 

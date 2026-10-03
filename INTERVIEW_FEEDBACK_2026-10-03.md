@@ -51,14 +51,14 @@ because every diagram source is preserved. Final local results:
 The earlier count of 42 is corrected to a verified parent-commit count of 44;
 RCA-2026-10-03-03 records the reporting failure and prevention.
 
-## Still pending
+## Follow-up status
 
-- The separate freshness review of seven AI/ML and five DevOps lessons.
+- The separate freshness review is now complete; see [the twelve-lesson ledger](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md).
 - Broader worked exercises, diagnosis tasks and authored feedback; **897 of 953**
   questions still use the existing generic comparison prompts.
 - Actual beginner/backend-engineer sessions under [the learner study protocol](LEARNER_USABILITY_STUDY.md), then revisions and retesting based on observations.
 
-The current corpus is **68 lessons, 33,232 lines, 295 diagrams, 953 questions and 56 rubrics**.
+The corpus at this feedback package was **68 lessons, 33,232 lines, 295 diagrams, 953 questions and 56 rubrics**. The subsequent freshness package brings lines to **33,450** without adding questions or rubrics.
 Structural checks and factual source review do not establish learner comprehension.
 
 Implementation and local verification commit: **`f01f46a`** on `feat/2026-10-03-interview-feedback`.

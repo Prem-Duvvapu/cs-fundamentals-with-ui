@@ -128,7 +128,7 @@ An inference endpoint returning HTTP 200 only proves that code ran. It does not 
 
 ### Point-in-time correctness and leakage prevention
 
-A historical training row must use only information that was available when its label event occurred. A **point-in-time join** chooses the latest feature event whose event timestamp is less than or equal to the observation timestamp, subject to any validity window.
+A historical training row must match the information available at prediction time, not when a delayed label finally arrived. An event-time **point-in-time join** chooses the latest feature event at or before the observation timestamp, within its validity window. Reproducing what the online system actually knew also requires an availability cutoff or logged online inputs; an event timestamp alone does not prove timely arrival.
 
 Suppose a fraud-training example represents a transaction at `10:00:00`:
 
@@ -138,19 +138,31 @@ Suppose a fraud-training example represents a transaction at `10:00:00`:
 | Account risk update B | `10:03:00` | `10:03:04` | `0.91` |
 | Late risk update C | `09:55:00` | `10:08:00` | `0.32` |
 
-An offline job run at noon must not simply select the physically latest row, because that would choose `0.91`, a value produced after the transaction. With an event-time point-in-time join, update A is available in the first training build; after late update C is accepted and the dataset is rebuilt, `0.32` is correct because its event time preceded the transaction.
+An offline job at noon must not select B because its event is later than the transaction.
+An event-time-only join would select C after its late arrival, but C was not known at
+`10:00:00`. To replay the online decision, select A's `0.18`; selecting C's `0.32`
+instead reconstructs corrected historical event state. Those are different dataset
+contracts. Record the availability policy and freeze each training snapshot.
+
+The following SQL is a schema-design excerpt. `available_at` means when the value became
+available to this serving path, and `update_id` supplies a deterministic final tie-break;
+do not assume a source record's creation timestamp is the same as online availability.
 
 ```sql
-SELECT observation.transaction_id,
-       feature.risk_score
-FROM fraud_observations AS observation
-LEFT JOIN account_risk_history AS feature
-  ON feature.account_id = observation.account_id
- AND feature.event_time <= observation.transaction_time
-QUALIFY ROW_NUMBER() OVER (
-  PARTITION BY observation.transaction_id
-  ORDER BY feature.event_time DESC, feature.created_time DESC
-) = 1;
+WITH eligible AS (
+  SELECT observation.transaction_id, feature.risk_score,
+         ROW_NUMBER() OVER (
+           PARTITION BY observation.transaction_id
+           ORDER BY feature.event_time DESC, feature.available_at DESC,
+                    feature.update_id DESC
+         ) AS position
+  FROM fraud_observations AS observation
+  LEFT JOIN account_risk_history AS feature
+    ON feature.account_id = observation.account_id
+   AND feature.event_time <= observation.transaction_time
+   AND feature.available_at <= observation.transaction_time
+)
+SELECT transaction_id, risk_score FROM eligible WHERE position = 1;
 ```
 
 This join needs event timestamps, deterministic tie-breaking, and a documented policy for late data. Using processing time alone leaks future information or silently changes a training dataset between reruns.
@@ -159,16 +171,19 @@ This join needs event timestamps, deterministic tie-breaking, and a documented p
 
 **Materialisation** copies computed historical features into the online store. A backfill materialises a range of past partitions; an incremental job advances from a recorded watermark; streaming updates may write each entity as soon as its window changes.
 
-Consider a pipeline with these measured p99 delays:
+Consider a pipeline with these illustrative stage allocations:
 
-| Stage | p99 delay |
+| Stage | Planning allocation |
 |---|---:|
 | Event ingestion | 8 seconds |
 | Window aggregation | 19 seconds |
 | Validation and write | 7 seconds |
 | Online replication | 4 seconds |
 
-The end-to-end p99 freshness lag is approximately $8 + 19 + 7 + 4 = 38$ seconds. A 60-second freshness objective leaves 22 seconds of headroom; a 30-second objective is impossible without changing the pipeline, even if the Redis lookup itself takes only 2 milliseconds.
+The allocations sum to $8 + 19 + 7 + 4 = 38$ seconds, leaving 22 seconds within a
+60-second planning budget. This does not establish end-to-end p99: percentiles do not
+add because slow events can overlap differently across stages. Measure source-to-served
+lag for the same events and compare its distribution with the freshness objective.
 
 Freshness monitoring compares source watermarks with feature timestamps per partition and entity cohort. A single global “last job succeeded” metric hides stuck partitions and hot-key failures.
 
@@ -227,9 +242,9 @@ Expiry should produce a typed “missing” state rather than an ambiguous zero.
 
 ### A concrete online latency and capacity budget
 
-Assume an endpoint has a 50 ms p99 objective and 2,000 requests per second. Its measured p99 budget is 4 ms at the gateway, 8 ms for an online feature multi-get, 13 ms for vector search, 17 ms for model inference, and 3 ms for serialization.
+Assume an endpoint has a 50 ms p99 objective and 2,000 requests per second. Allocate 4 ms to the gateway, 8 ms to an online feature multi-get, 13 ms to vector search, 17 ms to model inference, and 3 ms to serialization as illustrative stage budgets.
 
-The composed path costs $4 + 8 + 13 + 17 + 3 = 45$ ms, leaving only 5 ms of contingency. Sequentially fetching three feature groups at 8 ms each would add roughly 16 ms and violate the objective, so co-located multi-get or bounded parallel fan-out is necessary.
+These allocations total $4 + 8 + 13 + 17 + 3 = 45$ ms, leaving 5 ms of planning headroom. Three sequential 8 ms lookups would add 16 ms to that illustrative path, so compare multi-get and bounded parallel fan-out. Neither adding stage p99 values nor assuming parallel work is free proves the endpoint SLO; measure the full request distribution and dependency saturation.
 
 At 2,000 requests per second with an average of six feature keys per request, the online store sees 12,000 key reads per second before retries. Provisioning for a 2.5-times burst and 10% retry allowance requires capacity for about $12{,}000 \times 2.5 \times 1.1 = 33{,}000$ reads per second.
 
@@ -253,6 +268,9 @@ Suppose a risk score has reference proportions `[0.50, 0.30, 0.20]` and current 
 | Total | 1.00 | 1.00 | **0.0935** |
 
 A team might treat 0.0935 as a warning below its action threshold, but PSI thresholds are operational conventions, not universal statistical laws. Bucket boundaries, sample size, seasonality, and near-zero proportions can materially change the value, so PSI should be paired with schema checks, slice metrics, and outcome evaluation.
+For a zero bucket proportion, the logarithm is undefined. Declare a smoothing policy
+and renormalize the distributions before comparison; do not silently drop the bucket
+or interpret an arbitrary epsilon as a universal statistical significance rule.
 
 ---
 
@@ -306,6 +324,8 @@ A retraining run should use a versioned dataset, record hyperparameters and eval
 ### Shadow, canary, and champion-challenger releases
 
 In a **shadow deployment**, the candidate receives a copy of production requests but its result is not returned to users. This reveals latency, dependency, feature-parity, and disagreement issues without changing decisions, although it can double downstream load.
+Disable write effects and limit duplicated reads in the shadow path. Hiding its response
+does not prevent a candidate from sending a notification or mutating downstream state.
 
 In a **canary deployment**, a small, representative percentage of real decisions uses the candidate. Canary analysis must segment by traffic cohort and compare both model quality and service health; a random 5% sample may miss a rare high-value region.
 
@@ -372,7 +392,7 @@ The offline store serves historical scans and point-in-time joins over large dat
 
 **Q3. What is point-in-time correctness?** `[easy]`
 
-Point-in-time correctness means every training observation uses only feature values whose event time was available at that observation's timestamp. The historical join selects the newest eligible prior value and uses deterministic rules for late or tied events. Without it, future information leaks into training metrics and produces a model that cannot reproduce its apparent accuracy online.
+Point-in-time correctness aligns features with a declared historical prediction cutoff. An event-time join excludes later events, but reproducing online knowledge also requires availability-time restrictions or recorded serving inputs. Late data can change a rebuilt event-history view without having been available to the original model, so version the dataset and its late-arrival policy.
 
 **Q4. What is feature freshness, and how is it different from lookup latency?** `[easy]`
 
@@ -424,3 +444,5 @@ Treat the online store as a rebuildable projection, but pre-provision or continu
 - [Feast point-in-time joins](https://docs.feast.dev/getting-started/concepts/point-in-time-joins) describes historical retrieval without future-feature leakage.
 - [TensorFlow Data Validation guide](https://www.tensorflow.org/tfx/guide/tfdv) documents schema checks, training-serving skew detection, and drift comparison.
 - [MLflow Model Registry](https://mlflow.org/docs/latest/ml/model-registry/) covers model versioning, aliases, lineage, and controlled promotion workflows.
+
+The [feature-availability SQL lab](../../examples/labs/README.md) supplies these temporary tables and asserts the replay result, late-data alternative, missing feature and timestamp tie. Run `psql -X -v ON_ERROR_STOP=1 -d postgres -f examples/labs/sql/feature-availability.sql` from the repository root; the fixture rolls back all temporary objects. It demonstrates the declared query policy, not a live Feast pipeline.

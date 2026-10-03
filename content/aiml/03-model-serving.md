@@ -23,7 +23,7 @@ For a chat model, the request includes a conversation, system instructions, para
 The tokenizer converts that request into **tokens**, the units processed by the LLM. The effective
 **context** includes system instructions, conversation history, retrieved evidence, tool schemas,
 and the new user input—not only the visible user message. Input tokens plus the allowed generated
-tokens must fit the model's context window, so the server must count with the deployed model's
+tokens must satisfy the model's context and separate input/output limits, including any reasoning-token rules. The server must count with the deployed model's
 tokenizer rather than estimate from characters.
 
 Inference first runs a forward pass over context during prefill, then repeatedly predicts a
@@ -203,6 +203,15 @@ Eight such sequences need about 8 GiB before allocator overhead and temporary wo
 If a GPU has 24 GiB total and weights plus runtime reserve use 16 GiB, only about 8 GiB remains for this simplified cache budget.
 
 The server can admit roughly eight 2,048-token sequences under these assumptions, not hundreds.
+That length includes retained prompt and generated tokens, not just the initial prompt.
+If each request grows from 2,048 to 4,096 retained tokens, its simplified cache doubles
+to 2 GiB and eight requests no longer fit. Reserve growth or apply an explicit scheduling
+policy; filling all memory at admission does not guarantee requests can finish.
+
+**Try it:** keep 32 layers and FP16 entries but use 8 KV heads instead of 32. What
+happens to this calculation? **Answer:** the cache is one quarter as large: 128 KiB
+per retained token and 256 MiB for 2,048 tokens. This illustrates grouped-query
+attention; actual memory also depends on allocator blocks, architecture and parallelism.
 
 ```mermaid
 flowchart LR
@@ -244,8 +253,9 @@ The request contract should make limits explicit.
 
 It should state maximum input tokens, maximum generated tokens, supported sampling parameters, streaming behaviour, timeout semantics, and error codes.
 
-A versioned endpoint such as `POST /v1/responses` should separate model selection, input,
-generation limits, output contract, and tracing metadata:
+The following is an illustrative application-owned contract for `POST /api/v1/ai/generate`,
+not a request body for a particular model provider. Translate it to that provider's supported
+API fields. It separates model selection, input, generation limits, output contract and tracing:
 
 ```json
 {
@@ -428,9 +438,13 @@ It does not make context memory free.
 
 ### Speculative decoding and prefix caching
 
-Speculative decoding uses a smaller draft model to propose several next tokens.
+Speculative decoding proposes several candidate tokens cheaply, then verifies them with
+the target model. Proposals can come from a smaller draft model, specialized prediction
+heads or prompt n-gram lookup; supported strategies depend on the engine and model version.
 
-The larger target model verifies proposed tokens in a parallel pass and accepts a prefix that matches its distribution rules.
+The target model verifies proposals in a parallel pass. Exact speculative sampling uses
+acceptance and correction rules to preserve the target distribution; this does not imply
+an identical random-seed trace, and approximate variants require their own quality evaluation.
 
 When acceptance is high, one expensive target-model invocation produces multiple output tokens' worth of progress.
 
@@ -441,6 +455,10 @@ Prefix caching retains KV state for repeated system prompts, documents, or conve
 It improves time to first token for matching requests.
 
 It needs tenant isolation, correct cache keys, expiry, and memory quotas so one tenant cannot retrieve or evict another tenant's sensitive context.
+Prefix reuse reduces repeated prefill work, not the remaining generation work. Cache
+isolation can also matter for timing privacy: supported vLLM versions offer `cache_salt`
+to separate trust groups. Derive that isolation policy server-side rather than letting
+an arbitrary user select another tenant's cache group.
 
 ### Reliability, rollout, and safety boundaries
 
@@ -513,7 +531,7 @@ It allocates fixed KV-cache blocks from a shared pool as a sequence grows instea
 
 **Q7. What does time to first token measure?** `[medium]`
 
-It measures delay from accepted request to the first generated token reaching the client. It includes queueing, tokenisation, prefill, scheduling, and transport delay. It is critical for interactive UX and can regress even while total tokens per second improves.
+Client time to first token measures from sending the request until the first output token arrives. A server metric may start at acceptance, so declare its measurement boundary. Queueing, tokenisation, prefill, scheduling and transport can contribute; fast aggregate throughput does not establish a good client first-token delay.
 
 **Q8. How should a streaming inference API handle timeouts and retries?** `[medium]`
 
@@ -532,7 +550,7 @@ and knowledge versions alongside similarity.
 
 **Q10. How does speculative decoding work?** `[medium]`
 
-A smaller draft model proposes several candidate next tokens cheaply. The target model verifies them together and accepts the valid prefix according to the decoding algorithm. It helps only when acceptance rate and target-model batching offset the draft and verification overhead.
+A draft model, prediction heads or another supported proposal method suggests several candidate tokens cheaply. The target verifies them using the chosen acceptance/correction algorithm; exact variants preserve its output distribution under their assumptions. It helps only when accepted progress outweighs proposal, verification and scheduling overhead on the actual workload.
 
 **Q11. Scenario: GPU utilisation is low but users wait 12 seconds for first tokens during a traffic burst. What do you inspect?** `[hard]`
 
@@ -558,5 +576,7 @@ Load it into isolated warm capacity, run offline task-specific quality evaluatio
 
 - [vLLM PagedAttention paper](https://arxiv.org/abs/2309.06180) describes block-based KV-cache management and serving throughput.
 - [OWASP LLM Prompt Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html) covers indirect injection, least privilege, validation, and layered guardrails.
-- [Hugging Face Text Generation Inference documentation](https://huggingface.co/docs/text-generation-inference/index) covers production inference-server concepts.
+- [Hugging Face Text Generation Inference documentation](https://huggingface.co/docs/text-generation-inference/index) covers serving concepts and states that TGI is in maintenance mode; check engine maintenance and model support before a new deployment.
 - [NVIDIA TensorRT-LLM documentation](https://nvidia.github.io/TensorRT-LLM/) explains accelerator-focused LLM inference optimisation.
+- [vLLM speculative decoding](https://docs.vllm.ai/en/latest/features/speculative_decoding/) documents proposal strategies, compatibility and workload-dependent benefits.
+- [vLLM prefix-cache design](https://docs.vllm.ai/en/latest/design/prefix_caching/) explains block reuse and optional cache isolation.
