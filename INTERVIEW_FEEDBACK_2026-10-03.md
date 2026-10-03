@@ -60,3 +60,5 @@ RCA-2026-10-03-03 records the reporting failure and prevention.
 
 The current corpus is **68 lessons, 33,232 lines, 295 diagrams, 953 questions and 56 rubrics**.
 Structural checks and factual source review do not establish learner comprehension.
+
+Implementation and local verification commit: **`f01f46a`** on `feat/2026-10-03-interview-feedback`.

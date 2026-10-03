@@ -448,4 +448,4 @@ unsupported state controlling whether the Simulation tab should appear.
 - Resolution: correct the current total to 56, preserve dated historical records, and state the recounted baseline of 44 in the follow-up ledger. No questions or model answers were removed to make a count pass.
 - Verification: whole-corpus frontend parsing checks all 56 authored blocks are complete and separate from model answers; backend pagination checks the same total and all twelve newly authored question IDs. Final run results are recorded in the feedback ledger.
 - Prevention: recount canonical content and run both whole-corpus checks before publishing a new feedback total. Update the assertions intentionally when adding or removing authored rubrics.
-- Resolving commit: recorded in the feedback ledger after the package commit.
+- Resolving commit: `f01f46a`; this follow-up records the verified implementation commit.
