@@ -87,6 +87,7 @@ classDiagram
     RuntimeException <|-- IllegalArgumentException
 ```
 
+The hierarchy diagram shows common roles, not absolute recovery rules: unchecked exceptions can represent operational failures, and a narrow Error-handling boundary may perform cleanup before propagating.
 An exception is not automatically a programming bug.
 
 A missing user-selected file can be expected and recoverable.
@@ -97,13 +98,13 @@ The distinction is about recovery, not emotional severity.
 
 ### Exception hierarchy and checked exceptions
 
-Checked exceptions extend `Exception` but not `RuntimeException`.
+Checked throwable types are those outside the `RuntimeException` and `Error` families; the usual examples extend `Exception` but not `RuntimeException`.
 
 The compiler requires a method to catch or declare them.
 
 `IOException` is checked because a caller may retry, select another file, or report the problem.
 
-Unchecked exceptions are `RuntimeException` and subclasses.
+The unchecked families are `RuntimeException` and its subclasses, and `Error` and its subclasses.
 
 The compiler does not require declarations for `IllegalArgumentException` or `NullPointerException`.
 
@@ -129,7 +130,7 @@ An API with irrelevant checked exceptions forces noise through every layer.
 
 `catch` receives a compatible exception and chooses an outcome.
 
-`finally` runs as control leaves a `try` block.
+`finally` runs during normal or exceptional control transfer out of a try block, but not after process termination or while the block never exits. Its own abrupt completion can replace the earlier result.
 
 ```java
 try {
@@ -298,6 +299,8 @@ Annotations attach metadata to program elements.
 
 Metadata does nothing until a compiler, framework, or tool reads it.
 
+**Excerpt:** import the `java.lang.annotation` types, declare `Audited` in its own file, and place the inspection statement inside a method. Other unmarked Java blocks likewise omit application dependencies or enclosing code.
+
 ```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
@@ -322,7 +325,7 @@ Spring uses runtime metadata while scanning component classes.
 
 ### JVM exception dispatch
 
-Bytecode has an exception table for every method.
+A method's `Code` attribute includes an exception table, possibly empty; abstract/native methods have no bytecode `Code` attribute.
 
 Each entry maps protected instructions to a handler and catch type.
 
@@ -332,7 +335,7 @@ Without a match it discards the frame and searches the caller.
 
 The first compatible catch block wins.
 
-At the thread boundary, an uncaught-exception handler receives the failure.
+A failure escaping `Thread.run` reaches its uncaught-exception handler. Executor tasks submitted with `submit` commonly capture failures in the Future instead; inspect `get()` or completion handling.
 
 ```mermaid
 stateDiagram-v2
@@ -427,7 +430,7 @@ Checked exceptions must be caught or declared because callers may have a recover
 
 **Q2. What is stack unwinding?** `[easy]`
 
-Stack unwinding removes method frames while the JVM searches for a compatible handler. Cleanup in `finally` and try-with-resources runs during that transfer. If no frame handles the exception, the thread uncaught-exception policy sees it.
+Stack unwinding removes method frames while the JVM searches for a compatible handler. Cleanup in `finally` and try-with-resources runs during that transfer. An exception escaping `Thread.run` reaches the uncaught-exception policy, whereas an executor Future can capture a submitted task's failure instead.
 
 **Q3. Why preserve an exception cause?** `[easy]`
 
@@ -455,7 +458,7 @@ Introduce a domain exception with row number, invalid field, and safe validation
 
 **Q9. How do annotation retention policies differ?** `[medium]`
 
-`SOURCE` exists for source tooling only. `CLASS` remains in bytecode but need not be visible through reflection. `RUNTIME` remains available to frameworks, enabling component scanning at a metadata-space cost.
+`SOURCE` exists for source tooling only. `CLASS` remains in bytecode but need not be visible through reflection. `RUNTIME` permits reflective inspection, while tools such as Spring's metadata scanner can also inspect class-file bytes. Retention is a visibility contract, not automatic execution of an annotation.
 
 **Q10. What happens when a reflected target throws?** `[medium]`
 
@@ -471,7 +474,7 @@ Stack-trace capture makes high-frequency exceptional control flow needlessly exp
 
 **Q13. How do modules affect reflection?** `[hard]`
 
-Modules can strongly encapsulate packages, preventing deep access to private members. A target module must expose or open the package when reflective access is intentional. This improves boundaries but requires frameworks to document configuration.
+Modules can strongly encapsulate packages, preventing deep access to private members. Public access depends on readability and exports, whereas deep access to private members normally requires the package to be opened to the caller. Exporting a package alone does not permit arbitrary private reflection. This improves boundaries but requires frameworks to document configuration.
 
 **Q14. When use a dynamic proxy rather than direct reflection?** `[hard]`
 

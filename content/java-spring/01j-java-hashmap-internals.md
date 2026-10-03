@@ -130,7 +130,7 @@ Use immutable fields in keys whenever possible.
 |---|---|---|
 | `String` | stable value equality | low |
 | Java record with immutable components | generated value equality | mutable component hazard |
-| mutable custom object | hash may change after insertion | entry becomes unreachable |
+| mutable custom object | hash may change after insertion | lookup can fail while the entry remains strongly retained |
 | identity-only object | default reference equality | equal-looking keys do not match |
 
 ### Null has a special but ordinary place
@@ -440,7 +440,7 @@ For a single counter, use `LongAdder` or `computeIfAbsent` plus a concurrent cou
 
 Java 8 and later `ConcurrentHashMap` uses a shared table rather than the older segmented layout.
 It uses compare-and-set when installing a node into an empty bucket.
-It synchronises on a bucket's first node when updating a contended non-empty bucket.
+Many non-empty list-bin updates coordinate through its first node; tree bins and resizing have additional coordination. This is an OpenJDK 17 implementation model, not a uniform lock rule for every operation.
 Different buckets can therefore progress independently.
 
 ```java
@@ -504,7 +504,7 @@ When capacity doubles, each entry either stays at its old index or moves to old 
 
 **Q8. Why should HashMap keys be immutable?** `[medium]`
 
-The map stores a node in the bucket selected by the key's insertion-time hash. Changing fields used by `hashCode` or `equals` changes later lookup behaviour without relocating that node. The entry can remain in memory yet become unreachable through normal `get` or `remove` calls.
+The map stores a node in the bucket selected by the key's insertion-time hash. Changing fields used by `hashCode` or `equals` changes later lookup behaviour without relocating that node. The entry stays strongly retained but may become unfindable through normal `get` or `remove` calls; this is a lookup failure, not garbage-collection unreachability.
 
 **Q9. Is `ConcurrentModificationException` a concurrency control mechanism?** `[medium]`
 

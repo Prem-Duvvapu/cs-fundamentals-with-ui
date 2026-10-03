@@ -171,6 +171,8 @@ External schemas can be expressed through database views, API response models, s
 
 ### Conceptual schema and enterprise constraints
 
+The SQL below is a PostgreSQL schema excerpt and assumes `customers(id)` already exists. `payment_reference TEXT UNIQUE` permits multiple nulls by default, while non-null references must be unique; add `NOT NULL` when every order must have one.
+
 The conceptual schema describes logical entities and their relationships independently of page placement. For an order domain it may define:
 
 - Customer and Order relations.
@@ -271,13 +273,13 @@ $$
 
 A three-tier service might start with a pool near 24 to 30 connections, then load-test tail latency and database capacity. It does not need one connection per logged-in user.
 
-In a two-tier design where all 12,000 clients keep a dedicated connection and each database backend consumes approximately 8 MB, connection process memory alone is:
+In a two-tier design where all 12,000 clients keep a dedicated connection and each database backend consumes an assumed 8 MiB of private memory, connection process memory alone is:
 
 $$
-12{,}000 \times 8\text{ MB} = 96{,}000\text{ MB} \approx 93.75\text{ GiB}
+12{,}000 \times 8\text{ MiB} = 96{,}000\text{ MiB} = 93.75\text{ GiB}
 $$
 
-A pool of 30 comparable backends consumes about $30 \times 8\text{ MB} = 240\text{ MB}$ before shared database memory. Connection pooling reduces session overhead by roughly 400 times in this simplified comparison.
+A pool of 30 comparable backends consumes about $30 \times 8\text{ MiB} = 240\text{ MiB}$ before shared database memory. Connection pooling reduces session overhead by roughly 400 times in this simplified comparison.
 
 The pool is not free capacity. If average hold time rises from 40 ms to 400 ms during a slow query, demand becomes $480 \times 0.400 = 192$ concurrent connections. A 30-connection pool then queues requests, providing backpressure instead of allowing 192 sessions to overload the database.
 
@@ -292,9 +294,9 @@ Pool sizing must account for database CPU, storage latency, transaction length, 
 Data independence is exercised during deployments. A safe expand-and-contract migration separates compatibility from cleanup:
 
 1. **Expand** the conceptual schema with a nullable column, new table, or compatible index.
-2. Deploy code that can read old and new representations.
+2. Deploy compatible readers and maintain new data for ongoing writes before starting the backfill, using atomic dual writes or a durable change-capture/reconciliation path.
 3. Backfill historical rows in bounded batches.
-4. Switch writes to the new representation, sometimes dual-writing temporarily.
+4. Reconcile changes made during the backfill and switch authoritative writes only after the new representation is complete.
 5. Verify completeness and enforce new constraints.
 6. Move external views or API mappings to the new conceptual form.
 7. **Contract** by removing the old representation only after all consumers migrate.
@@ -311,7 +313,7 @@ stateDiagram-v2
     Contracted --> [*]
 ```
 
-Renaming a column in one deployment is often a breaking conceptual change. Adding the new column, mapping both names during migration, and removing the old one later preserves external contracts across independently deployed services.
+The diagram shows phases, not a pause in user writes: the new representation must keep receiving or replaying changes throughout backfill. Otherwise a late old-format update can be lost at cutover. Renaming a column in one deployment is often a breaking conceptual change. Adding the new column, mapping both names during migration, and removing the old one later preserves external contracts across independently deployed services.
 
 A database view can preserve a read contract, but it may hide performance costs or make writes ambiguous. Measure the mapped path and document which layer owns the compatibility deadline.
 

@@ -14,7 +14,7 @@ The receiver advertises free buffer space as the receive window, `rwnd`.
 
 The sender maintains a congestion window, `cwnd`, as its estimate of safe in-flight data for the network.
 
-The sender must honour the smaller limit.
+The smaller limit bounds ordinary outstanding data; new-send credit is approximately `max(0, min(cwnd, rwnd) - bytes_in_flight)`. Application availability, pacing and loss-recovery rules add limits; zero-window probes are a special case.
 
 $$\text{send window} = \min(\text{cwnd}, \text{rwnd})$$
 
@@ -43,7 +43,7 @@ Congestion control responds to the shared path between them.
 
 ### ACKs, RTT, and in-flight data
 
-An acknowledgement says the receiver has received bytes up to a sequence number.
+The cumulative ACK number names the **next** expected byte: it confirms earlier contiguous bytes, not that numbered byte or an application commit.
 
 The round-trip time, RTT, is the delay from sending data until its acknowledgement returns.
 
@@ -138,9 +138,9 @@ After successful ACKs it grows to 32 MSS, reaching `ssthresh`.
 
 In congestion avoidance, the next RTT increases cwnd to approximately 33 MSS instead of doubling to 64.
 
-Suppose three duplicate ACKs arrive while cwnd is 33 MSS.
+For this rounded teaching trace, suppose three duplicate ACKs arrive with 33 MSS actually in flight, not merely a configured `cwnd` of 33 MSS.
 
-Reno sets `ssthresh` to roughly half: `floor(33 / 2) = 16 MSS`.
+Classic Reno sets `ssthresh` to at most `max(FlightSize / 2, 2 MSS)`. Half of 33 MSS is **16.5 MSS**; this diagram rounds down to whole segments, giving 16 MSS. Real TCP stores byte counts and need not round this way.
 
 It retransmits the missing segment immediately.
 
@@ -169,7 +169,7 @@ Delayed ACKs, ACK thinning, pacing, and modern recovery algorithms affect the ob
 
 Fast retransmit sends a missing segment after enough duplicate ACK evidence rather than waiting for RTO.
 
-Reno fast recovery temporarily accounts for packets still believed to be in the network.
+Reno fast recovery temporarily sets `cwnd = ssthresh + 3 MSS` after the third duplicate ACK, accounting for packets thought to have left the network, then increases it for further duplicate ACKs. A recovery ACK deflates it toward `ssthresh`; modern recovery can differ.
 
 NewReno improves recovery when several losses occur in one window.
 
@@ -265,7 +265,7 @@ stateDiagram-v2
     ProbeBW --> [*]
 ```
 
-Loss-based and model-based approaches observe different symptoms of the same shared-resource problem.
+The diagram is the simplified BBRv1 state model; its terminal arrow marks the end of the illustration, not an automatic exit from ProbeBW. Newer BBR versions add different probing and loss/ECN responses. Loss-based and model-based approaches observe different symptoms of the same shared-resource problem.
 
 The best choice follows measured throughput, latency, fairness, and path type rather than an algorithm name alone.
 
@@ -400,5 +400,5 @@ Look for small advertised windows, zero-window announcements, and slow applicati
 
 - [RFC 5681: TCP congestion control](https://www.rfc-editor.org/rfc/rfc5681) specifies classic slow start, avoidance, and recovery behaviour.
 - [RFC 2018: TCP selective acknowledgment](https://www.rfc-editor.org/rfc/rfc2018) defines SACK options and receiver reporting.
-- [RFC 8312: CUBIC](https://www.rfc-editor.org/rfc/rfc8312) describes the CUBIC congestion-control algorithm.
+- [RFC 9438: CUBIC](https://www.rfc-editor.org/rfc/rfc9438) specifies the current CUBIC algorithm and obsoletes RFC 8312.
 - [BBR congestion-control documentation](https://github.com/google/bbr/blob/master/Documentation/bbr-quick-start.md) provides the original implementation guidance from its maintainers.

@@ -210,12 +210,12 @@ Bad cost constants can matter, such as treating modern cached SSD access like sl
 | Algorithm | Core mechanism | Typical complexity | Strong case | Weak case |
 |---|---|---|---|---|
 | Tuple nested loop | Scan inner input for every outer tuple | $O(NM)$ | Tiny inputs | Two large unindexed inputs |
-| Indexed nested loop | Probe inner index for each outer tuple | About $O(N\log M)$ | Small outer input, selective indexed probe | Large outer input or many matches per probe |
+| Indexed nested loop | Probe inner index for each outer tuple | About $O(N\log M + K)$ for K output rows | Small outer input, selective indexed probe | Large outer input or many matches per probe |
 | Block nested loop | Reuse buffered outer pages while scanning inner | Depends on buffers and pages | No index, buffered small outer relation | Repeated inner scans when memory is small |
-| Hash join | Build hash table, then probe by equality key | Expected $O(N+M)$ | Large unsorted equi-join | Non-equality join or build-side spill |
-| Sort-merge join | Sort inputs, then advance ordered streams | $O(N\log N + M\log M)$ if sorting | Pre-sorted inputs, range joins, useful output order | Sorting both small unordered inputs |
+| Hash join | Build hash table, then probe by equality key | Expected $O(N+M+K)$ for K output rows with healthy hashing | Large unsorted equi-join | Non-equality join or build-side spill |
+| Sort-merge join | Sort inputs, then advance ordered streams | $O(N\log N + M\log M + K)$ if sorting | Pre-sorted inputs, eligible ordered joins, useful output order | Sorting both small unordered inputs |
 
-Hash join requires an equality-compatible key. Sort-merge can exploit inputs already ordered by indexes and is useful when the requested output order avoids another sort.
+These complexities include producing K matches: duplicate join keys can make K as large as N×M. Ordinary PostgreSQL merge join needs merge-joinable equality clauses; specialized ordered/range-join variants in other systems do not make every inequality eligible. Hash join requires an equality-compatible key. Sort-merge can exploit inputs already ordered by indexes and is useful when the requested output order avoids another sort.
 
 Nested loop is not inherently naive. With ten outer rows and a cached inner B+ tree, ten index probes can beat the startup cost of scanning and hashing a large table.
 
@@ -237,7 +237,7 @@ B(R) + \left\lceil\frac{B(R)}{M-2}\right\rceil B(S)
 = 20{,}100\ page\ reads
 $$
 
-If $R$ fits in the hash-join memory budget, a one-pass hash join reads each input approximately once:
+The stated 52-page budget does **not** hold an uncompressed 100-page build input. As a separate hypothetical, if projection reduces the build representation enough, or a larger memory budget holds it including hash overhead, a one-pass hash join reads each input approximately once:
 
 $$
 B(R) + B(S) = 100 + 10{,}000 = 10{,}100\ page\ reads
@@ -249,7 +249,7 @@ $$
 3(B(R)+B(S)) = 3 \times 10{,}100 = 30{,}300\ page\ transfers
 $$
 
-An indexed nested loop with a cached index and about two page fetches per outer tuple costs roughly $100 + 10{,}000 \times 2 = 20{,}100$ logical page visits. It becomes attractive if a prior filter reduces $R$ to 100 tuples, dropping those probes to about 200.
+The 3× estimate assumes one partitioning pass and that every build partition fits memory; skew or recursion adds transfers. An indexed nested loop with a cached index and about two page fetches per outer tuple costs roughly $100 + 10{,}000 \times 2 = 20{,}100$ logical page visits. It becomes attractive if a prior filter reduces $R$ to 100 tuples, dropping those probes to about 200.
 
 The calculation demonstrates the decision boundary: join choice depends on **estimated input after filtering**, not only base-table size.
 
@@ -316,11 +316,11 @@ Index Scan using orders_customer_status_idx on orders
 
 Read a plan in this order:
 
-1. Compare **estimated rows** with `actual rows × loops` at every node.
+1. Compare **estimated rows** with **actual rows per loop** at each PostgreSQL node. Actual rows and timing are reported as per-execution averages when loops exceed one; multiply actual rows by loops separately to estimate total row work.
 2. Start near the first large divergence; errors propagate upward.
 3. Check loop counts, especially on the inner side of nested loops.
 4. Inspect filter removals to find work performed and then discarded.
-5. Use buffer hits and reads to separate CPU/cache work from physical I/O.
+5. Use buffer hits and reads to separate database-cache hits from buffer read requests. A read can hit the OS page cache; device telemetry is needed to establish physical I/O.
 6. Look for sorts or hashes that spill to temporary storage.
 7. Distinguish startup time from total time and blocking from streaming operators.
 
@@ -348,7 +348,7 @@ Sampling introduces uncertainty, and stale statistics describe an earlier table.
 
 ### Plan Caching and Parameter Sensitivity
 
-Prepared statements avoid repeating parsing and planning, but one plan may not suit every parameter. A point lookup for a customer with five orders wants an index-driven nested loop; a customer with five million orders may prefer a scan and hash join.
+Prepared statements avoid repeated parsing/analysis, but planning reuse is engine- and policy-dependent. PostgreSQL can replan with parameters for a custom plan or reuse a generic plan; one reused plan may not suit every parameter. A point lookup for a customer with five orders wants an index-driven nested loop; a customer with five million orders may prefer a scan and hash join.
 
 This family of problems is often called **parameter sniffing** or **parameter sensitivity**. Engine-specific mitigations include custom versus generic plans, recompilation, parameter-sensitive plan variants, filtered statistics, query splitting, and carefully scoped hints.
 
@@ -368,7 +368,7 @@ Physical execution styles also differ:
 | Vectorized | Batch of hundreds or thousands of values | Cache locality and SIMD-friendly loops | Batch setup; less helpful for tiny OLTP requests |
 | JIT compiled | Native code specialized for expressions | Reduces interpretation on CPU-heavy scans | Compilation startup may exceed short query runtime |
 
-The optimizer estimates whether memory-intensive operators will fit, but concurrency changes available memory. A plan that is fast alone can spill when 100 copies run simultaneously.
+The optimizer estimates whether memory-intensive operators will fit. Some engines grant less memory under concurrency and can then spill. PostgreSQL `work_mem` is a per-operation allowance, with hash operations also using `hash_mem_multiplier`; it is not automatically divided by active query count. Many simultaneous copies can exhaust total memory or contend for CPU/I/O even with unchanged allowances.
 
 ### Plan Diagnosis Under Production Load
 
@@ -438,7 +438,7 @@ It estimates how many rows each operator produces, then derives I/O, CPU, memory
 
 **Q6. When is sort-merge join preferred over hash join?** `[medium]`
 
-Sort-merge is attractive when both inputs already arrive ordered on the join key, when the required output order is useful later, or when the predicate supports ordered/range matching. Hash join is normally simpler for large unsorted equality joins whose build side fits memory. If sorting is required for both inputs, its $O(N\log N)$ preparation can make hash join cheaper, while either method can spill under insufficient memory.
+Sort-merge is attractive when inputs are already ordered on eligible join keys or the output order is useful later. Ordinary PostgreSQL merge joins require merge-joinable equality; range-join techniques in other engines need separate capability checks. Hash join is normally simpler for large unsorted equality joins whose build side fits memory. If sorting is required for both inputs, its $O(N\log N)$ preparation can make hash join cheaper, while either method can spill under insufficient memory.
 
 **Q7. How do predicate pushdown and projection pushdown reduce different dimensions of work?** `[medium]`
 
@@ -450,7 +450,7 @@ Simple estimators multiply independent single-column selectivities. If `city = '
 
 **Q9. Scenario: An actual plan shows 800,000 inner index-scan loops instead of the estimated 200. What do you inspect first?** `[medium]`
 
-Start at the earliest plan node where estimated rows diverge from `actual rows × loops`, because that error likely drove the nested-loop choice. Check stale statistics, skewed parameter values, correlated predicates, and whether a generic cached plan was reused. Then refresh or extend statistics and retest representative values before forcing a join method.
+Compare estimated and actual rows per execution at the earliest divergent node, especially the outer input that caused the 800,000 inner loops. PostgreSQL reports actual loop counts rather than a separate predicted-loop field; use the outer estimate to understand the expected repetition, and multiply actual rows by loops only for total work. Check stale statistics, skewed parameter values, correlated predicates, and whether a generic cached plan was reused. Then refresh or extend statistics and retest representative values before forcing a join method.
 
 **Q10. Why can a function around an indexed column prevent index use?** `[medium]`
 
@@ -466,7 +466,7 @@ The engine likely cached a plan optimized for a low-cardinality parameter and re
 
 **Q13. Scenario: A hash join estimate is accurate, but production still spills while an isolated test does not. Why?** `[hard]`
 
-Accurate row count does not guarantee the runtime memory grant remains available under concurrency, nor that estimated row width matches reality. Many simultaneous queries can divide memory, and variable-width values or skewed hash buckets can make the build structure larger than predicted. Inspect spill counters, granted versus used memory, concurrent workload, and tuple widths before globally increasing per-query memory, which could worsen system-wide pressure.
+Accurate row count does not establish row width, bucket skew or the memory required by the build representation. In engines with shared grants, concurrency can reduce the grant; PostgreSQL instead keeps configured per-operation allowances, so check changed settings, data/plan differences and hash memory limits before blaming concurrency alone for a spill. Inspect spill counters, widths and fleet-wide memory demand before raising an allowance, because simultaneous operators can multiply total memory use.
 
 **Q14. Scenario: A dashboard query over 20 million orders takes 24 seconds and filters most rows after joining. How do you approach the regression?** `[hard]`
 

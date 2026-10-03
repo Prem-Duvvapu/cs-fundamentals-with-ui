@@ -14,7 +14,7 @@ An **operating system** manages hardware resources and provides stable interface
 The **kernel** is its privileged core; the wider OS also includes system libraries, startup services, command tools, and user interfaces.
 Applications therefore depend on the OS without executing every service inside the kernel.
 
-Processors enforce at least two privilege levels.
+Protected general-purpose processors typically distinguish user and kernel privilege levels; embedded hardware can have a different protection model.
 **User mode** restricts direct device access and privileged instructions, while **kernel mode** allows the kernel to configure memory mappings, interrupt controllers, and hardware.
 A **system call**, or syscall, is a controlled entry from user mode into a validated kernel service such as reading a file, mapping memory, or creating a process.
 
@@ -244,6 +244,7 @@ Copy-on-write is an optimization, not a promise that `fork` is free.
 **Linux C, one child and no background threads.** Save as `ForkStateDemo.c`; run `cc -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Werror ForkStateDemo.c -o ForkStateDemo` and `./ForkStateDemo`. Only its unique temporary file is created; it is immediately unlinked.
 
 ```c
+#define _POSIX_C_SOURCE 200809L
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -362,6 +363,8 @@ The run queue is not necessarily a single global list.
 Modern kernels use per-CPU structures and periodically balance work between CPUs.
 That reduces shared-lock contention but means a process may migrate, affecting cache warmth and observed latency.
 Use CPU affinity or real-time policy only with measured requirements and an operational rollback path.
+
+Historical CFS proportional-accounting sketch, not the current EEVDF selection algorithm:
 
 ```text
 virtual runtime grows with actual runtime and inversely with weight

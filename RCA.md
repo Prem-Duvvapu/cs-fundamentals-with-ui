@@ -431,3 +431,12 @@ unsupported state controlling whether the Simulation tab should appear.
 - Prevention: use persistent checkouts for work spanning restarts and checkpoint reviewable
   changes in commits; do not treat temporary worktree state as durable task storage.
 - Resolving commit: `55f2468`; the follow-up documentation commit records this hash.
+
+## RCA-2026-10-03-02 — Accuracy corrections invalidated migration evidence quotes
+
+- Evidence: the migration gate rejected quiz `99c3014eb151` after the SAM answer gained the required non-sealed boundary. The final package gate also rejected query-optimization quiz `265c78e2e50c` after the merge-join eligibility correction.
+- Root cause: the accuracy correction changed a sentence used as literal evidence without updating that integration reference.
+- Resolution: retain the corrected answer and synchronize both affected `evidence.contains` references; archived question/payload/digest remain unchanged.
+- Verification: all 109 migration entries pass; nineteen gate regression tests, 210 corpus/parser tests and 68/68 lesson validation checks pass.
+- Prevention: inspect target evidence before each content unit and run the gate after each review package; do not restore an inaccurate sentence to satisfy a literal check.
+- Resolving commit: recorded after the accuracy package commit.

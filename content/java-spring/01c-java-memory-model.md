@@ -157,11 +157,12 @@ This is why Java is neither pass-by-reference nor “pass-by-reference for objec
 ### Strings, the pool, and immutable values
 
 `String` is an immutable object: after construction, its character sequence cannot change. Methods
-such as `toUpperCase()` return another value, and reassignment changes a reference rather than the
-original object. Immutability enables safe sharing, cached hash codes, and use as map keys.
+such as `toUpperCase()` return a string value, possibly the same object when no change is needed.
+Reassignment changes a reference rather than the original object. Immutability enables safe sharing, cached hash codes, and use as map keys.
 
-Class loading interns string literals into a per-JVM **string pool**. Identical literal expressions
-normally share one pooled object, while `new String("java")` explicitly creates a distinct object.
+String literals and string-valued constant expressions are interned, so equal literals share one canonical object.
+Literal resolution can be lazy; do not assume all strings are interned when a class first loads.
+`new String("java")` explicitly creates a distinct string object, regardless of whether its character content equals the literal.
 The `==` operator tests reference **identity**; `equals()` tests logical string **equality**.
 
 ```java
@@ -295,8 +296,8 @@ permit compilers and processors to reorder independent operations while giving c
 synchronised programs portable behaviour. Its core concerns are **visibility**, **atomicity**, and
 **ordering**.
 
-A **data race** exists when two threads access the same variable concurrently, at least one access
-is a write, and the accesses are not ordered by a **happens-before** relationship. Without that
+A **data race** exists when conflicting accesses to the same variable (at least one a write)
+are not ordered by **happens-before**. They need not overlap in wall-clock execution. Without that
 ordering, a reader may observe a stale value or a combination that cannot be reasoned about using
 source-code order alone.
 
@@ -304,15 +305,15 @@ Important happens-before rules include:
 
 - Program order: earlier actions in one thread happen-before its later actions.
 - Monitor rule: unlocking a `synchronized` monitor happens-before a later lock of that monitor.
-- Volatile rule: a write to a `volatile` field happens-before a later read that observes it.
+- Volatile rule: a write to a `volatile` field happens-before every subsequent read of that field in synchronization order.
 - Start rule: actions before `Thread.start()` happen-before actions in the started thread.
 - Join rule: actions in a thread happen-before another thread successfully returns from `join()`.
 - Transitivity: if A happens-before B and B happens-before C, then A happens-before C.
 
 These rules concern observable ordering, not elapsed wall-clock time. Correct publication connects
-construction writes to later reads through one of these edges. An immutable object with all fields
-set before publication is only reliably immutable to other threads when the reference itself is
-published safely.
+construction writes to later reads through one of these edges. Safe publication is the general rule for completed state. Properly constructed final fields also
+have a special initialization-safety guarantee, explained below; immutability alone is not a promise
+that a reader will ever observe a reference stored without synchronization.
 
 ### Volatile and synchronized semantics
 
@@ -415,7 +416,8 @@ does not escape a compilation scope. Scalar replacement may then split the objec
 in registers or frame state, eliminating the heap allocation entirely.
 
 Lock elimination can remove a monitor operation when the locked object cannot escape the current
-thread. Stack allocation is therefore a possible optimisation effect, not a Java language promise.
+thread. Scalar replacement is allocation elimination, not proof that HotSpot moved a whole object
+to the stack; physical allocation location is not a Java language guarantee.
 Profilers and benchmark code must allow for warm-up, inlining, dead-code elimination, and
 deoptimization before attributing performance to stack versus heap.
 
@@ -553,20 +555,21 @@ reference publication still need synchronization for cross-thread communication.
 **Q13. Scenario: a worker loops on `while (!stopped)`, but sometimes never exits after another thread sets `stopped = true`. What do you change?** `[hard]`
 
 This is a visibility data race because an ordinary read may reuse a cached or optimized value with
-no happens-before edge. Make a simple one-way flag `volatile`, use interruption, or guard both reads
-and writes with the same lock. Volatile is sufficient only if stopping does not require an atomic
+no happens-before edge. Make a simple one-way flag `volatile`, or guard both reads and writes
+with the same lock. Interruption is another cooperative protocol only if the worker checks its
+interrupt status or uses an interruptible operation; `interrupt()` does not stop an unchanged loop. Volatile is sufficient only if stopping does not require an atomic
 transition involving additional mutable state.
 
 **Q14. Scenario: a payment service throws `OutOfMemoryError` and a heap dump shows millions of `User` objects retained by a static `HashMap`. What is happening?** `[hard]`
 
 The map is a GC-root-reachable retention path, so its entries remain live even when requests finish.
-Garbage collection cannot reclaim reachable objects, and increasing the heap only delays exhaustion.
+Garbage collection cannot reclaim these strongly reachable entries, and increasing the heap only delays exhaustion.
 Bound or expire the cache, remove entries, verify key cardinality, and confirm the fix with retained
 size and dominator analysis under a representative load.
 
 ### Further Reading
 
-- [Java Language Specification, Chapter 4: Types, Values, and Variables](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html) defines primitive, reference, and variable semantics.
-- [Java Language Specification, Chapter 15: Expressions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html) specifies operators, evaluation, and floating-point expressions.
-- [Java Language Specification, Chapter 17: Threads and Locks](https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html) is the normative Java Memory Model and happens-before reference.
-- [Java `String` API documentation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html) documents immutability, equality, and interning behavior.
+- [Java Language Specification, Chapter 4: Types, Values, and Variables](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html) defines primitive, reference, and variable semantics.
+- [Java Language Specification, Chapter 15: Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html) specifies operators, evaluation, and floating-point expressions.
+- [Java Language Specification, Chapter 17: Threads and Locks](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html) is the normative Java Memory Model and happens-before reference.
+- [Java `String` API documentation](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html) documents immutability, equality, and interning behavior.

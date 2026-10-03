@@ -107,8 +107,8 @@ The class file carries metadata, constants, fields, methods, and bytecode rather
 ### One public top-level class has one matching file name
 
 A compilation unit may contain several top-level classes.
-At most one of them can be `public`.
-When a top-level class is public, its source file name must match that class name exactly.
+With ordinary file-based `javac` compilation, at most one can be public, and its name must match the source filename.
+JLS §7.6 permits this restriction for file-system hosts; do not generalize it to every possible source-storage system.
 
 ```java
 // File name: Invoice.java
@@ -118,7 +118,7 @@ class InvoiceFormatter { }
 ```
 
 The rule lets tools and humans find a public type predictably.
-It is a source-level Java language rule, not a JVM restriction that only one class can exist in a `.class` file set.
+It is the normal compiler/source-storage rule; the JVM has no corresponding one-public-type-per-source-file constraint.
 Nested classes and records can produce additional class files such as `Invoice$Line.class`.
 
 Compile one public top-level type per source file for normal production code.
@@ -139,6 +139,7 @@ stateDiagram-v2
     Initialized --> Executing: methods run
 ```
 
+The lifecycle diagram summarizes the phases: verification and preparation precede initialization, but individual references may resolve later.
 This lazy behaviour reduces startup work and lets frameworks load optional integrations only when present.
 It also means a missing optional dependency can appear as a runtime failure rather than a compile failure.
 Reading a class literal and actively invoking a static method have different initialization effects, so lifecycle questions need precise terminology.
@@ -166,20 +167,22 @@ The bootstrap loader provides core platform classes such as `java.lang.String` f
 The platform loader provides platform modules.
 The application loader commonly loads application classes and ordinary dependencies.
 
-Parent delegation prevents a class path JAR from replacing trusted `java.lang` classes with an impostor.
+Default parent-first delegation helps preserve shared platform type identity. Independently, `ClassLoader.defineClass` rejects user definitions in `java.*` packages.
 It also ensures most code sees one canonical definition of core types.
 Custom loaders can intentionally use child-first rules for isolated plugins, but class identity then requires extra care.
 
 ### Class loading, linking, and initialization
 
 **Loading** obtains bytes and creates the runtime class representation.
-**Linking** includes verification, preparation, and often symbolic reference resolution.
-**Initialization** executes class initialization code, including static field initializers and static blocks, once per class loader.
+**Linking** comprises verification, preparation, and resolution; resolution may occur lazily, even after initialization.
+**Initialization** runs static field initializers and static blocks once for each class identity (name plus defining loader); failed initialization leaves that class erroneous.
 
 These phases connect the class loader to every JVM runtime area. Method execution creates frames on
 each thread's stack, objects normally occupy the shared heap, and class metadata occupies metaspace.
 Loading defines the type metadata needed by those areas; it does not eagerly allocate every future
 object or invoke every method.
+
+**Excerpt:** `loadRegion()` is an application-provided method omitted here.
 
 ```java
 class Configuration {
@@ -191,7 +194,8 @@ class Configuration {
 }
 ```
 
-Initialization is triggered by active use, such as creating an instance, invoking a static method, or writing a non-constant static field.
+Initialization is triggered by active use, such as creating an instance, invoking a static method, or reading/writing a non-constant static field.
+A static field access initializes its declaring class, not necessarily the subclass named in the expression; a class literal or reading an inlined constant does not itself initialize the class.
 The JVM synchronizes initialization so concurrent threads do not run the same class initializer twice.
 If initialization throws an exception, later active uses commonly fail with `NoClassDefFoundError` because the class is erroneous for that loader.
 
@@ -205,7 +209,7 @@ If initialization throws an exception, later active uses commonly fail with `NoC
 
 `ClassNotFoundException` is checked and often comes from an explicit dynamic lookup such as `Class.forName`.
 `NoClassDefFoundError` is an error when a class needed by already compiled code cannot be defined at runtime.
-The distinction points to different owners: lookup handling versus deployment dependency consistency.
+Inspect the cause chain: `NoClassDefFoundError` can also follow an earlier failed initializer even when class bytes are present. The first initializing use may throw `ExceptionInInitializerError`; subsequent active uses do not retry that initializer.
 
 ### Worked example: compile, load, and initialize two classes
 
@@ -253,6 +257,7 @@ flowchart LR
     F --> G["Deoptimization if assumptions fail"]
 ```
 
+The HotSpot diagram illustrates a common path, not a mandatory progression through every tier; methods can remain interpreted or compile at different tiers.
 There is no portable promise that a method compiles after exactly 10,000 calls.
 Thresholds, CPU availability, method size, profile quality, and JVM flags affect decisions.
 The key trade-off is startup responsiveness versus time spent generating and optimizing native code.
@@ -263,7 +268,7 @@ The key trade-off is startup responsiveness versus time spent generating and opt
 
 ### Verification and linking make bytecode safer than arbitrary native input
 
-The bytecode verifier checks class-file structure, operand-stack use, local variable types, control-flow targets, and access rules before normal execution.
+Class-file format checking and bytecode verification establish structural/type constraints, including operand-stack use, local variable types, and control-flow targets. Symbolic reference resolution separately checks access to the referenced classes, fields, and methods.
 Verification does not prove an application has no business bug or security vulnerability.
 It ensures bytecode obeys JVM type-safety and structural constraints expected by the runtime.
 
@@ -284,6 +289,8 @@ These optimizations are speculative: if a new subclass is later loaded or a prof
 Escape analysis asks whether an allocated object becomes reachable outside the current method or thread.
 If an object does not escape, the JIT may scalar-replace its fields and eliminate the allocation entirely.
 This is an optimization opportunity, not a guarantee that every local `new` uses no heap memory.
+
+**Excerpt:** assume a `record Point(int x, int y) {}` is declared.
 
 ```java
 static int distance(int x, int y) {
@@ -389,19 +396,19 @@ The compiler produces JVM bytecode rather than CPU-specific machine code. A comp
 
 **Q3. Why must a public top-level class match its file name?** `[easy]`
 
-Java requires the source-file name to match its one public top-level type so compilers and developers can locate that type predictably. A source file can contain package-private helper classes, and nested classes can create additional class files. The restriction is a language and tooling convention, not proof that one compiled program has only one class.
+Ordinary file-based `javac` compilation requires a public top-level type to match the filename; JLS §7.6 permits hosts to impose this source-storage restriction. A source file can contain package-private helper classes, and nested classes can create additional class files. The rule helps tools locate source types predictably, but is not a JVM class-file limitation.
 
 **Q4. What does parent delegation achieve?** `[easy]`
 
-A normal class loader asks its parent to load a class before searching its own locations. This gives core platform types one trusted definition and prevents an application JAR from replacing classes such as `java.lang.String`. Custom loaders can vary the rule for plugins, but then type identity and security need careful design.
+A normal class loader asks its parent to load a class before searching its own locations. This encourages consistent platform type identity; the independent `defineClass` restriction on `java.*` also prevents user-defined replacements of core classes. Custom loaders can vary the rule for plugins, but then type identity and security need careful design.
 
 **Q5. Distinguish loading, linking, and initialization.** `[medium]`
 
-Loading obtains class bytes and creates a runtime class representation. Linking verifies, prepares, and resolves class information, while initialization runs static initialization code on first active use. Keeping these terms separate explains why a class may be found yet fail later during verification, reference resolution, or a static initializer.
+Loading obtains class bytes and creates a runtime class representation. Linking verifies and prepares the class; reference resolution may be early or lazy, including after initialization. Initialization runs static initialization code on first active use. Keeping these terms separate explains why a class may be found yet fail later during verification, reference resolution, or a static initializer.
 
 **Q6. What is the difference between `ClassNotFoundException` and `NoClassDefFoundError`?** `[medium]`
 
-`ClassNotFoundException` commonly arises when code explicitly asks to load a class and the loader cannot find it. `NoClassDefFoundError` occurs when already compiled code needs a class that cannot be defined at runtime, often because deployment dependencies differ from build dependencies. The first is usually handled at a dynamic lookup boundary; the second is usually a packaging or linkage fault.
+`ClassNotFoundException` commonly arises when code explicitly asks to load a class and the loader cannot find it. `NoClassDefFoundError` occurs when already compiled code needs a class that cannot be defined at runtime, often because deployment dependencies differ from build dependencies. The error can also mean an earlier static initializer failed, leaving the class erroneous despite present class bytes. Inspect the original cause and first failure before diagnosing missing packaging.
 
 **Q7. What does the bytecode verifier check?** `[medium]`
 
@@ -421,7 +428,7 @@ It determines whether an object reference can become visible outside a method or
 
 **Q11. A service fails only when an optional integration endpoint is used, with `NoClassDefFoundError`. What do you investigate?** `[hard]`
 
-Inspect the runtime class path or module path, dependency packaging, shading, and version alignment for the class named by the error. The application may have compiled because the dependency existed in the build environment, while lazy loading delayed failure until the integration path became active. Fix the deployment artifact or make the optional dependency boundary explicit rather than catching the error and continuing in an unknown state.
+Inspect the runtime class path or module path, dependency packaging, shading, and version alignment for the class named by the error. The application may have compiled because the dependency existed in the build environment, while lazy loading delayed failure until the integration path became active. Also inspect earlier initializer failures: a present class may be unusable after failed initialization. Fix the underlying dependency or initialization fault rather than catching the error and continuing in an unknown state.
 
 **Q12. A freshly deployed JVM service has poor first-request latency but healthy steady-state throughput. What options do you assess?** `[hard]`
 
@@ -437,7 +444,7 @@ Compile-time constants can be inlined into client bytecode during compilation, s
 
 ### Further Reading
 
-- [Java Language Specification: compilation units and binary compatibility](https://docs.oracle.com/javase/specs/jls/se17/html/index.html) defines source rules and compatibility concepts.
+- [Java Language Specification: compilation units and binary compatibility](https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html) defines source rules and compatibility concepts.
 - [Java Virtual Machine Specification: loading, linking, and initialization](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html) defines the JVM lifecycle for classes.
 - [OpenJDK HotSpot runtime overview](https://openjdk.org/groups/hotspot/docs/RuntimeOverview.html) describes HotSpot runtime subsystems and execution.
 - [Java `ClassLoader` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html) documents class-loader behaviour and extension points.

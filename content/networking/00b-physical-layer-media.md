@@ -105,14 +105,14 @@ It uses more signalling transitions and therefore more bandwidth than a simple N
 
 Differential Manchester keeps a mid-bit transition while encoding data in the beginning-of-bit transition pattern.
 
-Scrambling changes a troublesome long run into a transition-rich signal without losing data.
+Scrambling reversibly changes bit patterns to improve transition statistics. A scrambler alone does not guarantee a maximum run length for every possible input; a run-limited code or substitution rule supplies that stronger guarantee.
 
 Modern Ethernet physical layers use more sophisticated block coding and PAM techniques than classic Manchester Ethernet.
 
 | Scheme | Clock signal in data? | DC tendency | Relative bandwidth | Example concept |
 |---|---|---|---|---|
 | NRZ-L | Weak for long runs | Can have DC component | Low | Simple baseband |
-| NRZ-I | Transitions for selected bits | Long zero run remains issue | Low | Transition encoding |
+| NRZ-I | Transitions for selected bits | Long non-transition run remains issue; bit convention varies | Low | Transition encoding |
 | Manchester | Every bit | Balanced transitions | Higher | Classic 10BASE-T |
 | Block coding | Controlled by code words | Controlled | Moderate overhead | 4B/5B or 8B/10B |
 | Multi-level PAM | Depends on coding | Depends on code | Efficient symbols | Modern high-speed links |
@@ -123,7 +123,7 @@ It cannot be evaluated merely by counting voltage levels.
 
 ### Worked example: Nyquist and Shannon limits
 
-Assume a noiseless channel has bandwidth `3 kHz` and can reliably distinguish four signal levels.
+Assume an ideal band-limited, noiseless baseband channel has bandwidth `3 kHz` and uses four distinguishable levels with zero inter-symbol interference.
 
 Nyquist's ideal maximum is:
 
@@ -137,7 +137,7 @@ Now suppose the same 3 kHz channel has an SNR of 30 dB.
 
 Convert decibels to a linear ratio: $S/N = 10^{30/10} = 1000$.
 
-Shannon capacity is:
+For the ideal band-limited additive white Gaussian noise model, with $S/N$ a signal-to-noise **power** ratio, Shannon capacity is:
 
 $$C = B\log_2(1 + S/N)$$
 
@@ -202,9 +202,9 @@ It happens at a physical or link signalling level, while packets may also share 
 
 Pulse Code Modulation turns an analogue waveform into digital samples.
 
-The sampling theorem requires a sample rate at least twice the highest represented frequency under its ideal assumptions.
+For a band-limited signal, use a sample rate greater than twice its highest frequency to avoid the ambiguous boundary case. Real filters also need a transition band and practical margin.
 
-Telephone voice traditionally limits useful audio near 4 kHz and samples at 8,000 times per second.
+Traditional telephone speech uses approximately 300–3,400 Hz and samples at 8,000 times per second. The 4 kHz Nyquist frequency leaves room above the speech band for filtering.
 
 Using 8 bits per sample produces `8,000 × 8 = 64,000` bits per second before framing.
 
@@ -361,7 +361,7 @@ Multimode fiber has a larger core and supports several light paths, making it pr
 
 **Q5. How do Nyquist and Shannon formulas differ?** `[medium]`
 
-Nyquist relates an ideal noiseless channel's bandwidth and number of signal levels to a maximum signalling rate. Shannon gives an information-theoretic upper bound for a noisy channel from bandwidth and signal-to-noise ratio. Neither includes application headers, contention, or a specific real modem implementation.
+Nyquist relates ideal noiseless baseband bandwidth and signal levels to a zero-ISI signalling limit. The stated Shannon formula bounds a band-limited additive white Gaussian noise channel using bandwidth and signal-to-noise power ratio. Neither includes application headers, contention, or a specific real modem implementation.
 
 **Q6. Why does higher-order QAM need a cleaner channel?** `[medium]`
 
@@ -389,7 +389,7 @@ Check cable category, termination quality, grounding and shielding design, routi
 
 **Q12. Scenario: a 3 kHz channel has 30 dB SNR and a team claims it can carry exactly 29.9 kbps. What correction do you make?** `[hard]`
 
-About 29.9 kbps is Shannon's theoretical upper bound after converting 30 dB to a linear ratio of 1000. A real system must operate below it because modulation, coding, finite block length, framing, and implementation loss consume margin. The chosen constellation may impose a lower Nyquist-style or practical limit as well.
+About 29.9 kbps is the bound for the stated ideal Gaussian-noise channel model, after converting 30 dB to a linear power ratio of 1000. A real system must operate below it because modulation, coding, finite block length, framing, and implementation loss consume margin. The chosen constellation may impose a lower Nyquist-style or practical limit as well.
 
 **Q13. Why can an OFDM link fail in multipath even when received power is strong?** `[hard]`
 

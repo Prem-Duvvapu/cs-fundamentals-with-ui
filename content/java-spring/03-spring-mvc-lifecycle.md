@@ -53,7 +53,7 @@ flowchart LR
 ```
 
 The diagram omits details deliberately.
-Each box can have extension points, but the central idea remains that MVC routes all servlet requests through one coordinating servlet.
+Each box has extension points; DispatcherServlet coordinates requests mapped to it. A container can also have other servlets or filter-only responses.
 This differs from a manual servlet application where each route can contain its own mapping and rendering logic.
 
 ### Filters, Interceptors, and Controllers Have Different Jobs
@@ -196,9 +196,9 @@ Set container and framework body-size limits appropriate to the endpoint, and ha
 ### Worked Example: Deriving a Latency Budget
 
 Suppose an endpoint has a 250 ms p95 service-level objective.
-The edge proxy consumes 20 ms p95, leaving 230 ms for the application and its dependencies.
-Authentication takes 15 ms, MVC binding and serialization take 10 ms, and the database call takes 150 ms p95.
-The controller and service layer then have only about $230 - 15 - 10 - 150 = 55$ ms p95 for remaining work.
+Allocate illustrative per-request stage budgets: proxy 20 ms, authentication 15 ms, binding/serialization 10 ms, and database 150 ms.
+That leaves $250 - 20 - 15 - 10 - 150 = 55$ ms for remaining work in this budget model.
+These are allocated bounds, not independently measured p95 values: component percentiles cannot simply be added to derive request p95.
 
 If an interceptor performs a 100 ms remote authorization call synchronously, the endpoint now consumes 295 ms before ordinary scheduling variance.
 Moving that work later does not solve the budget; it must be cached, made local, or assigned a stricter timeout.
@@ -239,8 +239,8 @@ Use exceptions for exceptional control flow or boundary translation, and preserv
 ### Interceptors and Asynchronous Requests
 
 `HandlerInterceptor.preHandle` runs after handler mapping and can block an invocation.
-`postHandle` runs after successful handler execution before view rendering, so it is not a general error hook.
-`afterCompletion` runs after request completion and receives an exception if one propagated through MVC.
+`postHandle` runs after successful handler execution before view rendering; for `@ResponseBody`, conversion/writing normally occurs in the handler adapter first, so this is too late for general body/header changes.
+`afterCompletion` receives an unresolved exception, not every exception already handled by a resolver. Async handling initially uses `afterConcurrentHandlingStarted`; normal completion callbacks occur on redispatch.
 Use it for cleanup and final timing, not for changing a response that may already be committed.
 
 Servlet MVC can support asynchronous return types such as `Callable`, `DeferredResult`, `WebAsyncTask`, and `CompletionStage`.
@@ -276,6 +276,7 @@ flowchart TD
     Z -->|"yes"| M["DispatcherServlet and MVC handler"]
 ```
 
+The security diagram illustrates a REST policy: configured entry points may redirect for form login, and not every failure originates in MVC.
 Security configuration should use the framework's authorization rules and method security where appropriate.
 Do not rely on a controller's UI-facing check as the only authorization decision.
 Also avoid logging bearer tokens, authorization headers, passwords, or full personally identifiable request bodies in filters.
@@ -299,7 +300,7 @@ Do not confuse a cheaper waiting task with an infinite ability to perform work.
 ### Observability, Dispatch Types, and Safe Logging
 
 Assign or propagate a request correlation ID at the outer filter boundary.
-Include it in structured logs, metrics dimensions with controlled cardinality, and error responses where it is safe for clients to quote to support.
+Include it in logs, trace context, and safe error responses; use exemplars or trace links for metrics rather than a distinct correlation-ID metric label.
 Do not use unbounded request paths, user IDs, or exception text as metric labels because high cardinality can damage monitoring systems.
 
 Servlet dispatch types include initial requests as well as error, async, forward, and include dispatches.
@@ -395,7 +396,7 @@ A `HandlerMapping` matches the request against method, path, headers, parameters
 
 **Q6. What does `@RestControllerAdvice` provide?** `[medium]`
 
-It provides global exception-handling methods with response-body semantics across controllers. `DispatcherServlet` consults exception resolvers when a handler fails, and advice can turn known exceptions into stable HTTP error contracts. It should avoid exposing stack traces or internal exception messages to callers.
+It provides exception-handling methods with response-body semantics across applicable MVC controllers. Servlet filter/security failures generally require handlers at their own boundary, not an assumption that controller advice catches them. `DispatcherServlet` consults exception resolvers when a handler fails, and advice can turn known exceptions into stable HTTP error contracts. It should avoid exposing stack traces or internal exception messages to callers.
 
 **Q7. Why does malformed JSON often return 400 before a controller method runs?** `[medium]`
 
@@ -403,7 +404,7 @@ Spring must deserialize `@RequestBody` data before it can invoke a method that r
 
 **Q8. Explain authentication versus authorization in a Spring Security request.** `[medium]`
 
-Authentication establishes the identity represented by credentials such as a session, token, or client certificate. Authorization checks whether that identity has permission for the requested resource or operation. Authentication failure commonly routes to a 401 entry point, while authorization failure commonly results in 403.
+Authentication establishes the identity represented by credentials such as a session, token, or client certificate. Authorization checks whether that identity has permission for the requested resource or operation. REST authentication failures commonly use a 401 entry point and authenticated denials use 403; a form-login entry point can instead redirect, so inspect the configured mechanism.
 
 **Q9. Why is reading a request body in a filter risky?** `[medium]`
 
@@ -450,4 +451,4 @@ Replace raw exception serialization with a global, stable error envelope such as
 - [Spring Framework MVC annotated-controller reference](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller.html) explains handler mappings, arguments, return values, and message conversion.
 - [Spring Framework exception handling reference](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-exceptionhandler.html) documents `@ExceptionHandler`, controller advice, and error responses.
 - [Spring Security servlet architecture](https://docs.spring.io/spring-security/reference/servlet/architecture.html) describes `DelegatingFilterProxy`, `FilterChainProxy`, and security filter chains.
-- [Jakarta Servlet `Filter` API](https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/filter) is the primary contract for servlet filters.
+- [Jakarta Servlet `Filter` API](https://jakarta.ee/specifications/servlet/6.1/apidocs/jakarta.servlet/jakarta/servlet/filter) is the primary contract for servlet filters.

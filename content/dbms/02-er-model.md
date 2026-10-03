@@ -33,7 +33,7 @@ A strong entity has an independent identifier:
 - An **alternate key** is a candidate key not selected as primary.
 - A natural key comes from the domain; a surrogate key is generated.
 
-For `Employee`, both `employee_number` and a verified corporate email might be candidate keys. If `employee_id` is a generated primary key, email still needs a `UNIQUE` constraint when the domain says it cannot repeat.
+For `Employee`, both `employee_number` and a verified corporate email might be candidate keys. If `employee_id` is a generated primary key, email still needs a `UNIQUE` constraint when the domain says it cannot repeat. A classical candidate key also requires a value for every row: use `NOT NULL` because SQL nullable uniqueness is not the same rule.
 
 Keys identify instances; names usually do not. Two people can share a name, and an email can change, so identity follows domain stability rather than convenient sample data.
 
@@ -96,7 +96,7 @@ erDiagram
     }
 ```
 
-In crow's-foot notation, `||` means exactly one, `o{` means zero or many, and `|{` means one or many. The relational schema must still enforce the same rules.
+In crow's-foot notation, `||` means exactly one, `o{` means zero or many, and `|{` means one or many. The relational schema must still enforce the same rules. The conceptual diagram omits some mapped columns: `OrderItem` needs `(order_id, line_number)` as its composite key, not `line_number` alone. A foreign key from item to order does not ensure the diagram’s minimum of one item per order.
 
 ### Strong and weak entities
 
@@ -104,7 +104,7 @@ A **strong entity** has an independent key. A **weak entity** lacks a complete i
 
 `OrderItem` is weak when line number 1 is unique only inside one order. Its identity is `(order_id, line_number)`, and it has total participation in the identifying relationship. Deleting the owner often deletes its dependants, but retention requirements can make cascading deletion inappropriate.
 
-Adding a surrogate `order_item_id` may simplify references, but it does not erase semantic weakness. Preserve the domain uniqueness of `(order_id, line_number)`.
+Adding a globally unique surrogate `order_item_id` gives the implemented entity an independent key, so it is no longer weak under the strict key-based definition. It can still be existence-dependent on its order. Preserve the separate domain uniqueness of `(order_id, line_number)`.
 
 ---
 
@@ -125,6 +125,8 @@ Use a repeatable discovery process:
 Suppose a university says: “Students register for course offerings. A course can run in several terms, and lecturers teach particular offerings.” `Course` and `CourseOffering` must differ because an offering has a term, capacity, and lecturer. Connecting a student directly to `Course` loses the term in which registration occurred.
 
 ### Mapping strong entities and attributes
+
+These are PostgreSQL DDL excerpts, not one complete schema script. Later examples assume referenced tables already exist; a recursive employee foreign key prevents missing managers but does not alone prevent self-management or longer reporting cycles.
 
 Map each strong entity to a table. Flatten useful composite components, retain the selected primary key, and translate alternate keys to unique constraints.
 
@@ -210,7 +212,7 @@ CREATE TABLE enrollment (
 );
 ```
 
-The composite key prevents duplicate enrollment. If repeat attempts are valid, introduce an attempt discriminator or separate identity and define the new uniqueness rule.
+This toy model assumes only one offering of a course per term. Multiple sections need a section discriminator or a revised uniqueness rule. The composite enrollment key prevents duplicate enrollment. If repeat attempts are valid, introduce an attempt discriminator or separate identity and define the new uniqueness rule.
 
 ### Worked example: relation count
 
@@ -407,7 +409,7 @@ Constraint gaps include mandatory participation on the referenced side of 1:1, m
 1. **“Every noun becomes an entity.”** A noun can be an attribute, role, or transient calculation. It needs entity status only with independent identity, lifecycle, or relationships.
 2. **“A foreign key enforces 1:1.”** It enforces referenced existence, but several rows may point to one parent. A unique constraint enforces at most one.
 3. **“Nullable foreign keys fully model optionality.”** Nullability expresses one side only. Opposite-side minimum counts may require stronger enforcement.
-4. **“A surrogate key makes a weak entity strong.”** Storage identity does not erase domain dependence. Preserve owner-plus-discriminator uniqueness.
+4. **“An independent surrogate key removes every owner constraint.”** It can remove key-based weakness, but not existence dependence or owner-plus-discriminator domain uniqueness. Keep the foreign key, nullability and appropriate lifecycle rules.
 5. **“Three binary relationships always replace a ternary one.”** Binary projections can create spurious combinations or lose attributes dependent on all three parties.
 
 ### Interview Questions

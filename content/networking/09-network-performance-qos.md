@@ -145,7 +145,7 @@ flowchart LR
 
 Queue length in packets is not enough to reason about latency because packet sizes differ.
 Queue delay or bytes plus link rate gives a more useful bound.
-A 1 MB queue on a 10 Mb/s link can add about $8$ seconds of serialization delay even before propagation or processing.
+A 1 MB queue on a 10 Mb/s link can add about $0.8$ seconds of serialization delay ($1{,}000{,}000 \times 8 / 10{,}000{,}000$) even before propagation or processing.
 
 ### IntServ reserves flows; DiffServ aggregates classes
 
@@ -172,9 +172,9 @@ Network shaping controls bytes or packets entering an interface.
 Application rate limiting controls requests, identities, or expensive operations before they consume downstream capacity.
 Both can use token-bucket logic, but their keys and failure semantics differ.
 
-For an API limit of 100 requests per minute with a burst of 20, choose a refill rate of $100 / 60 \approx 1.67$ requests per second and a bucket capacity of 20.
+For a sustained API rate of 100 requests per minute with a burst of 20, choose a refill rate of $100 / 60 \approx 1.67$ requests per second and a bucket capacity of 20.
 After an idle period, a client can send 20 requests immediately.
-It then sustains only about 1.67 requests per second unless more tokens accumulate.
+It then sustains only about 1.67 requests per second unless more tokens accumulate. This is a sustained-rate/burst contract, not a strict cap of 100 in every rolling minute: the ideal envelope is at most `B + r × elapsed_time` requests, about 120 over a full minute starting with a full bucket.
 
 Distributed rate limits need an authoritative shared counter or a carefully designed approximation.
 Per-instance limits can allow a client to multiply its effective allowance by spreading traffic across many replicas.
@@ -190,7 +190,7 @@ Giving EF strict priority is safe only if admission control caps aggregate EF lo
 If voice and “important” traffic together consume 100% of a link, lower classes receive no useful service and priority traffic itself queues.
 Reserve a small, measured budget for priority traffic and police it at trusted ingress points.
 
-Per-tenant fair queueing prevents one large flow from dominating all flows in a class.
+Per-flow fair queueing isolates flows, while per-tenant queueing must group flows by tenant to prevent one tenant gaining extra share by opening many flows.
 It does not protect a backend service whose CPU or database is already overloaded; that requires application concurrency limits and load shedding.
 End-to-end performance is limited by the narrowest resource, which may be a queue, a TLS terminator, a disk, or a remote dependency rather than a WAN link.
 
@@ -234,7 +234,7 @@ Treat advertised peak rates and ideal latency figures as planning inputs, not gu
 ### CDN and edge design trade freshness for latency
 
 A CDN cache key may include path, query parameters, selected headers, device variation, and authorization context.
-Making the key too broad destroys cache-hit ratio; making it too narrow can leak personalized content or serve incorrect variants.
+Including excessive fields or values fragments the key space and lowers cache-hit ratio. Omitting relevant variation makes unrelated requests share one entry and can leak personalized content or serve incorrect variants.
 Cache-control TTL, stale-while-revalidate, purges, and versioned asset names determine the freshness trade-off.
 
 Origin shielding reduces duplicate misses reaching the origin but adds a layer that must be observed and scaled.
@@ -257,7 +257,7 @@ Measure edge hit ratio, origin requests, cache age, regional latency, and error 
 
 An end-to-end latency target is a budget shared by many stages.
 A request with a 200 ms p99 target might reserve 30 ms for client-to-edge network travel, 20 ms for TLS and proxy handling, 80 ms for application work, 40 ms for a database dependency, and 30 ms for response transfer and margin.
-The exact numbers vary, but making them explicit prevents every team from consuming the whole target independently.
+These are allocated time budgets, not percentiles that can be added: the sum of stage p99 values is not generally the end-to-end p99. The exact numbers vary, but explicit budgets prevent every team from consuming the whole target independently.
 
 Measure both one-way components where clock quality permits and end-to-end round-trip behaviour from real client locations.
 Round-trip time includes work in both directions and may hide asymmetric paths.
@@ -357,7 +357,7 @@ Shaping delays excess traffic in a queue to smooth its output rate. Policing enf
 
 **Q4. Why does a full queue increase latency?** `[easy]`
 
-Packets must wait behind bytes already queued for the finite-rate output link. A 1 MB queue on a 10 Mb/s link alone represents roughly eight seconds of serialization time. Long queues can therefore create poor responsiveness even before packet loss is observed.
+Packets must wait behind bytes already queued for the finite-rate output link. A 1 MB queue on a 10 Mb/s link alone represents roughly 0.8 seconds of serialization time using decimal MB. Long queues can therefore create poor responsiveness even before packet loss is observed.
 
 **Q5. Compare IntServ and DiffServ.** `[medium]`
 

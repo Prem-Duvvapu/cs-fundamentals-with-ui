@@ -19,7 +19,7 @@ Consider an enrollment relation:
 - `{student_id, course_id}` is a composite candidate key because one student has at most one enrollment in one course.
 - `{student_id, course_id, grade}` is a super key but not a candidate key because `grade` is unnecessary.
 - The composite candidate key can be selected as the primary key.
-- `university_email` may be `UNIQUE` in a student table, making it another candidate key there.
+- `university_email` may be `NOT NULL UNIQUE` in a student table, making it another candidate key there.
 - `student_id` and `course_id` are foreign keys to their respective parent tables.
 
 ```mermaid
@@ -41,10 +41,10 @@ Different constraints protect different parts of the model:
 | Constraint | Rule enforced | Typical failure |
 |---|---|---|
 | `PRIMARY KEY` | Unique and non-null row identity | Duplicate order identifier |
-| `UNIQUE` | Candidate-key uniqueness | Two accounts reuse one verified email |
+| `UNIQUE` | Uniqueness under the engine’s null rules; add `NOT NULL` for a candidate key | Two accounts reuse one verified email |
 | `FOREIGN KEY` | Child value references an existing parent | Order references a missing customer |
 | `NOT NULL` | Required attribute has a value | Payment has no currency |
-| `CHECK` | Row satisfies a predicate | Quantity is zero or negative |
+| `CHECK` | Predicate is not false; unknown usually passes, so required values need `NOT NULL` | Quantity is zero or negative |
 
 A foreign key does not have to reference the parent's declared primary key in the relational model; it can reference another candidate key. SQL engines generally require the referenced columns to have a `PRIMARY KEY` or suitable `UNIQUE` constraint so the parent match is unambiguous.
 
@@ -60,7 +60,7 @@ For `EMPLOYEE(employee_id, tax_id, department_id, department_name)`:
 - `tax_id → employee_id` holds if tax identifiers are globally unique.
 - `department_id → department_name` holds if one identifier names one department.
 - `department_name → department_id` may not hold because names can be reused.
-- `employee_id → department_name` follows through `department_id` when both earlier rules hold.
+- If `employee_id → department_id` also holds, `employee_id → department_name` follows through `department_id`; the earlier tax-ID rules alone do not imply it.
 
 A candidate key $K$ functionally determines every attribute in its relation: $K \to R$. A super key also determines every attribute, but it may contain redundant attributes. This connection lets closure calculations discover keys from a set of functional dependencies.
 
@@ -260,7 +260,7 @@ The theory assumes dependencies hold in every legal instance. The SQL schema mak
 
 ### Dependency preservation and projection
 
-A decomposition is dependency preserving when constraints can be checked within individual resulting relations rather than by joining them. To project $F$ onto fragment $R_i$, consider subsets $X$ of $R_i$, compute $X^+$ under the full $F$, and retain dependencies from $X$ to attributes in $X^+\cap R_i$.
+A decomposition is dependency preserving when the union of dependencies projected onto individual fragments implies the original dependencies, without joining fragments for enforcement. An original FD need not itself fit in one fragment if local rules together imply it. To project $F$ onto fragment $R_i$, consider subsets $X$ of $R_i$, compute $X^+$ under the full $F$, and retain dependencies from $X$ to attributes in $X^+\cap R_i$.
 
 Suppose $F=\{A\to B,B\to C\}$ and the decomposition is $R_1(A,B)$ plus $R_2(B,C)$. Relation $R_1$ enforces $A\to B$ and $R_2$ enforces $B\to C$, so their union implies the original set without a join. If instead the fragments were $R_1(A,B)$ and $R_2(A,C)$, enforcing $B\to C$ would require information spanning relations.
 
@@ -272,13 +272,13 @@ A unique constraint is backed by an index or equivalent access structure so the 
 
 Foreign-key enforcement also coordinates parent and child changes. A child insert must confirm a matching parent, while a parent delete must prevent or process referencing children according to `RESTRICT`, `CASCADE`, `SET NULL`, or another declared action. Large cascades widen transaction scope, lock many rows, generate substantial logging, and can create deadlocks with other update paths.
 
-Deferrable constraints postpone validation until transaction commit, which helps when a transaction temporarily violates a relationship while rearranging a graph. The trade-off is later failure and a larger rollback. Deferral does not weaken the final invariant if commit validation is reliable.
+Deferrable constraints permit validation to be postponed until transaction commit when configured or explicitly set deferred; merely declaring `DEFERRABLE` need not defer the check. This helps when a transaction temporarily violates a relationship while rearranging a graph. The trade-off is later failure and a larger rollback. Deferral does not weaken the final invariant if commit validation is reliable.
 
 ### Composite keys and index consequences
 
 Physical indexes make key width operationally important. In a B+ tree, wider keys reduce entries per page, increase tree size, consume more cache, and enlarge foreign-key indexes in child tables. A composite primary key can still be the correct domain model when all components are stable and queries naturally use them.
 
-Column order matters for query access. An index on `(tenant_id, external_id)` efficiently supports equality by `tenant_id` and by both columns, but usually not a search on `external_id` alone under the leftmost-prefix rule. Logical candidate-key status is independent of this access-path ordering: `{tenant_id, external_id}` and `{external_id, tenant_id}` represent the same attribute set in dependency theory.
+Column order matters for query access. An index on `(tenant_id, external_id)` efficiently supports equality by `tenant_id` and by both columns, but an efficient bounded scan on `external_id` alone is less straightforward. PostgreSQL 18 can use B-tree skip scan when repeated probes across the leading values are profitable; otherwise the planner may scan much of the index or choose another path. Logical candidate-key status is independent of this access-path ordering: `{tenant_id, external_id}` and `{external_id, tenant_id}` represent the same attribute set in dependency theory.
 
 In clustered engines, the primary key may be copied into every secondary-index leaf entry. Selecting a 48-byte natural composite key instead of an 8-byte surrogate can multiply storage across many secondary indexes. That physical cost must be weighed against an extra lookup and the need for a separate unique business key.
 
@@ -388,7 +388,7 @@ In the relational model, a key identifies every tuple and therefore cannot conta
 
 **Q11. Why does dependency preservation matter after decomposition?** `[medium]`
 
-Dependency preservation allows each original rule to be enforced within one fragment using local constraints. If a rule spans fragments, checking every write may require a join or an application-level coordination mechanism. That cost is one reason designers sometimes prefer dependency-preserving 3NF over a stricter BCNF decomposition.
+Dependency preservation means the union of locally enforced projected dependencies implies every original rule, even if an original rule spans fragments. Without that implication, additional cross-fragment checks can require joins or coordination on writes. That cost is one reason designers sometimes prefer dependency-preserving 3NF over a stricter BCNF decomposition.
 
 **Q12. Scenario: two requests both query for an email, see no row, and then insert duplicate customers. What should change?** `[hard]`
 

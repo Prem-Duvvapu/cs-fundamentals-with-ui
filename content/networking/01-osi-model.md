@@ -95,7 +95,7 @@ sequenceDiagram
 
 The transport header identifies the source and destination processes.
 The IP header identifies end hosts across the route.
-The link header identifies the next hop on one local link and usually changes at every router.
+The link header identifies the next hop on one local link and usually changes at every router. “Same IP packet” in the diagram means the same forwarded network-layer datagram: a router still decrements TTL or hop limit and updates the IPv4 header checksum; NAT can additionally rewrite addresses.
 
 ---
 
@@ -103,7 +103,7 @@ The link header identifies the next hop on one local link and usually changes at
 
 ### A worked encapsulation example uses real sizes
 
-Assume a browser sends 1,400 bytes of HTTP application data over IPv4 and TCP on Ethernet.
+For an unencrypted HTTP teaching example, assume a browser sends 1,400 bytes of application data over IPv4 and TCP on Ethernet. HTTPS adds TLS records and other overhead; this table omits them.
 Assume no TCP options, a 20-byte IPv4 header, a 20-byte TCP header, and a 14-byte Ethernet header plus a 4-byte frame check sequence.
 
 The TCP segment contains $1{,}400 + 20 = 1{,}420$ bytes.
@@ -193,7 +193,7 @@ An IP packet larger than the path allows may need fragmentation or may be droppe
 IPv6 routers do not fragment packets in transit; the sender must use an appropriate packet size.
 
 Fragment loss is expensive because a missing fragment prevents reassembly of the original packet.
-TCP generally avoids routine IP fragmentation by negotiating an MSS and adapting to path information.
+TCP generally avoids routine IP fragmentation using each peer’s advertised MSS and path information. The MSS advertisement subtracts fixed IP/TCP headers; the sender additionally reduces actual data for options and extension headers. These are related but distinct limits.
 UDP applications should choose datagram sizes carefully and implement any required application-level chunking or loss handling.
 
 ---
@@ -346,7 +346,7 @@ OSI names seven conceptual layers, while TCP/IP commonly groups them into applic
 
 **Q3. What changes at each router hop?** `[easy]`
 
-A router removes the incoming link-layer frame, examines the IP packet, selects a next hop, and creates a new frame for the outgoing link. The Ethernet source and destination MAC addresses therefore change on each link. The end-to-end IP addresses and transport ports normally remain the same unless a device such as NAT or a proxy intentionally changes them.
+A router removes the incoming link-layer frame, examines the IP packet, selects a next hop, and creates a new frame for the outgoing link. The Ethernet source and destination MAC addresses therefore change at routed links, and TTL/hop limit decreases; IPv4 also needs an updated header checksum. The end-to-end IP addresses and transport ports normally remain the same unless a device such as NAT or a proxy intentionally changes them.
 
 **Q4. What is encapsulation?** `[easy]`
 

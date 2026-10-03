@@ -80,7 +80,7 @@ A monitor combines mutual exclusion with condition waiting around one shared obj
 
 In Java, `synchronized` uses an intrinsic monitor.
 
-`wait()` releases that monitor and blocks until notification, interruption, or a spurious wakeup.
+`wait()` atomically releases the monitor on which it is called and later reacquires it; it does not release unrelated locks held by the thread. Notification, interruption, and spurious wakeups have distinct outcomes.
 
 `notifyAll()` wakes waiting threads, which compete again to reacquire the monitor.
 
@@ -146,7 +146,9 @@ It acquires the mutex, removes one item, releases the mutex, and signals `empty`
 
 The final buffer contains one item.
 
-```c
+**Algorithm pseudocode:** `wait`/`signal` and the buffer operations are abstract helpers, not compilable C. Real code must restore permits/locks on interruption or failure.
+
+```text
 semaphore empty = 3;
 semaphore full = 0;
 mutex lock = 1;
@@ -184,14 +186,17 @@ Compare-and-swap compares a memory location with an expected value.
 
 If equal, it writes a new value atomically and reports success.
 
-If not equal, it reports failure and the caller can retry.
+If unequal, it reports failure; weak compare-exchange may also fail spuriously even when equal, so it belongs in a retry loop.
+
+**C11 function excerpt:** include `<stdatomic.h>`, `<limits.h>`, and `<stdlib.h>`. Abort on exhausted integer range in this teaching example; a production API should report that outcome deliberately.
 
 ```c
 int increment(atomic_int *value) {
     int observed;
     do {
         observed = atomic_load(value);
-    } while (!compare_exchange_weak(value, &observed, observed + 1));
+        if (observed == INT_MAX) abort();
+    } while (!atomic_compare_exchange_weak(value, &observed, observed + 1));
     return observed + 1;
 }
 ```
@@ -202,7 +207,7 @@ The loser observes 101, recalculates 102, and retries.
 
 The final result becomes 102 without a mutex.
 
-This is lock-free if system-wide progress occurs even when one thread stalls.
+This can be lock-free only if the underlying atomic implementation is lock-free and the algorithm guarantees system-wide progress; C11 atomic types may use hidden locks.
 
 It is not automatically wait-free because one unlucky thread may retry many times.
 
@@ -218,7 +223,7 @@ Synchronization primitives establish happens-before relationships.
 
 Releasing a lock publishes earlier writes to a task that subsequently acquires that lock.
 
-Release and acquire atomic operations provide a similar directional publication relationship.
+An acquire reading from a release (or its qualifying release sequence) can publish preceding writes; unrelated release/acquire operations do not automatically synchronize.
 
 Sequential consistency is easier to reason about but can be more expensive on weakly ordered hardware.
 
@@ -236,7 +241,7 @@ Reader-preference can starve writers if readers arrive continuously.
 
 Writer-preference can delay readers during write pressure.
 
-Fair locks trade throughput for bounded queue order.
+Fair admission trades throughput for queue-order policy; it does not guarantee a wall-clock deadline or scheduler fairness.
 
 Choose policy from measured read duration, write urgency, and tail latency.
 
@@ -311,7 +316,7 @@ A writer builds a replacement copy, publishes it atomically, then waits for a gr
 
 Readers that began before publication may still use the old copy safely.
 
-Readers that begin after publication use the new copy.
+Readers can observe an old or new version under the applicable RCU ordering rules; RCU provides safe lifetime, not a universal latest-value or multi-field snapshot guarantee.
 
 ```mermaid
 sequenceDiagram
@@ -381,7 +386,7 @@ A wakeup does not guarantee the predicate is now true because another awakened t
 
 **Q4. What does compare-and-swap do?** `[easy]`
 
-CAS compares a memory value with an expected value and writes a replacement only if they match, as one atomic operation. A failed CAS tells the caller that another update intervened, so it can reread and retry. It is a building block for atomics and lock-free algorithms, not a solution for every multi-variable invariant.
+CAS compares a memory value with an expected value and writes a replacement only if they match, as one atomic operation. A strong failure indicates a mismatch, while weak compare-exchange can also fail spuriously. Recompute from the observed value and retry without assuming every failure proves another writer ran. It is a building block for atomics and lock-free algorithms, not a solution for every multi-variable invariant.
 
 **Q5. When is a spinlock appropriate?** `[medium]`
 
@@ -401,7 +406,7 @@ Under high contention, many threads repeatedly fail CAS and retry, causing cache
 
 **Q9. What is the ABA problem?** `[medium]`
 
-ABA occurs when a CAS sees a value A, another thread changes it to B, and later it becomes A again. The CAS succeeds even though the intervening change may invalidate assumptions about linked structure or ownership. Version tags and safe reclamation schemes distinguish the later A from the original observation.
+ABA occurs when a CAS sees a value A, another thread changes it to B, and later it becomes A again. The CAS succeeds even though the intervening change may invalidate assumptions about linked structure or ownership. Version tags can detect intervening changes subject to counter wraparound, while safe reclamation prevents unsafe memory reuse. Reclamation alone does not rule out every logical ABA change in a still-live value.
 
 **Q10. How does RCU let readers avoid blocking?** `[medium]`
 
@@ -428,4 +433,4 @@ A thread can read a node pointer just before another thread removes and frees th
 - [Linux kernel locking documentation](https://docs.kernel.org/locking/index.html) describes locking rules and kernel primitives.
 - [Linux RCU documentation](https://docs.kernel.org/RCU/index.html) explains read-copy-update and grace periods.
 - [POSIX semaphore specification](https://pubs.opengroup.org/onlinepubs/9699919799/functions/sem_wait.html) defines semaphore waiting behaviour.
-- [C++ atomic memory order reference](https://en.cppreference.com/w/cpp/atomic/memory_order) provides a concise primary-language view of acquire and release ordering.
+- [C++ draft: atomic memory ordering](https://eel.is/c++draft/atomics.order) specifies ordering semantics for C++ atomics; keep its language rules distinct from the C11 excerpt and Java monitors.

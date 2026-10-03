@@ -42,7 +42,7 @@ A page contains a header, slot directory, records, and free space.
 
 A slot directory lets records move during compaction without changing their logical record identifiers.
 
-Assume an 8,192-byte page has a 192-byte header and each fixed record uses 160 bytes.
+In a teaching layout, assume an 8,192-byte page reserves 192 bytes and each record consumes 160 bytes including its per-record/slot overhead. Real page and tuple headers differ by engine.
 
 The usable payload is:
 
@@ -147,7 +147,7 @@ Assume $N$ equal-size drives, each with capacity $S$ and random-I/O capability $
 | Level | Layout | Minimum drives | Usable capacity | Failure tolerance | Small random-write cost |
 |---|---|---:|---:|---|---:|
 | RAID 0 | Striping only | 2 | $N \times S$ | None | 1 physical write |
-| RAID 1 | Mirroring | 2 | Typically $S$ per mirror | One drive per mirror | 2 physical writes |
+| RAID 1 | Two-way mirroring in this model | 2 | $S$ per two-drive mirror | One drive per two-drive mirror | 2 physical writes |
 | RAID 5 | Distributed single parity | 3 | $(N-1) \times S$ | 1 drive | About 4 I/Os |
 | RAID 6 | Distributed dual parity | 4 | $(N-2) \times S$ | 2 drives | About 6 I/Os |
 | RAID 10 | Stripe across mirrors | 4 | $(N/2) \times S$ | At least 1; potentially one per pair | 2 physical writes |
@@ -201,7 +201,7 @@ RAID 6 uses two independent parity equations, usually XOR parity plus Reed-Solom
 
 ### Worked array sizing and write throughput
 
-Consider four 2 TB drives, each capable of 200 random IOPS.
+Consider four 2 TB drives, each capable of an assumed 200 random IOPS. This is an ideal balanced, non-degraded queueing model with no controller bottleneck; aggregate division estimates throughput, not individual synchronous write latency.
 
 | Metric | RAID 0 | RAID 5 | RAID 6 | RAID 10 |
 |---|---:|---:|---:|---:|
@@ -222,7 +222,7 @@ These are planning approximations; controller cache, queue depth, full-stripe wr
 
 ### Rebuild time and degraded operation
 
-Replacing one failed 2 TB member requires reading or reconstructing roughly 2 TB of data.
+Replacing one failed 2 TB member reconstructs roughly 2 TB of output. Parity reconstruction can read substantially more from the surviving members; the following rate is rebuilt output throughput, not total array read throughput.
 
 At a sustained rebuild rate of 200 MB/s:
 
@@ -352,7 +352,7 @@ The **RAID write hole** occurs if power fails after data reaches disk but before
 
 The stripe becomes internally inconsistent and a later rebuild can reconstruct incorrect bytes.
 
-Battery-backed or supercapacitor-backed cache, a write journal, copy-on-write layouts, and regular scrubbing reduce this risk.
+Protected write-back cache or a correctly implemented write journal/parity log can close this failure window. Checksummed copy-on-write array designs can also address it, but not every copy-on-write layer does. Scrubbing detects inconsistencies; without checksums or independent evidence it cannot always decide whether data or parity is correct.
 
 RAID 6 protects against two missing members but does not by itself make a partial stripe update atomic.
 
@@ -368,7 +368,7 @@ $$
 b=6\times10^{12}\times8=4.8\times10^{13}\text{ bits}
 $$
 
-For a stated unrecoverable bit error rate of $10^{-14}$, the expected count is $\lambda=0.48$.
+If $10^{-14}$ is treated as an independent per-bit error probability in this toy model, the expected count is $\lambda=0.48$. A manufacturer’s rated upper error frequency is not a measured independent probability and cannot by itself predict this failure percentage.
 
 Using a Poisson approximation:
 
@@ -398,7 +398,7 @@ Hash indexes must manage collisions with chaining, open addressing, or bucket pa
 
 Static hash tables accumulate overflow chains as data grows; extendible and linear hashing split buckets incrementally.
 
-BRIN indexes or zone maps summarize page ranges and work only when physical order correlates with the indexed value.
+BRIN indexes or zone maps summarize page ranges. Correlation makes those summaries selective; weak correlation can produce many false-positive range visits while the index remains logically correct.
 
 Bloom filters answer “definitely absent” or “possibly present,” reducing unnecessary LSM-table reads while permitting false positives.
 
@@ -419,7 +419,7 @@ flowchart TD
     H --> I
 ```
 
-An index cannot fix a query that must read most rows.
+A non-covering index often cannot reduce work for a query reading most rows. A narrow covering index, useful ordering or a materialized summary may still help; compare actual plans.
 
 Faster RAID cannot compensate for accidental full scans caused by stale statistics.
 
@@ -470,7 +470,7 @@ RAID 10 mirrors each logical write and avoids distributed-parity read-modify-wri
 
 **Q6. When should you choose a bitmap index instead of a B+ tree?** `[medium]`
 
-Choose a bitmap representation for read-heavy analytical data when categorical predicates are combined across many rows. Bitwise operations can intersect millions of row memberships with few CPU instructions, and compression can keep sparse or run-heavy sets compact. Prefer a B+ tree for write-heavy OLTP, ordered ranges, or workloads where bitmap maintenance and contention dominate.
+Choose a bitmap representation for read-heavy analytical data when categorical predicates are combined across many rows. Word-parallel bitwise operations can intersect many row memberships per instruction, reducing work relative to one scalar test per row; scanning a million-bit vector still requires many word operations, and compression can keep sparse or run-heavy sets compact. Prefer a B+ tree for write-heavy OLTP, ordered ranges, or workloads where bitmap maintenance and contention dominate.
 
 **Q7. Why can a hash index not efficiently satisfy `ORDER BY` or a range predicate?** `[medium]`
 
@@ -482,7 +482,7 @@ Local indexes cover one partition, so they are smaller and can be rebuilt or det
 
 **Q9. What is the RAID write hole?** `[medium]`
 
-The write hole is parity inconsistency caused when only part of a data-and-parity update reaches stable storage. The array may continue reading normally until a scrub or rebuild relies on stale parity and reconstructs bad data. Protected write-back cache, write journaling, copy-on-write layouts, and full-stripe writes are common mitigations.
+The write hole is parity inconsistency caused when only part of a data-and-parity update reaches stable storage. The array may continue reading normally until a scrub or rebuild relies on stale parity and reconstructs bad data. Protected cache and correctly implemented journals/parity logs can prevent incomplete stripe publication; suitable checksummed array designs offer another approach. Full-stripe writes avoid old-parity reads but are not automatically atomic across drives during power loss.
 
 **Q10. Why can an LSM storage engine have high write amplification?** `[medium]`
 

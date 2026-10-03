@@ -1,7 +1,7 @@
 # Spring Batch Architecture, Chunk Execution Lifecycle & Fault Tolerance
 
 Spring Batch provides a repeatable execution model for large, finite workloads such as imports, settlements, migrations, and report generation.
-It turns a business batch into named jobs and steps, persists execution metadata, and makes restart, retry, skip, and transaction boundaries explicit.
+It organizes work into jobs and steps and provides restart, retry, skip, and transaction contracts. Durable execution metadata requires a persistent JobRepository; Batch 6's resourceless infrastructure does not supply durable restart.
 Interviewers use it to test whether a candidate understands throughput together with correctness when a job fails halfway through millions of records.
 
 ---
@@ -10,6 +10,22 @@ Interviewers use it to test whether a candidate understands throughput together 
 **Before you start:** understand [transactions](/topic/transactions-acid) and the [persistence lifecycle](/topic/jpa-hibernate-lifecycle).
 
 **After this lesson you can:** trace a chunk through reading/processing/writing, explain restart identity, and distinguish retry from a new business run.
+
+**Version boundary:** Boot 4.1.1 manages Spring Batch 6.0.5. The `StepBuilder.chunk(size, tx).faultTolerant()` excerpts below illustrate the legacy 5.2 model, retained but deprecated in Batch 6. They omit imports, application beans, and domain types; they are not standalone runnable programs. New Batch 6 steps use its chunk-oriented builder and Spring Framework retry policies; do not mix the two APIs.
+
+A current Batch 6 chunk-builder excerpt is:
+
+```java
+new StepBuilder("importCustomers", repository)
+    .<CustomerRow, Customer>chunk(100)
+    .transactionManager(transactionManager)
+    .reader(customerReader())
+    .processor(customerProcessor())
+    .writer(customerWriter())
+    .build();
+```
+
+The selected transaction manager must protect the actual output resource; resourceless defaults are insufficient for database atomicity.
 
 ## 🟢 Beginner Level
 
@@ -31,7 +47,7 @@ If chunk 2 fails before commit, the earlier committed chunk does not automatical
 
 A **Job** is the top-level Spring Batch unit.
 It contains one or more **Steps**.
-A **JobLauncher** starts a job with a set of identifying job parameters.
+A **JobLauncher** starts a job with parameters; only those marked identifying contribute to its instance identity.
 
 ```java
 JobParameters parameters = new JobParametersBuilder()
@@ -84,7 +100,7 @@ Separating responsibilities makes failure diagnosis and compensation practical.
 The usual step style is chunk-oriented processing.
 An `ItemReader` produces one input item at a time.
 An optional `ItemProcessor` validates or transforms it.
-An `ItemWriter` receives a list when the chunk is ready.
+An `ItemWriter` receives a `Chunk<? extends T>` of output items; filtered inputs can make the output smaller than the input chunk.
 
 ```java
 new StepBuilder("importCustomers", repository)
@@ -120,7 +136,7 @@ Use a tasklet when there is no meaningful item stream to read and commit in chun
 
 ### The repository remembers what happened
 
-Spring Batch stores metadata in a `JobRepository`.
+A persistent Spring Batch `JobRepository` stores execution metadata. In Batch 6, bare `@EnableBatchProcessing`/`DefaultBatchConfiguration` use resourceless infrastructure by default; explicitly configure JDBC or MongoDB when durable checkpoints/restarts are required.
 The repository tracks logical job instances, executions, step executions, parameters, and execution context.
 It is the basis for monitoring and restartability.
 
@@ -162,7 +178,7 @@ Step importOrders(JobRepository repository, PlatformTransactionManager tx) {
 }
 ```
 
-The reader's checkpoint state is persisted with the successful transaction.
+With a persistent repository and correctly coordinated transaction resources, reader checkpoint state is committed consistently with database output. Separate databases or remote writers need their own coordination; a file read itself is not rolled back by the database.
 On restart, a restartable reader can resume from the last committed boundary.
 This does not automatically make external side effects idempotent, which is why writer design matters.
 
@@ -263,9 +279,8 @@ A skip limit is a safety budget, not a way to ignore data quality indefinitely.
 If the eleventh validation error occurs in this configuration, the step fails.
 A retry limit needs backoff and observability; immediate retries can intensify a database overload.
 
-The supplied simulation's rule is important: with chunk size 100 and a skipped error at item 47, no partial first attempt commits.
-Spring Batch rolls back and uses fault-tolerant processing to isolate the bad item.
-It can then commit the remaining 99 valid items according to the configured policy.
+In the archived teaching scenario, 100 inputs include one skipped processor failure and 99 valid outputs, with no other filters or errors. Those 99 can commit under the skip policy.
+Do not infer a universal rollback/re-read sequence from that count: reader skips, processor/writer failures, no-rollback rules, buffering, and the selected Batch implementation have different recovery paths.
 
 ---
 
@@ -313,7 +328,7 @@ Decide intentionally whether reprocessing should be a restart, a new versioned i
 
 ### Parallelism changes partition and transaction design
 
-Multi-threaded steps let one step process chunks concurrently.
+In Batch 6's new concurrent chunk-oriented model, item processing is concurrent while reading and writing remain serial. Worker-thread processors do not inherit the main thread’s chunk transaction; start an explicit processor transaction if necessary. Local chunking and partitioning are separate options for concurrent chunk/worker execution; the deprecated legacy multi-threaded model has different thread-safety requirements.
 Partitioning divides input into independent ranges and runs worker step executions, locally or remotely.
 Parallel flows run separate steps concurrently when their dependencies allow it.
 
@@ -371,11 +386,11 @@ Returning null filters the item out of the output without treating it as a faile
 
 **Q3. Why is a chunk transaction boundary important?** `[easy]`
 
-It defines the set of reads and writes that succeed or roll back together. Previously committed chunks remain durable when a later chunk fails, which bounds replay work. The boundary must align with writer idempotency because external calls do not automatically participate in the local database transaction.
+It coordinates transactional writes and checkpoint state, assuming the selected resources participate in the transaction. File reads and remote API effects do not become rollbackable merely because they occur inside a chunk. Previously committed chunks remain durable when a later chunk fails, which bounds replay work. The boundary must align with writer idempotency because external calls do not automatically participate in the local database transaction.
 
 **Q4. What is the role of JobRepository?** `[easy]`
 
-JobRepository stores job instances, executions, step metrics, parameters, and checkpoint context. It lets Spring Batch decide whether an instance may run, diagnose failures, and restart from committed state. It is framework metadata, so business facts should also be written to domain-owned storage.
+A persistent JobRepository stores job instances, executions, step metrics, parameters, and checkpoint context; a resourceless repository lacks durable restart evidence. It lets Spring Batch decide whether an instance may run, diagnose failures, and restart from committed state. It is framework metadata, so business facts should also be written to domain-owned storage.
 
 **Q5. What happens if an unhandled processor exception occurs in a chunk?** `[medium]`
 
@@ -419,6 +434,7 @@ Partitions can contend on the same database indexes, output files, network servi
 
 ### Further Reading
 
+- [Spring Batch 6 migration guide](https://github.com/spring-projects/spring-batch/wiki/Spring-Batch-6.0-Migration-Guide) documents current builders, repository defaults, packages, and legacy APIs.
 - [Spring Batch reference: domain language of batch](https://docs.spring.io/spring-batch/reference/domain.html) defines jobs, steps, executions, and repository metadata.
 - [Spring Batch reference: chunk-oriented processing](https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing.html) documents reader, processor, writer, and transaction behaviour.
 - [Spring Batch reference: retry and skip logic](https://docs.spring.io/spring-batch/reference/step/chunk-oriented-processing/configuring-skip.html) explains fault-tolerant step configuration.

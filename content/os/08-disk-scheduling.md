@@ -98,7 +98,7 @@ It usually lowers average movement under clustered load.
 Requests far from a busy region can starve if nearer requests continue arriving.
 
 **SCAN** moves in one direction, serving requests encountered, then reverses at a boundary.
-It resembles an elevator and bounds wait by making repeated full sweeps.
+It resembles an elevator; repeated sweeps prevent SSTF-style spatial starvation under bounded service/arrival assumptions, not a universal wall-clock deadline.
 **C-SCAN** serves only while moving in one direction, then returns to the start without serving requests, giving more uniform directional wait.
 
 | Algorithm | Next request rule | Strength | Main weakness |
@@ -169,7 +169,7 @@ flowchart LR
 
 SSTF has the smallest movement in this finite queue.
 It does not guarantee the best response time if requests near 50 continue arriving while cylinder 180 waits.
-SCAN deliberately spends extra movement to give the request at 11 a bounded chance to be served.
+SCAN spends extra movement to reach request 11 in this finite queue. This calculation stops at the last served request, not after a complete return to cylinder zero.
 
 ### LOOK variants avoid travelling to an empty physical edge
 
@@ -179,7 +179,7 @@ In the example, LOOK goes only as far as 180 before reversing rather than visiti
 
 C-LOOK similarly serves in one direction until the last request.
 It then logically jumps to the lowest pending request and begins a new upward sweep.
-Whether the return movement counts in a model depends on whether the goal is total head travel or waiting time for serviced requests.
+For total physical head movement, count the return travel even though it serves no request. An exercise omitting that travel must explicitly use a different metric; the head does not teleport.
 
 These policies were useful when the operating system had a meaningful view of cylinder geometry.
 Modern disks may remap sectors and use firmware schedulers, so the OS sees a less direct relationship between logical block addresses and actuator position.
@@ -216,7 +216,7 @@ The filesystem may delay allocation to choose larger extents after it knows more
 
 ### SSDs change the physical meaning of scheduling
 
-SSDs and NVMe devices have no moving heads or rotational delay.
+SSDs have no moving heads or rotational delay. NVMe names a command/interface protocol, commonly used with flash SSDs; it is not itself a storage medium.
 They translate logical block addresses through a flash translation layer, execute work across channels and dies, and manage erase-before-write constraints internally.
 Seek-distance algorithms such as SSTF therefore do not model their latency well.
 
@@ -369,7 +369,7 @@ NVMe has no actuator or rotational position, so nearest-cylinder distance does n
 
 **Q9. What does `fsync` protect against?** `[medium]`
 
-It asks the operating system to persist relevant file changes before reporting success, reducing the chance that acknowledged data remains only in volatile caches. Correct filesystems and hardware ordering must honour that durability boundary. It does not make an application-level multi-file update atomic unless a higher-level protocol provides that property.
+Successful `fsync` establishes the promised file durability boundary when the filesystem/device honor flushes; check errors and also sync directory metadata for durable name creation/replacement. Correct filesystems and hardware ordering must honour that durability boundary. It does not make an application-level multi-file update atomic unless a higher-level protocol provides that property.
 
 **Q10. What are extents and why do filesystems use them?** `[medium]`
 
@@ -385,7 +385,7 @@ They must address starvation for requests far from the current busy region, espe
 
 **Q13. A database claims a transaction committed but loses recent records after power loss. Which storage layers do you investigate?** `[hard]`
 
-Inspect the database's write-ahead log and fsync configuration, filesystem ordering, block-layer flush handling, device volatile write cache, and power-loss protection. An acknowledged commit must cross each relevant durability boundary before failure. Increasing request reordering performance without preserving flush semantics can make the failure more likely, not less.
+Inspect the database's write-ahead log and fsync configuration, filesystem ordering, block-layer flush handling, device volatile write cache, and power-loss protection. A durable commit acknowledgment must follow all required flush boundaries under the configured contract; asynchronous commit modes deliberately weaken that promise. Increasing request reordering performance without preserving flush semantics can make the failure more likely, not less.
 
 **Q14. A growing file is slow to read sequentially on an HDD. How can allocation explain it?** `[hard]`
 

@@ -59,6 +59,8 @@ jobs:
       - run: python3 examples/java-spring/task-tracker/verify_http.py
       - run: node scripts/verify-java-examples.mjs
       - run: node --test scripts/verify-java-examples.test.mjs
+      - run: javac --release 17 -d /tmp/core-accuracy-java examples/labs/java/AccuracyContracts.java
+      - run: java -cp /tmp/core-accuracy-java AccuracyContracts
 
   containers:
     runs-on: ubuntu-latest
@@ -116,5 +118,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: python3 -m unittest discover -s examples/labs -p test_labs.py -v
       - run: psql -X -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f examples/labs/sql/verify.sql
+        env:
+          PGPASSWORD: lab-password
+      - run: psql -X -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f examples/labs/sql/accuracy.sql
         env:
           PGPASSWORD: lab-password
