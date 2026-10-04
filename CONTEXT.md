@@ -524,3 +524,10 @@ The [Java course alignment review](JAVA_COURSE_ALIGNMENT_REVIEW_2026-10-04.md) r
 inspection of the learner's 40-entry course index, a visual/text review of its three-page
 JDK/JRE/JVM PDF and a proposed familiar revision path. Other linked notes remain unreviewed;
 the course alignment is proposed, not imported curriculum.
+
+Release checks include 63 backend tests, exact real-API outline/parser agreement for all
+68 lessons (65,783 bytes across the six category responses), all 590 diagram browser decodes,
+and the responsive browser journey: 14 routes at five widths in both themes, 20 axe scans
+with no violations, plus keyboard navigation and expansion preservation in every category.
+The browser harness can use a real outline server through `CS_OUTLINE_API_ORIGIN`; other
+API fixtures remain deliberate presentation fixtures.

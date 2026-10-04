@@ -309,4 +309,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('Responsive layout smoke passed: 13 route families × 5 widths × 2 themes; 16 axe scans; exact-question spaced-review journey.')
+console.log('Responsive layout smoke passed: 14 routes × 5 widths × 2 themes; 20 axe scans; six-category navigation and exact-question spaced-review journeys.')
