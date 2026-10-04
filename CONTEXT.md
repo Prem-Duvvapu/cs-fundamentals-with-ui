@@ -485,3 +485,49 @@ The [freshness ledger](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md) closes the t
 `examples/labs/aiml/observe.py` is a standard-library synthetic evaluation exercise, not a model integration. Its six checks join the two OS/network checks in `test_labs.py`. `examples/labs/sql/feature-availability.sql` verifies event-time versus actual availability, missing values and deterministic ties using temporary PostgreSQL objects and rollback; the CI labs job now executes it. Provider/engine snippets remain explicitly scoped excerpts. No production AI credentials, cloud resources, external SDK workloads or participant sessions are added.
 
 The freshness release also fixes an existing reader-test timing race: await the accessible TOC link after heading extraction rather than treating mounted lesson text as finished navigation. `RCA-2026-10-03-04` records the failed/passing same-head CI evidence and verification.
+
+## Category reader navigation — October 4
+
+`GET /api/v1/topics/outlines?category=<id>` returns an array of
+`{ topicId, headingsMarkdown }` for one registered category. The category parameter is
+required (400 if omitted); unknown categories return 404. `DiscoveryService` builds this
+immutable heading index from the same canonical `TopicService`/`ContentService` inputs as
+search and interview practice. Code fences and indented code are excluded; level-four to
+level-six headings remain in the snippet because they participate in unique anchor allocation.
+No lesson body, answers or second topic registry is sent to the navigation client.
+
+`useCategoryOutline` cancels superseded requests and caches successful category outlines
+for the current app session. It lazy-loads `markdownOutline`, which uses the reader's
+remark/GFM/math/rehype heading pipeline, preserving inline formatting, entities and duplicate
+heading IDs. `TopicPage` supplies ordered category siblings, router hash/search and the
+expansion state to `TopicViewer`; `CategoryTopicNavigation` uses native links and labelled
+buttons with `aria-expanded`/`aria-controls`. The current lesson opens by default and retains
+rendered headings as a fallback if other outlines cannot load. Expanded choices survive
+in-app lesson changes; they are not a new persisted preference. Lesson/section state uses
+`aria-current="page"` and `aria-current="location"`. Section links return to Study, remove
+stale practice/search-section selectors and keep other URL context.
+
+Study and topic Practice share this category rail; focus reading and responsive visibility
+remain explicit user controls. Tests cover all six categories, retry/fallback, cross-lesson
+hash restoration, cache reuse and duplicate/inline heading cases. The real Markdown suite
+compares outline IDs with rendered headings for all 68 lessons. Chromium checks cover
+category counts, chevrons operated by Enter/Space, section navigation/reload, both themes,
+mobile widths and the existing axe journeys.
+
+Opening a lesson also reveals its row within the scrollable rail without scrolling the article.
+
+`TopicExpansionProvider` lives in `App` outside the pathname-keyed route error boundary.
+Keep expansion state there: the boundary intentionally remounts pages after navigation.
+Integration tests must include that remount, as well as ordinary same-page section changes.
+
+The [Java course alignment review](JAVA_COURSE_ALIGNMENT_REVIEW_2026-10-04.md) records
+inspection of the learner's 40-entry course index, a visual/text review of its three-page
+JDK/JRE/JVM PDF and a proposed familiar revision path. Other linked notes remain unreviewed;
+the course alignment is proposed, not imported curriculum.
+
+Release checks include 63 backend tests, exact real-API outline/parser agreement for all
+68 lessons (65,783 bytes across the six category responses), all 590 diagram browser decodes,
+and the responsive browser journey: 14 routes at five widths in both themes, 20 axe scans
+with no violations, plus keyboard navigation and expansion preservation in every category.
+The browser harness can use a real outline server through `CS_OUTLINE_API_ORIGIN`; other
+API fixtures remain deliberate presentation fixtures.

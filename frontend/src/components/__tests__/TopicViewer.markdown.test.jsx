@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { render, cleanup } from '@testing-library/react'
 import MarkdownRenderer from '../markdown/MarkdownRenderer'
+import { parseMarkdownOutline } from '../../utils/markdownOutline'
 
 // Guards the full-GFM + math + Mermaid pipeline that replaced the old
 // 68-line regex renderer (see CLAUDE.md's content-pipeline section). Every
@@ -64,6 +65,13 @@ describe.each(contentFiles.map((f) => [path.relative(CONTENT_DIR, f), f]))(
     it('parses and renders without throwing', () => {
       const source = fs.readFileSync(filePath, 'utf-8')
       expect(() => render(<MarkdownRenderer content={source} />)).not.toThrow()
+    })
+
+    it('matches category outline IDs to actual reader headings', () => {
+      const source = fs.readFileSync(filePath, 'utf-8')
+      const { container } = render(<MarkdownRenderer content={source} />)
+      const headings = [...container.querySelectorAll('h2[id], h3[id]')].map(node => node.id)
+      expect(parseMarkdownOutline(source).map(heading => heading.id)).toEqual(headings)
     })
 
     it('leaves no unparsed markdown syntax in the rendered text', () => {

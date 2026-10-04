@@ -5,6 +5,7 @@ import com.csfundamentals.model.InterviewQuestionResponse;
 import com.csfundamentals.model.SearchResponse;
 import com.csfundamentals.model.SearchResult;
 import com.csfundamentals.model.Topic;
+import com.csfundamentals.model.TopicOutline;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -36,22 +37,55 @@ public class DiscoveryService {
 
     private final List<SearchDocument> documents;
     private final List<InterviewQuestion> interviewQuestions;
+    private final Map<String, List<TopicOutline>> outlines;
 
     public DiscoveryService(TopicService topicService, ContentService contentService, ObjectMapper objectMapper) {
         Map<String, List<String>> coverageTags = readCoverageTags(contentService.getCoverageManifest(), objectMapper);
         List<SearchDocument> indexedDocuments = new ArrayList<>();
         List<InterviewQuestion> indexedQuestions = new ArrayList<>();
+        Map<String, List<TopicOutline>> indexedOutlines = new HashMap<>();
 
         for (Topic topic : topicService.getAllTopics()) {
             String markdown = contentService.getContent(topic.category(), topic.id());
             ParsedContent parsed = parseContent(markdown);
             List<String> tags = coverageTags.getOrDefault(topic.id(), List.of());
             indexedDocuments.add(SearchDocument.from(topic, parsed, tags));
+            indexedOutlines.computeIfAbsent(topic.category(), ignored -> new ArrayList<>())
+                .add(new TopicOutline(topic.id(), outlineMarkdown(markdown)));
             indexedQuestions.addAll(parseInterviewQuestions(topic, markdown));
         }
 
         documents = List.copyOf(indexedDocuments);
         interviewQuestions = List.copyOf(indexedQuestions);
+        Map<String, List<TopicOutline>> immutableOutlines = new HashMap<>();
+        indexedOutlines.forEach((category, entries) -> immutableOutlines.put(category, List.copyOf(entries)));
+        outlines = Map.copyOf(immutableOutlines);
+    }
+
+    public List<TopicOutline> getTopicOutlines(String category) {
+        String normalizedCategory = normalizeFilter(category);
+        List<TopicOutline> result = normalizedCategory == null ? null : outlines.get(normalizedCategory);
+        if (result == null) throw new IllegalArgumentException("Unknown category");
+        return result;
+    }
+
+    static String outlineMarkdown(String markdown) {
+        List<String> headings = new ArrayList<>();
+        Fence fence = null;
+        for (String line : normalizedLines(markdown)) {
+            if (fence != null) {
+                if (closesFence(line, fence)) fence = null;
+                continue;
+            }
+            Fence opening = openingFence(line);
+            if (opening != null) {
+                fence = opening;
+                continue;
+            }
+            // Keep deeper headings too: they participate in the renderer's unique-ID sequence.
+            if (line.matches("^ {0,3}#{2,6}[\\t ]+.*$")) headings.add(line);
+        }
+        return String.join("\n\n", headings);
     }
 
     public SearchResponse search(String rawQuery, String rawCategory, int requestedLimit) {

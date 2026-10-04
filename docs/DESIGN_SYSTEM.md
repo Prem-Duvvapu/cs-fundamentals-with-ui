@@ -111,3 +111,15 @@ Release verification: 711/711 frontend tests, 59/59 platform backend tests, prod
 sixteen axe scans pass with no violations. Keyboard theme switching and reload persistence
 are included. The checks run against API fixtures for browser presentation; real learner
 preference, zoom/reduced-motion coverage and comprehension remain separate evidence.
+
+## Category reader rail — October 4
+
+The rail groups section links beneath each lesson in canonical category order. A lesson's
+text link navigates; its separate labelled chevron button expands/collapses the nested list.
+Current lesson and current section use distinct `aria-current` values and theme-token accents.
+Use normal list/link/button semantics rather than declaring a keyboard tree widget. Preserve
+independent vertical scrolling on desktop, the closed-by-default mobile panel, a bounded
+mobile outline area and 44px mobile targets. Focus reading remains an explicit escape from
+the rail. The same curriculum navigation is available alongside topic Practice.
+
+Opening a lesson also reveals its row within the scrollable rail without scrolling the article.

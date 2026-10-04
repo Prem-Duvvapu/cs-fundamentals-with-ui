@@ -1,3 +1,4 @@
+import CategoryTopicNavigation from './shared/CategoryTopicNavigation'
 import useLearningState from '../hooks/useLearningState'
 import { readLearning, saveReading, updateLearning } from '../utils/learningState'
 import { prefersReducedMotion } from '../utils/motionPreference'
@@ -32,7 +33,7 @@ function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion() ? 'instant' : 'smooth', block: 'start' })
 }
 
-export default function TopicViewer({ topicId, category, mode = 'theory', practiceQuestion }) {
+export default function TopicViewer({ topicId, category, mode = 'theory', practiceQuestion, categoryTopics, categoryOutline, expandedTopics, onToggleTopic, locationHash, locationSearch }) {
   const { state: learning } = useLearningState()
   const [focusReading, setFocusReading] = useState(false)
   const [content, setContent] = useState('')
@@ -153,8 +154,8 @@ export default function TopicViewer({ topicId, category, mode = 'theory', practi
     restoringRef.current = true
     const restoreHash = () => {
       let id
-      try { id = decodeURIComponent(window.location.hash.slice(1)) } catch { return }
-      const requestedSection = new URLSearchParams(window.location.search).get('section')
+      try { id = decodeURIComponent((locationHash ?? window.location.hash).slice(1)) } catch { return }
+      const requestedSection = new URLSearchParams(locationSearch ?? window.location.search).get('section')
       const normalizeSection = text => text.replace(/[*_~`|]/g, '').trim()
       const matched = requestedSection && sections.find(section => normalizeSection(section.title) === normalizeSection(requestedSection))
       const saved = readLearning().reading[topicId]?.headingId
@@ -168,7 +169,7 @@ export default function TopicViewer({ topicId, category, mode = 'theory', practi
     const frame = requestAnimationFrame(() => { restoringRef.current = false })
     window.addEventListener('hashchange', restoreHash)
     return () => { cancelAnimationFrame(frame); window.removeEventListener('hashchange', restoreHash) }
-  }, [rendererReady, sections, mode, topicId])
+  }, [rendererReady, sections, mode, topicId, locationHash, locationSearch])
 
   const questions = useMemo(() => parseInterviewQuestions(content, topicId), [content, topicId])
 
@@ -198,12 +199,12 @@ export default function TopicViewer({ topicId, category, mode = 'theory', practi
   const currentSection = sections.find(section => section.id === activeSection) || sections[0]
   const currentLabel = currentSection ? cleanSectionTitle(currentSection.title) : 'the first section'
 
-  if (mode === 'practice') return questions.length ? <InterviewDeck key={`${topicId}:${practiceQuestion || ''}`} scope={`topic:${topicId}`} requestedKey={practiceQuestion} questions={questions} /> : <p role="status">No interview questions are available for this lesson.</p>
+  if (mode === 'practice' && !categoryTopics) return questions.length ? <InterviewDeck key={`${topicId}:${practiceQuestion || ''}`} scope={`topic:${topicId}`} requestedKey={practiceQuestion} questions={questions} /> : <p role="status">No interview questions are available for this lesson.</p>
 
   return (
-    <div className={`study-layout ${focusReading ? 'study-layout--focused' : ''}`} style={{ '--reader-font-size': `${learning.preferences.fontSize}px` }}>
+    <div className={`study-layout ${focusReading && mode === 'theory' ? 'study-layout--focused' : ''}`} style={{ '--reader-font-size': `${learning.preferences.fontSize}px` }}>
       <aside className="study-navigation" aria-label="Study navigation">
-        <div className="reading-progress-label"><p className="study-eyebrow">On this page</p><span>{readingProgress}% read</span></div>
+        <div className="reading-progress-label"><p className="study-eyebrow">{categoryTopics ? "This lesson" : "On this page"}</p><span>{readingProgress}% read</span></div>
         <div
           className="reading-progress-track"
           role="progressbar"
@@ -220,9 +221,9 @@ export default function TopicViewer({ topicId, category, mode = 'theory', practi
           aria-controls="topic-table-of-contents"
           onClick={() => setTocExpanded(expanded => !expanded)}
         >
-          {tocExpanded ? 'Hide table of contents' : 'Show table of contents'}
+          {categoryTopics ? (tocExpanded ? 'Hide topics' : 'Show topics') : (tocExpanded ? 'Hide table of contents' : 'Show table of contents')}
         </button>
-        <nav id="topic-table-of-contents" aria-label="Table of contents" hidden={!tocExpanded}>
+        {categoryTopics ? <CategoryTopicNavigation category={category} topics={categoryTopics} topicId={topicId} sections={sections} activeSection={activeSection} onSectionClick={id => { setActiveSection(id); scrollToSection(id) }} expanded={expandedTopics} onToggle={onToggleTopic} {...categoryOutline} hidden={!tocExpanded} /> : <nav id="topic-table-of-contents" aria-label="Table of contents" hidden={!tocExpanded}>
           <ol>
             {sections.map(section => (
               <li key={section.id} className={section.level === 3 ? 'toc-subsection' : undefined}>
@@ -238,9 +239,10 @@ export default function TopicViewer({ topicId, category, mode = 'theory', practi
               </li>
             ))}
           </ol>
-        </nav>
+        </nav>}
       </aside>
       <div className="study-main">
+        {mode === 'practice' ? (questions.length ? <InterviewDeck key={`${topicId}:${practiceQuestion || ''}`} scope={`topic:${topicId}`} requestedKey={practiceQuestion} questions={questions} /> : <p role="status">No interview questions are available for this lesson.</p>) : <>
         <div className="reader-toolbar" aria-label="Reading preferences">
           <details className="reader-settings"><summary>Reading settings</summary><label>Text size <select value={learning.preferences.fontSize} onChange={event => updateLearning(state => ({ ...state, preferences: { ...state.preferences, fontSize: Number(event.target.value) } }))}><option value="16">Small</option><option value="18">Standard</option><option value="20">Large</option></select></label></details>
           <button type="button" aria-pressed={focusReading} onClick={() => setFocusReading(value => !value)}>{focusReading ? 'Exit focus reading' : 'Focus reading'}</button>
@@ -270,6 +272,7 @@ export default function TopicViewer({ topicId, category, mode = 'theory', practi
           </Suspense>
         </article>
         {questions.length > 0 && <p className="practice-invitation">Ready to explain this? Open the Practice tab to test your recall.</p>}
+        </>}
       </div>
     </div>
   )

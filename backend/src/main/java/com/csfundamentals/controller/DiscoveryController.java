@@ -2,6 +2,10 @@ package com.csfundamentals.controller;
 
 import com.csfundamentals.model.InterviewQuestionResponse;
 import com.csfundamentals.model.SearchResponse;
+import com.csfundamentals.model.TopicOutline;
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import com.csfundamentals.service.DiscoveryService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +20,15 @@ public class DiscoveryController {
 
     public DiscoveryController(DiscoveryService discoveryService) {
         this.discoveryService = discoveryService;
+    }
+
+    @GetMapping("/topics/outlines")
+    public List<TopicOutline> topicOutlines(@RequestParam String category) {
+        try {
+            return discoveryService.getTopicOutlines(category);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown category");
+        }
     }
 
     @GetMapping("/search")

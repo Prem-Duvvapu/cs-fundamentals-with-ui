@@ -22,6 +22,35 @@ class DiscoveryServiceTest {
     }
 
     @Test
+    void outlines_coverAllSixCategoriesAndOnlyExposeHeadingMarkdown() {
+        var categories = java.util.Map.of("os", 8, "networking", 12, "dbms", 13,
+                "java-spring", 23, "aiml", 7, "devops", 5);
+        categories.forEach((category, count) -> {
+            var entries = service.getTopicOutlines(category);
+            assertEquals(count, entries.size(), category);
+            for (var entry : entries) {
+                assertTrue(entry.headingsMarkdown().contains("Beginner Level"), entry.topicId());
+                assertTrue(entry.headingsMarkdown().contains("Expert Level"), entry.topicId());
+                assertTrue(entry.headingsMarkdown().lines().filter(line -> !line.isBlank())
+                        .allMatch(line -> line.matches("^ {0,3}#{2,6}[\\t ]+.*$")), entry.topicId());
+            }
+            assertThrows(UnsupportedOperationException.class, () -> entries.add(entries.get(0)));
+        });
+        assertThrows(IllegalArgumentException.class, () -> service.getTopicOutlines("unknown"));
+        assertThrows(IllegalArgumentException.class, () -> service.getTopicOutlines(""));
+        assertThrows(IllegalArgumentException.class, () -> service.getTopicOutlines(null));
+    }
+
+    @Test
+    void outlines_skipFencedCodeButPreserveFormattingAndDeeperHeadingOrder() {
+        String markdown = "# Metadata\r\n## Real\r\n```text\r\n### Fake\r\n````\r\n"
+                + "~~~text\r\n## Also fake\r\n~~~\r\n    ## Indented code\r\n"
+                + "#### Duplicate\r\n### **Duplicate** ###\r\n### `Map<K, V>` &amp; sets";
+        assertEquals("## Real\n\n#### Duplicate\n\n### **Duplicate** ###\n\n### `Map<K, V>` &amp; sets",
+                DiscoveryService.outlineMarkdown(markdown));
+    }
+
+    @Test
     void constructor_buildsOneImmutableIndexForTheValidatedCurriculum() {
         assertEquals(68, service.indexedTopicCount());
         assertEquals(953, service.indexedQuestionCount());

@@ -9,6 +9,22 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const distDir = path.join(repoRoot, 'frontend/dist')
 const require = createRequire(path.join(repoRoot, 'frontend/package.json'))
 const contentByKey = new Map()
+const catalog = JSON.parse(fs.readFileSync(path.join(repoRoot, 'frontend/src/test/catalog.json'), 'utf8'))
+function headingMarkdown(markdown) {
+  let fence = null
+  const headings = []
+  for (const line of markdown.replace(/\r\n?/g, '\n').split('\n')) {
+    if (fence) {
+      const close = line.match(/^ {0,3}(`+|~+)[\t ]*$/)
+      if (close && close[1][0] === fence[0] && close[1].length >= fence.length) fence = null
+      continue
+    }
+    const open = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
+    if (open && !(open[1][0] === '`' && open[2].includes('`'))) { fence = open[1]; continue }
+    if (/^ {0,3}#{2,6}[\t ]+/.test(line)) headings.push(line)
+  }
+  return headings.join('\n\n')
+}
 
 for (const category of fs.readdirSync(path.join(repoRoot, 'content'))) {
   const categoryDir = path.join(repoRoot, 'content', category)
@@ -53,6 +69,20 @@ try {
       await route.fulfill({ json: JSON.parse(fs.readFileSync(path.join(repoRoot, 'frontend/src/test/catalog.json'), 'utf8')) })
       return
     }
+    if (url.pathname === '/api/v1/topics/outlines') {
+      if (process.env.CS_OUTLINE_API_ORIGIN) {
+        const response = await fetch(`${process.env.CS_OUTLINE_API_ORIGIN}${url.pathname}${url.search}`)
+        await route.fulfill({ status: response.status, contentType: 'application/json', body: await response.text() })
+        return
+      }
+      const category = url.searchParams.get('category')
+      const entries = catalog.filter(topic => topic.category === category).map(topic => ({
+        topicId: topic.id,
+        headingsMarkdown: headingMarkdown(fs.readFileSync(contentByKey.get(`${category}/${topic.id}`), 'utf8'))
+      }))
+      await route.fulfill({ json: entries })
+      return
+    }
     const contentMatch = url.pathname.match(/^\/api\/v1\/content\/([^/]+)\/([^/]+)$/)
     if (contentMatch) {
       const file = contentByKey.get(`${contentMatch[1]}/${contentMatch[2]}`)
@@ -94,6 +124,7 @@ try {
     '/topic/java-hashmap-internals',
     '/topic/dbms-indexing',
     '/topic/embeddings-vector-db',
+    '/topic/docker-fundamentals',
     '/search?q=java',
     '/interview/all',
     '/category/java-spring',
@@ -121,7 +152,10 @@ try {
           if ((await toc.isVisible()) !== (width < 1024)) failures.push(`${theme} ${width}px ${route}: TOC toggle did not change visibility`)
           await toggle.click()
           const headingCount = await page.locator('.topic-content h2[id], .topic-content h3[id]').count()
-          if (await toc.locator('a').count() !== headingCount) failures.push(`${theme} ${width}px ${route}: missing subsection navigation`)
+          await page.waitForFunction(count => document.querySelectorAll('.category-topic-item--current .category-topic-sections a').length === count, headingCount)
+          const category = catalog.find(topic => route === `/topic/${topic.id}`).category
+          if (await toc.locator('.category-topic-link').count() !== catalog.filter(topic => topic.category === category).length) failures.push(`${theme} ${width}px ${route}: missing category lessons`)
+          if (await toc.locator('.category-topic-item--current .category-topic-sections a').count() !== headingCount) failures.push(`${theme} ${width}px ${route}: missing subsection navigation`)
         }
         if (screenshotDir && [375, 1440].includes(width) && ['/', '/topic/java-execution-pipeline', '/category/java-spring'].includes(route)) {
           await page.screenshot({ path: path.join(screenshotDir, `${theme}-${width}-${route.replaceAll('/', '_') || 'home'}.png`), fullPage: false })
@@ -132,6 +166,44 @@ try {
         }
       }
     }
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`${origin}/topic/spring-testing-production`)
+  await page.locator('.topic-content h3').first().waitFor()
+  const currentLessonInRail = await page.locator('.category-topic-item--current .category-topic-row').evaluate(row => {
+    const rail = row.closest('.study-navigation').getBoundingClientRect()
+    const bounds = row.getBoundingClientRect()
+    return bounds.top >= rail.top - 1 && bounds.bottom <= rail.bottom + 1
+  })
+  if (!currentLessonInRail) failures.push('Current lesson was outside the scrollable category rail')
+
+  for (const category of ['os', 'networking', 'dbms', 'java-spring', 'aiml', 'devops']) {
+    const topics = catalog.filter(topic => topic.category === category).sort((a, b) => a.order - b.order)
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`${origin}/topic/${topics[0].id}?source=course`)
+    const tree = page.locator('.category-topic-navigation')
+    await page.locator('.topic-content h3').first().waitFor()
+    const other = tree.locator('.category-topic-item').filter({ has: page.locator(`a.category-topic-link[href="/topic/${topics[1].id}"]`) })
+    const toggle = other.locator('button')
+    await toggle.focus()
+    await page.keyboard.press('Enter')
+    await other.locator('.category-topic-sections a').first().waitFor()
+    const sectionLink = other.locator('.category-topic-sections .toc-subsection a').first()
+    const targetHash = new URL(await sectionLink.getAttribute('href'), origin).hash
+    await sectionLink.click()
+    await page.waitForURL(url => url.pathname === `/topic/${topics[1].id}` && url.hash === targetHash)
+    await page.waitForFunction(hash => document.getElementById(hash.slice(1)) !== null, targetHash)
+    if (new URL(page.url()).searchParams.get('source') !== 'course') failures.push(`${category}: section navigation lost context`)
+    if ((await tree.locator(`a.category-topic-link[href="/topic/${topics[1].id}"]`).getAttribute('aria-current')) !== 'page') failures.push(`${category}: current lesson not marked`)
+    if ((await tree.locator(`a.category-topic-link[href="/topic/${topics[0].id}"]`).locator('..').locator('button').getAttribute('aria-expanded')) !== 'true') failures.push(`${category}: expanded lesson reset after navigation`)
+    await page.waitForFunction(hash => document.querySelector(`.category-topic-item--current a[href$="${hash}"]`)?.getAttribute('aria-current') === 'location', targetHash)
+    await toggle.focus()
+    await page.keyboard.press('Space')
+    if ((await toggle.getAttribute('aria-expanded')) !== 'false') failures.push(`${category}: keyboard collapse failed`)
+    await page.reload()
+    await page.waitForFunction(hash => document.getElementById(hash.slice(1)) !== null, targetHash)
+    if ((await tree.locator('.category-topic-item--current button').getAttribute('aria-expanded')) !== 'true') failures.push(`${category}: current lesson closed after reload`)
   }
 
   await page.goto(`${origin}/topic/process-management?source=course`, { waitUntil: 'domcontentloaded' })
@@ -237,4 +309,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('Responsive layout smoke passed: 13 route families × 5 widths × 2 themes; 16 axe scans; exact-question spaced-review journey.')
+console.log('Responsive layout smoke passed: 14 routes × 5 widths × 2 themes; 20 axe scans; six-category navigation and exact-question spaced-review journeys.')

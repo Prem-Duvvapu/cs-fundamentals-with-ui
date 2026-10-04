@@ -458,3 +458,19 @@ unsupported state controlling whether the Simulation tab should appear.
 - Verification: all 21 focused TopicViewer tests pass after the correction; the full frontend CI suite must pass on the resolving head before merge. The release ledger/PR records final results.
 - Prevention: assertions for derived navigation must await the navigation target itself, not only the content or controls that precede it. This parallels the earlier lazy-Markdown browser race in RCA-2026-10-01-06.
 - Resolving commit: `98a1ad5`.
+
+## RCA-2026-10-04-01 — Category expansion reset across real lesson routes
+
+- Evidence: the new Chromium journey reported an expansion reset in all six categories,
+  although the isolated `TopicPage` navigation test passed.
+- Root cause: expansion state initially belonged to `TopicPage`. The real application uses
+  a pathname-keyed `AppErrorBoundary`, so navigating to another lesson remounted that page.
+  The isolated test omitted this deliberate route remount.
+- Resolution: keep expansion state in `TopicExpansionProvider`, mounted outside the keyed
+  boundary in `App`. Preserve the current-lesson default and session-only state.
+- Verification: the regression integration test now remounts routes by pathname; retain
+  the Chromium expansion/keyboard/hash/reload journey for all six categories.
+- Prevention: test shared route state against the actual application remount lifecycle;
+  do not weaken error-boundary recovery to preserve local page state.
+
+- Resolving commit: `05f8b5dbaef4b7c987813dff6d5ba01d51b170b9`.
