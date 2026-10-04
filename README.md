@@ -337,3 +337,22 @@ overload, SAM, Optional and comparator behavior on PostgreSQL 16 and Java 17.
 All seven AI/ML and five DevOps lessons now have a [dated source-backed review](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md), completing scoped technical review of all 68 lessons. Worked examples clarify evaluation metrics, feature availability, memory/cost budgets, rollout rounding, proxy rate limiting and rollback limits. The [offline AI and PostgreSQL labs](examples/labs/README.md) make key distinctions reproducible without a model API or cloud account. The corpus contains 33,450 lines, 295 diagrams, 953 questions and 56 authored rubrics. Broader exercises/rubrics and actual participant sessions remain roadmap work.
 
 The freshness release also fixes an existing reader-test timing race: await the accessible TOC link after heading extraction rather than treating mounted lesson text as finished navigation. `RCA-2026-10-03-04` records the failed/passing same-head CI evidence and verification.
+
+## Category topic navigation — October 4
+
+The left rail in Study and topic Practice now shows every lesson in the current category,
+for all six learning paths. Click a lesson title to open it; use its up/down chevron to
+collapse or expand its Beginner, Intermediate, Expert and section links. Clicking a
+section opens the exact heading, including in another lesson. The current lesson and
+reading section are highlighted. Expanded lessons stay open while moving between lessons;
+refresh opens the current lesson by default. On mobile, use **Show topics** to open the panel.
+Focus reading still hides the rail until you exit that mode.
+
+Only the active lesson downloads full content. Other lessons use a small, cached heading
+outline request. If that request fails, lesson links and current-lesson sections remain
+available, with **Retry subtopics** to recover.
+
+The [Java course alignment review](JAVA_COURSE_ALIGNMENT_REVIEW_2026-10-04.md) records
+inspection of the learner's 40-entry course index, a visual/text review of its three-page
+JDK/JRE/JVM PDF and a proposed familiar revision path. Other linked notes remain unreviewed;
+the course alignment is proposed, not imported curriculum.

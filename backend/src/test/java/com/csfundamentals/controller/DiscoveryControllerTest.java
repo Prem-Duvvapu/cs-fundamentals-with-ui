@@ -3,6 +3,7 @@ package com.csfundamentals.controller;
 import com.csfundamentals.model.InterviewQuestion;
 import com.csfundamentals.model.InterviewQuestionResponse;
 import com.csfundamentals.model.SearchResponse;
+import com.csfundamentals.model.TopicOutline;
 import com.csfundamentals.model.SearchResult;
 import com.csfundamentals.service.DiscoveryService;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,20 @@ class DiscoveryControllerTest {
 
     @MockitoBean
     private DiscoveryService discoveryService;
+
+    @Test
+    void outlines_returnLightweightCategoryHeadingsAndValidateCategory() throws Exception {
+        when(discoveryService.getTopicOutlines("aiml"))
+                .thenReturn(List.of(new TopicOutline("ml-fundamentals", "## Beginner Level\n\n### Evaluation")));
+        when(discoveryService.getTopicOutlines("unknown")).thenThrow(new IllegalArgumentException("Unknown category"));
+        mockMvc.perform(get("/api/v1/topics/outlines").param("category", "aiml"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].topicId").value("ml-fundamentals"))
+                .andExpect(jsonPath("$[0].headingsMarkdown").value("## Beginner Level\n\n### Evaluation"));
+        mockMvc.perform(get("/api/v1/topics/outlines").param("category", "unknown"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/topics/outlines")).andExpect(status().isBadRequest());
+    }
 
     @Test
     void search_returnsRankedDiscoveryResults() throws Exception {

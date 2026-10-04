@@ -2436,3 +2436,25 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .study-navigation .reading-progress-label, .study-navigation .reading-progress-track { display: none; }
   .study-navigation .toc-toggle { margin: 0; }
 }
+
+/* The reader rail shows the complete current-category curriculum. */
+.study-navigation .category-topic-heading { color: var(--text-primary); font-weight: 600; padding: var(--space-3) 0; }
+.category-topic-heading span { display: block; color: var(--text-muted); font-size: var(--ui-sm); font-weight: 400; }
+.study-navigation .category-topic-list { gap: var(--space-2); padding: 0; margin: 0; }
+.category-topic-item { min-width: 0; }
+.category-topic-row { display: flex; align-items: start; border-radius: var(--radius-sm); }
+.study-navigation .category-topic-link { flex: 1; min-width: 0; padding: 10px 6px; overflow-wrap: anywhere; font-weight: 500; color: var(--text-primary); }
+.category-topic-item--current > .category-topic-row { background: var(--cat-tint); }
+.study-navigation .category-topic-item--current .category-topic-link { color: var(--cat-base); border-left-color: var(--cat-base); }
+.study-navigation .category-topic-toggle { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 40px; padding: 8px; }
+.category-topic-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.study-navigation .category-topic-sections { padding: 0 0 var(--space-2) var(--space-2); margin: 0; border-left: 1px solid var(--border-subtle); }
+.study-navigation .category-topic-sections[hidden] { display: none; }
+.study-navigation .category-topic-sections a { padding: 8px; overflow-wrap: anywhere; }
+.category-outline-status { color: var(--text-muted); font-size: var(--ui-sm); margin: var(--space-2) 0; }
+.category-outline-status p { margin: 0; }
+@media (max-width: 1023px) {
+  .study-navigation .category-topic-navigation:not([hidden]) { max-height: 65vh; overflow-y: auto; }
+  .study-navigation .category-topic-toggle { flex-basis: 44px; width: 44px; height: 44px; }
+  .study-navigation .category-topic-link, .study-navigation .category-topic-sections a { min-height: 44px; display: flex; align-items: center; }
+}

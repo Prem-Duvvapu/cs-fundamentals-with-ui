@@ -1,3 +1,5 @@
+import useTopicExpansion from '../hooks/useTopicExpansion'
+import useCategoryOutline from '../hooks/useCategoryOutline'
 import { SimulationVisibility } from '../hooks/useSimulationVisibility'
 import { readLearning } from '../utils/learningState'
 import useCatalog from '../hooks/useCatalog'
@@ -7,7 +9,6 @@ import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'reac
 import TopicViewer from '../components/TopicViewer'
 import { hasTopicVisualizer, TopicVisualizer } from '../components/visualizers/topicVisualizerRegistry'
 import { CATEGORY_METADATA, getTopicCategory } from '../utils/topicCategories'
-import { TOPIC_CATEGORY_MAP } from '../utils/topicCategories'
 import { isBookmarked, isCompleted } from '../utils/topicProgress'
 import useTopicProgress from '../hooks/useTopicProgress'
 import NotFoundPage from './NotFoundPage'
@@ -26,6 +27,10 @@ export default function TopicPage() {
   const title = topic?.title || (status === 'ready' ? 'Topic not found' : status === 'error' ? "Couldn't load this lesson" : 'Loading lesson…')
   const category = topic?.category || getTopicCategory(topicId)
   const categoryMetadata = CATEGORY_METADATA[category]
+  const categoryOutline = useCategoryOutline(category, Boolean(topic))
+  const [expandedTopics, setExpandedTopics] = useTopicExpansion()
+  useEffect(() => { setExpandedTopics(previous => ({ ...previous, [topicId]: true })) }, [topicId, setExpandedTopics])
+  const toggleTopic = (id, open) => setExpandedTopics(previous => ({ ...previous, [id]: open }))
   const siblings = topics.filter(item => item.category === category).sort(compareTopics)
   const position = siblings.findIndex(item => item.id === topicId)
   const previous = siblings[position - 1]
@@ -139,7 +144,7 @@ export default function TopicPage() {
           </SimulationVisibility.Provider>
         </div>}
         <div hidden={selectedTab === 'simulator'} style={{ display: selectedTab === 'simulator' ? 'none' : undefined }}>
-          <TopicViewer key={topicId} topicId={topicId} category={category} mode={selectedTab === 'simulator' ? 'inactive' : selectedTab} practiceQuestion={searchParams.get('question')} />
+          <TopicViewer key={topicId} topicId={topicId} category={category} locationHash={location.hash} locationSearch={location.search} categoryTopics={siblings} categoryOutline={categoryOutline} expandedTopics={expandedTopics} onToggleTopic={toggleTopic} mode={selectedTab === 'simulator' ? 'inactive' : selectedTab} practiceQuestion={searchParams.get('question')} />
         </div>
       </div>
       <nav className="lesson-navigation" aria-label="Learning path navigation">

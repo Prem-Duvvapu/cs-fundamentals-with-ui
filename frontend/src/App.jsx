@@ -1,3 +1,4 @@
+import { TopicExpansionProvider } from './hooks/useTopicExpansion'
 import useCatalog, { CatalogProvider } from './hooks/useCatalog'
 import CategoryPage from './pages/CategoryPage'
 import { Routes, Route, useLocation } from 'react-router-dom'
@@ -94,5 +95,5 @@ export default function App() {
   // Mounted here, a sibling of <Routes>, so its state survives the cross-route steps of the
   // guided tour instead of resetting when the matched route unmounts/remounts.
   const tour = useProductTour()
-  return <CatalogProvider><AppLayout tour={tour} /></CatalogProvider>
+  return <CatalogProvider><TopicExpansionProvider><AppLayout tour={tour} /></TopicExpansionProvider></CatalogProvider>
 }

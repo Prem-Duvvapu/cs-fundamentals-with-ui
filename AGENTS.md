@@ -576,3 +576,26 @@ or Further Reading leakage. AI/ML/DevOps freshness and real learner observations
 Version-sensitive examples distinguish Docker 29+ fresh image-store defaults from legacy upgrades, Kubernetes 1.37 policies, bounded pgvector iterative scans, MCP 2026-07-28 transport/business authorization, and current action runner prerequisites. Do not turn documentation excerpts, invented-rate cost calculations, source-traced proxy behavior or generated diagrams into claims of live deployment/performance evidence. Remaining roadmap work is broader exercises and question-specific feedback plus real learner sessions.
 
 The freshness release also fixes an existing reader-test timing race: await the accessible TOC link after heading extraction rather than treating mounted lesson text as finished navigation. `RCA-2026-10-03-04` records the failed/passing same-head CI evidence and verification.
+
+## October 4 category topic navigation
+
+Study and topic Practice show all lessons and expandable section links for the current
+category through `CategoryTopicNavigation`. Keep `TopicPage`'s canonical catalog order and
+expansion state; never populate this rail from a second registry or fetch every lesson body.
+`DiscoveryService` exposes `/api/v1/topics/outlines?category=<id>` with heading-only Markdown.
+`useCategoryOutline` caches successful outlines per session, aborts superseded loads and
+supports retry. `markdownOutline` shares the reader heading-ID pipeline; preserve deeper
+headings in snippets so duplicate IDs match actual rendering. The current lesson can use
+rendered sections even when other outlines fail. Pass router hash/search to the reader so
+section restoration follows navigation; section links select Study and discard stale
+`view`, `question` and `section` selectors. Keep the 68-lesson anchor comparison, all-category
+integration tests and keyboard/category browser journeys when changing the rail.
+
+`TopicExpansionProvider` lives in `App` outside the pathname-keyed route error boundary.
+Keep expansion state there: the boundary intentionally remounts pages after navigation.
+Integration tests must include that remount, as well as ordinary same-page section changes.
+
+The [Java course alignment review](JAVA_COURSE_ALIGNMENT_REVIEW_2026-10-04.md) records
+inspection of the learner's 40-entry course index, a visual/text review of its three-page
+JDK/JRE/JVM PDF and a proposed familiar revision path. Other linked notes remain unreviewed;
+the course alignment is proposed, not imported curriculum.
