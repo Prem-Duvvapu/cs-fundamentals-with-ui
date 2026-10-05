@@ -3,6 +3,7 @@ import useCatalog, { CatalogProvider } from './hooks/useCatalog'
 import CategoryPage from './pages/CategoryPage'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import LearningNetworkNav from './components/LearningNetworkNav'
 import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import TopicPage from './pages/TopicPage'
@@ -81,6 +82,7 @@ function AppLayout({ tour }) {
     <div className="app">
       <RouteTitle />
       <a className="skip-link" href="#main-content">Skip to content</a>
+      <LearningNetworkNav />
       <Navbar onStartTour={tour.start} />
       <main id="main-content" className="main-content" tabIndex={-1} ref={mainRef} aria-label={routeLabel(pathname, topics, status)}>
         <RoutedContent />

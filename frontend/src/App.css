@@ -2458,3 +2458,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .study-navigation .category-topic-toggle { flex-basis: 44px; width: 44px; height: 44px; }
   .study-navigation .category-topic-link, .study-navigation .category-topic-sections a { min-height: 44px; display: flex; align-items: center; }
 }
+.learning-network { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 20px; padding: 6px max(16px, calc((100% - 1200px) / 2)); background: var(--bg-surface); color: var(--text-primary); border-bottom: 1px solid var(--border-default); font: 13px/1.4 system-ui, sans-serif; }
+.learning-network a { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: 8px 12px; border-radius: 6px; color: inherit; text-decoration: none; }
+.learning-network a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.learning-network a:focus-visible { outline: 3px solid var(--border-focus); outline-offset: 2px; }
+.learning-network-home { font-weight: 700; gap: 8px; }
+.learning-network-subjects { display: flex; flex-wrap: wrap; gap: 2px; }
+.learning-network a[aria-current] { box-shadow: inset 0 -2px var(--border-focus); font-weight: 750; }
+@media (max-width: 480px) { .learning-network { gap: 0; } .learning-network-subjects { width: 100%; justify-content: space-between; } .learning-network-subjects a { padding-inline: 8px; font-size: 12px; } }
