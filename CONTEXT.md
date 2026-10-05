@@ -1,5 +1,13 @@
 # System Architecture & Development Context
 
+## Cross-project navigation
+
+`AppLayout` mounts `LearningNetworkNav` before the existing Navbar on every
+route. It uses native same-tab anchors to the Learning Hub and four deployed
+apps. Styles stay in `App.css` and use existing theme tokens. No router, API,
+backend, or progress-storage contracts change. The component test verifies
+destinations, same-tab behavior, and the current subject marker.
+
 ## Overview
 **CS Fundamentals with UI** is a content-first, full-stack educational platform for Computer Science fundamentals. It consists of a **Spring Boot REST backend** serving structured three-tier Markdown content and a **React 19 / Vite frontend** that makes reading, navigation and interview practice the primary experience, with interactive simulations available when they add learning value.
 

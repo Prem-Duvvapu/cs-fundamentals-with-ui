@@ -1,5 +1,13 @@
 # AI Agent Context — CS Fundamentals with UI
 
+## Learning network
+
+`frontend/src/components/LearningNetworkNav.jsx` connects this app to
+https://learning-hub-with-ui.vercel.app/ and the three sibling apps.
+Keep links native and same-tab, retain the current-subject marker, and use
+`App.css` theme tokens. Each app keeps independent state; do not imply shared
+progress. Update the component contract test whenever a destination changes.
+
 ## Project Overview
 Educational platform for Computer Science fundamentals, structured for **beginner → expert** learning paths with interactive visualizations. Purpose: interview preparation and deep understanding through visual flows across Operating Systems, Computer Networks, Database Management Systems, and Java / Spring Boot.
 

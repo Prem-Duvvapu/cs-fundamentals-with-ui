@@ -1,5 +1,10 @@
 # CS Fundamentals with UI
 
+Part of the [Learning Hub](https://learning-hub-with-ui.vercel.app/).
+The shared **Learning network** navigation offers Learning Home and same-tab
+links between DSA, LLD, HLD, and CS fundamentals on every route. These remain
+independent apps: themes, backend state, and progress are not synchronized.
+
 **Interactive learning platform for Computer Science fundamentals — from beginner to expert.**
 
 This project helps you prepare for **CS interviews** and software engineering excellence through a reading-first learning experience with optional interactive simulations. Every topic is structured in three tiers: 🟢 Beginner → 🟡 Intermediate → 🔴 Expert with real-world failure modes, trade-offs, and interview Q&As.
