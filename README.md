@@ -356,3 +356,8 @@ The [Java course alignment review](JAVA_COURSE_ALIGNMENT_REVIEW_2026-10-04.md) r
 inspection of the learner's 40-entry course index, a visual/text review of its three-page
 JDK/JRE/JVM PDF and a proposed familiar revision path. Other linked notes remain unreviewed;
 the course alignment is proposed, not imported curriculum.
+
+
+### UI/UX refinement plan — October 5
+
+The [October 5 UI/UX refinement plan](UI_UX_REFINEMENT_PLAN_2026-10-05.md) specifies the next reader, navigation and dual-theme improvements, with baseline previews and acceptance criteria. It is planned work, not a delivered redesign. Use the [Opus implementation prompt](OPUS_UI_UX_IMPLEMENTATION_PROMPT_2026-10-05.md) for the implementation handoff.
