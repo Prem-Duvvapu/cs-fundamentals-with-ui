@@ -599,3 +599,39 @@ The [Java course alignment review](JAVA_COURSE_ALIGNMENT_REVIEW_2026-10-04.md) r
 inspection of the learner's 40-entry course index, a visual/text review of its three-page
 JDK/JRE/JVM PDF and a proposed familiar revision path. Other linked notes remain unreviewed;
 the course alignment is proposed, not imported curriculum.
+
+## October 5 UI/UX refinement
+
+`UI_UX_REFINEMENT_PLAN_2026-10-05.md` is the active presentation contract; delivered behaviour and
+evidence are in `docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md`, and the component rules are in
+`docs/DESIGN_SYSTEM.md` ("October 5 refinement"). Keep these invariants when changing the UI:
+
+- **One component language in `App.css`.** Use `.ui-button` (`--primary` once per task area,
+  `--secondary`, `--quiet`, `--danger`, `--compact`), the `--action-*` and `--control-*` tokens and
+  `components/shared/Icon.jsx` for application icons. Category colour identifies a category; it never
+  decides what a button means. Raw colours stay inside the theme blocks and the spacing scale has one
+  monotonic definition per step — `AppThemeStyles.test.js` enforces both plus the action contrast pairs.
+  Before adding rules, check for older selectors with the same class: three generations of reader,
+  navigation and roadmap rules were consolidated, and a leftover selector with higher specificity
+  silently overrode the new buttons until it was removed.
+- **Navigation.** `Navbar.jsx` derives the Learn menu from `CATEGORY_ORDER`/`CATEGORY_METADATA`;
+  Learn and Help are nonmodal disclosures from `hooks/useDisclosure.js` (Escape closes the innermost
+  and returns focus). Below 900px the bar is brand, Search and Menu. The tour opens from Help only.
+- **Reader.** The lesson header is in document flow (no sticky toolbar). Prose follows the 16/18/20px
+  reader preference — never pin paragraph sizes to rem tokens again — with a 68ch measure at that size.
+  Text size, focus reading and study help live under one Reading options disclosure.
+- **Rail.** `CategoryTopicNavigation` keeps every lesson in canonical order with separate link and
+  chevron controls, category-local search (`useRailSearch`) and Collapse all. Search expansion is a
+  temporary overlay, the query survives lesson remounts and clears on category change, and TopicPage
+  only auto-expands a lesson whose expansion is still undefined, so an explicit collapse is kept.
+- **Browsing and practice.** Home leads with Resume or Start here, then learning-path cards and a
+  "Browse all lessons" disclosure that opens itself for filter URLs. `LessonRow` is the shared lesson
+  row. The practice deck reads question → draft → Reveal (primary) → answer → self-assessment →
+  Record attempt → Previous/Next. Progress leads with Continue.
+- **Verification.** `scripts/test-responsive-layout.mjs` now also asserts reader density (Java lesson
+  article ≤330px at 1440×960 and ≤450px at 375×960), a rail search/clear/collapse/Back journey, and
+  for every registered simulator 320px containment plus axe in both themes.
+  `scripts/capture-ui-previews.mjs` reproduces previews and measurements; both share
+  `scripts/lib/ui-fixtures.mjs` (fixture evidence). `scripts/test-real-backend-journey.mjs` runs the
+  built frontend against a real backend (`CS_API_ORIGIN`) and is the CI `real-backend-journey` job.
+  Regenerate and decode diagrams after any `App.css` change because CSS is part of the fingerprint.

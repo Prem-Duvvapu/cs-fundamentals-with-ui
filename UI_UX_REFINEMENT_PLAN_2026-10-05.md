@@ -1,6 +1,6 @@
 # UI/UX refinement — implementation plan
 
-Prepared: 2026-10-05. Status: **planned; implementation has not started**.
+Prepared: 2026-10-05. Status: **implemented** — see [the results record](docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md) for evidence, deviations and pending items. The plan text below is kept as written.
 
 ## 1. Objective and authority
 
