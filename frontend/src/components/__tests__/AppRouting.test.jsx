@@ -1,5 +1,5 @@
 import catalog from '../../test/catalog.json'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom'
 import App from '../../App'
 import AppErrorBoundary from '../AppErrorBoundary'
@@ -62,7 +62,7 @@ describe('application route recovery', () => {
   it('updates the browser title when returning from a category path to home', async () => {
     renderApp('/category/java-spring')
     await waitFor(() => expect(document.title).toBe('Java & Spring | CS Fundamentals'))
-    fireEvent.click(screen.getByRole('link', { name: /all learning paths/i }))
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Breadcrumb' })).getByRole('link', { name: 'Learning paths' }))
     await waitFor(() => expect(document.title).toBe('Learning paths | CS Fundamentals'))
   })
 
@@ -154,6 +154,7 @@ describe('deep links survive a first-time visit', () => {
     renderApp('/')
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/'))
+    fireEvent.click(screen.getByRole('button', { name: /^Help/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Take a tour of the app' }))
 
     await waitFor(() => expect(document.querySelector('.tour-tooltip')).not.toBeNull())

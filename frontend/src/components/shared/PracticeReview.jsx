@@ -44,8 +44,8 @@ export default function PracticeReview({ topics }) {
     <p>{all.length} saved answer{all.length === 1 ? '' : 's'} · {review.length} need review or have an alternative. Ratings are your self-assessments, not automated scores.</p>
     {!durable && <p role="alert">Changes are only in this tab because browser storage is unavailable. Keep an export before closing it.</p>}
     <div className="saved-answers-filters" role="group" aria-label="Saved answer filter">
-      <button type="button" aria-pressed={filter === 'review'} onClick={() => changeFilter('review')}>Needs review ({review.length})</button>
-      <button type="button" aria-pressed={filter === 'all'} onClick={() => changeFilter('all')}>All answers ({all.length})</button>
+      <button type="button" className="roadmap-selector" aria-pressed={filter === 'review'} onClick={() => changeFilter('review')}>Needs review ({review.length})</button>
+      <button type="button" className="roadmap-selector" aria-pressed={filter === 'all'} onClick={() => changeFilter('all')}>All answers ({all.length})</button>
     </div>
     {message && <p ref={statusRef} role="status" tabIndex={-1}>{message}</p>}
     {entries.length === 0 ? <p>{all.length === 0 ? 'No saved interview answers yet. Save an answer in Interview Mode to see it here.' : filter === 'review' ? 'No answers need review. Choose All answers to see everything you saved.' : 'No saved answers to show.'}</p> : <ul className="saved-answers-list">{entries.slice(0, visibleCount).map(([key, entry]) => {
@@ -66,14 +66,14 @@ export default function PracticeReview({ topics }) {
           <p className="saved-answer-draft">{entry.draft || 'No written explanation yet.'}</p>
         </details>
         <div className="saved-answer-actions">
-          {imported && current && <button type="button" onClick={() => completeAction('adopt', key)}>{isPendingAdopt ? 'Confirm use of this version' : 'Use this version for practice'}</button>}
-          <button type="button" onClick={() => completeAction('delete', key)}>{isPendingDelete ? 'Confirm delete this answer' : 'Delete this saved answer'}</button>
-          {(isPendingAdopt || isPendingDelete) && <button type="button" onClick={() => setPending(null)}>Cancel</button>}
+          {imported && current && <button type="button" className={`ui-button ui-button--compact ${isPendingAdopt ? 'ui-button--primary' : 'ui-button--secondary'}`} onClick={() => completeAction('adopt', key)}>{isPendingAdopt ? 'Confirm use of this version' : 'Use this version for practice'}</button>}
+          <button type="button" className={`ui-button ui-button--compact ${isPendingDelete ? 'ui-button--danger' : 'ui-button--quiet'}`} onClick={() => completeAction('delete', key)}>{isPendingDelete ? 'Confirm delete this answer' : 'Delete this saved answer'}</button>
+          {(isPendingAdopt || isPendingDelete) && <button type="button" className="ui-button ui-button--secondary ui-button--compact" onClick={() => setPending(null)}>Cancel</button>}
         </div>
         {isPendingAdopt && <p role="status">Your current answer will become the alternative, so neither draft is lost.</p>}
         {isPendingDelete && <p role="alert">Deleting this answer removes it from this browser and future exports. Export a backup first if you may need it.</p>}
       </li>
     })}</ul>}
-    {visibleCount < entries.length && <button type="button" onClick={() => setVisibleCount(count => count + PAGE_SIZE)}>Show more saved answers</button>}
+    {visibleCount < entries.length && <button type="button" className="ui-button ui-button--secondary" onClick={() => setVisibleCount(count => count + PAGE_SIZE)}>Show more saved answers</button>}
   </section>
 }

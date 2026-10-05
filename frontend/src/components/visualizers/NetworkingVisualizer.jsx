@@ -372,10 +372,10 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
           {/* CONTROLS */}
           <div className="phys-controls">
             <div>
-              <label>
+              <label htmlFor="networking-binary-bitstream-input-0s-and-1s">
                 Binary Bitstream Input (0s and 1s):
               </label>
-              <input
+              <input id="networking-binary-bitstream-input-0s-and-1s"
                 type="text"
                 value={bitInput}
                 maxLength={16}
@@ -415,7 +415,7 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
               <span>0V Level</span>
             </div>
 
-            <div className="scope-track u-scroll-x-hint">
+            <div className="scope-track u-scroll-x-hint" tabIndex={0} role="region" aria-label="Encoded signal waveform">
               {waveformData.map((item, idx) => (
                 <div key={idx} className="scope-bit">
                   <div className="bit-value">
@@ -532,12 +532,12 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
 
           <div className="input-group-inline">
             <div>
-              <label>IP Address:</label>
-              <input type="text" value={ipAddress} onChange={e => setIpAddress(e.target.value)} className="text-input" />
+              <label htmlFor="networking-ip-address">IP Address:</label>
+              <input id="networking-ip-address" type="text" value={ipAddress} onChange={e => setIpAddress(e.target.value)} className="text-input" />
             </div>
             <div>
-              <label>CIDR Prefix (/{cidr}):</label>
-              <input type="range" min="0" max="32" value={cidr} onChange={e => setCidr(Number(e.target.value))} />
+              <label htmlFor="networking-cidr-prefix">CIDR Prefix (/{cidr}):</label>
+              <input id="networking-cidr-prefix" type="range" min="0" max="32" value={cidr} onChange={e => setCidr(Number(e.target.value))} />
             </div>
           </div>
 
@@ -584,8 +584,8 @@ export default function NetworkingVisualizer({ defaultTopicId }) {
         <div className="viz-card">
           <h3>🗺️ Dijkstra Link-State Shortest Path Routing</h3>
           <div className="routing-target-picker">
-            <label>Compute Shortest Path from Router A to: </label>
-            <select value={targetRouter} onChange={e => setTargetRouter(e.target.value)} className="select-input">
+            <label htmlFor="networking-compute-shortest-path-from-router-a-to">Compute Shortest Path from Router A to: </label>
+            <select id="networking-compute-shortest-path-from-router-a-to" value={targetRouter} onChange={e => setTargetRouter(e.target.value)} className="select-input">
               {Object.keys(routes).map(r => (
                 <option key={r} value={r}>{r}</option>
               ))}

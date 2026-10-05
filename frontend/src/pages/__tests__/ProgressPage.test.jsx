@@ -86,7 +86,7 @@ describe('ProgressPage', () => {
     toggleBookmark('deadlocks')
     renderPage()
 
-    expect(await screen.findByRole('link', { name: 'Study Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
+    expect(within(await screen.findByRole('list', { name: 'Bookmarked topics' })).getByRole('link', { name: 'Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
   })
 
   it('exports progress as a downloaded JSON file', async () => {
@@ -124,7 +124,7 @@ describe('ProgressPage', () => {
     await fireEvent.change(input, { target: { files: [file] } })
 
     expect(await screen.findByText('Imported progress for 1 topic.')).toBeInTheDocument()
-    expect(await screen.findByRole('link', { name: 'Study Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
+    expect(within(await screen.findByRole('list', { name: 'Bookmarked topics' })).getByRole('link', { name: 'Deadlocks' })).toHaveAttribute('href', '/topic/deadlocks')
   })
 
   it('rejects an invalid progress file without changing any state', async () => {

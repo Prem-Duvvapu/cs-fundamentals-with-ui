@@ -8,7 +8,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 
 export const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
-export const distDir = path.join(repoRoot, 'frontend/dist')
+// CS_DIST_DIR lets a comparison run serve another build (for example a baseline) with the same fixtures.
+export const distDir = process.env.CS_DIST_DIR ? path.resolve(process.env.CS_DIST_DIR) : path.join(repoRoot, 'frontend/dist')
 export const frontendRequire = createRequire(path.join(repoRoot, 'frontend/package.json'))
 export const catalog = JSON.parse(fs.readFileSync(path.join(repoRoot, 'frontend/src/test/catalog.json'), 'utf8'))
 
@@ -45,9 +46,19 @@ export function lessonMarkdown(category, topicId) {
 
 const mimeTypes = { '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.html': 'text/html', '.png': 'image/png' }
 
-export async function startStaticServer() {
+// With `apiOrigin`, /api/* is proxied to a real backend instead of being left to page fixtures.
+export async function startStaticServer({ apiOrigin } = {}) {
   const server = http.createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname)
+    if (apiOrigin && pathname.startsWith('/api/')) {
+      const upstream = http.request(new URL(request.url, apiOrigin), { method: request.method, headers: { ...request.headers, host: new URL(apiOrigin).host } }, proxied => {
+        response.writeHead(proxied.statusCode, proxied.headers)
+        proxied.pipe(response)
+      })
+      upstream.on('error', () => response.writeHead(502).end())
+      request.pipe(upstream)
+      return
+    }
     const requested = path.resolve(distDir, `.${pathname}`)
     const isAsset = path.extname(pathname) !== ''
     const target = requested.startsWith(distDir) && fs.existsSync(requested) && fs.statSync(requested).isFile()

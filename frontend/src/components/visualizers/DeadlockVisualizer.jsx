@@ -127,8 +127,8 @@ export default function DeadlockVisualizer() {
           <h3>📦 Available System Resources</h3>
           <div className="available-inputs">
             <div className="input-box">
-              <label>Resource R0:</label>
-              <input
+              <label htmlFor="deadlock-resource-r0">Resource R0:</label>
+              <input id="deadlock-resource-r0"
                 type="number"
                 value={available[0]}
                 onChange={e => setAvailable([Number(e.target.value), available[1], available[2]])}
@@ -136,8 +136,8 @@ export default function DeadlockVisualizer() {
               />
             </div>
             <div className="input-box">
-              <label>Resource R1:</label>
-              <input
+              <label htmlFor="deadlock-resource-r1">Resource R1:</label>
+              <input id="deadlock-resource-r1"
                 type="number"
                 value={available[1]}
                 onChange={e => setAvailable([available[0], Number(e.target.value), available[2]])}
@@ -145,8 +145,8 @@ export default function DeadlockVisualizer() {
               />
             </div>
             <div className="input-box">
-              <label>Resource R2:</label>
-              <input
+              <label htmlFor="deadlock-resource-r2">Resource R2:</label>
+              <input id="deadlock-resource-r2"
                 type="number"
                 value={available[2]}
                 onChange={e => setAvailable([available[0], available[1], Number(e.target.value)])}

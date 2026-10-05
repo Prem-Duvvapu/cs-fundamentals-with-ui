@@ -1,56 +1,27 @@
-import ResumeReading from '../components/shared/ResumeReading'
+import { useEffect, useId, useState } from 'react'
 import useLearningState from '../hooks/useLearningState'
-import { latestReading } from '../utils/learningState'
+import { latestReading, readingUrl } from '../utils/learningState'
 import useCatalog from '../hooks/useCatalog'
 import { Link, useSearchParams } from 'react-router-dom'
 import { compareTopics } from '../utils/progressStats'
 import { isBookmarked, isCompleted, getCompletedCount } from '../utils/topicProgress'
 import { getNextTopic, getBookmarkedTopics } from '../utils/progressStats'
 import useTopicProgress from '../hooks/useTopicProgress'
-import { CATEGORY_ORDER, LEVEL_ORDER, LEVEL_LABELS, LEVEL_GLYPHS } from '../utils/topicCategories'
+import { CATEGORY_METADATA, CATEGORY_ORDER, LEVEL_LABELS } from '../utils/topicCategories'
+import Icon from '../components/shared/Icon'
+import LessonRow from '../components/shared/LessonRow'
 
 const LEVEL_FILTERS = ['all', 'beginner', 'intermediate', 'expert']
+const FILTER_KEYS = ['category', 'level', 'bookmarked']
 
-// Distinct from utils/topicCategories.js's CATEGORY_METADATA: this page's established labels/
-// summaries (e.g. "AI/ML Systems") predate and differ from that shared module's, so it keeps its
-// own copy rather than risk changing text this page never asked to change.
-const CATEGORY_DETAILS = {
-  'java-spring': {
-    label: 'Java & Spring',
-    shortLabel: 'JAVA',
-    glyph: '◐',
-    summary: 'Start with Java foundations, then build toward concurrency and Spring application architecture.'
-  },
-  os: {
-    label: 'Operating Systems',
-    shortLabel: 'OS',
-    glyph: '◆',
-    summary: 'Understand processes, memory, scheduling, synchronization, and the kernel services beneath applications.'
-  },
-  networking: {
-    label: 'Computer Networks',
-    shortLabel: 'NET',
-    glyph: '⬡',
-    summary: 'Follow data from local links through routing, transport, and secure application protocols.'
-  },
-  dbms: {
-    label: 'DBMS',
-    shortLabel: 'DB',
-    glyph: '▤',
-    summary: 'Model data, reason about queries and transactions, then study storage and distributed trade-offs.'
-  },
-  aiml: {
-    label: 'AI/ML Systems',
-    shortLabel: 'AI/ML',
-    glyph: '✳',
-    summary: 'Connect modern ML foundations to retrieval, serving, evaluation, and production operations.'
-  },
-  devops: {
-    label: 'DevOps & Infrastructure',
-    shortLabel: 'DEVOPS',
-    glyph: '⚙',
-    summary: 'Take a working application to production: containers, orchestration, networking, delivery pipelines, and observability.'
-  }
+function savedAgo(timestamp) {
+  const minutes = Math.round((Date.now() - timestamp) / 60000)
+  if (!Number.isFinite(minutes) || minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.round(hours / 24)
+  return `${days} day${days === 1 ? '' : 's'} ago`
 }
 
 function topicCategory(topic) {
@@ -69,9 +40,14 @@ export default function HomePage() {
   const { topics, status, retry } = useCatalog()
   const { state: learning } = useLearningState()
   const [params, setParams] = useSearchParams()
-  const selectedCategory = Object.hasOwn(CATEGORY_DETAILS, params.get('category')) ? params.get('category') : 'all'
+  const browseId = useId()
+  const selectedCategory = Object.hasOwn(CATEGORY_METADATA, params.get('category')) ? params.get('category') : 'all'
   const selectedLevel = LEVEL_FILTERS.includes(params.get('level')) ? params.get('level') : 'all'
   const bookmarkedOnly = params.get('bookmarked') === 'true'
+  const hasFilterInUrl = FILTER_KEYS.some(key => params.has(key))
+  // A bookmarked or shared filter URL opens the roadmap with its selection visible.
+  const [browseOpen, setBrowseOpen] = useState(hasFilterInUrl)
+  useEffect(() => { if (hasFilterInUrl) setBrowseOpen(true) }, [hasFilterInUrl])
   const setFilter = (key, value) => setParams(previous => {
     const next = new URLSearchParams(previous)
     if (value === 'all' || value === false) next.delete(key)
@@ -85,7 +61,7 @@ export default function HomePage() {
 
   const categories = CATEGORY_ORDER.map(id => ({
     id,
-    ...CATEGORY_DETAILS[id],
+    ...CATEGORY_METADATA[id],
     topics: sortTopics(topics.filter(topic => topicCategory(topic) === id))
   }))
 
@@ -105,185 +81,176 @@ export default function HomePage() {
 
   // Same helper the progress dashboard uses for "Continue where you left off", so both pages agree
   // on what comes next instead of each deciding for themselves.
-  const recentCategory = latestReading(topics, learning)?.category
-  const nextTopic = getNextTopic(topics, progress, recentCategory)
+  const resumeTopic = latestReading(topics, learning)
+  const nextTopic = getNextTopic(topics, progress, resumeTopic?.category)
   // Kept visible while the filter is on, even at zero bookmarks: otherwise un-bookmarking your last
   // topic hides the control while the filter stays active, with no way left to switch it off.
   const showBookmarkFilter = bookmarkedOnly || getBookmarkedTopics(topics, progress).length > 0
+  const clearFilters = () => setParams(previous => { const next = new URLSearchParams(previous); FILTER_KEYS.forEach(key => next.delete(key)); return next })
 
   return (
-    <div className="roadmap-index">
-      <ResumeReading topics={topics} />
-      <header className="roadmap-header home-hero">
+    <div className="roadmap-index home-page">
+      <header className="home-hero">
         <p className="eyebrow">CS Fundamentals · Learn with understanding</p>
-        <h1>Understand the systems <br /><em>behind your code.</em></h1>
-        <p>
-          {topics.length} lessons on the fundamentals interviewers actually ask about — each read at three depths, with diagrams, worked examples and interview questions.
+        <h1>Understand the systems behind your code.</h1>
+        <p className="home-lead">
+          {status === 'ready' ? `${topics.length} lessons` : 'Lessons'} on the fundamentals interviewers actually ask about — each read at three depths, with diagrams, worked examples and interview questions.
         </p>
-        {nextTopic && (
-          <p className="roadmap-start">
-            <Link to={`/topic/${nextTopic.id}`} className="roadmap-cta roadmap-cta-primary">
-              {completedCount === 0 ? 'Start here' : 'Next recommended lesson'}: {nextTopic.title} →
+        <div className="home-actions">
+          {resumeTopic ? (
+            <Link to={readingUrl(resumeTopic, learning)} className="ui-button ui-button--primary home-primary-action">
+              <Icon name="book" size={18} /><span>Resume reading: {resumeTopic.title}</span>
             </Link>
-          </p>
-        )}
-        {completedCount > 0 && (
+          ) : nextTopic && (
+            <Link to={`/topic/${nextTopic.id}`} className="ui-button ui-button--primary home-primary-action">
+              <span>{completedCount === 0 ? 'Start here' : 'Next recommended lesson'}: {nextTopic.title}</span><Icon name="arrowRight" size={18} />
+            </Link>
+          )}
+          {resumeTopic && nextTopic && nextTopic.id !== resumeTopic.id && (
+            <Link to={`/topic/${nextTopic.id}`} className="ui-button ui-button--secondary">Next recommended: {nextTopic.title}</Link>
+          )}
+          <Link to="/search" className="ui-button ui-button--quiet"><Icon name="search" size={18} />Search lessons</Link>
+        </div>
+        {resumeTopic && <p className="home-resume-note">Reading position saved {savedAgo(learning.reading[resumeTopic.id].updatedAt)} in this browser.</p>}
+        {completedCount > 0 && status === 'ready' && (
           <p className="roadmap-progress-summary" role="status">
             {completedCount} of {topics.length} topics completed
           </p>
         )}
-
       </header>
 
-      {status === 'ready' && selectedCategory === 'all' && <section className="learning-paths" aria-labelledby="learning-paths-title">
-        <div className="section-heading"><div><p className="eyebrow">Choose your path</p><h2 id="learning-paths-title">Six ways to go deeper</h2></div><p>Understand the idea. Follow the mechanism. Explain the trade-off.</p></div>
-        <div className="category-card-grid">{categories.map(category => <Link className="category-card" data-category={category.id} key={category.id} to={`/category/${category.id}`}>
-          <span className="category-card-symbol" aria-hidden="true">{category.glyph}</span><span className="category-card-count">{category.topics.length} lessons</span>
-          <h3>{category.label}</h3><p>{category.summary}</p><span className="category-card-action">Explore path <span aria-hidden="true">↗</span></span>
-        </Link>)}</div>
-      </section>}
-        <div className="roadmap-filters">
-          <nav className="roadmap-selectors" aria-label="Curriculum categories">
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('all')}
-              className={`roadmap-selector ${selectedCategory === 'all' ? 'active' : ''}`}
-              aria-pressed={selectedCategory === 'all'}
-              aria-label={`Full roadmap, ${topicCountLabel(topics.length)}`}
-            >
-              <span>Full roadmap</span>
-              <span className="roadmap-selector-count" aria-hidden="true">· {topics.length}</span>
-            </button>
-            {categories.map(category => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setSelectedCategory(category.id)}
-                className={`roadmap-selector ${selectedCategory === category.id ? 'active' : ''}`}
-                aria-pressed={selectedCategory === category.id}
-                aria-label={`${category.label}, ${topicCountLabel(category.topics.length)}`}
-                data-category={category.id}
-              >
-                <span className="category-glyph" aria-hidden="true">{category.glyph}</span>
-                <span>{category.shortLabel}</span>
-                <span className="roadmap-selector-count" aria-hidden="true">· {category.topics.length}</span>
-              </button>
-            ))}
-          </nav>
+      {status === 'error' && <section className="reader-error" role="alert"><h2>Couldn't load the curriculum</h2><p>Your saved progress is still on this device.</p><button type="button" className="ui-button ui-button--primary" onClick={retry}>Retry</button></section>}
+      {status === 'loading' && <p className="home-loading" role="status">Loading the curriculum…</p>}
 
-          <div className="level-selectors" role="group" aria-label="Topic levels">
-            {LEVEL_FILTERS.map(level => (
+      {status === 'ready' && <section className="learning-paths" aria-labelledby="learning-paths-title">
+        <div className="section-heading">
+          <h2 id="learning-paths-title">Learning paths</h2>
+          <p>Choose a path to see its ordered lessons, outcomes and prerequisites.</p>
+        </div>
+        <ul className="path-grid">
+          {categories.map(category => {
+            const done = category.topics.filter(topic => isCompleted(topic.id, progress)).length
+            return (
+              <li key={category.id}>
+                <Link className="path-card" data-category={category.id} to={`/category/${category.id}`}>
+                  <span className="path-card-glyph" aria-hidden="true">{category.glyph}</span>
+                  <span className="path-card-body">
+                    <span className="path-card-title">{category.label}</span>
+                    <span className="path-card-meta">{category.topics.length} lesson{category.topics.length === 1 ? '' : 's'}{done > 0 ? ` · ${done} completed` : ''}</span>
+                    <span className="path-card-summary">{category.summary}</span>
+                  </span>
+                  <Icon name="chevronRight" size={18} className="path-card-chevron" />
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </section>}
+
+      {status === 'ready' && <section className="browse-lessons" aria-labelledby={`${browseId}-heading`}>
+        <h2 id={`${browseId}-heading`} className="browse-lessons-heading">
+          <button type="button" className="browse-lessons-toggle" aria-expanded={browseOpen} aria-controls={browseId} onClick={() => setBrowseOpen(value => !value)}>
+            <span>Browse all lessons</span>
+            <span className="browse-lessons-count">{hasFilterInUrl ? `${visibleTopicCount} of ${topics.length}` : topics.length}</span>
+            <Icon name={browseOpen ? 'chevronUp' : 'chevronDown'} size={18} />
+          </button>
+        </h2>
+        <div id={browseId} className="browse-lessons-panel" hidden={!browseOpen}>
+          <div className="roadmap-filters">
+            <nav className="roadmap-selectors" aria-label="Curriculum categories">
               <button
-                key={level}
                 type="button"
-                className={`level-selector ${selectedLevel === level ? 'active' : ''}`}
-                aria-pressed={selectedLevel === level}
-                onClick={() => setSelectedLevel(level)}
+                onClick={() => setSelectedCategory('all')}
+                className={`roadmap-selector ${selectedCategory === 'all' ? 'active' : ''}`}
+                aria-pressed={selectedCategory === 'all'}
+                aria-label={`Full roadmap, ${topicCountLabel(topics.length)}`}
               >
-                {level === 'all' ? 'All levels' : LEVEL_LABELS[level]}
+                <span>Full roadmap</span>
+                <span className="roadmap-selector-count" aria-hidden="true">· {topics.length}</span>
               </button>
-            ))}
-            {showBookmarkFilter && (
-              <button
-                type="button"
-                className={`level-selector ${bookmarkedOnly ? 'active' : ''}`}
-                aria-pressed={bookmarkedOnly}
-                onClick={() => setBookmarkedOnly(current => !current)}
-              >
-                <span aria-hidden="true">★</span> Bookmarked
-              </button>
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`roadmap-selector ${selectedCategory === category.id ? 'active' : ''}`}
+                  aria-pressed={selectedCategory === category.id}
+                  aria-label={`${category.label}, ${topicCountLabel(category.topics.length)}`}
+                  data-category={category.id}
+                >
+                  <span className="category-glyph" aria-hidden="true">{category.glyph}</span>
+                  <span>{category.shortLabel}</span>
+                  <span className="roadmap-selector-count" aria-hidden="true">· {category.topics.length}</span>
+                </button>
+              ))}
+            </nav>
+
+            <div className="level-selectors" role="group" aria-label="Topic levels">
+              {LEVEL_FILTERS.map(level => (
+                <button
+                  key={level}
+                  type="button"
+                  className={`level-selector ${selectedLevel === level ? 'active' : ''}`}
+                  aria-pressed={selectedLevel === level}
+                  onClick={() => setSelectedLevel(level)}
+                >
+                  {level === 'all' ? 'All levels' : LEVEL_LABELS[level]}
+                </button>
+              ))}
+              {showBookmarkFilter && (
+                <button
+                  type="button"
+                  className={`level-selector ${bookmarkedOnly ? 'active' : ''}`}
+                  aria-pressed={bookmarkedOnly}
+                  onClick={() => setBookmarkedOnly(current => !current)}
+                >
+                  <Icon name="bookmark" size={14} filled={bookmarkedOnly} /> Bookmarked
+                </button>
+              )}
+              {hasFilterInUrl && <button type="button" className="ui-button ui-button--quiet ui-button--compact" onClick={clearFilters}>Reset filters</button>}
+            </div>
+          </div>
+          <div aria-live="polite">
+            {selectedCategory !== 'all' && (
+              <p className="roadmap-filter-summary">
+                {CATEGORY_METADATA[selectedCategory].summary} {topicCountLabel(visibleTopicCount)} in this path.
+              </p>
             )}
+
+            {visibleTopicCount === 0 ? (
+              <section className="roadmap-empty-state" role="status" aria-labelledby="empty-roadmap-heading">
+                <h3 id="empty-roadmap-heading">No topics match these filters</h3>
+                <p>Choose another category or level to continue exploring the curriculum.</p>
+                <button type="button" className="ui-button ui-button--secondary" onClick={clearFilters}>Show all topics</button>
+              </section>
+            ) : visibleCategories.filter(category => category.topics.length > 0).map((category, categoryIndex) => (
+              <section key={category.id} className="roadmap-group" aria-labelledby={`${category.id}-heading`} data-category={category.id}>
+                <div className="roadmap-group-heading">
+                  <h3 id={`${category.id}-heading`}>
+                    <span className="category-glyph" aria-hidden="true">{category.glyph}</span>{' '}
+                    {selectedCategory === 'all' ? `${categoryIndex + 1}. ${category.label}` : category.label}
+                  </h3>
+                  <span className="roadmap-group-count">{topicCountLabel(category.topics.length)}</span>
+                </div>
+                <ol className="lesson-rows" aria-label={`${category.label} topics`}>
+                  {category.topics.map((topic, topicIndex) => (
+                    <LessonRow
+                      key={topic.id}
+                      topic={topic}
+                      number={topicIndex + 1}
+                      description={topic.summary}
+                      bookmarked={isBookmarked(topic.id, progress)}
+                      completed={isCompleted(topic.id, progress)}
+                      onToggleBookmark={toggleBookmark}
+                      headingLevel={4}
+                    />
+                  ))}
+                </ol>
+              </section>
+            ))}
           </div>
         </div>
-      <div aria-live="polite">
-        {/* Only when a category is chosen. The "all" variant restated the intro sentence above and
-            cost ~175px of the first screen, pushing every topic below the fold. */}
-        {selectedCategory !== 'all' && (
-          <section className="category-overview" aria-labelledby="roadmap-summary">
-            <h2 id="roadmap-summary">{CATEGORY_DETAILS[selectedCategory].label}</h2>
-            <p>
-              {CATEGORY_DETAILS[selectedCategory].summary} {topicCountLabel(visibleTopicCount)} in this path.
-            </p>
-          </section>
-        )}
-
-        {status === 'error' ? (<section className="reader-error" role="alert"><h2>Couldn't load the curriculum</h2><p>Your saved progress is still on this device.</p><button onClick={retry}>Retry</button></section>) : status === 'loading' ? (
-          <p className="category-overview">Loading the curriculum roadmap…</p>
-        ) : visibleTopicCount === 0 ? (
-          <section className="roadmap-empty-state" role="status" aria-labelledby="empty-roadmap-heading">
-            <h2 id="empty-roadmap-heading">No topics match these filters</h2>
-            <p>Choose another category or level to continue exploring the curriculum.</p>
-            <button
-              type="button"
-              className="roadmap-empty-action"
-              onClick={() => {
-                setParams(previous => { const next = new URLSearchParams(previous); ['category', 'level', 'bookmarked'].forEach(key => next.delete(key)); return next })
-              }}
-            >
-              Show all topics
-            </button>
-          </section>
-        ) : visibleCategories.filter(category => category.topics.length > 0).map((category, categoryIndex) => (
-          <section
-            key={category.id}
-            className="category-overview"
-            aria-labelledby={`${category.id}-heading`}
-            data-category={category.id}
-          >
-            <h2 id={`${category.id}-heading`}>
-              <span className="category-glyph" aria-hidden="true">{category.glyph}</span>{' '}
-              {selectedCategory === 'all' ? `${categoryIndex + 1}. ${category.label}` : category.label}
-            </h2>
-            <div className="category-meta">
-              <p>{category.summary}</p>
-              <span>{topicCountLabel(category.topics.length)}</span>
-            </div>
-            <ol className="topic-rows" aria-label={`${category.label} topics`}>
-              {category.topics.map((topic, topicIndex) => {
-                const topicBookmarked = isBookmarked(topic.id, progress)
-                const topicCompleted = isCompleted(topic.id, progress)
-                return (
-                  <li key={topic.id} className="topic-row">
-                    <span className="topic-number" aria-label={`Topic ${topicIndex + 1}`}>{String(topicIndex + 1).padStart(2, '0')}</span>
-                    <div className="topic-row-body">
-                      <span
-                        className={`tier-badge tier-badge--${topic.level || 'beginner'}`}
-                        aria-label={`${LEVEL_LABELS[topic.level] || 'Beginner'} level`}
-                      >
-                        <span className="tier-badge-glyph" aria-hidden="true">
-                          {LEVEL_GLYPHS[topic.level] || LEVEL_GLYPHS.beginner}
-                        </span>
-                        <span>{LEVEL_LABELS[topic.level] || 'Beginner'}</span>
-                      </span>
-                      {topicCompleted && (
-                        <span className="completed-badge">
-                          <span aria-hidden="true">✓</span> Completed
-                        </span>
-                      )}
-                      <h3 className="topic-row-title">{topic.title}</h3>
-                      <p className="topic-row-summary">{topic.summary}</p>
-                    </div>
-                    <div className="topic-row-actions">
-                      <button
-                        type="button"
-                        className="bookmark-toggle-icon"
-                        aria-pressed={topicBookmarked}
-                        aria-label={topicBookmarked ? `Remove ${topic.title} from bookmarks` : `Bookmark ${topic.title}`}
-                        onClick={() => toggleBookmark(topic.id)}
-                      >
-                        <span aria-hidden="true">{topicBookmarked ? '★' : '☆'}</span>
-                      </button>
-                      <Link to={`/topic/${topic.id}`} className="roadmap-cta" aria-label={`Study ${topic.title}`}>
-                        Study topic <span aria-hidden="true">→</span>
-                      </Link>
-                    </div>
-                  </li>
-                )
-              })}
-            </ol>
-          </section>
-        ))}
-      </div>
+      </section>}
     </div>
   )
 }

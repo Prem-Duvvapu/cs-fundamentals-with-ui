@@ -162,8 +162,8 @@ export default function BPlusTreeVisualizer() {
       <div className="viz-controls-card bptree-toolbar">
         <form onSubmit={handleInsert} className="bptree-form-row">
           <div className="u-row">
-            <label className="field-label-strong">Tree Order (M):</label>
-            <select
+            <label htmlFor="b-plus-tree-tree-order-m" className="field-label-strong">Tree Order (M):</label>
+            <select id="b-plus-tree-tree-order-m"
               aria-label="Tree order"
               value={order}
               onChange={e => handleOrderChange(Number(e.target.value))}

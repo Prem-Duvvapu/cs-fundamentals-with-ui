@@ -62,6 +62,32 @@ jobs:
       - run: javac --release 17 -d /tmp/core-accuracy-java examples/labs/java/AccuracyContracts.java
       - run: java -cp /tmp/core-accuracy-java AccuracyContracts
 
+  real-backend-journey:
+    # The browser harness above uses API fixtures; this job runs the built frontend against the real
+    # Spring Boot API (catalog, outlines, content, search, interview, server-side simulation).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npm run build --prefix frontend
+      - run: mvn -q package -DskipTests -f backend/pom.xml
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: |
+          java -jar backend/target/cs-fundamentals-backend-*.jar --server.port=9190 > backend.log 2>&1 &
+          for attempt in {1..60}; do curl --fail --silent http://127.0.0.1:9190/api/v1/topics >/dev/null && break; sleep 2; done
+          CS_API_ORIGIN=http://127.0.0.1:9190 node scripts/test-real-backend-journey.mjs || { cat backend.log; exit 1; }
+
   containers:
     runs-on: ubuntu-latest
     steps:

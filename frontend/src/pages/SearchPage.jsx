@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchSearch } from '../utils/api'
 import { CATEGORY_METADATA, CATEGORY_ORDER } from '../utils/topicCategories'
+import Icon from '../components/shared/Icon'
 
 const SEARCH_DEBOUNCE_MS = 300
 
@@ -132,13 +133,13 @@ export default function SearchPage() {
 
       <div aria-live="polite">
         {!trimmedQuery ? (
-          <p className="category-overview">Start typing to search across the curriculum.</p>
+          <p className="search-hint">Start typing to search across the curriculum.</p>
         ) : loading ? (
-          <p className="category-overview" role="status">Searching…</p>
+          <p className="search-hint" role="status">Searching…</p>
         ) : error ? (
           <section className="roadmap-empty-state" role="alert">
             <h2>Search is unavailable</h2>
-            <p>The search API may be unavailable. Your filters are preserved.</p><button onClick={() => setAttempt(value => value + 1)}>Retry</button>
+            <p>The search API may be unavailable. Your filters are preserved.</p><button type="button" className="ui-button ui-button--primary" onClick={() => setAttempt(value => value + 1)}>Retry</button>
           </section>
         ) : results.length === 0 ? (
           <section className="roadmap-empty-state" role="status">
@@ -146,23 +147,22 @@ export default function SearchPage() {
             <p>Try a different term, or clear the category filter.</p>
           </section>
         ) : (
-          <section className="category-overview" aria-labelledby="search-results-heading">
+          <section className="search-results-section" aria-labelledby="search-results-heading">
             <h2 id="search-results-heading">
               {total} result{total === 1 ? '' : 's'} for “{trimmedQuery}”
             </h2>
-            {total > results.length && <p>Showing the first {results.length} matching lessons. Narrow your search for more specific results.</p>}
-            <ol className="topic-rows" aria-label="Search results">
+            {total > results.length && <p className="search-hint">Showing the first {results.length} matching lessons. Narrow your search for more specific results.</p>}
+            <ol className="search-results" aria-label="Search results">
               {results.map(result => (
-                <li key={result.topicId} className="topic-row" data-category={result.category}>
-                  <span className="category-glyph" aria-hidden="true">{CATEGORY_METADATA[result.category]?.glyph}</span>
-                  <div className="topic-row-body">
-                    <h3 className="topic-row-title">{result.title}</h3>
-                    {result.matchedHeading && <p className="topic-row-summary">In: {result.matchedHeading}</p>}
-                    <p className="topic-row-summary">{result.excerpt || result.summary}</p>
-                  </div>
-                  <Link to={`/topic/${result.topicId}${result.matchedHeading ? `?section=${encodeURIComponent(result.matchedHeading)}` : ''}`} className="roadmap-cta" aria-label={`Study ${result.title}`}>
-                    Study topic <span aria-hidden="true">→</span>
-                  </Link>
+                <li key={result.topicId} className="search-result" data-category={result.category}>
+                  <h3 className="search-result-title">
+                    <Link to={`/topic/${result.topicId}${result.matchedHeading ? `?section=${encodeURIComponent(result.matchedHeading)}` : ''}`}>{result.title}</Link>
+                  </h3>
+                  <p className="search-result-meta">
+                    <span className="lesson-tag lesson-tag--category"><span className="category-glyph" aria-hidden="true">{CATEGORY_METADATA[result.category]?.glyph}</span>{CATEGORY_METADATA[result.category]?.label || result.category}</span>
+                    {result.matchedHeading && <span className="search-result-section"><Icon name="list" size={14} /><span>Section: {result.matchedHeading}</span></span>}
+                  </p>
+                  <p className="search-result-excerpt">{result.excerpt || result.summary}</p>
                 </li>
               ))}
             </ol>

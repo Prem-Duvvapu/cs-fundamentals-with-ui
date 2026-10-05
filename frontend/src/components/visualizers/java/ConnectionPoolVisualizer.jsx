@@ -97,7 +97,7 @@ export default function ConnectionPoolVisualizer() {
       </div>
 
       {/* Grid: Pooled Connections vs Wait Queue */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* HikariCP Connection Slots */}
         <div className="viz-card" style={{ borderLeft: '4px solid var(--state-info)' }}>
           <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--state-info)', display: 'flex', justifyContent: 'space-between' }}>

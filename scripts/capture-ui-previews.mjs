@@ -11,12 +11,12 @@ const ROUTES = [
   { name: 'home', path: '/' },
   { name: 'category', path: '/category/java-spring' },
   { name: 'reader', path: '/topic/java-execution-pipeline', reader: true },
-  { name: 'practice', path: '/topic/java-execution-pipeline?view=practice', ready: '.interview-question' },
+  { name: 'practice', path: '/topic/java-execution-pipeline?view=practice', ready: '.practice-question' },
   { name: 'reader-long-title', path: '/topic/spring-mvc-lifecycle', reader: true },
   { name: 'reader-os', path: '/topic/cpu-scheduling', reader: true },
   { name: 'simulation', path: '/topic/cpu-scheduling?view=simulation', ready: '.viz-card, .viz-container, .action-buttons-grid' },
-  { name: 'search', path: '/search?q=java', ready: '.topic-row' },
-  { name: 'interview', path: '/interview/all', ready: '.interview-question' },
+  { name: 'search', path: '/search?q=java', ready: '.search-result' },
+  { name: 'interview', path: '/interview/all', ready: '.practice-question' },
   { name: 'progress', path: '/progress' },
   { name: 'review', path: '/review' }
 ]

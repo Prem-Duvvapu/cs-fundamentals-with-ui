@@ -130,7 +130,7 @@ export default function VirtualMemoryVisualizer() {
             <span>8 Pages</span>
           </h4>
 
-          <div className="vm-row-list is-scroll">
+          <div className="vm-row-list is-scroll" tabIndex={0} role="region" aria-label="Page table entries">
             {state.pageTable.map(pt => {
               const isHighlight = pt.vpn === highlightVpn
               return (

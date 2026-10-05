@@ -73,14 +73,14 @@ export default function JvmMemoryVisualizer() {
       {/* Controls Header */}
       <div className="viz-controls-card" style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <form onSubmit={handleAllocate} style={{ display: 'flex', gap: '0.4rem', flex: 1, minWidth: '220px' }}>
+          <form onSubmit={handleAllocate} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', flex: 1, minWidth: 'min(100%, 220px)' }}>
             <input
               type="text"
               placeholder="Object Name (e.g. OrderDTO)"
               value={customObjName}
               onChange={e => setCustomObjName(e.target.value)}
               className="text-input"
-              style={{ flex: 1, padding: '0.4rem 0.75rem' }}
+              style={{ flex: '1 1 10rem', minWidth: 0, padding: '0.4rem 0.75rem' }}
             />
             <button type="submit" className="btn btn-primary">
               + Allocate in Eden
@@ -126,7 +126,7 @@ export default function JvmMemoryVisualizer() {
       </div>
 
       {/* Heap Memory Visual Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Young Gen: Eden */}
         <div className="viz-card" style={{ borderLeft: '4px solid var(--state-success)' }}>
           <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-success)', display: 'flex', justifyContent: 'space-between' }}>
@@ -220,7 +220,7 @@ export default function JvmMemoryVisualizer() {
         </h4>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {state.metaspace.map((cls, i) => (
-            <span key={i} className="header-pill" style={{ background: 'var(--cat-border)', fontSize: '0.85rem' }}>
+            <span key={i} className="header-pill" style={{ background: 'var(--cat-tint)', border: '1px solid var(--cat-border)', fontSize: '0.85rem' }}>
               {cls}
             </span>
           ))}

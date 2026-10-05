@@ -10,40 +10,33 @@ const TOUR_STEPS = [
     path: '/',
     target: null,
     title: 'Welcome to CS Fundamentals',
-    body: 'A quick tour of the roadmap, study tools, and progress tracking — about a minute, and you can skip it any time.'
+    body: 'A quick tour of learning paths, the reader, practice and progress — about a minute, and you can skip it any time.'
   },
   {
-    id: 'categories',
+    id: 'learning-paths',
     path: '/',
-    target: '.roadmap-selectors',
-    title: 'Six curriculum tracks',
-    body: 'Filter the roadmap down to one track at a time, or keep the full sequence — Java and Spring first, then the systems and data foundations behind it.'
+    target: '.path-grid',
+    title: 'Six learning paths',
+    body: 'Each path opens an ordered list of lessons with outcomes and prerequisites. Java and Spring come first, then the systems and data foundations behind them.'
   },
   {
-    id: 'levels',
+    id: 'browse',
     path: '/',
-    target: '.level-selectors',
-    title: 'Level and bookmark filters',
-    body: 'Narrow topics by Beginner/Intermediate/Expert, or flip on "Bookmarked" to see only the topics you have starred.'
-  },
-  {
-    id: 'topic-row',
-    path: '/',
-    target: '.topic-row',
-    title: 'Bookmark, then study',
-    body: 'Star a topic to save it for later, or jump straight into the reader with Study topic.'
+    target: '.browse-lessons-toggle',
+    title: 'Browse every lesson',
+    body: 'Open the full curriculum to filter by path, level or bookmarks. Filtered links can be bookmarked and shared.'
   },
   {
     id: 'search',
     path: '/',
-    target: '.navbar-icon-link[aria-label="Search"]',
+    target: '.nav-search',
     title: 'Search everything',
-    body: 'Search titles, headings, and lesson content across every topic in the curriculum.'
+    body: 'Search titles, headings, and lesson content across every topic. Ctrl + K (or ⌘ + K) opens it from anywhere.'
   },
   {
     id: 'interview-mode',
     path: '/',
-    target: '.navbar-icon-link[aria-label="Interview Mode"]',
+    target: '.nav-item[href="/interview/all"]',
     title: 'Practice with Interview Mode',
     body: 'Step through interview questions for one category or the whole curriculum, filtered by difficulty.'
   },
@@ -51,22 +44,29 @@ const TOUR_STEPS = [
     id: 'topic-page',
     path: DEMO_TOPIC_PATH,
     target: '.topic-page-title',
-    title: "Here's a topic page",
-    body: 'Every topic reads the same way: a 3-tier study guide from Beginner to Expert, with an interview deck at the end.'
+    title: "Here's a lesson",
+    body: 'Every lesson reads the same way: a three-tier study guide from Beginner to Expert, with interview practice at the end. Bookmark it or mark it complete when you are ready.'
   },
   {
     id: 'simulation-tab',
     path: DEMO_TOPIC_PATH,
     target: '.main-tab-switcher',
-    title: 'Interactive simulations',
-    body: 'Topics that benefit from one get a Simulation tab — an interactive visualizer for the mechanism, alongside the Study tab.'
+    title: 'Study, Practice and Simulation',
+    body: 'Practice turns the interview questions into recall exercises. Lessons that benefit from one also get an interactive Simulation of the mechanism.'
+  },
+  {
+    id: 'category-rail',
+    path: DEMO_TOPIC_PATH,
+    target: '.category-rail-tools',
+    title: 'Every lesson in this path',
+    body: 'The side rail lists all lessons in the category with their sections. Search it, expand any lesson, or collapse everything back to the titles.'
   },
   {
     id: 'finish',
     path: DEMO_TOPIC_PATH,
     target: null,
     title: "You're ready",
-    body: 'That covers the essentials. Replay this tour any time from the "Take a tour" button in the navigation bar.'
+    body: 'That covers the essentials. Replay this tour any time from Help in the navigation bar.'
   }
 ]
 

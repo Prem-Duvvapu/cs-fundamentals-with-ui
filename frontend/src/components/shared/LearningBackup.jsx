@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { exportLearningData, previewLearningImport, mergeLearningImport, MAX_IMPORT_BYTES } from '../../utils/learningState'
 import { readAll, importProgress } from '../../utils/topicProgress'
+import Icon from './Icon'
 
 function plural(count, word) {
   return `${count} ${word}${count === 1 ? '' : 's'}`
@@ -33,5 +34,23 @@ export default function LearningBackup({ topics = [] }) {
     setPreview(null)
     setMessage('Backup merged. Nothing on this device was removed; differing drafts were kept side by side.')
   }
-  return <section className="learning-backup"><h2>Back up your learning</h2><p>Bookmarks, completed lessons, reading positions, written answers, review dates and recorded attempts live in this browser. Export a copy to keep them when you change devices. Importing accepts both older progress-only backups and full learning backups, and never overwrites your text-size preference.</p><div className="progress-transfer-actions"><button type="button" onClick={download}>Export learning data</button><button type="button" onClick={() => input.current?.click()}>Import learning data</button><input ref={input} type="file" accept=".json,application/json" onChange={read} hidden /></div>{preview && <div className="backup-preview" role="group" aria-label="Backup preview"><p>This backup contains progress for {plural(preview.lessons, 'lesson')}, {plural(preview.drafts, 'written answer')}, {plural(preview.assessments, 'self-assessment')} and {plural(preview.readings, 'reading position')}.{preview.version === 1 && ' It is an older progress-only backup.'}</p>{preview.conflicts > 0 && <p>{plural(preview.conflicts, 'answer')} differ from what is saved here. Your current text stays in place and the imported version is kept alongside it.</p>}{preview.unknownTopics > 0 && <p>{plural(preview.unknownTopics, 'item')} refer to lessons not in the current curriculum. They are kept but not shown.</p>}<button type="button" onClick={confirm}>Merge backup</button><button type="button" onClick={() => setPreview(null)}>Cancel</button></div>}{message && <p role="status">{message}</p>}</section>
+  return <div className="learning-backup">
+    <h3>Full learning backup</h3>
+    <p>Bookmarks, completed lessons, reading positions, written answers, review dates and recorded attempts live in this browser. Export a copy to keep them when you change devices. Importing accepts both older progress-only backups and full learning backups, and never overwrites your text-size preference.</p>
+    <div className="progress-transfer-actions">
+      <button type="button" className="ui-button ui-button--primary ui-button--compact" onClick={download}><Icon name="download" size={16} />Export learning data</button>
+      <button type="button" className="ui-button ui-button--secondary ui-button--compact" onClick={() => input.current?.click()}><Icon name="upload" size={16} />Import learning data</button>
+      <input ref={input} type="file" accept=".json,application/json" onChange={read} hidden />
+    </div>
+    {preview && <div className="backup-preview" role="group" aria-label="Backup preview">
+      <p>This backup contains progress for {plural(preview.lessons, 'lesson')}, {plural(preview.drafts, 'written answer')}, {plural(preview.assessments, 'self-assessment')} and {plural(preview.readings, 'reading position')}.{preview.version === 1 && ' It is an older progress-only backup.'}</p>
+      {preview.conflicts > 0 && <p>{plural(preview.conflicts, 'answer')} differ from what is saved here. Your current text stays in place and the imported version is kept alongside it.</p>}
+      {preview.unknownTopics > 0 && <p>{plural(preview.unknownTopics, 'item')} refer to lessons not in the current curriculum. They are kept but not shown.</p>}
+      <div className="progress-transfer-actions">
+        <button type="button" className="ui-button ui-button--primary ui-button--compact" onClick={confirm}>Merge backup</button>
+        <button type="button" className="ui-button ui-button--quiet ui-button--compact" onClick={() => setPreview(null)}>Cancel</button>
+      </div>
+    </div>}
+    {message && <p role="status">{message}</p>}
+  </div>
 }

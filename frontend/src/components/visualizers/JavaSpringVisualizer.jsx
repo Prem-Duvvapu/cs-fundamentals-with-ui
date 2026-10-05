@@ -110,8 +110,9 @@ export default function JavaSpringVisualizer({ defaultTopicId }) {
               </div>
 
               <div>
-                <label className="field-label-strong is-block">Misfire Handling Policy:</label>
+                <label htmlFor="quartz-misfire-policy" className="field-label-strong is-block">Misfire Handling Policy:</label>
                 <select
+                  id="quartz-misfire-policy"
                   value={misfirePolicy}
                   onChange={e => setMisfirePolicy(e.target.value)}
                   className="num-input is-full"
