@@ -1,5 +1,10 @@
 # CS Fundamentals with UI
 
+Part of the [Learning Hub](https://learning-hub-with-ui.vercel.app/).
+The shared **Learning network** navigation offers Learning Home and same-tab
+links between DSA, LLD, HLD, and CS fundamentals on every route. These remain
+independent apps: themes, backend state, and progress are not synchronized.
+
 **Interactive learning platform for Computer Science fundamentals — from beginner to expert.**
 
 This project helps you prepare for **CS interviews** and software engineering excellence through a reading-first learning experience with optional interactive simulations. Every topic is structured in three tiers: 🟢 Beginner → 🟡 Intermediate → 🔴 Expert with real-world failure modes, trade-offs, and interview Q&As.
@@ -376,8 +381,8 @@ what remains open, and [the design system](docs/DESIGN_SYSTEM.md) describes the 
 
 - **Navigation:** one compact bar — Search (Ctrl/⌘ K), a Learn menu with every learning path, Interview
   Mode, Progress, Help (the opt-in tour) and a theme switch; below 900px it collapses to Search and Menu.
-- **Reader:** lessons start sooner (the Java Execution Pipeline article begins at 303px instead of 426px
-  on a 1440×960 screen, and 415px instead of 570px at 375px wide) without hiding any content. Level jumps
+- **Reader:** lessons start sooner (the Java Execution Pipeline article begins at 324px instead of 426px
+  on a 1440×960 screen, and 448px instead of 570px at 375px wide, including the Learning network bar) without hiding any content. Level jumps
   and one Reading options menu (text size, focus reading, study help) share a single row, prose follows
   the chosen text size at a 68ch measure, and the lesson ends with practice and completion actions.
 - **Category rail:** every lesson in the category with its sections, plus search over lesson titles and

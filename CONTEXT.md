@@ -1,5 +1,13 @@
 # System Architecture & Development Context
 
+## Cross-project navigation
+
+`AppLayout` mounts `LearningNetworkNav` before the existing Navbar on every
+route. It uses native same-tab anchors to the Learning Hub and four deployed
+apps. Styles stay in `App.css` and use existing theme tokens. No router, API,
+backend, or progress-storage contracts change. The component test verifies
+destinations, same-tab behavior, and the current subject marker.
+
 ## Overview
 **CS Fundamentals with UI** is a content-first, full-stack educational platform for Computer Science fundamentals. It consists of a **Spring Boot REST backend** serving structured three-tier Markdown content and a **React 19 / Vite frontend** that makes reading, navigation and interview practice the primary experience, with interactive simulations available when they add learning value.
 
@@ -562,6 +570,8 @@ No backend, API, storage-key, URL, heading-ID or question-identity change was ma
 - **Simulators.** Presentational repairs only: containment (`.viz-card` local scroll, shrinkable
   controls, `minmax(min(100%, 320px), 1fr)` grids), associated labels for previously unnamed inputs
   and selects, token colours instead of literals, and readable process identifiers. Engines unchanged.
+- **Learning network.** `LearningNetworkNav.jsx` (PR #49, merged during this work) is kept as
+  delivered and restyled with the system tokens; density targets are met with it in place.
 - **Verification tooling.** `scripts/lib/ui-fixtures.mjs` (shared static server, fixture API, optional
   `CS_DIST_DIR`/API proxy), `scripts/capture-ui-previews.mjs`, the extended
   `scripts/test-responsive-layout.mjs`, and `scripts/test-real-backend-journey.mjs`, which the new

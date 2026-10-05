@@ -1,5 +1,13 @@
 # AI Agent Context — CS Fundamentals with UI
 
+## Learning network
+
+`frontend/src/components/LearningNetworkNav.jsx` connects this app to
+https://learning-hub-with-ui.vercel.app/ and the three sibling apps.
+Keep links native and same-tab, retain the current-subject marker, and use
+`App.css` theme tokens. Each app keeps independent state; do not imply shared
+progress. Update the component contract test whenever a destination changes.
+
 ## Project Overview
 Educational platform for Computer Science fundamentals, structured for **beginner → expert** learning paths with interactive visualizations. Purpose: interview preparation and deep understanding through visual flows across Operating Systems, Computer Networks, Database Management Systems, and Java / Spring Boot.
 
@@ -628,6 +636,9 @@ evidence are in `docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md`, and the component
   "Browse all lessons" disclosure that opens itself for filter URLs. `LessonRow` is the shared lesson
   row. The practice deck reads question → draft → Reveal (primary) → answer → self-assessment →
   Record attempt → Previous/Next. Progress leads with Continue.
+- **Learning network.** PR #49's `LearningNetworkNav` sits above the navigation; it is styled in the
+  component system (compact on desktop, 44px targets below 900px, one scrollable row below 480px) and is
+  included in the reader-density measurements.
 - **Verification.** `scripts/test-responsive-layout.mjs` now also asserts reader density (Java lesson
   article ≤330px at 1440×960 and ≤450px at 375×960), a rail search/clear/collapse/Back journey, and
   for every registered simulator 320px containment plus axe in both themes.

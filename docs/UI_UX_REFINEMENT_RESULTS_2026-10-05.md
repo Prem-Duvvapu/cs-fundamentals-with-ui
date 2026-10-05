@@ -31,9 +31,13 @@ learner preference or comprehension; real learner feedback remains pending.
 
 | Route | Desktop article top | Mobile article top | First paragraph (desktop / mobile) |
 |---|---|---|---|
-| Java Execution Pipeline | 426 → **303px** (target ≤330) | 570 → **415px** (target ≤450) | 442 → 328 / 586 → 440 |
-| Spring MVC (long title, prerequisites) | 490 → 311px | 659 → 451px | 506 → 336 / 675 → 476 |
-| CPU Scheduling | 490 → 311px | 633 → 423px | 506 → 336 / 649 → 448 |
+| Java Execution Pipeline | 426 → **324px** (target ≤330) | 570 → **448px** (target ≤450) | 442 → 349 / 586 → 473 |
+| Spring MVC (long title, prerequisites) | 490 → 332px | 659 → 484px | 506 → 357 / 675 → 509 |
+| CPU Scheduling | 490 → 332px | 633 → 456px | 506 → 357 / 649 → 481 |
+
+These final numbers include the site-wide "Learning network" bar that PR #49 added on `main` while this
+work was in progress (about 33px on desktop and 45px on mobile). Before that merge the same lesson
+started at 303px / 415px; three spacing steps were tightened after the merge to stay inside the targets.
 
 Standard prose is now 18px with a 68ch measure (was 17px / ~75ch). No lesson paragraph or heading was
 removed or hidden; the gains come from the compact navigation, a header in document flow, and one
@@ -72,7 +76,7 @@ reproducible with the preview script and is not committed.
 
 ## Verification run for the final head
 
-- Frontend unit/integration: **815/815 tests in 60 files** (Vitest, Node 24).
+- Frontend unit/integration: **816/816 tests in 61 files** (Vitest, Node 24), after merging `main` (PR #49).
 - Backend: **63/63 JUnit tests**. No backend code changed.
 - Production build with prebuild diagram check; `validate-content.mjs` 68/68 lessons;
   simulation-question migration gate; 17/17 script tests.
@@ -119,6 +123,10 @@ Introduced and fixed before commit (caught by tests/visual review, never shipped
 No regression reached `main`, so no RCA entry was required.
 
 ## Deviations from the plan
+
+- Integrated PR #49's Learning network bar (sibling apps and the learning hub) into the component
+  system: native same-tab links and the current-subject marker are kept; it is a compact strip on
+  desktop, keeps 44px targets below 900px and stays on one scrollable row below 480px.
 
 - The desktop rail no longer has a Hide/Show topics toggle; Focus reading is the explicit way to hide
   it (the plan does not require a desktop toggle, and it duplicated focus mode).

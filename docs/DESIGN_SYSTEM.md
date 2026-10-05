@@ -154,6 +154,10 @@ Labels that name a lesson may wrap. Simulators keep their existing `.btn-*` clas
 24px stroke SVGs, `aria-hidden`, with the accessible name on the control. Emoji inside curriculum
 Markdown and simulator copy are content and were not swept.
 
+**Learning network.** PR #49's strip above the navigation links the learning hub and sibling apps with
+native same-tab links and a current-subject marker; it uses the page background, 2rem targets on
+desktop, 44px below 900px and one horizontally scrollable row below 480px.
+
 **Navigation.** Brand, Search (Ctrl/⌘ K), a Learn disclosure listing all learning paths and the six
 categories in canonical order, Interview Mode, Progress, a Help disclosure (Take a tour of the app,
 shortcut note) and an icon theme switch. Disclosures are nonmodal (`hooks/useDisclosure.js`): Escape

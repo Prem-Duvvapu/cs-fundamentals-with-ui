@@ -1909,8 +1909,8 @@ kbd { background: var(--bg-raised); border: var(--stroke-hair) solid var(--borde
 }
 
 /* Lesson header: breadcrumb, title, progress actions, outcome, view tabs — in document flow. */
-.main-content { padding: var(--space-5) var(--space-5) var(--space-7); }
-.topic-page-container { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.main-content { padding: var(--space-4) var(--space-5) var(--space-7); }
+.topic-page-container { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
 .topic-page-header { align-items: center; column-gap: var(--space-5); display: grid; grid-template-areas: "crumb crumb" "title actions" "summary summary" "tabs tabs"; grid-template-columns: minmax(0, 1fr) auto; row-gap: var(--space-2); }
 .topic-breadcrumb { color: var(--text-muted); font-size: var(--ui-sm); min-width: 0; }
 .topic-page-header .topic-breadcrumb { grid-area: crumb; }
@@ -2022,7 +2022,7 @@ kbd { background: var(--bg-raised); border: var(--stroke-hair) solid var(--borde
 .lesson-complete-action { align-self: center; }
 
 @media (max-width: 1023px) {
-  .study-layout { gap: var(--space-3); grid-template-columns: minmax(0, 1fr); }
+  .study-layout { gap: var(--space-2); grid-template-columns: minmax(0, 1fr); }
   .study-navigation { max-height: none; overflow: visible; padding: 0; position: static; }
   .study-navigation .reading-progress-label, .study-navigation .reading-progress-track { display: none; }
   .toc-toggle { align-items: center; background: var(--bg-surface); border: var(--stroke-hair) solid var(--border-default); border-radius: var(--radius-control); color: var(--text-primary); cursor: pointer; display: flex; font: 600 var(--ui-base)/1 var(--font-body); gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3); width: 100%; }
@@ -2032,7 +2032,7 @@ kbd { background: var(--bg-raised); border: var(--stroke-hair) solid var(--borde
   .category-topic-link, .category-topic-sections a { align-items: center; display: flex; min-height: 44px; }
 }
 @media (max-width: 767px) {
-  .main-content { padding: var(--space-3) var(--space-4) var(--space-6); }
+  .main-content { padding: var(--space-2) var(--space-4) var(--space-6); }
   .topic-page-header { grid-template-areas: "crumb actions" "title title" "summary summary" "tabs tabs"; row-gap: var(--space-2); }
   .topic-breadcrumb { font-size: var(--ui-xs); }
   .progress-toggle { height: 44px; justify-content: center; padding: 0; width: 44px; }
@@ -2292,3 +2292,18 @@ kbd { background: var(--bg-raised); border: var(--stroke-hair) solid var(--borde
 .process-swatch { border-radius: 3px; display: inline-block; height: .75rem; margin-right: var(--space-2); vertical-align: -1px; width: .75rem; }
 .sim-value { color: var(--text-primary); }
 .viz-card > .table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+
+/* Learning network (PR #49): the learning hub and sibling apps as native same-tab links. Quiet on
+   desktop so it does not compete with this app's own navigation; 44px targets on touch layouts. */
+.learning-network { align-items: center; background: var(--bg-page); border-bottom: var(--stroke-hair) solid var(--border-subtle); color: var(--text-secondary); display: flex; flex-wrap: wrap; font: 500 var(--ui-sm)/1.3 var(--font-body); gap: 0 var(--space-4); justify-content: space-between; padding: 0 max(var(--space-4), calc((100% - var(--shell-max)) / 2 + var(--space-5))); }
+.learning-network a { align-items: center; border-radius: var(--radius-sm); color: inherit; display: inline-flex; justify-content: center; min-height: 2rem; padding: 0 var(--space-2); text-decoration: none; white-space: nowrap; }
+.learning-network a:hover { color: var(--text-primary); text-decoration: underline; text-underline-offset: 4px; }
+.learning-network-home { font-weight: 600; gap: var(--space-2); }
+.learning-network-subjects { display: flex; flex-wrap: wrap; gap: 2px; }
+.learning-network a[aria-current] { box-shadow: inset 0 -2px var(--action-bg); color: var(--text-primary); font-weight: 700; }
+@media (max-width: 899px) { .learning-network a { min-height: 44px; } }
+@media (max-width: 480px) {
+  .learning-network { flex-wrap: nowrap; gap: var(--space-1); overflow-x: auto; overscroll-behavior-x: contain; padding-inline: var(--space-2); }
+  .learning-network-subjects { flex-wrap: nowrap; }
+  .learning-network a { font-size: var(--ui-xs); padding-inline: var(--space-2); }
+}
