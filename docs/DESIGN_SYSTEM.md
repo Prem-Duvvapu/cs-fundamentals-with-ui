@@ -21,9 +21,13 @@ semantic tokens rather than literal colours:
 | State | `--state-success`, `--state-warning`, `--state-danger`, `--state-info`, `--state-idle` |
 | Learning tiers | `--tier-beginner`, `--tier-intermediate`, `--tier-expert` and matching tint/border tokens |
 | Syntax | `--syn-keyword`, `--syn-string`, `--syn-number`, `--syn-comment`, and related tokens |
+| Product actions | `--action-bg`, `--action-bg-hover`, `--action-fg`, `--action-text`, `--action-tint`, `--action-border` |
+| Controls | `--control-bg`, `--control-bg-hover`, `--control-border` |
 
 Set `data-category` on the closest page or section that knows its category. Descendants then consume
 the generic `--cat-*` tokens. A runtime success state must use `--state-success`, not a category token.
+Primary product actions use the `--action-*` tokens in every context; category colour identifies a
+category and never decides what a button means.
 Raw colour literals belong only in the theme token blocks.
 
 The `useTheme` hook stores an explicit choice under `cs-fundamentals-theme`. With no saved value,
@@ -34,7 +38,9 @@ the app follows `prefers-color-scheme`. It dispatches `cs-fundamentals:theme-cha
 - Headings: Inter Tight through `--font-heading`.
 - Reading text: IBM Plex Sans through `--font-body`.
 - Code: JetBrains Mono through `--font-mono`; ligatures stay disabled for teaching clarity.
-- Prose is 17px with a 68ch measure. Code, Mermaid diagrams, and table wrappers may break out to 96ch.
+- Prose follows the reader preference (16/18/20px, standard 18px) with a 68ch measure computed at that
+  size. Lesson headings scale with it. Code blocks keep the prose column; Mermaid diagrams and tables
+  may use the rest of the article column and scroll locally.
 - Static presentation belongs in a class. Inline styles are allowed only for values computed from
   runtime data, such as progress width, timeline position, or diagram geometry.
 
@@ -46,11 +52,12 @@ Success, warning, danger, and informational feedback includes text or a glyph as
 
 ## Responsive behavior
 
-The standard breakpoints are 480px, 768px, 1024px, and 1280px. At desktop widths the topic header
-condenses to a one-line sticky toolbar after scrolling, and the TOC rail accounts for both navbar
-and toolbar offsets. Below 1024px the TOC moves above the article and defaults collapsed. Below
-768px the topic header remains in document flow, navigation uses a compact Menu control for category links,
-topic actions become full-width touch targets, and panel grids reflow to one column. Intrinsically
+The standard breakpoints are 480px, 768px, 900px (global navigation only), 1024px, and 1280px. The
+lesson header stays in document flow at every width; only the global navigation bar is sticky, and the
+category rail scrolls independently beneath it. Below 1024px the rail becomes a closed-by-default
+"Show topics" disclosure above the article. Below 900px the navigation collapses to brand, Search and
+Menu. Below 768px bookmark/completion become 44px icon buttons beside the breadcrumb, view tabs share
+the width, and panel grids reflow to one column. Intrinsically
 wide teaching surfaces scroll horizontally with an affordance; functionality is never hidden
 without an equivalent view.
 
@@ -123,3 +130,68 @@ mobile outline area and 44px mobile targets. Focus reading remains an explicit e
 the rail. The same curriculum navigation is available alongside topic Practice.
 
 Opening a lesson also reveals its row within the scrollable rail without scrolling the article.
+
+## October 5 refinement — current component system
+
+This section describes delivered behaviour and supersedes conflicting older guidance above
+(see `UI_UX_REFINEMENT_PLAN_2026-10-05.md` and `docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md`).
+
+**Themes.** Dark keeps the charcoal hierarchy (`#1a1a1a` page, `#262626` surface, `#333333` raised,
+`#202020` code). Light is now neutral rather than cool blue-grey: `#f7f7f8` page, white reading and
+card surfaces, `#f0f1f3` raised controls, near-black `#18181b` text and `#5c5c66` muted text (at least
+5.76:1 on every neutral surface). Primary actions are warm amber: `#f0a34a` with charcoal text in dark
+(8.3:1), `#b45309` with white text in light (5.0:1). `AppThemeStyles.test.js` checks these pairs.
+
+**Spacing.** One monotonic scale: `--space-1`…`--space-10` = 4, 8, 12, 16, 24, 32, 40, 48, 64, 96px,
+each defined once (a test enforces this). Raw colour literals live only in the theme blocks; even the
+white Gantt label text is a token (`--text-on-chart`).
+
+**Buttons.** `.ui-button` with `--primary` (one per task area), `--secondary`, `--quiet` and
+`--danger`; `--compact` for dense rows. Disabled buttons keep readable muted text on an inset fill.
+Labels that name a lesson may wrap. Simulators keep their existing `.btn-*` classes.
+
+**Icons.** `components/shared/Icon.jsx` is the only icon source for application controls: inline
+24px stroke SVGs, `aria-hidden`, with the accessible name on the control. Emoji inside curriculum
+Markdown and simulator copy are content and were not swept.
+
+**Learning network.** PR #49's strip above the navigation links the learning hub and sibling apps with
+native same-tab links and a current-subject marker; it uses the page background, 2rem targets on
+desktop, 44px below 900px and one horizontally scrollable row below 480px.
+
+**Navigation.** Brand, Search (Ctrl/⌘ K), a Learn disclosure listing all learning paths and the six
+categories in canonical order, Interview Mode, Progress, a Help disclosure (Take a tour of the app,
+shortcut note) and an icon theme switch. Disclosures are nonmodal (`hooks/useDisclosure.js`): Escape
+closes the innermost one and returns focus to its trigger; a pointer press or focus outside closes it.
+The current page shows a background plus an amber underline, never colour alone.
+
+**Lesson header and reader.** Breadcrumb, title (24–32px), bookmark/completion, outcome with an optional
+"Before you start (n)" disclosure, then Study / Simulation / Practice. One toolbar row holds the
+level jumps and a Reading options disclosure (text size as a three-option radio group, Focus reading
+with a visible Exit control, study help). The article is a single reading surface; the rail recedes
+onto the page background. The lesson end offers Practise this lesson, previous/next links and an
+explicit "Mark lesson complete" that stays in sync with the header control.
+
+**Category rail.** Every lesson in the category in canonical order, each with a separate link and
+chevron. Level headings are uppercase group labels; subsections indent beneath them. The current
+lesson has bold text, a background and an amber edge (`aria-current="page"`); the current section has
+an amber edge and tint (`aria-current="location"`). Pinned tools: a category-local search over lesson
+titles and loaded section headings (matches show their level and keep a "Show all sections" escape)
+and Collapse all. Search expansion is a temporary overlay: clearing restores the learner's own
+expansion; the query survives lesson remounts and resets on category change. Expansion choices live in
+`TopicExpansionProvider` outside the pathname-keyed boundary, and an explicit collapse is never undone.
+
+**Browsing.** Home leads with Resume (with honest saved time) or Start here, then six learning-path
+cards and a "Browse all lessons" disclosure holding the filtered roadmap, which opens automatically for
+filter URLs. Category pages and bookmarks share `LessonRow`: a single title link, outcome, level /
+Simulation / Completed tags, and a separate bookmark button. Search results put the lesson title link,
+category, matched section and excerpt together.
+
+**Practice and Progress.** Practice reads question → optional draft → Reveal answer (primary) → model
+answer and checklist → self-assessment → Record this attempt (primary once rated and revealed) → quiet
+Previous / secondary Next. Progress leads with Continue (resume, next lesson, reviews due), then
+bookmarks, completion by category and level, saved answers, and backups (full learning backup plus
+the older lesson-progress format).
+
+**Simulators.** Shared containment: `.viz-card` scrolls locally, controls and selects may shrink, and
+fixed `minmax(320px, 1fr)` grids became `minmax(min(100%, 320px), 1fr)`. All 36 registered simulator
+views are swept at 320px and scanned with axe in both themes by `scripts/test-responsive-layout.mjs`.

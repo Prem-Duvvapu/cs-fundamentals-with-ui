@@ -26,3 +26,6 @@ examples/**/target/
 # Executed Python teaching labs
 __pycache__/
 *.pyc
+
+# Local browser previews (scripts/capture-ui-previews.mjs)
+frontend/test-results/

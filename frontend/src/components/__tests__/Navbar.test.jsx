@@ -1,6 +1,12 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Navbar from '../Navbar'
+import { CATEGORY_METADATA, CATEGORY_ORDER } from '../../utils/topicCategories'
+
+function openLearn() {
+  fireEvent.click(screen.getByRole('button', { name: /^Learn/ }))
+  return within(screen.getByRole('list', { name: 'Curriculum categories' }))
+}
 
 function renderNavbar(route = '/', props = {}) {
   return render(
@@ -22,31 +28,70 @@ describe('Navbar', () => {
     }))
   })
 
-  it('renders the home logo and all five curriculum category links', () => {
+  it('renders the home logo and every canonical category inside the Learn disclosure', () => {
     renderNavbar()
 
     expect(screen.getByRole('link', { name: 'CS Fundamentals home' })).toHaveAttribute('href', '/')
-    expect(screen.getByRole('link', { name: /OS/ })).toHaveAttribute('href', '/category/os')
-    expect(screen.getByRole('link', { name: /NET/ })).toHaveAttribute('href', '/category/networking')
-    expect(screen.getByRole('link', { name: /DB/ })).toHaveAttribute('href', '/category/dbms')
-    expect(screen.getByRole('link', { name: /JAVA/ })).toHaveAttribute('href', '/category/java-spring')
-    expect(screen.getByRole('link', { name: /AI\/ML/ })).toHaveAttribute('href', '/category/aiml')
+    const learn = screen.getByRole('button', { name: /^Learn/ })
+    expect(learn).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('list', { name: 'Curriculum categories' })).not.toBeInTheDocument()
+
+    const categories = openLearn()
+    expect(learn).toHaveAttribute('aria-expanded', 'true')
+    expect(categories.getAllByRole('link').map(link => link.getAttribute('href'))).toEqual(CATEGORY_ORDER.map(id => `/category/${id}`))
+    for (const id of CATEGORY_ORDER) expect(categories.getByRole('link', { name: CATEGORY_METADATA[id].label })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'All learning paths' })).toHaveAttribute('href', '/')
   })
 
   it('marks the link for the current topic category', () => {
     renderNavbar('/topic/tcp-congestion')
 
-    expect(screen.getByRole('link', { name: /NET/ })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: /OS/ })).not.toHaveAttribute('aria-current')
+    const categories = openLearn()
+    expect(categories.getByRole('link', { name: 'Computer Networks' })).toHaveAttribute('aria-current', 'page')
+    expect(categories.getByRole('link', { name: 'Operating Systems' })).not.toHaveAttribute('aria-current')
   })
 
-  it('marks the DEVOPS link active for a devops topic', () => {
+  it('marks DevOps active for a devops topic', () => {
     // Deliberately not docker-fundamentals — that topic was already in the old, buggy local
     // TOPIC_CATEGORIES set, so it wouldn't catch a regression of the fix that removed it.
     renderNavbar('/topic/kubernetes-fundamentals')
 
-    expect(screen.getByRole('link', { name: /DEVOPS/ })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: /OS/ })).not.toHaveAttribute('aria-current')
+    const categories = openLearn()
+    expect(categories.getByRole('link', { name: 'DevOps & Infrastructure' })).toHaveAttribute('aria-current', 'page')
+    expect(categories.getByRole('link', { name: 'Operating Systems' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('closes a disclosure with Escape and returns focus to its trigger', () => {
+    renderNavbar()
+    const learn = screen.getByRole('button', { name: /^Learn/ })
+    openLearn()
+    const firstCategory = screen.getByRole('link', { name: 'Java & Spring' })
+    firstCategory.focus()
+    fireEvent.keyDown(firstCategory, { key: 'Escape' })
+
+    expect(learn).toHaveAttribute('aria-expanded', 'false')
+    expect(learn).toHaveFocus()
+  })
+
+  it('closes only the innermost disclosure when Escape is pressed inside the mobile menu', () => {
+    renderNavbar()
+    const menu = screen.getByRole('button', { name: 'Menu' })
+    fireEvent.click(menu)
+    expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute('aria-expanded', 'true')
+    openLearn()
+    fireEvent.keyDown(screen.getByRole('link', { name: 'Java & Spring' }), { key: 'Escape' })
+
+    expect(screen.getByRole('button', { name: /^Learn/ })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.keyDown(screen.getByRole('button', { name: /^Learn/ }), { key: 'Escape' })
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('closes an open disclosure when the pointer is pressed elsewhere', () => {
+    renderNavbar()
+    openLearn()
+    fireEvent.pointerDown(document.body)
+    expect(screen.getByRole('button', { name: /^Learn/ })).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('links to search and a default interview category, marking whichever is active', () => {
@@ -115,8 +160,10 @@ describe('Navbar', () => {
     const onStartTour = vi.fn()
     renderNavbar('/', { onStartTour })
 
+    fireEvent.click(screen.getByRole('button', { name: /^Help/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Take a tour of the app' }))
 
     expect(onStartTour).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: /^Help/ })).toHaveAttribute('aria-expanded', 'false')
   })
 })

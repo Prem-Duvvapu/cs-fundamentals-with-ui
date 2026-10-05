@@ -87,8 +87,8 @@ export default function ConsistentHashingVisualizer() {
             + Add Server Node
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Virtual Nodes per Server:</label>
+          <label className="sim-inline-field">
+            <span>Virtual Nodes per Server:</span>
             <select
               value={vNodeCount}
               onChange={e => handleVNodeChange(Number(e.target.value))}
@@ -99,7 +99,7 @@ export default function ConsistentHashingVisualizer() {
               <option value={3}>3 VNodes (Balanced)</option>
               <option value={5}>5 VNodes (High Uniformity)</option>
             </select>
-          </div>
+          </label>
         </div>
 
         <SimulationControlBar
@@ -132,7 +132,7 @@ export default function ConsistentHashingVisualizer() {
       </div>
 
       {/* Grid: 360 Degree SVG Hash Ring + Key Mapping Inspector */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* SVG 360-Degree Hash Ring */}
         <div className="viz-card" style={{ background: 'var(--bg-code)', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
           <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-info)' }}>⭕ 360° Circular Hash Ring</h4>

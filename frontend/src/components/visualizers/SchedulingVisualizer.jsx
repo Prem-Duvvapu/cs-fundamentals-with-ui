@@ -112,8 +112,8 @@ export default function SchedulingVisualizer() {
       <div className="viz-controls-card">
         <div className="control-row">
           <div className="control-group">
-            <label>Algorithm:</label>
-            <select value={algorithm} onChange={e => setAlgorithm(e.target.value)} className="select-input">
+            <label htmlFor="scheduling-algorithm">Algorithm:</label>
+            <select id="scheduling-algorithm" value={algorithm} onChange={e => setAlgorithm(e.target.value)} className="select-input">
               <option value="FCFS">First-Come First-Served (FCFS)</option>
               <option value="SJF">Shortest Job First (Non-Preemptive)</option>
               <option value="SRTF">Shortest Remaining Time First (Preemptive)</option>
@@ -124,8 +124,8 @@ export default function SchedulingVisualizer() {
 
           {algorithm === 'RR' && (
             <div className="control-group">
-              <label>Time Quantum:</label>
-              <input
+              <label htmlFor="scheduling-time-quantum">Time Quantum:</label>
+              <input id="scheduling-time-quantum"
                 type="number"
                 min="1"
                 max="10"
@@ -137,8 +137,8 @@ export default function SchedulingVisualizer() {
           )}
 
           <div className="control-group">
-            <label>Speed:</label>
-            <select value={speed} onChange={e => setSpeed(Number(e.target.value))} className="select-input">
+            <label htmlFor="scheduling-speed">Speed:</label>
+            <select id="scheduling-speed" value={speed} onChange={e => setSpeed(Number(e.target.value))} className="select-input">
               <option value={1500}>0.5x (Slow)</option>
               <option value={1000}>1.0x (Normal)</option>
               <option value={500}>2.0x (Fast)</option>
@@ -179,6 +179,7 @@ export default function SchedulingVisualizer() {
             value={currentTime}
             onChange={e => { setCurrentTime(Number(e.target.value)); setIsPlaying(false); }}
             className="slider"
+            aria-label="Simulation time"
           />
         </div>
       </div>
@@ -231,7 +232,7 @@ export default function SchedulingVisualizer() {
       {/* Gantt Chart */}
       <div className="viz-card">
         <h3>📊 Real-Time Gantt Chart</h3>
-        <div className="gantt-wrapper">
+        <div className="gantt-wrapper" tabIndex={0} role="region" aria-label="Gantt chart timeline">
           <div className="gantt-chart">
             {timeline.slice(0, currentTime).map((block, idx) => (
               <div
@@ -276,6 +277,7 @@ export default function SchedulingVisualizer() {
       <div className="metrics-grid">
         <div className="viz-card">
           <h3>📈 Execution Metrics Table</h3>
+          <div className="table-scroll" tabIndex={0} role="region" aria-label="Process metrics table">
           <table className="viz-table">
             <thead>
               <tr>
@@ -295,7 +297,7 @@ export default function SchedulingVisualizer() {
                 const isFinished = currentTime >= (m.completionTime || 999)
                 return (
                   <tr key={p.id} className={activeProcessId === p.id ? 'row-active' : ''}>
-                    <td style={{ fontWeight: 'bold', color: p.color }}>{p.id}</td>
+                    <td className="process-id-cell"><span className="process-swatch" style={{ background: p.color }} aria-hidden="true" />{p.id}</td>
                     <td>{p.arrivalTime}s</td>
                     <td>{p.burstTime}s</td>
                     <td>{p.priority}</td>
@@ -308,6 +310,7 @@ export default function SchedulingVisualizer() {
               })}
             </tbody>
           </table>
+          </div>
 
           {/* Averages Banner */}
           <div className="averages-banner">
@@ -378,7 +381,7 @@ export default function SchedulingVisualizer() {
             <h4>Active Process List</h4>
             {processes.map(p => (
               <div key={p.id} className="process-item" style={{ borderLeftColor: p.color }}>
-                <span className="p-id" style={{ color: p.color }}>{p.id}</span>
+                <span className="p-id">{p.id}</span>
                 <span className="p-meta">Arrival: {p.arrivalTime}s | Burst: {p.burstTime}s | Priority: {p.priority}</span>
                 <button
                   onClick={() => handleRemoveProcess(p.id)}

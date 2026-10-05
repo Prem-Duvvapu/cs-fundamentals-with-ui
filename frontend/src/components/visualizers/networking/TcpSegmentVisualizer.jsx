@@ -93,7 +93,7 @@ export default function TcpSegmentVisualizer() {
             <h4 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.05rem' }}>
               🔍 Field Analysis: <span style={{ color: 'var(--state-info)' }}>{selectedField.name}</span>
             </h4>
-            <span className="header-pill" style={{ background: 'var(--cat-border)', color: 'var(--cat-hover)' }}>
+            <span className="header-pill" style={{ background: 'var(--cat-tint)', border: '1px solid var(--cat-border)', color: 'var(--cat-base)' }}>
               Offset: {selectedField.bytes} ({selectedField.bits} bits)
             </span>
           </div>

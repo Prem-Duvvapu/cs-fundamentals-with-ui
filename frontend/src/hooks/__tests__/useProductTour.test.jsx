@@ -6,9 +6,8 @@ import useProductTour from '../useProductTour'
 function HomeStub() {
   return (
     <div>
-      <div className="roadmap-selectors" />
-      <div className="level-selectors" />
-      <div className="topic-row" />
+      <ul className="path-grid" />
+      <button className="browse-lessons-toggle" />
     </div>
   )
 }
@@ -18,6 +17,7 @@ function TopicStub() {
     <div>
       <h1 className="topic-page-title">CPU Scheduling</h1>
       <div className="main-tab-switcher" />
+      <div className="category-rail-tools" />
     </div>
   )
 }
@@ -70,9 +70,9 @@ describe('useProductTour', () => {
   it('locates the current step target element on the home route', async () => {
     const { result } = renderTour()
 
-    await act(async () => { result.current.next() }) // -> categories
+    await act(async () => { result.current.next() }) // -> learning paths
     await waitFor(() => expect(result.current.targetEl).not.toBeNull())
-    expect(result.current.targetEl.className).toBe('roadmap-selectors')
+    expect(result.current.targetEl.className).toBe('path-grid')
   })
 
   it('steps back and forward without losing track of position', async () => {
@@ -118,13 +118,16 @@ describe('useProductTour', () => {
   it('navigates to the topic-page steps and locates their targets', async () => {
     const { result } = renderTour()
 
-    for (let i = 0; i < 6; i += 1) {
+    for (let i = 0; i < 5; i += 1) {
       // eslint-disable-next-line no-await-in-loop
       await act(async () => { result.current.next() })
     }
 
-    expect(result.current.stepNumber).toBe(7)
+    expect(result.current.stepNumber).toBe(6)
     await waitFor(() => expect(result.current.targetEl).not.toBeNull())
     expect(result.current.targetEl.className).toBe('topic-page-title')
+    await act(async () => { result.current.next() })
+    await act(async () => { result.current.next() })
+    await waitFor(() => expect(result.current.targetEl?.className).toBe('category-rail-tools'))
   })
 })

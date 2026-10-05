@@ -102,7 +102,7 @@ export default function VirtualThreadsVisualizer() {
       </div>
 
       {/* Grid Display: Carrier OS Threads vs Virtual Threads Queue */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* ForkJoinPool Carrier OS Threads */}
         <div className="viz-card" style={{ borderLeft: '4px solid var(--cat-base)' }}>
           <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--cat-hover)', display: 'flex', justifyContent: 'space-between' }}>
@@ -136,7 +136,7 @@ export default function VirtualThreadsVisualizer() {
 
                   <div>
                     {mounted ? (
-                      <span className="header-pill" style={{ background: 'var(--cat-border)', fontSize: '0.85rem' }}>
+                      <span className="header-pill" style={{ background: 'var(--cat-tint)', border: '1px solid var(--cat-border)', fontSize: '0.85rem' }}>
                         🔗 Mounted: {mounted.id}
                       </span>
                     ) : (

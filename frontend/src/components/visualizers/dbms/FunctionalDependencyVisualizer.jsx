@@ -64,8 +64,9 @@ export default function FunctionalDependencyVisualizer() {
 
           {mode === 'closure' && (
             <div className="u-row">
-              <span className="mono-label">Calculate Closure For:</span>
+              <label htmlFor="fd-closure-input" className="mono-label">Calculate Closure For:</label>
               <input
+                id="fd-closure-input"
                 type="text"
                 value={inputAttr}
                 onChange={(e) => handleTargetChange(e.target.value)}

@@ -75,3 +75,44 @@ describe.each(['dark', 'light'])('%s theme reading contrast', theme => {
     expect(contrast(tokens['--selection-text'], tokens['--selection-bg'])).toBeGreaterThanOrEqual(4.5)
   })
 })
+
+describe.each(['dark', 'light'])('%s theme product actions', theme => {
+  const tokens = themeTokens(theme)
+  const surfaces = ['page', 'surface', 'raised', 'overlay']
+  it('keeps primary action text readable on its fill and the fill distinct from the page', () => {
+    expect(contrast(tokens['--action-fg'], tokens['--action-bg'])).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(tokens['--action-fg'], tokens['--action-bg-hover'])).toBeGreaterThanOrEqual(4.5)
+    for (const surface of ['page', 'surface']) {
+      expect(contrast(tokens['--action-bg'], tokens[`--bg-${surface}`]), surface).toBeGreaterThanOrEqual(3)
+    }
+  })
+  it('keeps action-coloured text and selected states readable', () => {
+    for (const surface of surfaces) {
+      expect(contrast(tokens['--action-text'], tokens[`--bg-${surface}`]), surface).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(contrast(tokens['--text-primary'], tokens['--action-tint'])).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(tokens['--border-focus'], tokens['--action-tint'])).toBeGreaterThanOrEqual(3)
+  })
+  it('keeps text readable on secondary control fills', () => {
+    for (const fill of ['--control-bg', '--control-bg-hover']) {
+      expect(contrast(tokens['--text-primary'], tokens[fill]), fill).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(tokens['--text-secondary'], tokens[fill]), fill).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+})
+
+describe('October 5 component system', () => {
+  it('keeps the spacing scale monotonic with a single definition per step', () => {
+    const steps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(step => {
+      const definitions = [...appCss.matchAll(new RegExp(`--space-${step}:\\s*([\\d.]+)(rem|px)`, 'g'))]
+      expect(definitions, `--space-${step}`).toHaveLength(1)
+      const [, value, unit] = definitions[0]
+      return unit === 'rem' ? Number(value) * 16 : Number(value)
+    })
+    steps.slice(1).forEach((value, index) => expect(value).toBeGreaterThan(steps[index]))
+  })
+  it('keeps raw colour literals inside the theme token blocks', () => {
+    const outsideThemes = appCss.slice(appCss.indexOf('[data-category="os"]'))
+    expect(outsideThemes).not.toMatch(/(?:background|color|border(?:-color)?)\s*:[^;{}]*#[0-9a-f]{3,6}\b(?![^;{}]*var\()/i)
+  })
+})

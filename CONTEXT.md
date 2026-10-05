@@ -239,13 +239,13 @@ after a navigation) and degrades to a centered, spotlight-less tooltip rather th
 target never appears. `utils/tourPosition.js` is the pure, unit-tested placement function
 (clamps the tooltip within the viewport, flips above/below the target as space requires).
 The tour is **opt-in and never opens on its own**, so it keeps no `localStorage` flag: the only
-way in is the "Take a tour" button in `Navbar.jsx` (wired via an `onStartTour` prop from
+way in is **Help → Take a tour of the app** in `Navbar.jsx` (wired via an `onStartTour` prop from
 `App.jsx`). It previously auto-showed on a first visit, which put a 9-step modal over a dimmed
 page before a stranger had seen any curriculum, and was also the root of a deep-link regression —
 the first step's `path: '/'` navigated a first-time visitor off whatever `/topic/...` link they
 had opened, with the back button unable to recover it. Removing the auto-show makes that class of
 bug structurally impossible; `AppRouting.test.jsx` locks it down, asserting deep links survive,
-that nothing opens unprompted on any route including `/`, and that the navbar button still works.
+that nothing opens unprompted on any route including `/`, and that the Help menu item still works.
 
 `/search` and `/interview/:category` (P5) reuse the same roadmap visual language —
 `SearchPage.jsx` debounces a query against `GET /api/v1/search`, cancels superseded requests,
@@ -539,3 +539,40 @@ and the responsive browser journey: 14 routes at five widths in both themes, 20 
 with no violations, plus keyboard navigation and expansion preservation in every category.
 The browser harness can use a real outline server through `CS_OUTLINE_API_ORIGIN`; other
 API fixtures remain deliberate presentation fixtures.
+
+## UI/UX refinement — October 5
+
+Implements `UI_UX_REFINEMENT_PLAN_2026-10-05.md`; evidence is in
+`docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md` and component rules in `docs/DESIGN_SYSTEM.md`.
+No backend, API, storage-key, URL, heading-ID or question-identity change was made.
+
+- **Shared pieces.** `components/shared/Icon.jsx` (inline SVG icon set), `hooks/useDisclosure.js`
+  (nonmodal disclosure: Escape closes the innermost and restores focus, outside pointer/focus closes),
+  `components/shared/LessonRow.jsx` (title link, outcome, level/Simulation/Completed tags, separate
+  bookmark button) and `hooks/useScrollRegionAccess.js` (a simulator card that actually scrolls becomes
+  a focusable, named region). `ResumeReading.jsx` was removed; Home, Category and Progress render
+  their own resume actions from `latestReading()`/`readingUrl()`.
+- **Navigation.** `Navbar.jsx` renders Search, a Learn disclosure built from
+  `CATEGORY_ORDER`/`CATEGORY_METADATA`, Interview Mode, Progress, a Help disclosure that starts the
+  opt-in tour, and an icon theme switch; below 900px it collapses to Search and Menu. Tour steps in
+  `utils/tourSteps.js` target the learning-path cards, Browse all lessons, Search, Interview Mode, the
+  lesson title, view tabs and the category rail tools.
+- **Reader.** `TopicPage.jsx` owns a non-sticky header and the lesson-end navigation (previous,
+  "Mark lesson complete", next). `TopicViewer.jsx` renders level jumps plus a Reading options
+  disclosure (text size radios, focus reading, study help) and an `onPractice` action.
+  `useTopicExpansion.jsx` also provides `useRailSearch(category)`; `CategoryTopicNavigation.jsx` adds
+  category-local search with a temporary expansion overlay and Collapse all. TopicPage only
+  auto-expands a lesson whose expansion state is still undefined.
+- **Pages.** Home: resume/start hero, learning-path cards, Browse all lessons (opens for filter URLs;
+  canonical category labels). Category: breadcrumb, progress, resume/start, LessonRow list. Search:
+  title-linked results with category, section and excerpt. Progress: Continue (resume, next lesson,
+  reviews due), bookmarks, completion, saved answers, Backups and transfer.
+- **Simulators.** Presentational repairs only: containment (`.viz-card` local scroll, shrinkable
+  controls, `minmax(min(100%, 320px), 1fr)` grids), associated labels for previously unnamed inputs
+  and selects, token colours instead of literals, and readable process identifiers. Engines unchanged.
+- **Learning network.** `LearningNetworkNav.jsx` (PR #49, merged during this work) is kept as
+  delivered and restyled with the system tokens; density targets are met with it in place.
+- **Verification tooling.** `scripts/lib/ui-fixtures.mjs` (shared static server, fixture API, optional
+  `CS_DIST_DIR`/API proxy), `scripts/capture-ui-previews.mjs`, the extended
+  `scripts/test-responsive-layout.mjs`, and `scripts/test-real-backend-journey.mjs`, which the new
+  `real-backend-journey` CI job runs against the packaged Spring Boot jar.

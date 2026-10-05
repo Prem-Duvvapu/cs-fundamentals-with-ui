@@ -57,10 +57,11 @@ export default function TrafficShapingVisualizer() {
       {/* PARAMETER CONTROLS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', background: 'var(--bg-inset)', padding: '1rem', borderRadius: '10px', marginBottom: '1.25rem' }}>
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
-            Bucket Capacity: <strong style={{ color: 'var(--state-info)' }}>{capacity}</strong>
+          <label htmlFor="traffic-capacity" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Bucket Capacity: <strong className="sim-value">{capacity}</strong>
           </label>
           <input
+            id="traffic-capacity"
             type="range"
             min="5"
             max="20"
@@ -71,10 +72,11 @@ export default function TrafficShapingVisualizer() {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
-            Token Generation Rate: <strong style={{ color: 'var(--state-success)' }}>{tokenRate} tokens/tick</strong>
+          <label htmlFor="traffic-token-rate" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Token Generation Rate: <strong className="sim-value">{tokenRate} tokens/tick</strong>
           </label>
           <input
+            id="traffic-token-rate"
             type="range"
             min="1"
             max="10"
@@ -85,10 +87,11 @@ export default function TrafficShapingVisualizer() {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
-            Leaky Outflow Rate: <strong style={{ color: 'var(--state-warning)' }}>{leakRate} pkts/tick</strong>
+          <label htmlFor="traffic-leak-rate" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Leaky Outflow Rate: <strong className="sim-value">{leakRate} pkts/tick</strong>
           </label>
           <input
+            id="traffic-leak-rate"
             type="range"
             min="1"
             max="10"
@@ -99,10 +102,11 @@ export default function TrafficShapingVisualizer() {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
-            Burst Packet Batch: <strong style={{ color: 'var(--cat-hover)' }}>{burstSize} pkts</strong>
+          <label htmlFor="traffic-burst-size" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.3rem' }}>
+            Burst Packet Batch: <strong className="sim-value">{burstSize} pkts</strong>
           </label>
           <input
+            id="traffic-burst-size"
             type="range"
             min="1"
             max="15"

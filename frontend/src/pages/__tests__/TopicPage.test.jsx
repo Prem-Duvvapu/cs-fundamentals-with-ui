@@ -1,7 +1,7 @@
 import catalog from '../../test/catalog.json'
 vi.mock('../../hooks/useCatalog', () => ({ default: () => ({ topics: catalog, status: 'ready', retry: vi.fn() }) }))
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import React from 'react'
 import { MemoryRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import TopicPage from '../TopicPage'
@@ -41,7 +41,7 @@ describe('TopicPage Component', () => {
     expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'topic-tab-theory')
     expect(document.querySelector('.topic-page-container')).toHaveAttribute('data-category', 'dbms')
     const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i })
-    expect(breadcrumb).toHaveTextContent('All topics')
+    expect(breadcrumb).toHaveTextContent('Learning paths')
     expect(breadcrumb).toHaveTextContent('Database Management Systems')
     expect(breadcrumb).not.toHaveTextContent('B/B+ Tree Indexing & Storage Structures')
     expect(screen.getAllByText('B/B+ Tree Indexing & Storage Structures', { exact: true })).toHaveLength(1)
@@ -49,9 +49,7 @@ describe('TopicPage Component', () => {
     expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
   })
 
-  it('uses the compact topic header after the page is scrolled', () => {
-    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 })
-
+  it('keeps the lesson header in document flow rather than adding a second sticky bar', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/topic/process-management']}>
         <Routes>
@@ -61,15 +59,11 @@ describe('TopicPage Component', () => {
     )
 
     const header = container.querySelector('.topic-page-header')
-    expect(header).not.toHaveClass('topic-page-header--compact')
-
-    Object.defineProperty(window, 'scrollY', { configurable: true, value: 121 })
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 600 })
     fireEvent.scroll(window)
-    expect(header).toHaveClass('topic-page-header--compact')
-
+    expect(header.tagName).toBe('HEADER')
+    expect(header.className).toBe('topic-page-header')
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 })
-    fireEvent.scroll(window)
-    expect(header).not.toHaveClass('topic-page-header--compact')
   })
 
   it('should switch between simulation and theory tabs', async () => {
@@ -218,16 +212,17 @@ describe('TopicPage Component', () => {
       </MemoryRouter>
     )
 
-    const bookmarkBtn = screen.getByRole('button', { name: /^bookmark$/i })
-    const completeBtn = screen.getByRole('button', { name: /mark complete/i })
+    const header = within(document.querySelector('.topic-page-header'))
+    const bookmarkBtn = header.getByRole('button', { name: /^bookmark$/i })
+    const completeBtn = header.getByRole('button', { name: /mark complete/i })
     expect(bookmarkBtn).toHaveAttribute('aria-pressed', 'false')
     expect(completeBtn).toHaveAttribute('aria-pressed', 'false')
 
     fireEvent.click(bookmarkBtn)
-    expect(screen.getByRole('button', { name: /bookmarked/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(header.getByRole('button', { name: /bookmarked/i })).toHaveAttribute('aria-pressed', 'true')
 
-    fireEvent.click(screen.getByRole('button', { name: /mark complete/i }))
-    expect(screen.getByRole('button', { name: /^completed$/i })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(header.getByRole('button', { name: /mark complete/i }))
+    expect(header.getByRole('button', { name: /^completed$/i })).toHaveAttribute('aria-pressed', 'true')
 
     const stored = JSON.parse(window.localStorage.getItem('cs-fundamentals-progress'))
     expect(stored['dbms-indexing']).toEqual({ bookmarked: true, completed: true })
@@ -268,4 +263,14 @@ it('defaults an unrecognised view to Study on a topic with a simulator', () => {
     <Routes><Route path="/topic/:topicId" element={<TopicPage />} /></Routes>
   </MemoryRouter>)
   expect(screen.getByRole('tab', { name: /study/i })).toHaveAttribute('aria-selected', 'true')
+})
+
+it('repeats an explicit completion action at the lesson end and keeps both controls in sync', () => {
+  window.localStorage.clear()
+  render(<MemoryRouter initialEntries={['/topic/dbms-indexing']}><Routes><Route path="/topic/:topicId" element={<TopicPage />} /></Routes></MemoryRouter>)
+  const footer = within(screen.getByRole('navigation', { name: 'Learning path navigation' }))
+  fireEvent.click(footer.getByRole('button', { name: 'Mark lesson complete' }))
+  expect(footer.getByRole('button', { name: 'Completed' })).toHaveAttribute('aria-pressed', 'true')
+  expect(within(document.querySelector('.topic-page-header')).getByRole('button', { name: /^completed$/i })).toHaveAttribute('aria-pressed', 'true')
+  expect(JSON.parse(window.localStorage.getItem('cs-fundamentals-progress'))['dbms-indexing'].completed).toBe(true)
 })

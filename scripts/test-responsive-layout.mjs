@@ -1,106 +1,20 @@
 #!/usr/bin/env node
 import fs from 'node:fs'
-import http from 'node:http'
 import path from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
-import { createRequire } from 'node:module'
+import { catalog, frontendRequire as require, launchChromium, repoRoot, routeFixtureApi, startStaticServer } from './lib/ui-fixtures.mjs'
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const distDir = path.join(repoRoot, 'frontend/dist')
-const require = createRequire(path.join(repoRoot, 'frontend/package.json'))
-const contentByKey = new Map()
-const catalog = JSON.parse(fs.readFileSync(path.join(repoRoot, 'frontend/src/test/catalog.json'), 'utf8'))
-function headingMarkdown(markdown) {
-  let fence = null
-  const headings = []
-  for (const line of markdown.replace(/\r\n?/g, '\n').split('\n')) {
-    if (fence) {
-      const close = line.match(/^ {0,3}(`+|~+)[\t ]*$/)
-      if (close && close[1][0] === fence[0] && close[1].length >= fence.length) fence = null
-      continue
-    }
-    const open = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/)
-    if (open && !(open[1][0] === '`' && open[2].includes('`'))) { fence = open[1]; continue }
-    if (/^ {0,3}#{2,6}[\t ]+/.test(line)) headings.push(line)
-  }
-  return headings.join('\n\n')
-}
-
-for (const category of fs.readdirSync(path.join(repoRoot, 'content'))) {
-  const categoryDir = path.join(repoRoot, 'content', category)
-  if (!fs.statSync(categoryDir).isDirectory()) continue
-  for (const filename of fs.readdirSync(categoryDir).filter(name => name.endsWith('.md'))) {
-    const topicId = filename.replace(/^\d+[a-z]?-/, '').replace(/\.md$/, '')
-    contentByKey.set(`${category}/${topicId}`, path.join(categoryDir, filename))
-  }
-}
-
-const mimeTypes = { '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.html': 'text/html' }
-const server = http.createServer((request, response) => {
-  const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname)
-  const requested = path.resolve(distDir, `.${pathname}`)
-  const isAsset = path.extname(pathname) !== ''
-  const target = requested.startsWith(distDir) && fs.existsSync(requested) && fs.statSync(requested).isFile()
-    ? requested
-    : isAsset ? null : path.join(distDir, 'index.html')
-  if (!target) {
-    response.writeHead(404).end()
-    return
-  }
-  response.writeHead(200, { 'Content-Type': mimeTypes[path.extname(target)] || 'application/octet-stream' })
-  fs.createReadStream(target).pipe(response)
-})
-
-await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
-const origin = `http://127.0.0.1:${server.address().port}`
-const playwright = await import(pathToFileURL(require.resolve('playwright')).href)
-const { chromium } = playwright.default ?? playwright
-const browser = await chromium.launch()
+const server = await startStaticServer()
+const origin = server.origin
+const browser = await launchChromium()
 const failures = []
+let simulatorCount = 0
 const screenshotDir = process.env.CS_SCREENSHOT_DIR
 if (screenshotDir) fs.mkdirSync(screenshotDir, { recursive: true })
 
 try {
   const page = await browser.newPage()
   page.on('pageerror', error => failures.push(`page error: ${error.message}`))
-  await page.route('**/api/v1/**', async route => {
-    const url = new URL(route.request().url())
-    if (url.pathname === '/api/v1/topics') {
-      await route.fulfill({ json: JSON.parse(fs.readFileSync(path.join(repoRoot, 'frontend/src/test/catalog.json'), 'utf8')) })
-      return
-    }
-    if (url.pathname === '/api/v1/topics/outlines') {
-      if (process.env.CS_OUTLINE_API_ORIGIN) {
-        const response = await fetch(`${process.env.CS_OUTLINE_API_ORIGIN}${url.pathname}${url.search}`)
-        await route.fulfill({ status: response.status, contentType: 'application/json', body: await response.text() })
-        return
-      }
-      const category = url.searchParams.get('category')
-      const entries = catalog.filter(topic => topic.category === category).map(topic => ({
-        topicId: topic.id,
-        headingsMarkdown: headingMarkdown(fs.readFileSync(contentByKey.get(`${category}/${topic.id}`), 'utf8'))
-      }))
-      await route.fulfill({ json: entries })
-      return
-    }
-    const contentMatch = url.pathname.match(/^\/api\/v1\/content\/([^/]+)\/([^/]+)$/)
-    if (contentMatch) {
-      const file = contentByKey.get(`${contentMatch[1]}/${contentMatch[2]}`)
-      await route.fulfill(file
-        ? { status: 200, contentType: 'text/markdown', body: fs.readFileSync(file, 'utf-8') }
-        : { status: 404, body: '' })
-      return
-    }
-    if (url.pathname === '/api/v1/search') {
-      await route.fulfill({ json: { query: 'java', category: null, total: 1, results: [{ topicId: 'java-oop-pillars', title: 'OOP Pillars & Dynamic Method Dispatch', category: 'java-spring', level: 'beginner', summary: 'Encapsulation, abstraction, inheritance, and polymorphism', matchedHeading: 'Polymorphism', excerpt: 'Dynamic dispatch selects the overridden method.' }] } })
-      return
-    }
-    if (url.pathname === '/api/v1/interview/questions') {
-      await route.fulfill({ json: { category: null, difficulty: null, total: 1, offset: 0, limit: 50, questions: [{ id: 'java-oop-pillars-q1', topicId: 'java-oop-pillars', topicTitle: 'OOP Pillars', category: 'java-spring', number: 1, question: 'Q1. What is polymorphism?', difficulty: 'easy', answerMarkdown: 'One interface can represent several concrete behaviors.' }] } })
-      return
-    }
-    await route.fulfill({ status: 404, body: '' })
-  })
+  await routeFixtureApi(page)
 
   await page.goto(origin)
   await page.evaluate(() => localStorage.setItem('cs-fundamentals-theme', 'dark'))
@@ -148,9 +62,17 @@ try {
           const toc = page.locator('#topic-table-of-contents')
           if ((await toc.isVisible()) !== (width >= 1024)) failures.push(`${theme} ${width}px ${route}: incorrect initial TOC visibility`)
           const toggle = page.locator('.toc-toggle')
-          await toggle.click()
-          if ((await toc.isVisible()) !== (width < 1024)) failures.push(`${theme} ${width}px ${route}: TOC toggle did not change visibility`)
-          await toggle.click()
+          if (width >= 1024) {
+            // Desktop keeps the rail visible; Focus reading is the explicit way to hide it.
+            if (await toggle.isVisible()) failures.push(`${theme} ${width}px ${route}: desktop shows a redundant topics toggle`)
+          } else {
+            await toggle.click()
+            if (!(await toc.isVisible())) failures.push(`${theme} ${width}px ${route}: Topics disclosure did not open`)
+            const bounded = await toc.evaluate(element => element.getBoundingClientRect().height <= window.innerHeight * 0.7 && element.scrollHeight >= element.clientHeight)
+            if (!bounded) failures.push(`${theme} ${width}px ${route}: open Topics panel is not bounded`)
+            await toggle.click()
+            if (await toc.isVisible()) failures.push(`${theme} ${width}px ${route}: Topics disclosure did not close`)
+          }
           const headingCount = await page.locator('.topic-content h2[id], .topic-content h3[id]').count()
           await page.waitForFunction(count => document.querySelectorAll('.category-topic-item--current .category-topic-sections a').length === count, headingCount)
           const category = catalog.find(topic => route === `/topic/${topic.id}`).category
@@ -218,7 +140,7 @@ try {
 
   await page.goto(`${origin}/category/java-spring`)
   await page.getByRole('heading', { level: 1, name: 'Java & Spring' }).waitFor()
-  await page.getByRole('link', { name: /All learning paths/ }).first().click()
+  await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Learning paths' }).click()
   await page.waitForFunction(() => document.title.startsWith('Learning paths'))
   if (!(await page.locator('#main-content').evaluate(element => document.activeElement === element))) failures.push('Pathname navigation did not focus the main landmark')
   if ((await page.locator('#main-content').getAttribute('aria-label')) !== 'Learning paths') failures.push('Main landmark does not name the destination page')
@@ -227,7 +149,12 @@ try {
   await page.locator('.topic-content h3').first().waitFor()
   await page.getByRole('button', { name: 'Wrap code' }).first().evaluate(element => element.click())
   if (await page.getByRole('button', { name: 'Wrap code' }).first().getAttribute('aria-pressed') !== 'true') failures.push('Code wrap did not turn on')
-  await page.getByRole('button', { name: 'Focus reading' }).evaluate(element => element.click())
+  await page.getByRole('button', { name: 'Reading options' }).click()
+  await page.getByRole('button', { name: 'Focus reading' }).click()
+  if (await page.locator('.study-layout--focused').count() !== 1) failures.push('Focus reading did not hide the rail')
+  await page.keyboard.press('Escape')
+  if (!(await page.getByRole('button', { name: 'Reading options' }).evaluate(element => document.activeElement === element))) failures.push('Escape did not return focus to Reading options')
+  await page.getByRole('button', { name: 'Exit focus reading' }).click()
   if (await page.getByRole('button', { name: 'Wrap code' }).first().getAttribute('aria-pressed') !== 'true') failures.push('Code wrap reset after a reader setting changed')
   await page.getByRole('tab', { name: 'Practice' }).click()
   await page.getByRole('textbox').waitFor()
@@ -243,7 +170,7 @@ try {
   await page.goto(`${origin}/interview/all`)
   await page.getByText(/saved question is not among/).waitFor()
   await page.getByRole('button', { name: 'Start from the first question' }).click()
-  await page.locator('.interview-question').waitFor()
+  await page.locator('.practice-question').waitFor()
 
   await page.evaluate(() => localStorage.removeItem('cs-fundamentals-learning-v1'))
   await page.goto(`${origin}/topic/java-oop-pillars`)
@@ -276,6 +203,75 @@ try {
   await page.getByText('Review date and previous attempts').click()
   await page.getByText('Model answer not opened during this visit', { exact: false }).waitFor()
 
+  // Reader density (October 5 targets): standard 18px text, Topics and Reading options closed.
+  for (const [width, limit] of [[1440, 330], [375, 450]]) {
+    await page.setViewportSize({ width, height: 960 })
+    await page.evaluate(() => localStorage.removeItem('cs-fundamentals-learning-v1'))
+    await page.goto(`${origin}/topic/java-execution-pipeline`)
+    await page.locator('.topic-content h2').first().waitFor()
+    const top = await page.locator('.topic-content').evaluate(element => Math.round(element.getBoundingClientRect().top + window.scrollY))
+    if (top > limit) failures.push(`Reader article starts at ${top}px at ${width}px (target ${limit}px)`)
+    const fontSize = await page.locator('.topic-content p').first().evaluate(element => getComputedStyle(element).fontSize)
+    if (fontSize !== '18px') failures.push(`Standard prose renders at ${fontSize}, not the 18px reader preference`)
+  }
+
+  // Category rail: search another lesson's heading, open it in Study, then clear search and confirm
+  // the earlier expansion choices return; Collapse all survives a view change.
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`${origin}/topic/process-management?view=practice&question=x&source=course`)
+  const rail = page.getByRole('navigation', { name: 'Operating Systems topics' })
+  await rail.locator('.category-topic-item').first().waitFor()
+  await rail.getByRole('button', { name: 'Expand CPU Scheduling' }).click()
+  const railSearch = rail.getByRole('searchbox', { name: /find a lesson or section/i })
+  await railSearch.fill('round robin')
+  const match = rail.locator('.category-topic-sections--matches a').first()
+  await match.waitFor()
+  const matchHash = new URL(await match.getAttribute('href'), origin).hash
+  await match.click()
+  await page.waitForURL(url => url.hash === matchHash && !url.searchParams.has('view') && !url.searchParams.has('question') && url.searchParams.get('source') === 'course')
+  // A result in another lesson remounts the page after the URL changes; wait for the settled tab state.
+  await page.waitForFunction(() => document.querySelector('[role="tab"][aria-selected="true"]')?.textContent.includes('Study'), null, { timeout: 10_000 })
+    .catch(() => failures.push('Rail search result did not open Study'))
+  await page.waitForFunction(hash => document.getElementById(hash.slice(1)) !== null, matchHash)
+  if ((await page.getByRole('navigation', { name: 'Operating Systems topics' }).getByRole('searchbox').inputValue()) !== 'round robin') failures.push('Rail query was lost after opening a result')
+  await page.getByRole('navigation', { name: 'Operating Systems topics' }).getByRole('button', { name: 'Clear search' }).click()
+  for (const [title, expected] of [['Process Management', 'true'], ['CPU Scheduling', 'true'], ['Deadlocks', 'false']]) {
+    const expanded = await page.getByRole('navigation', { name: 'Operating Systems topics' }).locator('.category-topic-row', { has: page.locator(`a.category-topic-link:text-is("${title}")`) }).locator('button').getAttribute('aria-expanded')
+    if (expanded !== expected) failures.push(`Clearing rail search changed ${title} expansion to ${expanded}`)
+  }
+  await page.getByRole('navigation', { name: 'Operating Systems topics' }).getByRole('button', { name: 'Collapse all' }).click()
+  await page.getByRole('tab', { name: 'Practice' }).click()
+  await page.getByRole('tab', { name: 'Study' }).click()
+  if (await page.getByRole('navigation', { name: 'Operating Systems topics' }).locator('.category-topic-toggle[aria-expanded="true"]').count() !== 0) failures.push('Collapse all was undone by a view change')
+  await page.goBack()
+  await page.goBack()
+  await page.waitForURL(url => url.hash === matchHash)
+
+  // Every registered simulator: no page overflow at 320px, and no axe findings in either theme.
+  const registrySource = fs.readFileSync(path.join(repoRoot, 'frontend/src/components/visualizers/topicVisualizerRegistry.jsx'), 'utf8')
+  const simulatorIds = [...registrySource.matchAll(/^\s+'?([a-z0-9-]+)'?: (?:direct|hub)\(/gm)].map(match => match[1])
+  simulatorCount = simulatorIds.length
+  if (simulatorIds.length < 30) failures.push(`Registry parse found only ${simulatorIds.length} simulators`)
+  const simulatorAxe = require('axe-core').source
+  for (const theme of ['dark', 'light']) {
+    await page.evaluate(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
+    for (const id of simulatorIds) {
+      await page.setViewportSize({ width: theme === 'light' ? 320 : 1280, height: 900 })
+      await page.goto(`${origin}/topic/${id}?view=simulation`)
+      await page.locator('h1').first().waitFor()
+      await page.locator(`html[data-theme="${theme}"]`).waitFor()
+      await page.waitForFunction(() => !document.body.innerText.includes('Loading visualizer'), null, { timeout: 15_000 })
+      await page.waitForTimeout(600)
+      if (theme === 'light') {
+        const width = await page.evaluate(() => document.documentElement.scrollWidth)
+        if (width > 321) failures.push(`${id} simulation overflows at 320px (${width}px)`)
+      }
+      await page.addScriptTag({ content: simulatorAxe })
+      const findings = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } })).violations.map(item => `${item.id} at ${item.nodes[0]?.target.join(' ')}`))
+      for (const finding of findings) failures.push(`${theme} ${id} simulation: accessibility ${finding}`)
+    }
+  }
+
   const axeSource = require('axe-core').source
   for (const theme of ['dark', 'light']) {
     await page.evaluate(selectedTheme => localStorage.setItem('cs-fundamentals-theme', selectedTheme), theme)
@@ -298,9 +294,12 @@ try {
       for (const violation of violations) failures.push(`${theme} ${route}: accessibility ${violation.id} at ${violation.targets.join(', ')}`)
     }
   }
+} catch (error) {
+  // Report everything gathered before the aborted journey instead of losing it with the stack trace.
+  failures.push(`journey aborted: ${String(error?.message || error).split('\n')[0]}`)
 } finally {
   await browser.close()
-  await new Promise(resolve => server.close(resolve))
+  await server.close()
 }
 
 if (failures.length > 0) {
@@ -309,4 +308,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log('Responsive layout smoke passed: 14 routes × 5 widths × 2 themes; 20 axe scans; six-category navigation and exact-question spaced-review journeys.')
+console.log(`Responsive layout smoke passed: 14 routes × 5 widths × 2 themes; reader density; rail search/collapse journey; ${simulatorCount} simulators × 2 themes (320px overflow + axe); 20 page axe scans; six-category navigation and exact-question spaced-review journeys.`)

@@ -82,8 +82,8 @@ export default function TcpCongestionVisualizer() {
       {/* Controls */}
       <div className="viz-controls-card" style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>TCP Variant:</label>
+          <label className="sim-inline-field">
+            <span>TCP Variant:</span>
             <select
               value={algo}
               onChange={e => handleAlgoChange(e.target.value)}
@@ -93,7 +93,7 @@ export default function TcpCongestionVisualizer() {
               <option value="Reno">TCP Reno (Fast Recovery / Halve cwnd)</option>
               <option value="Tahoe">TCP Tahoe (Collapse cwnd to 1)</option>
             </select>
-          </div>
+          </label>
 
           <button onClick={handleNextRtt} className="btn btn-primary">
             ⏭ Advance 1 RTT
@@ -134,7 +134,7 @@ export default function TcpCongestionVisualizer() {
       </div>
 
       {/* Grid: SVG Sawtooth Line Chart + Sliding Pipe Display */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         {/* Real-Time SVG Sawtooth Line Chart */}
         <div className="viz-card" style={{ background: 'var(--bg-code)', padding: '1rem', borderRadius: '12px' }}>
           <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--state-info)', display: 'flex', justifyContent: 'space-between' }}>

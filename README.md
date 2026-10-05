@@ -225,9 +225,9 @@ A `/progress` dashboard (linked from the navbar) turns that same state into an o
 completion, a bar per category and per level, the full bookmarked list, and a "Continue where you
 left off" pointer to the next not-yet-completed topic in curriculum order.
 
-A guided product tour spotlights the roadmap filters, a topic row, Search and Interview Mode, then
-crosses over to a topic page to show the Study/Simulation tabs. It is entirely opt-in — it never
-interrupts a first visit, and opens only from the "Take a tour" button in the navigation bar.
+A guided product tour spotlights the learning paths, the full lesson browser, Search and Interview
+Mode, then crosses over to a lesson to show its views and category rail. It is entirely opt-in — it
+never interrupts a first visit, and opens only from **Help → Take a tour of the app** in the navigation bar.
 
 The interface follows the operating-system theme on first visit and persists an explicit choice.
 Category and learning-level states always combine colour with a glyph or text label. See the
@@ -259,6 +259,16 @@ node --test scripts/validate-content.test.mjs scripts/audit-simulation-questions
 
 # Validate the launcher without starting either application
 bash scripts/test-start.sh
+
+# Browser checks on the built frontend (API fixtures): routes × widths × themes, axe, journeys,
+# reader density and every simulator at 320px
+npm run build --prefix frontend && npm run test:responsive --prefix frontend
+
+# Reproducible previews and reader measurements (writes PNGs + metrics.json)
+node scripts/capture-ui-previews.mjs frontend/test-results/ui-previews
+
+# Real-backend browser journey against a running API (also a CI job)
+CS_API_ORIGIN=http://127.0.0.1:9190 node scripts/test-real-backend-journey.mjs
 ```
 
 ## Java learning improvement work
@@ -361,3 +371,27 @@ The [Java course alignment review](JAVA_COURSE_ALIGNMENT_REVIEW_2026-10-04.md) r
 inspection of the learner's 40-entry course index, a visual/text review of its three-page
 JDK/JRE/JVM PDF and a proposed familiar revision path. Other linked notes remain unreviewed;
 the course alignment is proposed, not imported curriculum.
+
+
+### UI/UX refinement plan — October 5
+
+The [October 5 UI/UX refinement plan](UI_UX_REFINEMENT_PLAN_2026-10-05.md) has been implemented; the
+[results record](docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md) lists what changed, the measurements and
+what remains open, and [the design system](docs/DESIGN_SYSTEM.md) describes the component rules.
+
+- **Navigation:** one compact bar — Search (Ctrl/⌘ K), a Learn menu with every learning path, Interview
+  Mode, Progress, Help (the opt-in tour) and a theme switch; below 900px it collapses to Search and Menu.
+- **Reader:** lessons start sooner (the Java Execution Pipeline article begins at 324px instead of 426px
+  on a 1440×960 screen, and 448px instead of 570px at 375px wide, including the Learning network bar) without hiding any content. Level jumps
+  and one Reading options menu (text size, focus reading, study help) share a single row, prose follows
+  the chosen text size at a 68ch measure, and the lesson ends with practice and completion actions.
+- **Category rail:** every lesson in the category with its sections, plus search over lesson titles and
+  section headings and Collapse all; your own expansion choices are kept.
+- **Both themes:** the charcoal dark theme is kept, light mode is now a calm neutral palette, and primary
+  actions use one amber colour in both. All application controls use one SVG icon set.
+- **Browsing, practice and progress:** home leads with Resume or Start here, then six learning paths and
+  a "Browse all lessons" section; practice puts Reveal answer first; Progress leads with what to continue.
+- **Simulators:** all 36 simulator views fit a 320px screen and pass automated accessibility checks in
+  both themes.
+
+These are design and automated-check results; no learner study has been run.

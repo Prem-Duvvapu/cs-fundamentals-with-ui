@@ -67,8 +67,8 @@ export default function MemoryVisualizer() {
       <div className="viz-controls-card">
         <div className="control-row">
           <div className="control-group">
-            <label>Algorithm:</label>
-            <select value={algo} onChange={e => setAlgo(e.target.value)} className="select-input">
+            <label htmlFor="memory-algorithm">Algorithm:</label>
+            <select id="memory-algorithm" value={algo} onChange={e => setAlgo(e.target.value)} className="select-input">
               <option value="LRU">Least Recently Used (LRU)</option>
               <option value="FIFO">First-In First-Out (FIFO)</option>
               <option value="OPTIMAL">Optimal Page Replacement</option>
@@ -76,8 +76,8 @@ export default function MemoryVisualizer() {
           </div>
 
           <div className="control-group">
-            <label>Physical Frames:</label>
-            <select value={numFrames} onChange={e => setNumFrames(Number(e.target.value))} className="select-input">
+            <label htmlFor="memory-physical-frames">Physical Frames:</label>
+            <select id="memory-physical-frames" value={numFrames} onChange={e => setNumFrames(Number(e.target.value))} className="select-input">
               <option value={3}>3 Frames</option>
               <option value={4}>4 Frames</option>
               <option value={5}>5 Frames</option>
@@ -112,7 +112,7 @@ export default function MemoryVisualizer() {
       {/* Reference Stream Display */}
       <div className="viz-card">
         <h3>🔢 Page Reference Sequence</h3>
-        <div className="stream-container">
+        <div className="stream-container" tabIndex={0} role="region" aria-label="Page reference stream">
           {referenceStream.map((pageVal, idx) => {
             const isCurrent = idx === currentStep - 1
             const stepInfo = history[idx]
@@ -178,8 +178,8 @@ export default function MemoryVisualizer() {
           <h3>🧮 Address Translation (MMU)</h3>
           <div className="mmu-form">
             <div className="form-row">
-              <label>Virtual Address (Bytes):</label>
-              <input
+              <label htmlFor="memory-virtual-address-bytes">Virtual Address (Bytes):</label>
+              <input id="memory-virtual-address-bytes"
                 type="number"
                 value={virtualAddress}
                 onChange={e => setVirtualAddress(Number(e.target.value))}
@@ -187,8 +187,8 @@ export default function MemoryVisualizer() {
               />
             </div>
             <div className="form-row">
-              <label>Page Size:</label>
-              <select value={pageSizeKB} onChange={e => setPageSizeKB(Number(e.target.value))} className="select-input">
+              <label htmlFor="memory-page-size">Page Size:</label>
+              <select id="memory-page-size" value={pageSizeKB} onChange={e => setPageSizeKB(Number(e.target.value))} className="select-input">
                 <option value={4}>4 KB (4096 B)</option>
                 <option value={2}>2 KB (2048 B)</option>
                 <option value={8}>8 KB (8192 B)</option>

@@ -135,14 +135,15 @@ export default function AiMlVisualizer({ defaultTopicId }) {
 
             <div className="vec-input-group">
               <div>
-                <label className="field-label-strong">Vector A [x, y, z]:</label>
-                <div className="vec-row">
+                <p id="vector-a-label" className="field-label-strong">Vector A [x, y, z]:</p>
+                <div className="vec-row" role="group" aria-labelledby="vector-a-label">
                   {vecA.map((val, idx) => (
                     <input
                       key={idx}
                       type="number"
                       step="0.1"
                       value={val}
+                      aria-label={`Vector A ${['x', 'y', 'z'][idx]}`}
                       onChange={e => {
                         const newA = [...vecA]
                         newA[idx] = Number(e.target.value)
@@ -155,14 +156,15 @@ export default function AiMlVisualizer({ defaultTopicId }) {
               </div>
 
               <div>
-                <label className="field-label-strong">Vector B [x, y, z]:</label>
-                <div className="vec-row">
+                <p id="vector-b-label" className="field-label-strong">Vector B [x, y, z]:</p>
+                <div className="vec-row" role="group" aria-labelledby="vector-b-label">
                   {vecB.map((val, idx) => (
                     <input
                       key={idx}
                       type="number"
                       step="0.1"
                       value={val}
+                      aria-label={`Vector B ${['x', 'y', 'z'][idx]}`}
                       onChange={e => {
                         const newB = [...vecB]
                         newB[idx] = Number(e.target.value)
@@ -263,8 +265,8 @@ export default function AiMlVisualizer({ defaultTopicId }) {
 
             <div className="sampling-controls">
               <div>
-                <label className="field-label-strong">Temperature ($T$): {temp}</label>
-                <input
+                <label htmlFor="ai-ml-temperature-t" className="field-label-strong">Temperature ($T$): {temp}</label>
+                <input id="ai-ml-temperature-t"
                   type="range"
                   min="0.1"
                   max="2.0"
@@ -276,8 +278,8 @@ export default function AiMlVisualizer({ defaultTopicId }) {
               </div>
 
               <div>
-                <label className="field-label-strong">Top-P (Nucleus Cutoff): {topP}</label>
-                <input
+                <label htmlFor="ai-ml-top-p-nucleus-cutoff" className="field-label-strong">Top-P (Nucleus Cutoff): {topP}</label>
+                <input id="ai-ml-top-p-nucleus-cutoff"
                   type="range"
                   min="0.1"
                   max="1.0"
@@ -317,8 +319,8 @@ export default function AiMlVisualizer({ defaultTopicId }) {
             <h3>🏬 Feature Store & Population Stability Index (PSI) Drift</h3>
 
             <div className="field-block">
-              <label className="field-label-strong">Simulated Feature PSI Data Drift Index: {driftPsi}</label>
-              <input
+              <label htmlFor="ai-ml-simulated-feature-psi-data-drift-index" className="field-label-strong">Simulated Feature PSI Data Drift Index: {driftPsi}</label>
+              <input id="ai-ml-simulated-feature-psi-data-drift-index"
                 type="range"
                 min="0.01"
                 max="0.50"

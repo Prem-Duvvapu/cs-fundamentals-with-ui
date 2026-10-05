@@ -2,6 +2,7 @@ import { useState, lazy, Suspense, useId } from 'react'
 import useLearningState from '../../hooks/useLearningState'
 import { questionKey, savePractice, updateLearning, recordPracticeAttempt, moveReview } from '../../utils/learningState'
 import { splitInterviewAnswer } from '../../utils/interviewQuestions'
+import Icon from './Icon'
 
 // react-markdown + KaTeX + highlight.js are ~600KB and are only needed once an
 // answer is actually revealed, so they get their own chunk.
@@ -66,7 +67,7 @@ export default function InterviewDeck({
   if (selectedIndex < 0) return <section className="interview-deck" aria-labelledby={`interview-practice-title-${instanceId}`}>
     <div className="interview-deck-heading"><div><p className="study-eyebrow">{eyebrow}</p><h2 id={`interview-practice-title-${instanceId}`}>{heading}</h2></div></div>
     <p role="status">Your saved question is not among the {questions.length} questions loaded yet.</p>
-    {onFindSavedQuestion && <button type="button" disabled={finding} onClick={async () => {
+    {onFindSavedQuestion && <button type="button" className="ui-button ui-button--primary" disabled={finding} onClick={async () => {
       setFinding(true)
       setFindError('')
       try {
@@ -75,8 +76,11 @@ export default function InterviewDeck({
       finally { setFinding(false) }
     }}>{finding ? 'Finding saved question…' : 'Find saved question'}</button>}
     {findError && <p role="alert">{findError}</p>}
-    <button type="button" onClick={() => move(0)}>Start from the first question</button>
+    <button type="button" className="ui-button ui-button--secondary" onClick={() => move(0)}>Start from the first question</button>
   </section>
+
+  const reviewEntry = state.reviews[questionKey(current)]
+  const canRecord = Boolean(saved.assessment)
 
   return (
     <section className="interview-deck" aria-labelledby={`interview-practice-title-${instanceId}`}>
@@ -87,10 +91,24 @@ export default function InterviewDeck({
         </div>
         <span>{safeIndex + 1} / {questions.length}</span>
       </div>
-      <p className="interview-question"><strong>{current.question}</strong> <code>[{current.difficulty}]</code></p>
+      <p className="practice-question">{current.question}<span className={`practice-difficulty practice-difficulty--${current.difficulty}`}>{current.difficulty}</span></p>
       {renderMeta && <div className="interview-question-meta">{renderMeta(current)}</div>}
-      <label className="practice-draft">Your explanation <span>(optional)</span><textarea rows={5} maxLength={20000} value={saved.draft} placeholder="Explain the idea in your own words. What changes, and why?" onChange={event => savePractice(current, { draft: event.target.value })} /></label>
+      <label className="practice-draft">
+        <span className="practice-draft-label">Your explanation <span>(optional)</span></span>
+        <textarea rows={5} maxLength={20000} value={saved.draft} placeholder="Explain the idea in your own words. What changes, and why?" onChange={event => savePractice(current, { draft: event.target.value })} />
+      </label>
       <p className="practice-save-status" role="status">{durable ? 'Drafts are saved in this browser.' : 'Storage is unavailable. Your draft is kept for this session only.'}</p>
+      <div className="practice-primary-actions">
+        <button
+          type="button"
+          className={`ui-button ${revealed ? 'ui-button--secondary' : 'ui-button--primary'}`}
+          aria-expanded={revealed}
+          aria-controls={answerId}
+          onClick={() => { setRevealed(value => !value); setAnswerViewed(true) }}
+        >
+          {revealed ? 'Hide answer' : 'Reveal answer'}
+        </button>
+      </div>
       {revealed && (
         <div id={answerId} className="interview-answer">
           <Suspense fallback={<p>Loading answer…</p>}>
@@ -99,36 +117,31 @@ export default function InterviewDeck({
         </div>
       )}
       {revealed && (rubric ? <details className="practice-guidance"><summary>Answer checklist and follow-up</summary><Suspense fallback={<p>Loading checklist…</p>}><MarkdownRenderer content={rubricMarkdown} /></Suspense><p>Compare your explanation with these points; your self-rating is not an automatic grade.</p></details> : <details className="practice-guidance"><summary>How to compare your answer</summary><ol><li>Did you state the main idea directly?</li><li>Did you explain the mechanism or sequence, not just name it?</li><li>Could you give a concrete example and say when the answer changes?</li><li>Did you mention an important limit or trade-off?</li></ol><p>Use the model answer to check your reasoning. These prompts are a guide, not an automatic score.</p></details>)}
-      {<fieldset className="practice-assessment"><legend>Your self-assessment</legend>{[['review', 'Needs review'], ['partial', 'Partly recalled'], ['confident', 'Recalled confidently']].map(([value, label]) => <button key={value} type="button" aria-pressed={saved.assessment === value} onClick={() => savePractice(current, { assessment: value })}>{label}</button>)}</fieldset>}
+      <fieldset className="practice-assessment"><legend>Your self-assessment</legend>{[['review', 'Needs review'], ['partial', 'Partly recalled'], ['confident', 'Recalled confidently']].map(([value, label]) => <button key={value} type="button" aria-pressed={saved.assessment === value} onClick={() => savePractice(current, { assessment: value })}>{label}</button>)}</fieldset>
       <div className="saved-answer-actions">
-        <button type="button" disabled={!saved.assessment} onClick={() => {
+        <button type="button" className={`ui-button ${revealed && canRecord ? 'ui-button--primary' : 'ui-button--secondary'}`} disabled={!canRecord} onClick={() => {
           if (recordPracticeAttempt(current, answerViewed)) setAttemptMessage('Attempt recorded. Your next review date is shown below.')
         }}>Record this attempt</button>
+        {!canRecord && <span className="practice-hint">Choose a self-assessment to record an attempt.</span>}
       </div>
       {attemptMessage && <p role="status">{attemptMessage}</p>}
-      {state.reviews[questionKey(current)] && <details className="practice-guidance">
+      {reviewEntry && <details className="practice-guidance">
         <summary>Review date and previous attempts</summary>
-        <p>Next review: {new Date(state.reviews[questionKey(current)].dueAt).toLocaleString()}. Needs review: 1 day; partial: 3 days; confident: 7 days, then doubles up to 30 days. These are suggestions, not grades.</p>
-        <button type="button" onClick={() => moveReview(questionKey(current), 'postpone')}>Postpone one day</button>
-        <button type="button" onClick={() => moveReview(questionKey(current), 'reset')}>Reset review date to now</button>
+        <p>Next review: {new Date(reviewEntry.dueAt).toLocaleString()}. Needs review: 1 day; partial: 3 days; confident: 7 days, then doubles up to 30 days. These are suggestions, not grades.</p>
+        <div className="saved-answer-actions">
+          <button type="button" className="ui-button ui-button--secondary ui-button--compact" onClick={() => moveReview(questionKey(current), 'postpone')}>Postpone one day</button>
+          <button type="button" className="ui-button ui-button--secondary ui-button--compact" onClick={() => moveReview(questionKey(current), 'reset')}>Reset review date to now</button>
+        </div>
         <p>The most recent 10 recorded attempts are kept. Compare what you explained, not just your rating.</p>
-        <ol>{state.reviews[questionKey(current)].attempts.map((attempt, index) => <li key={`${attempt.id}-${index}`}>
+        <ol>{reviewEntry.attempts.map((attempt, index) => <li key={`${attempt.id}-${index}`}>
           <p>{new Date(attempt.at).toLocaleString()} · {attempt.assessment} · {attempt.answerViewed ? 'Model answer opened during this visit' : 'Model answer not opened during this visit'}</p>
           <p className="saved-answer-draft">{attempt.draft || 'No written explanation recorded.'}</p>
         </li>)}</ol>
       </details>}
-      <div className="interview-deck-actions">
-        <button
-          type="button"
-          aria-expanded={revealed}
-          aria-controls={answerId}
-          onClick={() => { setRevealed(value => !value); setAnswerViewed(true) }}
-        >
-          {revealed ? 'Hide answer' : 'Reveal answer'}
-        </button>
-        <button type="button" onClick={() => move(Math.max(0, safeIndex - 1))} disabled={safeIndex === 0}>Previous</button>
-        <button type="button" onClick={() => move(Math.min(questions.length - 1, safeIndex + 1))} disabled={safeIndex === questions.length - 1}>Next</button>
-      </div>
+      <nav className="interview-deck-actions" aria-label="Question navigation">
+        <button type="button" className="ui-button ui-button--quiet" onClick={() => move(Math.max(0, safeIndex - 1))} disabled={safeIndex === 0}><Icon name="arrowLeft" size={16} />Previous</button>
+        <button type="button" className="ui-button ui-button--secondary" onClick={() => move(Math.min(questions.length - 1, safeIndex + 1))} disabled={safeIndex === questions.length - 1}>Next<Icon name="arrowRight" size={16} /></button>
+      </nav>
     </section>
   )
 }

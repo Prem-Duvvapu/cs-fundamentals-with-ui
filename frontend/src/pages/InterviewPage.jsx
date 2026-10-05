@@ -184,13 +184,13 @@ export default function InterviewPage() {
           ))}
         </nav>
 
-        <div className="filter-bar" role="group" aria-label="Filter by difficulty">
-          <span className="filter-bar-label">Difficulty</span>
+        <div className="level-selectors interview-difficulty" role="group" aria-label="Filter by difficulty">
+          <span className="interview-difficulty-label">Difficulty</span>
           {DIFFICULTY_FILTERS.map(level => (
             <button
               key={level}
               type="button"
-              className={`filter-chip ${difficulty === level ? 'is-active' : ''}`}
+              className={`level-selector ${difficulty === level ? 'active' : ''}`}
               aria-pressed={difficulty === level}
               onClick={() => setDifficulty(level)}
             >
@@ -207,7 +207,7 @@ export default function InterviewPage() {
           <section className="roadmap-empty-state" role="alert">
             <h2>Couldn't load interview questions</h2>
             <p>The interview API may be unavailable. Try again in a moment.</p>
-            <button type="button" className="roadmap-empty-action" onClick={() => setRetryNonce(value => value + 1)}>Retry</button>
+            <button type="button" className="ui-button ui-button--primary" onClick={() => setRetryNonce(value => value + 1)}>Retry</button>
           </section>
         ) : questions.length === 0 ? (
           <section className="roadmap-empty-state" role="status">
@@ -218,7 +218,7 @@ export default function InterviewPage() {
           <>
             <div className="interview-deck-toolbar">
               <p>{total} question{total === 1 ? '' : 's'} · {questions.length} loaded</p>
-              <button type="button" className="btn btn-secondary is-snug" onClick={shuffle}>
+              <button type="button" className="ui-button ui-button--secondary ui-button--compact" onClick={shuffle}>
                 Shuffle loaded questions
               </button>
             </div>
@@ -240,7 +240,7 @@ export default function InterviewPage() {
                 {loadMoreError && <p role="alert">Couldn't load more questions. Your current deck is unchanged.</p>}
                 <button
                   type="button"
-                  className="btn btn-secondary interview-load-more"
+                  className="ui-button ui-button--secondary interview-load-more"
                   onClick={loadMore}
                   disabled={loadingMore}
                 >

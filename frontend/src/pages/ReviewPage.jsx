@@ -52,20 +52,20 @@ export default function ReviewPage() {
     <header className="roadmap-header"><p className="eyebrow">Optional recall practice</p><h1>Review session</h1>
       <p>Up to eight questions. Due items come first; you can mix previously recalled answers. Explain each idea before opening its answer, choose your own rating, then record the attempt.</p>
       <p>Dates are suggestions with no streak penalty. Your ratings are not automatic scores or interview-readiness measurements.</p>
-      <label><input type="checkbox" checked={mixed} onChange={event => setMixed(event.target.checked)} /> Mix previously recalled answers</label>
-      <div className="saved-answer-actions"><button type="button" onClick={rebuild}>Build a new session</button><Link to="/progress">Saved answers and backup</Link></div>
+      <label className="review-option"><input type="checkbox" checked={mixed} onChange={event => setMixed(event.target.checked)} /> Mix previously recalled answers</label>
+      <div className="saved-answer-actions"><button type="button" className="ui-button ui-button--secondary" onClick={rebuild}>Build a new session</button><Link className="ui-button ui-button--quiet" to="/progress">Saved answers and backup</Link></div>
     </header>
     {!durable && <p role="alert">Storage is unavailable. Export your learning data before closing this tab.</p>}
-    {catalogStatus === 'error' && <div role="alert"><p>Could not load the lesson catalog.</p><button onClick={retry}>Retry catalog</button></div>}
+    {catalogStatus === 'error' && <div role="alert"><p>Could not load the lesson catalog.</p><button type="button" className="ui-button ui-button--primary" onClick={retry}>Retry catalog</button></div>}
     {(catalogStatus === 'loading' || status === 'loading') && catalogStatus !== 'error' && <p role="status">Loading selected questions…</p>}
     {status === 'ready' && <>
-      {unavailable.length > 0 && <div role="alert"><p>{unavailable.length} selected question(s) could not be matched or loaded. Your drafts and history are still saved. Retry or open Saved answers.</p><button onClick={() => setLoadAttempt(value => value + 1)}>Retry selected questions</button></div>}
+      {unavailable.length > 0 && <div role="alert"><p>{unavailable.length} selected question(s) could not be matched or loaded. Your drafts and history are still saved. Retry or open Saved answers.</p><button type="button" className="ui-button ui-button--primary" onClick={() => setLoadAttempt(value => value + 1)}>Retry selected questions</button></div>}
       {questions.length === 0 ? <p>No questions are ready in this selection. Record an attempt in <Link to="/interview/all">Interview Mode</Link>, or practise a saved answer from <Link to="/progress">Progress</Link>.</p> : <>
         <section className="category-overview"><h2>Why these questions?</h2><ul>{selection.filter(item => questions.some(question => questionKey(question) === item.key)).map(item => <li key={item.key}>{item.key.slice(item.key.indexOf(':') + 1)} — {item.reason}</li>)}</ul></section>
-        {ended ? <section className="category-overview"><h2>Session finished</h2><p>{recorded.length} of {questions.length} questions have a recorded attempt from this session. Earlier drafts remain available; review dates use your self-assessments.</p><Link to="/progress">Return to Progress</Link></section> : <>
+        {ended ? <section className="category-overview"><h2>Session finished</h2><p>{recorded.length} of {questions.length} questions have a recorded attempt from this session. Earlier drafts remain available; review dates use your self-assessments.</p><Link className="ui-button ui-button--primary" to="/progress">Return to Progress</Link></section> : <>
           <p role="status">{recorded.length} of {questions.length} questions recorded in this session.</p>
           <InterviewDeck key={`${startedAt}:${selection.map(item => item.key).join('|')}`} questions={questions} requestedKey={questionKey(questions[0])} heading="Explain and compare" renderMeta={question => <Link to={`/topic/${question.topicId}?view=practice&question=${encodeURIComponent(questionKey(question))}`}>{question.topicTitle}</Link>} />
-          <button type="button" onClick={() => setEnded(true)}>Finish this session</button>
+          <button type="button" className="ui-button ui-button--secondary review-finish" onClick={() => setEnded(true)}>Finish this session</button>
         </>}
       </>}
     </>}

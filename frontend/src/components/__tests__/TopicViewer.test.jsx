@@ -124,7 +124,7 @@ Check the observable symptoms, identify the responsible subsystem, and validate 
 
     await waitFor(() => {
       expect(screen.getByRole('navigation', { name: /jump to learning level/i })).toBeInTheDocument()
-      expect(screen.getByText(/Open the Practice tab/)).toBeInTheDocument()
+      expect(screen.getByText(/Ready to explain this\?/)).toBeInTheDocument()
     })
     expect(screen.queryByRole('button', { name: /reveal answer/i })).not.toBeInTheDocument()
   })
@@ -174,7 +174,7 @@ Apply it.`
     render(<TopicViewer topicId="process-management" />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Focus reading' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /reading options/i })).toHaveAttribute('aria-expanded', 'false')
       expect(screen.getByRole('navigation', { name: /table of contents/i })).toBeInTheDocument()
       expect(screen.getByTestId('markdown-content')).toHaveTextContent('Beginner Level')
     })
@@ -299,4 +299,39 @@ it('includes rendered subsections in the table of contents and scrolls to them',
   expect(subsection.closest('li')).toHaveClass('toc-subsection')
   fireEvent.click(subsection)
   expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'instant', block: 'start' })
+})
+
+it('groups text size, focus reading and study help under one Reading options disclosure', async () => {
+  localStorage.clear()
+  global.fetch.mockResolvedValueOnce(new Response('## 🟢 Beginner Level\n\nBegin here.'))
+  render(<TopicViewer topicId="process-management" />)
+  const trigger = await screen.findByRole('button', { name: /reading options/i })
+  expect(screen.queryByRole('button', { name: 'Focus reading' })).not.toBeInTheDocument()
+
+  fireEvent.click(trigger)
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+  expect(screen.getByRole('radio', { name: 'Standard' })).toBeChecked()
+  expect(screen.getByText('How to study')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('radio', { name: 'Large' }))
+  expect(document.querySelector('.study-layout').style.getPropertyValue('--reader-font-size')).toBe('20px')
+  expect(JSON.parse(localStorage.getItem('cs-fundamentals-learning-v1')).preferences.fontSize).toBe(20)
+
+  fireEvent.click(screen.getByRole('button', { name: 'Focus reading' }))
+  expect(screen.getByRole('button', { name: 'Focus reading' })).toHaveAttribute('aria-pressed', 'true')
+  expect(document.querySelector('.study-layout')).toHaveClass('study-layout--focused')
+
+  fireEvent.keyDown(screen.getByRole('radio', { name: 'Large' }), { key: 'Escape' })
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  expect(trigger).toHaveFocus()
+  fireEvent.click(screen.getByRole('button', { name: 'Exit focus reading' }))
+  expect(document.querySelector('.study-layout')).not.toHaveClass('study-layout--focused')
+})
+
+it('offers a practice action at the lesson end only when the page can switch views', async () => {
+  const md = '## 🔴 Expert Level\n\n### Interview Questions\n\n**Q1. Why?** `[easy]`\n\nBecause the mechanism is explained, demonstrated, and limited.'
+  const onPractice = vi.fn()
+  global.fetch.mockResolvedValueOnce(new Response(md))
+  render(<TopicViewer topicId="process-management" onPractice={onPractice} />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Practise this lesson' }))
+  expect(onPractice).toHaveBeenCalledTimes(1)
 })
