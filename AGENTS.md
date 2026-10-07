@@ -1,5 +1,14 @@
 # AI Agent Context — CS Fundamentals with UI
 
+
+## Visitor analytics
+
+`main.jsx` mounts `@vercel/analytics/react` once for production builds. Keep
+`redactAnalyticsUrl` and its privacy regressions: query strings and fragments
+are removed before page locations are sent. No practice answers, notes, simulation
+inputs, or custom events are collected. Analytics is independent per deployment;
+Vercel supplies its endpoint only after Web Analytics is enabled and redeployed.
+
 ## Learning network
 
 `frontend/src/components/LearningNetworkNav.jsx` connects this app to
