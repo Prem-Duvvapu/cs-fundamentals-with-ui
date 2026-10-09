@@ -412,3 +412,11 @@ what remains open, and [the design system](docs/DESIGN_SYSTEM.md) describes the 
   both themes.
 
 These are design and automated-check results; no learner study has been run.
+
+## License
+
+This project's original code and documentation are licensed under the [MIT License](LICENSE).
+Copyright (c) 2026 Prem Duvvapu.
+
+Third-party dependencies and materials remain subject to their own licenses and notices;
+the project license does not replace those terms.
