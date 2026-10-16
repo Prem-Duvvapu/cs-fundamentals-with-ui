@@ -280,6 +280,42 @@ Let vector $A = [0.6, 0.8, 0.0]$ and vector $B = [0.0, 0.8, 0.6]$:
 4. **Euclidean ($L_2$) Distance**:
    $$d(A, B) = \sqrt{(0.6 - 0.0)^2 + (0.8 - 0.8)^2 + (0.0 - 0.6)^2} = \sqrt{0.36 + 0.0 + 0.36} = \sqrt{0.72} \approx 0.8485$$
 
+### Diagnose retrieval with three separate comparisons
+
+A nearest neighbor is a geometric result, not a correctness verdict. Before tuning HNSW, keep
+three questions separate: what exact search returns, what approximate search returns, and what
+human-labelled evidence actually answers the task. Exact search is a reference for approximation;
+it is not automatically the relevance ground truth.
+
+Suppose exact top-2 is `{A, B}`, approximate top-2 is `{A, C}`, and only `B` answers the question.
+ANN overlap with the exact set is `1/2 = 50%`. Relevance recall is `0/1 = 0%`, because `B` was missed.
+These measurements diagnose different failures. A change can improve one while worsening another.
+
+| Observation | Inspect before changing the index |
+|---|---|
+| No eligible rows | Tenant/permission filter, deletion state and ingestion progress |
+| Vectors have different lengths | Model/dimension metadata and rejected inserts |
+| Same lengths, nonsensical ranking | Whether query and stored vectors come from compatible model versions |
+| ANN misses exact neighbors | Search/traversal budget and the filtered exact baseline |
+| Exact neighbors do not answer | Chunking, embedding suitability and relevance labels |
+
+Run the existing synthetic metric observations from repository root:
+
+```bash
+python3 examples/labs/aiml/observe.py
+```
+
+The [lab guide](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/labs/README.md)
+explains hit rate, relevance recall and a case with one of three required passages. It is not an
+ANN-engine benchmark. The [Java knowledge baseline](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/ai-backend/KNOWLEDGE.md)
+currently uses lexical retrieval so authorization/version behavior can be inspected independently.
+
+**Predict:** changing to another embedding model with the same dimension avoids a database shape
+error; does that make the old vectors comparable? No. **Change:** introduce a distinct model namespace
+and build a complete new index version. **Debug:** compare query/stored model IDs, dimensions,
+source versions and filters before raising top-k. Keep query and ingestion on compatible versions
+through backfill and cutover; otherwise a successful insert can still produce meaningless search.
+
 ### Matryoshka Representation Learning (MRL)
 Some embedding models are trained with **Matryoshka Representation Learning (MRL)**: shorter prefixes of the representation receive training supervision too. Only use shorter dimensions that the model or provider supports, and normalize again when the selected metric requires unit vectors.
 - Shortening 1536 float32 coordinates to 256 reduces raw coordinate storage and comparison work by $6\times$; it does not promise a sixfold request-speed improvement or a fixed recall percentage.
@@ -478,14 +514,38 @@ Scalar Quantization maps each float coordinate to a smaller scalar such as `uint
 **Q11. Scenario: Retrieval finds relevant sentences, but answers miss qualifications in adjacent paragraphs. What do you change?** `[hard]`
 The chunks are likely too small or split without respecting document structure, so the retrieved fact lacks its conditions. Compare larger or parent-child chunks, preserve headings, and add modest overlap while measuring retrieval recall and grounded-answer quality. Do not merely increase overlap everywhere because duplicates consume index storage, reranker capacity, and the LLM context window.
 
+**Answer rubric**
+- **Say it:** Recover the qualification that gives a retrieved sentence its meaning.
+- **Mechanism:** Inspect chunk boundaries and parent context, then compare larger or parent-child retrieval using relevance and grounded-answer evaluation.
+- **Example:** A refund amount is found, but the next paragraph says it applies only within 14 days.
+- **Limit:** More overlap adds duplicates, storage and context use; it is not a free correctness improvement.
+- **Watch for:** Increasing the number of arbitrary fragments without checking whether the required condition is present.
+- **Follow-up:** Which test would show that a chunk preserves both the rule and its exception?
+
 **Q12. How does Hybrid Search combine Dense Vector search with Sparse BM25 keyword search?** `[hard]`
 Hybrid search runs dense ANN for semantic intent and sparse BM25 for exact keywords, acronyms, and identifiers. It combines their rankings with Reciprocal Rank Fusion or sends the union to a cross-encoder reranker. Fusion protects candidate recall, while reranking improves ordering but adds latency and cannot recover a document omitted by both retrievers.
 
 **Q13. Scenario: A legal search engine using an HNSW index reports that search recall dropped from 97% to 62% for queries containing strict client account filters. What is the root cause and architectural fix?** `[hard]`
 Investigate whether filtering, search-budget limits, stale payloads or the evaluation denominator changed; the percentage drop alone does not prove one root cause. Because each client account represents a small fraction of the total legal corpus, standard HNSW top-$K$ search returns candidates belonging to other clients that are subsequently discarded by the metadata filter, leaving fewer than $K$ (or low-quality) results. Compare exact search within the authorized subset, iterative/filter-aware search and tenant partitioning before migrating databases. Tune and evaluate the chosen design per filter; changing engines alone does not guarantee recall.
 
+**Answer rubric**
+- **Say it:** Separate missing eligible candidates from ranking quality before naming a cause.
+- **Mechanism:** Compare filtered exact search with filtered ANN output; inspect traversal budget, payload freshness and authorized-corpus size.
+- **Example:** Exact top-2 A/B versus approximate A/C has 50% overlap, while task recall can still be zero if only B is relevant.
+- **Limit:** Changing engines or oversampling does not guarantee complete eligible results under every budget.
+- **Watch for:** Reporting an unfiltered recall number for a tenant whose eligible subset is tiny.
+- **Follow-up:** How would you measure approximation error separately from incorrect relevance labels?
+
 **Q14. Scenario: After updating an LLM embedding model from `text-embedding-ada-002` to `text-embedding-3-large`, users complain that newly ingested documents are never returned for search queries. What happened?** `[hard]`
 Check stored model IDs and dimensions first: incompatible dimensions may have been rejected at ingestion, while compatible-sized but unrelated vectors can be silently mixed. Even though both models output floating-point vectors, their semantic vector spaces are completely incompatible geometrically—a vector from model A cannot be meaningfully compared against a vector from model B. The remediation requires generating a new index collection, backfilling and re-embedding the entire historical dataset using the new model, capturing concurrent writes during backfill, and switching query and ingestion versions together only after completeness and relevance checks pass.
+
+**Answer rubric**
+- **Say it:** Query and stored vectors must use compatible model spaces, not merely equal lengths.
+- **Mechanism:** Record model/dimension versions, backfill a separate namespace, capture concurrent updates and switch ingestion/query together after checks.
+- **Example:** An equal-dimension model change may insert successfully while old documents become impossible to rank meaningfully.
+- **Limit:** A completed backfill still needs deletion, permission, completeness and quality checks before cutover.
+- **Watch for:** Mixing embedding versions in one index or assuming matching dimensions establish semantic compatibility.
+- **Follow-up:** How would you roll back while ensuring writes after the migration are not lost?
 
 ### Further Reading
 
