@@ -426,3 +426,5 @@ Start the [beginner learning path](docs/BACKEND_AI_LEARNING_PATH.md), train a ti
 The ML fundamentals lesson now links the training lab and includes three more scenario rubrics (59 total). A recorded local-model experiment completed all 20 requests but matched no complete expected field set; the teaching materials explicitly distinguish schema acceptance from semantic correctness. See the implementation ledger for the report and limits.
 
 The practical project also provides a [tenant-aware JDBC knowledge baseline](examples/ai-backend/KNOWLEDGE.md) and [bounded tool/approval workflow](examples/ai-backend/WORKFLOW.md). The MCP example uses an actual local server/client; its tested negotiated protocol is documented explicitly. Dense vector retrieval and remaining production exercises are still pending. Interactive credentials are required environment values; the smoke generates its own.
+
+The agent API reports recoverable capacity exhaustion as HTTP 503 and malformed model responses as HTTP 502; its focused service/MVC tests distinguish these from client validation failures.

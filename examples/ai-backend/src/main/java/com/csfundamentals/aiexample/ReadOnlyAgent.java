@@ -38,8 +38,10 @@ public final class ReadOnlyAgent implements AutoCloseable {
             catch (InterruptedException e) { pending.cancel(true); Thread.currentThread().interrupt(); throw new OllamaHttpModel.ModelFailure("cancelled"); }
             catch (ExecutionException e) { throw new OllamaHttpModel.ModelFailure("agent_model_failure"); }
             if (System.nanoTime() - started >= maxNanos) return new Result("deadline", step - 1, "Investigation stopped", List.copyOf(observations));
-            var action = json.readTree(output);
-            if (!action.isObject() || action.size() != 2 || !action.path("tool").isString()) throw new IllegalArgumentException("invalid_agent_action");
+            tools.jackson.databind.JsonNode action;
+            try { action = json.readTree(output); }
+            catch (RuntimeException e) { throw new OllamaHttpModel.ModelFailure("agent_invalid_json"); }
+            if (action == null || !action.isObject() || action.size() != 2 || !action.path("tool").isString()) throw new OllamaHttpModel.ModelFailure("agent_invalid_action");
             switch (action.path("tool").asString()) {
                 case "lookup_order" -> {
                     if (!action.path("orderId").isString() || !action.path("orderId").asString().equals(orderId)) throw new SecurityException("agent_order_scope");

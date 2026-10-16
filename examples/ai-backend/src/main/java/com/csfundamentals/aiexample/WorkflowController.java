@@ -19,6 +19,9 @@ class WorkflowController {
     @PostMapping("/api/refund-proposals/{id}/approve") RefundWorkflow.Proposal approve(Principal principal, @PathVariable String id, @RequestBody Approval request) { return workflow.approve(principal.getName(), id, request.approvalToken()); }
     @GetMapping("/api/operations/{id}") RefundWorkflow.Proposal status(Principal principal, @PathVariable String id) { return workflow.status(principal.getName(), id); }
     @ExceptionHandler(IllegalArgumentException.class) ResponseEntity<Map<String, String>> invalid(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
+    @ExceptionHandler(OllamaHttpModel.ModelFailure.class) ResponseEntity<Map<String, String>> modelFailure(OllamaHttpModel.ModelFailure e) {
+        return ResponseEntity.status(e.getMessage().equals("agent_capacity") ? 503 : 502).body(Map.of("error", e.getMessage()));
+    }
     @ExceptionHandler(SecurityException.class) ResponseEntity<Map<String, String>> forbidden() { return ResponseEntity.status(403).body(Map.of("error", "operation_not_authorized")); }
     @ExceptionHandler(KnowledgeStore.Conflict.class) ResponseEntity<Map<String, String>> conflict() { return ResponseEntity.status(409).body(Map.of("error", "operation_version_conflict")); }
 }

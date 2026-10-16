@@ -30,6 +30,13 @@ class ReadOnlyAgentTests {
         }
         assertEquals(1, workflow.lookup("alice", "ORD-1001").version());
     }
+    @Test void malformedModelOutputHasAnExplicitFailureCode() {
+        for (String response : new String[]{"not json", "null", "[]", "{}"}) {
+            try (var agent = agent(input -> response)) {
+                assertThrows(OllamaHttpModel.ModelFailure.class, () -> agent.investigate("alice", "ORD-1001", "Check"));
+            }
+        }
+    }
     @Test void repetitiveModelStopsAtDeclaredStepLimit() {
         try (var agent = agent(input -> "{\"tool\":\"lookup_order\",\"orderId\":\"ORD-1001\"}")) {
             assertEquals("step_limit", agent.investigate("alice", "ORD-1001", "Continue forever").status());
