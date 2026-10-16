@@ -474,3 +474,31 @@ unsupported state controlling whether the Simulation tab should appear.
   do not weaken error-boundary recovery to preserve local page state.
 
 - Resolving commit: `05f8b5dbaef4b7c987813dff6d5ba01d51b170b9`.
+
+## RCA-2026-10-16-01 — Teaching JAR smoke overlapped packaging on Windows storage
+
+- Evidence: all eleven new AI example tests passed, but Spring Boot repackage failed moving `ai-backend-example-0.0.1-SNAPSHOT.jar.original` while the owned HTTP smoke process was executing that output JAR under `/mnt/c`.
+- Root cause: the smoke command started before the Maven verify session completed. The build and runtime shared a mutable JAR on Windows-backed storage; the move failed and the smoke also reported a missing Logback class while packaging was in progress. The exact filesystem locking behavior was not independently measured.
+- Resolution: stop the owned smoke process, complete packaging first, then launch the packaged smoke sequentially. The smoke will also copy the completed JAR to its own temporary directory to avoid retaining a lock on build output.
+- Verification: sequential package completed and the packaged HTTP smoke passed all 50 fixture cases after the temporary-JAR change; record the resolving commit in the implementation results ledger.
+- Prevention: await successful build completion before dependent runtime checks; use immutable temporary runtime artifacts.
+
+## RCA-2026-10-16-02 — Live inference competed with browser-test memory
+
+- Evidence: the installed 7B Ollama runner used about 4.9 GiB RSS on a 6.8 GiB WSL instance; available memory fell below 0.5 GiB and Vitest failed during jsdom import with ENOMEM before collecting tests.
+- Root cause: a real inference experiment and frontend verification ran concurrently without sufficient memory headroom. The evaluator also wrote its report only at the end, so interrupted runs lost per-case diagnostic results.
+- Resolution: stop only the owned evaluator, unload the model loaded for that experiment, serialize inference and browser verification, and atomically checkpoint evaluation progress after each case. Use a smaller explicitly reviewed local model for subsequent experiments.
+- Verification: free memory returned above 5 GiB; all 14 parser tests passed with one worker. The smaller 0.5B model completed all 20 held-out cases; its atomic per-case report records completion and model/runtime provenance. The final field-quality score is zero, which is reported as a failed model-task fit rather than a test pass.
+- Prevention: measure available memory and account for model/runtime/KV-cache plus test-runner use before inference. Live runs require recorded model digest/runtime and must not overlap browser tests on this constrained environment.
+
+RCA-2026-10-16-01 resolving commit: `03620b7`. RCA-2026-10-16-02 resolving commit is recorded in the implementation ledger after commit.
+
+
+## RCA-2026-10-16-03 — Secret scanner rejected sample configuration defaults
+
+- Evidence: PR #55 GitGuardian check 117118376379 identified a Generic Password in the new teaching application's configuration in original development commit `03620b7`.
+- Root cause: the loopback teaching example used fixed sample password defaults. They were not deployed credentials, but violated the repository's secret-scanning policy and could be copied into an unsafe deployment.
+- Resolution: require runtime passwords/approval secret; generate ephemeral test and smoke credentials; preserve a local backup then sanitize only the agent's new feature history before force-with-lease push. No check exemption or credential output is required.
+- Verification: all 29 example tests and the packaged authenticated cross-feature smoke pass with generated values. Final-head GitGuardian/CI checks must pass before merge.
+- Prevention: examples fail closed without explicit credentials; deterministic tests generate their own values rather than embedding defaults in configuration.
+- Resolving commit: final sanitized checkpoint, recorded in the implementation ledger after creation.

@@ -11,6 +11,7 @@ by design). Usage:
 category: os | networking | dbms | java-spring | aiml  (aliases: cn, net, db, java, spring, ai, ml)
 """
 import re
+import json
 import sys
 from pathlib import Path
 
@@ -32,7 +33,7 @@ LEVEL_ICON = {'beginner': 'B', 'intermediate': 'I', 'expert': 'E'}
 ORDER = ['os', 'networking', 'dbms', 'java-spring', 'aiml', 'devops']
 
 FIELD = r'"((?:[^"\\]|\\.)*)"'
-TOPIC_RE = re.compile(r'new Topic\(\s*' + r'\s*,\s*'.join([FIELD] * 5) + r'\s*\)', re.S)
+TOPIC_RE = re.compile(r'new Topic\(\s*' + r'\s*,\s*'.join([FIELD] * 5) + r'\s*,\s*(\d+)\s*,\s*List\.of\(([^)]*)\)\s*,\s*List\.of\(([^)]*)\)\s*\)', re.S)
 
 
 def read(rel):
@@ -42,10 +43,14 @@ def read(rel):
 
 def load_topics():
     src = read('backend/src/main/java/com/csfundamentals/service/TopicService.java')
-    return [
-        {'id': m[0], 'title': m[1], 'category': m[2], 'level': m[3], 'summary': m[4]}
-        for m in TOPIC_RE.findall(src)
-    ]
+    matches = TOPIC_RE.findall(src)
+    if len(matches) != len(re.findall(r'new\s+Topic\(', src)):
+        raise ValueError('Unrecognized Topic constructor: update the inventory parser before auditing')
+    return [dict(zip(['id', 'title', 'category', 'level', 'summary'],
+                     [json.loads('"' + field + '"') for field in m[:5]]),
+                 order=int(m[5]), prerequisiteIds=json.loads('[' + m[6] + ']'),
+                 outcomes=json.loads('[' + m[7] + ']')) for m in matches]
+
 
 
 def content_files():
@@ -62,21 +67,16 @@ def content_files():
 
 
 def resolve_content(files, category, topic_id):
-    """Same two-stage lookup as ContentService: exact stem, then startsWith prefix."""
-    entries = files.get(category, {})
-    if topic_id in entries:
-        return entries[topic_id]
-    for stem, fname in entries.items():
-        if stem.startswith(topic_id):
-            return fname
-    return None
+    """Exact match, like ContentService's canonical index; no unsafe prefix fallback."""
+    return files.get(category, {}).get(topic_id)
+
 
 
 def audit(topics, files):
-    topic_page = read('frontend/src/pages/TopicPage.jsx')
     registry = read('frontend/src/components/visualizers/topicVisualizerRegistry.jsx')
     categories = read('frontend/src/utils/topicCategories.js')
-    home = read('frontend/src/pages/HomePage.jsx')
+    fixture = json.loads(read('frontend/src/test/catalog.json'))
+    fixture_by_id = {t['id']: t for t in fixture}
     tests = read('backend/src/test/java/com/csfundamentals/service/TopicServiceTest.java')
     problems = []
     no_visualizer = []
@@ -86,23 +86,25 @@ def audit(topics, files):
         miss = []
         if not resolve_content(files, cat, tid):
             miss.append('content file')
-        if f"'{tid}':" not in topic_page:
-            miss.append('TopicPage titleMap')
         if f"'{tid}'" not in registry:
             no_visualizer.append(tid)
         if f"'{tid}':" not in categories and f"{tid}:" not in categories:
             miss.append('topicCategories TOPIC_CATEGORY_MAP')
-        if f"'{tid}'" not in home:
-            miss.append('HomePage fallback')
+        if fixture_by_id.get(tid) != t:
+            miss.append('canonical browser fixture metadata')
         if f'"{tid}"' not in tests:
             miss.append('TopicServiceTest assertion')
         if miss:
             problems.append(f"  {tid:34} missing: {', '.join(miss)}")
 
-    used = {resolve_content(files, t['category'], t['id']) for t in topics}
+    used = {(t['category'], resolve_content(files, t['category'], t['id'])) for t in topics}
+    if len({t['id'] for t in topics}) != len(topics):
+        problems.append('Duplicate canonical topic IDs')
+    if set(fixture_by_id) != {t['id'] for t in topics}:
+        problems.append('Browser fixture topic IDs differ from canonical registry')
     for cat, entries in sorted(files.items()):
         for tid, fname in entries.items():
-            if fname not in used:
+            if (cat, fname) not in used:
                 problems.append(f"  {tid:34} content/{cat}/{fname} exists but no topic resolves to it")
 
     for m in re.finditer(r'assertEquals\((\d+),\s*(\w+)Topics\.size\(\)', tests):
@@ -147,11 +149,11 @@ def main():
         problems, no_visualizer = audit(topics, files)
         print('\nRegistration audit')
         print('-' * 78)
-        print('\n'.join(problems) if problems else '  All registered topics are wired at all 6 hard-required points.')
+        print('\n'.join(problems) if problems else '  Canonical metadata, exact content, category mapping and test assertions agree.')
         if no_visualizer:
             print('\nNo topicVisualizerRegistry.jsx entry (Study only, no Simulation tab — may be intentional):')
             print('\n'.join(f'  {tid}' for tid in no_visualizer))
-    return 0
+    return 1 if do_audit and problems else 0
 
 
 if __name__ == '__main__':

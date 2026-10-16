@@ -145,6 +145,57 @@ per-customer authorization.
 
 ---
 
+### Train your first tiny model, then explain its mistakes
+
+You can now run a real training process without a model API, GPU, Python library or account.
+The [beginner learning path](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/docs/BACKEND_AI_LEARNING_PATH.md)
+connects this lesson to the runnable Java project. Start in the repository root:
+
+```bash
+python3 examples/labs/aiml/train.py
+python3 -m unittest discover -s examples/labs -p test_training.py -v
+```
+
+This is **runnable Python 3 teaching code**. It creates 160 synthetic support records with two
+features: days late and previous contacts. The label says whether escalation was needed in an
+invented data-generating process; it is not a customer dataset or a real escalation policy.
+One hundred records fit the model, thirty choose a threshold, and thirty remain held out.
+
+The model learns an intercept and two weights. A weight controls how much its feature changes
+the score; training moves those weights in the direction that reduces prediction error.
+The logistic function converts the score into a number between zero and one. Interpreting that
+number as a well-calibrated real-world probability requires additional evidence.
+
+The training mean replaces missing values. Standardization expresses each value relative to
+that mean and training spread. Save these values with the weights and reuse them at inference;
+recomputing them on every incoming request changes what the fitted weights mean.
+
+| Read this report field | It establishes | It does not establish |
+|---|---|---|
+| Initial and final training loss | Optimization changed weights and reduced this objective | Generalization |
+| Validation reports at three thresholds | A visible threshold-selection process | A threshold valid for every business |
+| Held-out confusion matrix | Errors on thirty unseen synthetic records | Production safety or fairness |
+| Dataset digest and seed | Which generated data this run used | Independent real-world sampling |
+
+A verified local run reduced training loss from approximately 0.693 to 0.406. The validation
+set selected threshold 0.5; the held-out matrix was TP=19, FP=2, FN=5, TN=4, giving 23/30 correct.
+Always compare that with the baseline and the error costs. These numbers describe this fixed
+synthetic lab, not a promised score for another dataset. The always-positive baseline gets
+24/30 correct, so this trained model loses on accuracy while reducing false positives from six
+to two. If missing an escalation is expensive, that trade-off may be worse. Lower training loss
+alone is not a reason to ship a model.
+
+**Predict:** lower the decision threshold. More examples become positive, so both true-positive
+and false-positive counts can increase. **Change:** replace a held-out feature with a huge value.
+The fitted training mean must stay unchanged. **Debug:** if it changes, inspect whether preprocessing
+was fitted before splitting; isolate the training transform and rerun the held-out evaluation.
+
+This exercise teaches the training lifecycle. A generative-model API call is a later step:
+[Project A](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/ai-backend/README.md)
+validates a proposed ticket classification without treating model output as business authority.
+
+---
+
 ## 🟡 Intermediate Level
 
 ### Generalisation, overfitting, and underfitting
@@ -457,9 +508,25 @@ Forward propagation computes layer activations, predictions, and loss from input
 
 Accuracy is dominated by legitimate transactions and does not represent the cost of missed fraud. Inspect the confusion matrix, precision-recall curve, score distribution, and label quality, then choose a threshold or loss weighting aligned with recall and review capacity. Re-evaluate on a representative time-based test set because class imbalance and fraud behaviour may also have shifted.
 
+**Answer rubric**
+- **Say it:** Accuracy can hide missed positives; inspect error costs before changing a threshold.
+- **Mechanism:** Compare TP/FP/FN/TN at several thresholds using validation data, then freeze the selected rule.
+- **Example:** Catching 19 of 24 positive held-out cases gives recall 19/24; missing five may still be unacceptable.
+- **Limit:** More recall can create more false positives and exceed the human review capacity.
+- **Watch for:** Reporting a high accuracy or lowering a threshold without checking the review queue.
+- **Follow-up:** How would delayed fraud labels change the evaluation window?
+
 **Q12. Scenario: Validation performance is excellent, but production performance collapses in the first month. What do you investigate?** `[hard]`
 
 Check leakage, random splitting across time or repeated entities, training-serving feature skew, missing-value handling, and changes in feature or label distributions. Compare production slices with the training dataset and evaluate delayed labels when they become available. Fix the data and evaluation pipeline before increasing model complexity, because a stronger learner can exploit the same leakage more effectively.
+
+**Answer rubric**
+- **Say it:** Compare the complete training and serving data paths before assuming the algorithm is wrong.
+- **Mechanism:** Trace feature availability, transformations, entity/time splits and production slices; evaluate delayed labels when available.
+- **Example:** A training mean computed with next month’s records leaks information even when labels were excluded.
+- **Limit:** A small monitoring sample or input drift alone does not establish a quality decline.
+- **Watch for:** Retraining immediately on all incoming data without validating labels or the original leakage hypothesis.
+- **Follow-up:** Which observation would distinguish training-serving skew from a real change in the target relationship?
 
 **Q13. Scenario: A delivery-time model has MAE 4 minutes and RMSE 18 minutes. What does that gap suggest?** `[hard]`
 
@@ -468,6 +535,14 @@ RMSE's squared penalty suggests large errors contribute disproportionately compa
 **Q14. Scenario: A team tunes 500 models against the same validation set and publishes the best result. Why might it fail to reproduce?** `[hard]`
 
 Repeated model selection has overfit the validation set even though gradient training never used it directly. The best score includes selection noise from hundreds of comparisons and may not generalise. Evaluate the frozen winner once on an untouched test set, report uncertainty across seeds or folds, and use nested cross-validation when data is limited.
+
+**Answer rubric**
+- **Say it:** Repeated selection can overfit validation data without directly training on it.
+- **Mechanism:** Freeze the chosen pipeline and evaluate once on an untouched test set; preserve the search history and data splits.
+- **Example:** Choosing the best of 500 noisy scores can select favorable noise rather than a better mechanism.
+- **Limit:** A single held-out score still has uncertainty, especially on a small synthetic set.
+- **Watch for:** Treating every validation comparison as independent proof of generalization.
+- **Follow-up:** How would you evaluate another candidate after the original test result has influenced your decisions?
 
 ### Further Reading
 

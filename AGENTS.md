@@ -655,3 +655,14 @@ evidence are in `docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md`, and the component
   `scripts/lib/ui-fixtures.mjs` (fixture evidence). `scripts/test-real-backend-journey.mjs` runs the
   built frontend against a real backend (`CS_API_ORIGIN`) and is the CI `real-backend-journey` job.
   Regenerate and decode diagrams after any `App.css` change because CSS is part of the fingerprint.
+
+
+## Practical backend/AI implementation — October 16
+
+Follow `BACKEND_AI_PRACTICAL_LEARNING_PLAN_2026-10-16.md` and update `docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md` from actual evidence. The first executable milestone is `examples/ai-backend`, separate from the platform backend. Preserve its HTTP body/deadline/call caps, strict output validation and authentication/CSRF boundary. Fake-provider tests are not live semantic-quality evidence. Package first, then run `verify_http.py`; it copies the JAR to temporary storage and cleans up only its own children. The small classifier in `examples/labs/aiml/train.py` fits preprocessing only on training rows; keep validation/test separation and deterministic data provenance. Run its five tests with `test_training.py`. Preserve analytics redaction and the learning-network contracts.
+
+Current interview feedback total after the ML lab extension: 59 authored rubrics; preserve ml-fundamentals-q11/q12/q14 and update frontend/backend corpus assertions when adding more. Live inference and browser tests must run serially on this memory-constrained WSL environment. EvaluateTickets checkpoints each case atomically and requires model digest/runtime for live-local evidence; schema acceptance does not imply correct fields.
+
+KnowledgeStore/KnowledgeService own the example’s lexical baseline, tenant filtering and citation freshness. RefundWorkflow performs only a local fake mutation; preserve exact-action/expiry checks, transaction lock ordering, file-restart and concurrent duplicate tests. ReadOnlyAgent’s tools stay read-only, bounded and cancelable. MCP stdio stdout is protocol-only (logs use stderr); record actual negotiated versions. Require runtime passwords/approval secret and generate test values; never restore sample password defaults.
+
+Preserve explicit agent overload/upstream-error HTTP behavior (503/502) and its service/MVC regressions; avoid generic 500 responses for expected invalid model output.

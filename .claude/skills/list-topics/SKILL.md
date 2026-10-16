@@ -1,13 +1,12 @@
 ---
 name: list-topics
-description: List the curriculum topics in cs-fundamentals-with-ui grouped by category (os, networking/cn, dbms, java-spring, aiml, devops) with level, title, and one-line summary — optionally auditing that every topic is wired at all 7 registration points. Use when the user asks what topics exist, what's covered under a section, for a curriculum inventory, or whether a topic is fully registered (e.g. "/list-topics", "/list-topics cn", "what DBMS topics do we have").
+description: List the curriculum topics in cs-fundamentals-with-ui grouped by category (os, networking/cn, dbms, java-spring, aiml, devops) with level, title, and one-line summary — optionally auditing that every topic is consistent with the current canonical integration contract. Use when the user asks what topics exist, what's covered under a section, for a curriculum inventory, or whether a topic is fully registered (e.g. "/list-topics", "/list-topics cn", "what DBMS topics do we have").
 user-invocable: true
 ---
 
 # List topics
 
-Runs a deterministic inventory instead of hand-reading `TopicService.java` — 64 topics is too
-many to enumerate reliably by eye, and the docs disagree with each other on the counts.
+Runs a deterministic inventory of `TopicService.java` so status reports use the canonical metadata and current counts.
 
 ## Run it
 
@@ -15,7 +14,7 @@ many to enumerate reliably by eye, and the docs disagree with each other on the 
 python3 .claude/skills/list-topics/list_topics.py                    # all categories, grouped
 python3 .claude/skills/list-topics/list_topics.py --summaries        # + the one-line summary per topic
 python3 .claude/skills/list-topics/list_topics.py cn --summaries     # one category (aliases below)
-python3 .claude/skills/list-topics/list_topics.py --audit            # + 7-point registration audit
+python3 .claude/skills/list-topics/list_topics.py --audit            # + canonical registration audit
 ```
 
 Category names are `os`, `networking`, `dbms`, `java-spring`, `aiml`, `devops`; the script accepts
@@ -27,18 +26,15 @@ the topic is registered but no Markdown resolves for it.
 
 ## What it reads
 
-`backend/.../TopicService.java` is the source of truth for what exists — the script parses the
-`new Topic(id, title, category, level, summary)` list. Content files are matched the same way
-`ContentService` does it (strip a leading `\d+[a-z]?-`, then exact stem, then `startsWith`
-prefix), so `05-feature-stores-mlops.md` correctly resolves for topic id `feature-stores`.
+`TopicService.java` is canonical. The parser reads all eight fields, including order,
+prerequisites and outcomes, and fails if any constructor is not understood. Content resolution
+uses an exact stripped filename stem; there is no prefix fallback.
 
-`--audit` cross-references the other five hard-required registration points from
-`.claude/references/topic-registry.md` (TopicPage `titleMap`, `topicCategories.js`
-`TOPIC_CATEGORY_MAP`, HomePage fallback array, TopicServiceTest assertions, content file) and
-reports any topic missing one, any content file no topic resolves to, and any per-category count
-assertion that no longer matches `TopicService`. It also lists, separately and non-fatally, any
-topic with no `topicVisualizerRegistry.jsx` entry — that's the optional 7th point (no Simulation
-tab, Study only), not a defect.
+`--audit` checks actual content, category mapping, per-topic test assertions and all fields of
+`frontend/src/test/catalog.json`. It rejects mismatched fixtures, orphan content and duplicate IDs.
+Missing simulator entries are reported separately because Study-only topics are intentional.
+HomePage and TopicPage derive metadata from the API; they have no fallback array or titleMap.
+See `.claude/references/topic-registry.md`. A failing audit exits nonzero.
 
 ## Presenting the result
 

@@ -585,3 +585,14 @@ No backend, API, storage-key, URL, heading-ID or question-identity change was ma
   `CS_DIST_DIR`/API proxy), `scripts/capture-ui-previews.mjs`, the extended
   `scripts/test-responsive-layout.mjs`, and `scripts/test-real-backend-journey.mjs`, which the new
   `real-backend-journey` CI job runs against the packaged Spring Boot jar.
+
+
+## Practical AI teaching project — October 16
+
+`examples/ai-backend` is an independent Java 17 / Boot 4.1.1 / Spring AI 2.0.1 application. Its loopback-only API uses Basic plus CSRF for browser writes. A bounded Ollama-shaped HTTP adapter feeds strict ticket validation; authenticated requests cannot select the provider endpoint. `verify_http.py` tests a completed temporary JAR with an owned fixture server and 50 synthetic evaluation cases. No AI inference is added to the educational platform. `examples/labs/aiml/train.py` actually optimizes a small synthetic logistic classifier; deterministic tests verify split/preprocessing separation. The `practical-ai` CI job runs these artifacts separately from platform checks.
+
+The first ML expansion preserves all 953 question identities and raises authored rubrics to 59. Frontend/backend corpus parsing checks verify the new ml-fundamentals-q11/q12/q14 attachments. Live local-model reports contain case IDs and acceptance/match results, with model/runtime provenance and atomic per-case progress; they do not contain raw answers or establish production quality.
+
+The teaching application now includes JDBC document versions/tombstones and tenant-filtered lexical retrieval. Citation validation rechecks source versions after generation. A separate local fake refund workflow binds approval to principal/action/version/expiry and commits its order update with an idempotent operation record. Its read-only agent cannot access mutation APIs. Official MCP SDK 2.0.0 powers a separate stdio server/client demonstration; tested negotiation is 2025-11-25. Runtime credentials have no committed defaults.
+
+Teaching API error contract: agent capacity is 503, invalid upstream model JSON/action is 502, client input is 400, and authorization denial is 403. The final example suite contains 31 tests.

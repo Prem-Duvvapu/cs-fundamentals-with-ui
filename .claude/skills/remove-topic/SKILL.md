@@ -18,7 +18,7 @@ asserting a count that no longer matches.
   ls content/*/*<topic-id>*.md
   ```
 - Ask whether they want it **removed** or only **unlisted** (hidden from the home page but content
-  kept). Unlisting = remove points 2, 4, 6, 7 and keep the content file and engine.
+  kept). Unlisting is not implemented: deregistered content is not served by the exact registered index. A hidden-topic feature needs a separate design; do not simulate it by leaving orphan files.
 - Check whether the visualizer or engine is shared: a category hub sub-tab may be reachable from
   several topic ids, and some engines back more than one visualizer. Only delete files whose last
   reference is going away.
@@ -32,10 +32,9 @@ Reverse `.claude/references/topic-registry.md`:
 1. `content/<category>/NN-<topic-id>.md` — delete (or keep, if unlisting)
 2. `TopicService.java` — remove the `new Topic(...)` line
 3. `TopicServiceTest.java` — **decrement** the category count assertion and drop the `contains` line
-4. `TopicPage.jsx` — remove the `titleMap` entry; and, if present, the entry (and now-unused
-   import) in `topicVisualizerRegistry.jsx`
+4. `topicVisualizerRegistry.jsx` — remove an entry and unused imports only if present; TopicPage reads its title from the canonical API catalog and has no titleMap
 5. `frontend/src/utils/topicCategories.js` — remove the `TOPIC_CATEGORY_MAP` entry
-6. `HomePage.jsx` — remove the object from the fallback array
+6. `frontend/src/test/catalog.json` — synchronize the canonical browser fixture; HomePage derives its catalog from the API and has no fallback array
 7. Category hub — only if the registry entry (point 4) was `hub(...)`: remove the
    `getInitialTab()` case, the sub-tab button, the render branch, and the import
 

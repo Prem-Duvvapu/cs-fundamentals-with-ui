@@ -1,0 +1,135 @@
+{
+  "evidence" : "live-local",
+  "model" : "qwen2.5:0.5b",
+  "modelDigest" : "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+  "runtimeVersion" : "0.32.5",
+  "promptVersion" : "ticket-v1",
+  "datasetSha256" : "b313c6f19846ec733d917b6da90ec5a85968f211d832f2bc605bae8f04cb2084",
+  "at" : "2026-10-16T17:55:09.883486101Z",
+  "cases" : [ {
+    "id" : "held-out-01",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 8316
+  }, {
+    "id" : "held-out-02",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 3610
+  }, {
+    "id" : "held-out-03",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2524
+  }, {
+    "id" : "held-out-04",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2907
+  }, {
+    "id" : "held-out-05",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 3205
+  }, {
+    "id" : "held-out-06",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2987
+  }, {
+    "id" : "held-out-07",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 3295
+  }, {
+    "id" : "held-out-08",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2319
+  }, {
+    "id" : "held-out-09",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2086
+  }, {
+    "id" : "held-out-10",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2315
+  }, {
+    "id" : "held-out-11",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2887
+  }, {
+    "id" : "held-out-12",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2478
+  }, {
+    "id" : "held-out-13",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 2532
+  }, {
+    "id" : "held-out-14",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 1907
+  }, {
+    "id" : "held-out-15",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 1378
+  }, {
+    "id" : "held-out-16",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 1129
+  }, {
+    "id" : "held-out-17",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 1260
+  }, {
+    "id" : "held-out-18",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 1215
+  }, {
+    "id" : "held-out-19",
+    "slice" : "adversarial",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 1398
+  }, {
+    "id" : "held-out-20",
+    "slice" : "adversarial",
+    "accepted" : true,
+    "fieldsCorrect" : false,
+    "totalMs" : 1427
+  } ],
+  "state" : "complete",
+  "limits" : "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+  "accepted" : 20,
+  "fieldsCorrect" : 0,
+  "totalMs" : 51175
+}
