@@ -62,6 +62,23 @@ jobs:
       - run: javac --release 17 -d /tmp/core-accuracy-java examples/labs/java/AccuracyContracts.java
       - run: java -cp /tmp/core-accuracy-java AccuracyContracts
 
+  practical-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: mvn verify -f examples/ai-backend/pom.xml
+      - run: python3 examples/ai-backend/verify_http.py
+      - run: python3 -m unittest discover -s examples/labs -p test_training.py -v
+      - run: python3 -m unittest discover -s scripts -p test_topic_inventory.py -v
+
   real-backend-journey:
     # The browser harness above uses API fixtures; this job runs the built frontend against the real
     # Spring Boot API (catalog, outlines, content, search, interview, server-side simulation).

@@ -234,7 +234,7 @@ describe('curriculum interview-question parsing', () => {
     const questions = topicFiles.flatMap(({ filename, filePath }) =>
       parseInterviewQuestions(fs.readFileSync(filePath, 'utf8'), filename.match(topicFilename)[1]))
     const authored = questions.filter(question => question.answerMarkdown.includes('**Answer rubric**'))
-    expect(authored).toHaveLength(56)
+    expect(authored).toHaveLength(59)
     for (const question of authored) {
       const { answerMarkdown, rubric } = splitInterviewAnswer(question.answerMarkdown)
       expect(rubric, question.id).not.toBeNull()
@@ -249,8 +249,9 @@ describe('curriculum interview-question parsing', () => {
       'synchronization-q3', 'synchronization-q12',
       'physical-layer-media-q5', 'physical-layer-media-q12',
       'routing-algorithms-q2', 'routing-algorithms-q13',
-      'functional-dependencies-keys-q5', 'functional-dependencies-keys-q12'
+      'functional-dependencies-keys-q5', 'functional-dependencies-keys-q12',
+      'ml-fundamentals-q11', 'ml-fundamentals-q12', 'ml-fundamentals-q14'
     ]
-    expect(authored.filter(question => addedIds.includes(question.id))).toHaveLength(12)
+    expect(authored.filter(question => addedIds.includes(question.id))).toHaveLength(15)
   })
 })

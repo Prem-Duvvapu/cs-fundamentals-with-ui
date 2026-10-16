@@ -133,7 +133,7 @@ class DiscoveryServiceTest {
         var second = service.getInterviewQuestions(null, null, 500, 500);
         var questions = java.util.stream.Stream.concat(first.questions().stream(), second.questions().stream()).toList();
         assertEquals(953, questions.size());
-        assertEquals(56, questions.stream().filter(question -> question.answerMarkdown().contains("**Answer rubric**")).count());
+        assertEquals(59, questions.stream().filter(question -> question.answerMarkdown().contains("**Answer rubric**")).count());
 
         var addedIds = java.util.List.of(
                 "java-streams-optional-q7", "java-streams-optional-q9",
@@ -141,9 +141,10 @@ class DiscoveryServiceTest {
                 "synchronization-q3", "synchronization-q12",
                 "physical-layer-media-q5", "physical-layer-media-q12",
                 "routing-algorithms-q2", "routing-algorithms-q13",
-                "functional-dependencies-keys-q5", "functional-dependencies-keys-q12");
+                "functional-dependencies-keys-q5", "functional-dependencies-keys-q12",
+                "ml-fundamentals-q11", "ml-fundamentals-q12", "ml-fundamentals-q14");
         var added = questions.stream().filter(question -> addedIds.contains(question.id())).toList();
-        assertEquals(12, added.size());
+        assertEquals(15, added.size());
         for (var question : added) {
             for (var label : java.util.List.of("Say it", "Mechanism", "Example", "Limit", "Watch for", "Follow-up")) {
                 assertTrue(question.answerMarkdown().contains("- **" + label + ":**"), question.id() + " " + label);
