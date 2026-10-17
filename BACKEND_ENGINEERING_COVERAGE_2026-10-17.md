@@ -251,13 +251,53 @@ Prefer existing owners and linked labs. This mapping registers no new topics, ch
 and increases no curriculum completion counts. Any future new topic needs its own registration and
 content-contract integration rather than an undocumented placeholder.
 
-## 6. Release and completion gate
+## 6. Link maintenance when another app changes
+
+**Current behavior:** this document is a verified snapshot. It does not subscribe to sibling
+changes, automatically rewrite URLs, run periodic link monitoring or provide redirects. HTTP 200
+alone cannot detect a React application's fallback page. Link-maintenance automation remains open
+under BE-07/CLOSE-01; the checks recorded above are one-time verification, not monitoring.
+
+Required implementation:
+
+1. **Stable identity and URLs.** Treat a published topic/problem/module ID as its identity. Prefer
+   keeping its URL stable. If an owner deliberately changes a route, that app should retain an
+   alias/redirect for the old URL and preserve supported query/hash navigation where meaningful.
+   A removed concept needs an explicit replacement or unavailable state, never an unrelated lesson.
+2. **One maintained set of lesson references.** The reference definitions in this checklist are the
+   current cross-project lesson inventory. Future app-level related links should use a shared
+   data source, with documentation generated from it or validated against it. Do not copy URLs
+   independently into many lesson files. This is link metadata, not a second curriculum registry.
+3. **Contract checks on changes.** Validate each referenced stable ID against the destination's
+   published catalog/routes and reject draft, removed or mismatched targets. Check redirects,
+   HTTPS and the expected host; do not accept an unrelated redirect merely because it responds.
+   Use source/catalog evidence and a rendered lesson-identity assertion where no public catalog
+   exists. A successful SPA HTML response is only an availability observation.
+4. **Periodic checks for independent releases.** Add a scheduled CI link audit as well as
+   pull-request checks. Changes in another repository cannot be detected solely when this repo
+   changes. Bound requests and retries; distinguish DNS/network/backend outage from confirmed
+   route removal. Use ordinary CI results for failures; no messaging integration is required.
+5. **Repair without losing context.** Resolve a changed route by the stable concept ID and review
+   the replacement's scope. Update the central reference, verify its destination and release the
+   fix. Do not silently substitute a homepage, draft or similarly named but unrelated topic.
+6. **Keep the learner's work intact.** Preserve native links and independent app state. Automated
+   link checking must use public synthetic navigation only; send no saved answers, notes, progress
+   or simulation inputs to another app or to the audit logs.
+
+Completion evidence must include a valid link, redirect-to-the-same-concept, removed/draft target,
+SPA fallback returning 200, identity mismatch, temporary outage and a repaired reference. Until
+that automation exists, repeat the source/route/HTTP checks before releases that change links
+and record the date and any remaining availability limits. No failure should be called a content
+removal merely because a transient request failed.
+
+## 7. Release and completion gate
 
 - [x] Preserve all 77 requested labels, with stable BEC-01–BEC-77 IDs.
 - [x] Identify owning lessons/apps, baseline limitations and practical acceptance work.
 - [x] Link this checklist from the practical plan, handoff and repository documentation.
 - [ ] For every BEC ID, link the reviewed explanation, executable exercise, diagnostic case,
   interview question/rubric, actual verification and merged release in the implementation ledger.
+- [ ] Implement and verify the cross-project link-maintenance checks in section 6.
 - [ ] Finish all ten BE packages and the independent AI/debugging/closure requirements.
 - [ ] Run checks appropriate to the actual changes; preserve existing URLs, saved progress/answers,
   themes, privacy, reading/practice behavior and the learning-network contract.
