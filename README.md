@@ -416,7 +416,7 @@ These are design and automated-check results; no learner study has been run.
 
 ### Practical backend and AI/ML roadmap — October 16
 
-The [practical learning plan](BACKEND_AI_PRACTICAL_LEARNING_PLAN_2026-10-16.md) defines the next content and lab expansion: an AI path from zero knowledge, three connected Java AI projects, production debugging exercises and supporting backend engineering practice. This is planned work; the existing curriculum and October 5 UI refinement remain delivered. The [implementation prompt](BACKEND_AI_IMPLEMENTATION_PROMPT_2026-10-16.md) provides the handoff and verification requirements.
+The [practical learning plan](BACKEND_AI_PRACTICAL_LEARNING_PLAN_2026-10-16.md) defines the next content and lab expansion: an AI path from zero knowledge, three connected Java AI projects, production debugging exercises and supporting backend engineering practice. Implementation is in progress; PR #55 delivers the first practical AI package, while the existing curriculum and October 5 UI refinement remain delivered. The [implementation prompt](BACKEND_AI_IMPLEMENTATION_PROMPT_2026-10-16.md) provides the handoff and verification requirements.
 
 
 ### Practical AI implementation — first milestone
@@ -428,3 +428,7 @@ The ML fundamentals lesson now links the training lab and includes three more sc
 The practical project also provides a [tenant-aware JDBC knowledge baseline](examples/ai-backend/KNOWLEDGE.md) and [bounded tool/approval workflow](examples/ai-backend/WORKFLOW.md). The MCP example uses an actual local server/client; its tested negotiated protocol is documented explicitly. Dense vector retrieval and remaining production exercises are still pending. Interactive credentials are required environment values; the smoke generates its own.
 
 The agent API reports recoverable capacity exhaustion as HTTP 503 and malformed model responses as HTTP 502; its focused service/MVC tests distinguish these from client validation failures.
+
+### Backend coverage checklist — October 17
+
+The [77-item backend checklist](BACKEND_ENGINEERING_COVERAGE_2026-10-17.md) maps every requested concept to its owner, current depth and remaining build/debug/interview evidence. It includes specific existing DSA, LLD and published HLD links so their lessons and exercises can be reused. Additions focus on uncovered concepts and backend integration practice; mapping is not a claim that all outcomes are complete. The AI/ML roadmap remains required alongside this checklist.
