@@ -1,6 +1,7 @@
 # Backend engineering and practical AI/ML learning plan
 
-Prepared: 2026-10-16. Status: **planning complete; implementation pending**.
+Prepared: 2026-10-16. Updated: 2026-10-17. Status: **planning complete; implementation in progress**.
+The first executable package is merged in PR #55 (`98c0e9e`); the [results ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md) records its limits.
 Baseline: repository `main` at `c5e5df1` (PR #52). This is a new learning-depth roadmap, not a claim that the current application is unfinished or that the work below has shipped.
 
 ## 1. Goal, audience and boundaries
@@ -209,17 +210,19 @@ Every runbook uses **symptom → hypotheses → evidence → root cause → fix 
 
 These packages deepen existing concepts and connect them to daily work. They are part of the broader roadmap, sequenced before or alongside the AI features that depend on them.
 
+The [October 17 coverage checklist](BACKEND_ENGINEERING_COVERAGE_2026-10-17.md) adds **all 77 explicitly requested backend items** as BEC-01–BEC-77, mapping each to owners, baseline limitations and completion evidence. These are required scope within the packages below. Reuse specific existing DSA/LLD/HLD pages rather than duplicating their lessons or exercises; fill only the missing concepts and distinct backend integration/debugging gaps. The checklist records verified routes and distinguishes published HLD topics from drafts. Mapped scope does not mean completed learning outcomes.
+
 | ID / priority | Package and concept owners | Runnable deliverable and completion evidence |
 |---|---|---|
 | BE-01 / P0 | Debugging workflow: JVM, concurrency, Spring boot/MVC | IDE exception/conditional breakpoints; stack-trace reading; a high-CPU, deadlock, allocation/retention and bad-config lab; collect JFR/thread evidence and explain the diagnosis |
 | BE-02 / P0 | Observability: Spring testing/production + cloud operations | Trace one request across HTTP/database/dependency; correlated logs/metrics/traces with OpenTelemetry; distinguish p95 from averages; useful alert, mitigation and postmortem |
 | BE-03 / P0 | Database incidents: SQL, optimizer, transactions, JPA | Slow query, N+1, blocking transaction and pool exhaustion; inspect plans/waits; test a compatible migration and restore; compare before/after evidence |
-| BE-04 / P0 | Messaging: distributed DBMS + Spring async | Small Kafka producer/consumer lab with ordering, offsets, consumer groups, rebalance, duplicate handling, DLQ, schema change and transactional outbox; crash between delivery steps |
+| BE-04 / P0 | Messaging: distributed DBMS + Spring async | Real Kafka producer/consumer lab with ordering, offsets/groups, rebalance, duplicates, DLQ, schema change and outbox; a separate RabbitMQ confirms/ACK/prefetch/redelivery exercise; persisted saga compensation and crashes between durability boundaries |
 | BE-05 / P0 | Reliability: Spring caching/async + network application layer | Deadline budget, bounded retry+jitter, circuit breaker, bulkhead, backpressure, cancellation and idempotency; inject a slow dependency and prevent retry amplification |
-| BE-06 / P1 | API/security: REST + Spring Security | Tenant/object authorization tests, JWT/OAuth validation cases, SSRF restrictions, signed webhook/replay checks, secrets rotation and API compatibility |
+| BE-06 / P1 | API/security: REST + Spring Security | Tenant/object authorization, sessions/JWT/OAuth, SSRF and signed webhook/replay tests; secrets rotation, API compatibility and full version-labelled OWASP web/API category-to-control matrices |
 | BE-07 / P1 | Testing/delivery: Spring testing + CI/CD | Real dependency Testcontainers exercise, HTTP stub/contract tests, concurrent requests, load-test interpretation, reproducible flaky-test fix and rollback after a bad release |
 | BE-08 / P1 | Operations: Docker/Kubernetes/cloud | Diagnose failed probes, OOM kill versus Java OOME, CPU throttling, DNS/service routing, IAM denial and network restrictions; deployment rollback and backup/restore exercise |
-| BE-09 / P1 | Everyday engineering: Java execution/Boot + CI/CD | Git bisect/revert, Maven dependency tree/conflict resolution, config precedence, reading an unfamiliar repo, dependency/security-update review, concise PR and incident communication |
+| BE-09 / P1 | Everyday engineering: Java execution/Boot + CI/CD | Safe Git workflow/bisect/revert, Linux/shell diagnosis, tested Clean Code refactor, Maven dependency conflict resolution, config precedence, unfamiliar-repo reading, dependency/security review and concise PR/incident communication; reuse DSA/LLD foundations |
 | BE-10 / P1 | Modern Java choices: JVM/concurrency + Spring | Version-labelled virtual-thread/pool comparison under a bounded dependency; explain why more concurrency may worsen load; distinguish stable features from previews |
 
 Use one evolving Task Tracker service plus controlled dependency fixtures. Keep infrastructure local/ephemeral by default. Cloud execution is an explicitly budgeted opt-in milestone with cleanup; local success does not establish cloud deployment success.
@@ -358,6 +361,7 @@ The **implemented roadmap** is complete only when:
 - [ ] Live-model quality evaluation is recorded; mocks are explicitly distinguished.
 - [ ] D-01 through D-10 have reproducible symptoms, diagnostic evidence, fixes and regression checks.
 - [ ] BE-01 through BE-10 have the specified practical deliverables.
+- [ ] BEC-01 through BEC-77 have linked teaching/practice/debug/interview/release evidence, reusing existing sibling content wherever available.
 - [ ] CLOSE-01 through CLOSE-06 are evidenced, including actual learner/manual accessibility work.
 - [ ] Existing application/data/privacy/navigation contracts remain intact and required CI passes.
 - [ ] Results document lists versions, commands, real counts, limitations, commits and release evidence.
