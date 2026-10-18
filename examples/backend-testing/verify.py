@@ -13,6 +13,19 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parent
 TRACKER = ROOT.parent / 'java-spring/task-tracker'
 NS = {'m': 'http://maven.apache.org/POM/4.0.0'}
+KNOWN_METHODS = {
+    'com.csfundamentals.testing.ActualPostgresHttpTest': {
+        'actualPostgresqlRunsExistingMigrationsAndRejectsInvalidRows',
+        'realProviderMatchesConsumerContractAndConcurrentCreatesLoseNoRows',
+        'boundedLoadIncludesPoolTimeoutErrorsAndObservesRecoveryWithoutCapacityClaims',
+        'restartUnchangedApplicationRetainsCommittedRowsAndRevalidatesMigrations'},
+    'com.csfundamentals.testing.LabGuardTest': {
+        'percentilesAndHistogramIncludeFastErrorsAndSlowTransportFailures',
+        'badAsyncReadHasTwoCausallyForcedSchedulesAndWaitingForCompletionFixesIt',
+        'actualStubChecksConsumerContractButDoesNotPretendToProveProviderBehavior',
+        'actualOversizedResponseAndExternalDestinationAreRejected'},
+}
+
 
 
 def isolated_environment():
@@ -96,40 +109,92 @@ def validate_evidence(report):
         raise ValueError('Controlled pool starvation must be observed rather than inferred')
 
 
-def run_build():
-    process = subprocess.Popen(['mvn', '-B', '-f', str(ROOT / 'pom.xml'), 'clean', 'verify'], cwd=ROOT,
-                               env=isolated_environment(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
+def failure_diagnostics(directory):
+    """Only allowlisted suite/method names and bounded numeric counts can leave raw XML."""
+    reports = []
+    ignored = 0
+    for path in sorted(directory.glob('TEST-*.xml'))[:16]:
+        try:
+            if path.stat().st_size > 2 * 1024 * 1024:
+                ignored += 1
+                continue
+            row = ET.parse(path).getroot()
+            name = row.attrib.get('name')
+            if name not in KNOWN_METHODS:
+                ignored += 1
+                continue
+            counts = {}
+            for field in ('tests', 'failures', 'errors', 'skipped'):
+                value = row.attrib.get(field, '0')
+                if value.isascii() and value.isdecimal() and len(value) <= 5 and int(value) <= 10000:
+                    counts[field] = int(value)
+            methods = sorted({case.attrib.get('name') for case in row.findall('testcase')
+                              if case.attrib.get('name') in KNOWN_METHODS[name]
+                              and (case.find('failure') is not None or case.find('error') is not None or case.find('skipped') is not None)})
+            reports.append(dict(suite=name, counts=counts, failedOrSkippedMethods=methods))
+        except (OSError, ET.ParseError):
+            ignored += 1
+    return dict(knownSuites=reports, ignoredReports=ignored)
+
+
+def stop_owned_group(process, grace_seconds):
+    # The Maven parent may already have exited while its JVM still owns stdout.
+    # Its start_new_session PGID, rather than parent liveness, defines cleanup ownership.
+    def signal_group(value):
+        try:
+            os.killpg(process.pid, value)
+            return True
+        except ProcessLookupError:
+            return False
+    present = signal_group(signal.SIGTERM)
+    if present:
+        deadline = time.monotonic() + grace_seconds
+        while present and time.monotonic() < deadline:
+            time.sleep(min(.025, max(0, deadline - time.monotonic())))
+            present = signal_group(0)
+        if present:
+            signal_group(signal.SIGKILL)
+    process.wait(timeout=3)
+
+
+def bounded_build(command, *, deadline_seconds=300, output_limit=8 * 1024 * 1024, cleanup_grace_seconds=10):
+    process = subprocess.Popen(command, cwd=ROOT, env=isolated_environment(), stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, start_new_session=True)
     selector = selectors.DefaultSelector()
     selector.register(process.stdout, selectors.EVENT_READ)
-    deadline, size = time.monotonic() + 300, 0
+    deadline, size = time.monotonic() + deadline_seconds, 0
     try:
         while selector.get_map():
             if time.monotonic() >= deadline:
-                raise TimeoutError('Owned actual testing build exceeded five minutes')
-            for key, _ in selector.select(.2):
+                raise TimeoutError('Owned actual testing build exceeded its deadline')
+            for key, _ in selector.select(min(.2, max(0, deadline - time.monotonic()))):
                 data = os.read(key.fd, 16384)
                 size += len(data)
                 if not data:
                     selector.unregister(key.fileobj)
-                if size > 8 * 1024 * 1024:
-                    raise RuntimeError('Owned build output exceeded its eight MiB cap')
+                if size > output_limit:
+                    raise RuntimeError('Owned build output exceeded its byte cap')
         if process.wait(timeout=max(.1, deadline - time.monotonic())) != 0:
-            raise RuntimeError('Actual Maven suite failed. Run the README Maven command for local diagnosis; no raw application/credential logs are published.')
+            raise RuntimeError('Actual Maven suite failed. See sanitized test counts/methods; use the README Maven command for local diagnosis.')
     finally:
         selector.close()
-        if process.poll() is None:
-            os.killpg(process.pid, signal.SIGTERM)
-            try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait(timeout=3)
-        process.stdout.close()
+        try:
+            stop_owned_group(process, cleanup_grace_seconds)
+        finally:
+            process.stdout.close()
+
+
+def run_build():
+    bounded_build(['mvn', '-B', '-f', str(ROOT / 'pom.xml'), 'clean', 'verify'])
 
 
 def main():
     pom_hash, before = check_reuse_contract(), tracker_sources_hash()
-    run_build()
+    try:
+        run_build()
+    except Exception:
+        print(json.dumps(failure_diagnostics(ROOT / 'target/surefire-reports'), indent=2), flush=True)
+        raise
     if tracker_sources_hash() != before:
         raise RuntimeError('Task Tracker source changed during an isolated lab run')
     counts = test_counts(ROOT / 'target/surefire-reports')
