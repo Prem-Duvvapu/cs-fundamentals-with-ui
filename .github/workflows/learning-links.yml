@@ -1,0 +1,69 @@
+name: Learning link maintenance
+
+on:
+  pull_request:
+    paths:
+      - BACKEND_ENGINEERING_COVERAGE_2026-10-17.md
+      - scripts/audit-learning-links*
+      - docs/LEARNING_LINK_MAINTENANCE.md
+      - frontend/package-lock.json
+      - .github/workflows/learning-links.yml
+  push:
+    branches: [main]
+    paths:
+      - BACKEND_ENGINEERING_COVERAGE_2026-10-17.md
+      - scripts/audit-learning-links*
+      - .github/workflows/learning-links.yml
+  schedule:
+    - cron: '17 3 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: learning-links-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Deterministic identity, redirect and outage tests
+        run: node --test scripts/audit-learning-links.test.mjs
+
+  live-destinations:
+    if: github.event_name != 'pull_request'
+    needs: contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Live public destinations
+        run: node scripts/audit-learning-links.mjs --report learning-link-report.json
+      - name: Preserve evidence, including confirmed failures and temporary outages
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: learning-link-report
+          path: learning-link-report.json
+          if-no-files-found: warn
+          retention-days: 14

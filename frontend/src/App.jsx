@@ -43,7 +43,7 @@ function RouteTitle() {
   const { topics, status } = useCatalog()
   useEffect(() => {
     if (/^\/topic\/[^/]+$/.test(pathname)) return
-    document.title = `${routeLabel(pathname, topics, status)} | CS Fundamentals`
+    document.title = `${routeLabel(pathname, topics, status)} | Backend Engineering`
   }, [pathname, topics, status])
   return null
 }

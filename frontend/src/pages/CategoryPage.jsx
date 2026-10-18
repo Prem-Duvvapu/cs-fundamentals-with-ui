@@ -21,7 +21,7 @@ export default function CategoryPage() {
   const percent = lessons.length ? Math.round((completed / lessons.length) * 100) : 0
   const resume = latestReading(lessons, learning)
   const nextLesson = lessons.find(topic => !progress[topic.id]?.completed)
-  useEffect(() => { document.title = `${category?.label || 'Category not found'} | CS Fundamentals` }, [category])
+  useEffect(() => { document.title = `${category?.label || 'Category not found'} | Backend Engineering` }, [category])
   if (!category) return <NotFoundPage />
 
   return <div className="roadmap-index category-page-view" data-category={categoryId}>

@@ -11,49 +11,49 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 | Requirement | Status | Intended outcome / evidence |
 |---|---|---|
-| AI-01 | Pending | AI/ML from zero |
-| AI-02 | Pending | Evaluation foundations |
-| AI-03 | Pending | How LLMs work |
-| AI-04 | Pending | Prompt and context engineering |
+| AI-01 | Partial: beginner guide and actual classifier | AI/ML from zero |
+| AI-02 | Partial: training metrics and diagnostic report | Evaluation foundations |
+| AI-03 | Partial: attention/training trace and rubrics | How LLMs work |
+| AI-04 | Partial: prompt/context and failure exercises | Prompt and context engineering |
 | AI-05 | Partial: executable A | Model API integration |
-| AI-06 | Pending | Embeddings and retrieval |
-| AI-07 | Partial: versioned lexical/JDBC RAG | RAG lifecycle |
+| AI-06 | Partial: vector implementation/local tests; actual PG CI pending | Embeddings and retrieval |
+| AI-07 | Partial: lexical plus explicit versioned vector implementation | RAG lifecycle |
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
-| AI-09 | Pending | Quality and regression evaluation |
+| AI-09 | Partial: per-field/slice/failure report, local tests | Quality and regression evaluation |
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
-| AI-11 | Pending | Operations and debugging |
-| AI-12 | Pending | Cost, capacity and model choice |
+| AI-11 | Partial: serving failure diagnosis; telemetry open | Operations and debugging |
+| AI-12 | Partial: capacity/quality trade-off exercise | Cost, capacity and model choice |
 | AI-13 | Pending | Adaptation decisions |
 | AI-14 | Pending | AI-assisted engineering |
-| AI-15 | Pending | Multimodal inputs |
+| AI-15 | Partial: digital PDF/provenance verified; real OCR CI required | Multimodal inputs |
 | AI-16 | Partial: actual small-model training | Classical ML lifecycle |
-| AI-17 | Pending | Recommendation systems |
-| D-01 | Pending | Wrong but schema-valid extraction |
+| AI-17 | Local verified: runnable authored ranking and lesson | Recommendation systems |
+| D-01 | Partial: failed live task fit and field diagnostics | Wrong but schema-valid extraction |
 | D-02 | Pending | Relevant document never retrieved |
 | D-03 | Pending | Correct sources, unsupported answer |
 | D-04 | Partial: JDBC and HTTP tenant tests | Tenant data appears in another answer |
-| D-05 | Pending | Slow or hanging response |
+| D-05 | Partial: deadlines/overload tests; tracing open | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
 | D-07 | Partial: bounded read-only agent tests | Agent keeps calling tools |
 | D-08 | Pending | Quality drops after an upgrade |
 | D-09 | Pending | Costs rise without more useful results |
-| D-10 | Pending | PDF/image output misses a value |
-| BE-01 / P0 | Pending | Debugging workflow: JVM, concurrency, Spring boot/MVC |
-| BE-02 / P0 | Pending | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Pending | Database incidents: SQL, optimizer, transactions, JPA |
-| BE-04 / P0 | Pending | Messaging: distributed DBMS + Spring async |
-| BE-05 / P0 | Pending | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Pending | API/security: REST + Spring Security |
+| D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
+| BE-01 / P0 | Partial: real JVM deadlock/memory lab | Debugging workflow: JVM, concurrency, Spring boot/MVC |
+| BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
+| BE-03 / P0 | Partial: real PG plans/blocker/timeout lab | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
+| BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
+| BE-06 / P1 | Partial: actual JWT/JWKS/owner tests and OWASP matrices | API/security: REST + Spring Security |
 | BE-07 / P1 | Pending | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Pending | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Pending | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Pending | Modern Java choices: JVM/concurrency + Spring |
-| CLOSE-01 | Partial: inventory/tool guidance repaired | Reconcile status documentation and outdated topic tooling |
+| CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
 | CLOSE-02 | Pending | Java course familiarity |
 | CLOSE-03 | Pending | Manual accessibility |
 | CLOSE-04 | Pending | Learner comprehension |
 | CLOSE-05 | Pending | Editorial maintenance |
-| CLOSE-06 | Pending | Practice consistency |
+| CLOSE-06 | Partial: seven AI lessons with three rubrics each | Practice consistency |
 
 ## Integration checkpoints
 
@@ -109,3 +109,79 @@ PR [#55](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/55) merged
 The [backend coverage checklist](../BACKEND_ENGINEERING_COVERAGE_2026-10-17.md) adds BEC-01–BEC-77 to required scope. All 77 are mapped to current owners, baseline limitations and acceptance work; none is newly closed by this documentation. Reuse specific DSA/LLD/published-HLD pages instead of duplicating their lessons. Remaining backend work includes coherent Clean Code, real Kafka/RabbitMQ/Redis and NoSQL exercises, service/gateway/WebSocket integration, resilience/saga recovery, observability, security and load/delivery practice. Existing foundations and runnable milestones remain evidence for their stated scope.
 
 Coverage verification for this documentation checks the exact 77 requested labels in order, unique IDs, reference/local-link resolution and the source routes/content behind the selected sibling links. HTTP success only establishes URL availability; it does not certify all interactions or backend dependencies. No application code, curriculum question/diagram identity or registered-topic count changes here. Live-model task-quality acceptance remains open after the recorded failed local-model result; real learner/manual accessibility gates remain open too.
+
+## October 18 integrated package — local evidence, release pending
+
+- PR #56 merged as `d5d6668c0d65591d7e3544329349f45245c8eb8e` after all checks passed. The 77-item mapping remains a requirement contract, not 77 completed outcomes.
+- Integrated the five saved AI lesson changes and recommendation milestone. Every AI lesson now has at least three authored rubrics; totals are 77 rubrics, 953 unchanged question identities, 68 lessons and unchanged diagram sources. Real content validation passed all 68 files. Corpus/Markdown suites passed 279 checks; new link/control/practice checks passed 18.
+- Backend Engineering branding preserves technical identifiers, routes, storage/events and legacy backups. The targeted branding runs passed 142 relevant tests; integrated responsive smoke passed 14 routes × five widths × two themes, reader/rail/review journeys, 36 simulator overflow/axe checks per theme and 20 page axe scans. This is automated evidence, not a manual screen-reader or learner session.
+- Real JVM and PostgreSQL diagnosis labs passed six tests, including cleanup after injected failure; recommendation lab passed seven. These do not close high-CPU/JFR, IDE/config, N+1, pool, migration/restore or production performance work.
+- Evaluator now prevalidates cases and reports field/slice correctness, failure-inclusive denominators and observed quantiles. Example Maven verify passed 39 tests. Historical live report remains 20 schema-accepted / zero complete-field matches and is not retroactively given missing per-field data.
+- Platform backend passed 63 tests with canonical rubric-ID assertions. Build and diagram-input check passed without App.css or diagram-source changes.
+- The packaged HTTP smoke now passes actual extraction/auth/CSRF, tenant/version/revocation, approval/replay, both 30/20 fixture evaluations and real MCP negotiation. Initial parallel verification missed the startup bound, and a later run timed out MCP initialization while completed HTTP servers were still live. The unchanged JAR MCP check passed alone; stopping only the owned completed HTTP servers before the independent MCP check made the full smoke pass without increasing protocol timeouts. RCA records the failed and passing evidence.
+- Link automation passed eleven deterministic tests and validated 18 inventory references. Live audit verified 17 and confirmed HLD cache-aside incompatible: deployed backend model 1.0.0 versus expected 1.0.1. Matching backend source is already merged in HLD; owner redeployment and a passing live audit remain required. No sibling deployment has been performed.
+- Messaging module passed eight durable-file/schema tests; two real-broker tests are explicit local skips because Docker is unavailable. Dedicated CI must actually run both; the workflow refuses skipped broker evidence. Rebalance/multiple relay/failover/saga extensions remain open.
+- Vector retrieval, bounded reliability and Task Tracker observability are integrated below with their bounded local evidence. Real-service CI remains required. Real participant/manual accessibility and remaining Java course notes remain external closure gates.
+
+### Vector, messaging and reliability integration
+
+- Vector code cherry-picked from `79ca5db` (root `3d33556`), then `c1df27d` hardens actual-PG no-skip evidence and clarifies that rebuild checks are not a hard 30-second end-to-end deadline. Agent's final local Maven run exercised 47 tests and explicitly skipped eight PostgreSQL cases. Real pgvector 0.8.7/PG16 CI evidence is pending; authored vectors are geometry fixtures, not learned semantic-retrieval quality. The default lexical service and all extraction/workflow behavior are retained.
+- Reliability package `d983f66` passed all 19 tests and a separately packaged demo with exactly three attempts/three dependency requests/two retries and no admitted work left behind. It uses bounded GET-only automatic retries and treats committed-but-timeout mutation ambiguity as a separate idempotency problem. An initial handoff/admission race was found and fixed before commit; RCA tracks the correction.
+- These additions leave real model/embedding quality, full RAG evaluation fixtures, stage telemetry/cost, multimodal, Redis/NoSQL and further production exercises open. No cloud deployment or paid calls are implied.
+
+Dependency automation now includes tracked Maven examples recursively and GitHub Actions, alongside the existing platform/frontend/Docker configuration. Actual version-update PRs remain future scheduled evidence; configuration is not proof that every dependency is vulnerability-free.
+
+### Task Tracker observability checkpoint
+
+Observability package `9c06c7c` adds the actual OpenTelemetry SDK1.67.0 with correlated JSON spans,
+fixed-cardinality Micrometer1.17.1 measurements and an executable incident/alert explanation. Agent
+verification passed all 29 tests (original19 plus ten additions), the existing packaged production
+HTTP smoke and the opt-in observability HTTP mode. Real same-JVM HTTP/async/dependency/JPA evidence
+is separate from a deployed collector, alert scheduler or external service. No educational-platform
+learner telemetry is added. Whole integrated CI/release remains pending.
+
+Integrated Java verification after vector + evaluator composition: **63 discovered, 55 passed,
+eight PostgreSQL cases explicitly skipped locally**; no failures/errors. The dedicated pgvector
+CI must execute all eight actual PostgreSQL cases without skips. Later-added OCR cases are verified separately by their own real-engine job. Integrated reliability Maven verification also passed all19.
+
+
+### Integrated review checkpoint
+
+Implementation checkpoint `a8a161a4def216d37442edea70aa313d297527af` combines the packages above;
+its final frontend suite passed **826/826 tests across 64 files**. The four confirmed regressions
+and their resolving commits are recorded in [RCA.md](../RCA.md#rca-2026-10-18-01--lesson-artifact-links-resolved-against-application-routes).
+Release checks and real pgvector/Kafka/RabbitMQ jobs are pending until the review branch runs in CI.
+A passing local run with explicit integration skips is not a passing real-service integration.
+
+### Redis and MongoDB checkpoint
+
+Data-services source `40bcc81` (integrated `c79bf78`) adds actual Redis and MongoDB exercises.
+Nine schema/guard/application contracts passed; a separate owned native Redis8.6.2 run passed
+all four actual Redis cases without skips. MongoDB's four and the three combined cache/database
+cases require the dedicated digest-pinned CI service job. The workflow requires all20 tests and
+zero skipped service cases; default local skips are explicit. Tenant/version cache keys and
+canonical version checks prevent late stale population or failed invalidation from making old
+bytes current, at the documented extra database-query cost. No stampede/failover/recovery or
+production-auth deployment is claimed. Final integrated packaged AI HTTP/MCP smoke passed again.
+
+### Document and JWT checkpoints
+
+Digital-PDF/OCR package `d0c9fff` (integrated `986930b`) passed50 tests with3 actual OCR cases explicitly disabled locally. Actual packaged digital-PDF extraction recorded page/line/source hash/runtime provenance, and the existing HTTP/MCP smoke passed. Enabling missing OCR fails explicitly with no published report. Dedicated CI installs Tesseract and must run all3 OCR cases without skips and retain4 provenance artifacts. Generative field quality, complex layout, handwriting and multilingual coverage remain open.
+
+JWT package `d300b9a` (integrated `84b73e1`) passed39 tests and both packaged HTTP modes. Actual HTTP/JWKS tests cover bounded refresh, rotation, issuer/audience/time/algorithm/scopes, owner checks and untrusted credential sources. The full version-labelled OWASP Web2025/API2023 matrices document20 categories with tested controls, procedures and gaps. Full OAuthAS/PKCE/OIDC/refresh/revocation, webhook replay, deployed secrets and broader risk management remain open.
+
+Real-service CI on checkpoint `4902db8` passed Kafka/RabbitMQ, Redis/MongoDB, reliability and observability jobs. Actual pgvector execution exposed a query-plan evidence failure (sort rather than HNSW); it remains a release blocker until corrected and verified on the final head. Unfinished RAG evaluation work is preserved separately and is excluded from this release.
+
+
+### Release scope frozen for requested merge
+
+[PR #57](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/57) contains the completed
+packages above. The pgvector query correction is `df001dc` (source `c1fc3b5`); final-head CI must
+prove actual HNSW execution and all eight PostgreSQL cases without skips. Before that correction,
+the combined PDF/vector/evaluator clean Java build passed74 tests with eleven explicit local
+service/OCR skips (85 discovered). Its final packaged smoke is recorded separately. No skipped
+local test is represented as actual external-service evidence. Remaining saga, persistence,
+everyday-engineering and RAG-evaluation work is isolated from this release. Final merge and check
+status live on the linked PR, avoiding a fabricated pre-merge completion claim in this ledger.
+
+The combined clean-build packaged HTTP/MCP smoke also passed after PDF integration; no unfinished RAG evaluator is packaged in that release build.

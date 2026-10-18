@@ -234,7 +234,7 @@ describe('curriculum interview-question parsing', () => {
     const questions = topicFiles.flatMap(({ filename, filePath }) =>
       parseInterviewQuestions(fs.readFileSync(filePath, 'utf8'), filename.match(topicFilename)[1]))
     const authored = questions.filter(question => question.answerMarkdown.includes('**Answer rubric**'))
-    expect(authored).toHaveLength(59)
+    expect(authored).toHaveLength(77)
     for (const question of authored) {
       const { answerMarkdown, rubric } = splitInterviewAnswer(question.answerMarkdown)
       expect(rubric, question.id).not.toBeNull()
@@ -250,8 +250,14 @@ describe('curriculum interview-question parsing', () => {
       'physical-layer-media-q5', 'physical-layer-media-q12',
       'routing-algorithms-q2', 'routing-algorithms-q13',
       'functional-dependencies-keys-q5', 'functional-dependencies-keys-q12',
-      'ml-fundamentals-q11', 'ml-fundamentals-q12', 'ml-fundamentals-q14'
+      'ml-fundamentals-q11', 'ml-fundamentals-q12', 'ml-fundamentals-q14',
+      'llm-parameters-q11', 'llm-parameters-q12', 'llm-parameters-q13',
+      'rag-architecture-q11', 'rag-architecture-q12', 'rag-architecture-q13',
+      'embeddings-vector-db-q11', 'embeddings-vector-db-q13', 'embeddings-vector-db-q14',
+      'model-serving-q11', 'model-serving-q12', 'model-serving-q13',
+      'feature-stores-q11', 'feature-stores-q12', 'feature-stores-q14',
+      'recommendation-systems-q11', 'recommendation-systems-q13', 'recommendation-systems-q14'
     ]
-    expect(authored.filter(question => addedIds.includes(question.id))).toHaveLength(15)
+    expect(authored.filter(question => addedIds.includes(question.id))).toHaveLength(33)
   })
 })

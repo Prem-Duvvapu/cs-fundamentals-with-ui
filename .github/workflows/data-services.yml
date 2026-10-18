@@ -1,0 +1,104 @@
+name: Backend data services
+
+on:
+  push:
+    branches: [main]
+    paths: ['examples/backend-data-services/**', '.github/workflows/data-services.yml']
+  pull_request:
+    paths: ['examples/backend-data-services/**', '.github/workflows/data-services.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  redis-mongodb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Generate private runtime credentials
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os,secrets
+          redis_password=secrets.token_hex(32)
+          mongo_password=secrets.token_hex(32)
+          values={'DATA_REDIS_PASSWORD':redis_password,'DATA_MONGO_PASSWORD':mongo_password,
+                  'DATA_MONGO_URI':'mongodb://lab_owner:'+mongo_password+'@127.0.0.1:27019/?authSource=admin'}
+          with open(os.environ['GITHUB_ENV'],'a') as output:
+              for key,value in values.items():
+                  print('::add-mask::'+value)
+                  output.write(key+'='+value+'\n')
+          PY
+      - name: Start only owned pinned throwaway services
+        shell: bash
+        run: |
+          set -euo pipefail
+          data_redis_container="cs-data-redis-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          data_mongo_container="cs-data-mongo-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "DATA_REDIS_CONTAINER=$data_redis_container" >> "$GITHUB_ENV"
+          echo "DATA_MONGO_CONTAINER=$data_mongo_container" >> "$GITHUB_ENV"
+          docker run --detach --name "$data_redis_container" --publish 127.0.0.1:6381:6379 \
+            redis:8.4-alpine@sha256:0514fa59e3d84e2f3be66731c5401fc2a85b8ea71b49c0116c850f6a558076f4 \
+            redis-server --requirepass "$DATA_REDIS_PASSWORD" --save "" --appendonly no \
+            --maxmemory 32mb --maxmemory-policy allkeys-lru
+          docker run --detach --name "$data_mongo_container" --publish 127.0.0.1:27019:27017 \
+            --env MONGO_INITDB_ROOT_USERNAME=lab_owner --env "MONGO_INITDB_ROOT_PASSWORD=$DATA_MONGO_PASSWORD" \
+            mongo:8.0@sha256:4a4ab5d4834207389e0d7270fac988e21ffedccecba77991a552f755df229907
+          for data_attempt in $(seq 1 45); do
+            if docker exec --env "REDISCLI_AUTH=$DATA_REDIS_PASSWORD" "$data_redis_container" redis-cli ping; then break; fi
+            sleep 1
+          done
+          for data_attempt in $(seq 1 45); do
+            if docker exec --env DATA_MONGO_PASSWORD "$data_mongo_container" mongosh --quiet --eval \
+              'const a=db.getSiblingDB("admin"); a.auth("lab_owner",process.env.DATA_MONGO_PASSWORD); if(a.runCommand({ping:1}).ok!==1)quit(2);'; then break; fi
+            sleep 1
+          done
+          docker exec "$data_redis_container" redis-server --version
+          docker exec --env "REDISCLI_AUTH=$DATA_REDIS_PASSWORD" "$data_redis_container" redis-cli CONFIG GET maxmemory maxmemory-policy
+          docker exec --env DATA_MONGO_PASSWORD "$data_mongo_container" mongosh --quiet --eval \
+            'const a=db.getSiblingDB("admin"); a.auth("lab_owner",process.env.DATA_MONGO_PASSWORD); print("Actual MongoDB version: "+a.runCommand({buildInfo:1}).version);'
+      - name: Execute actual Redis, MongoDB, cache-aside and contract cases
+        env:
+          DATA_REDIS_INTEGRATION: '1'
+          DATA_MONGO_INTEGRATION: '1'
+          DATA_SERVICES_INTEGRATION: '1'
+          DATA_REDIS_PORT: '6381'
+        run: mvn -B --no-transfer-progress -f examples/backend-data-services/pom.xml verify
+      - name: Refuse missing or skipped service evidence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          root=Path('examples/backend-data-services/target/surefire-reports')
+          for name,count in {'RedisIntegrationTests':4,'MongoIntegrationTests':4,'CacheMongoIntegrationTests':3}.items():
+              path=root/('TEST-com.csfundamentals.dataservices.'+name+'.xml')
+              if not path.is_file(): raise SystemExit('Missing actual-service report: '+name)
+              suite=ET.parse(path).getroot()
+              cases=suite.findall('testcase')
+              if suite.get('tests')!=str(count) or len(cases)!=count:
+                  raise SystemExit('Expected all '+str(count)+' actual '+name+' cases')
+              if any(int(suite.get(key,'0')) for key in ('skipped','errors','failures')):
+                  raise SystemExit('Skipped or failed real-service evidence: '+name)
+              if any(case.find(tag) is not None for case in cases for tag in ('skipped','failure','error')):
+                  raise SystemExit('A real-service case did not execute/pass: '+name)
+          print('All 11 real service cases executed and passed, with no skips.')
+          PY
+      - name: Retain actual service and query-plan reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-data-services-evidence
+          path: examples/backend-data-services/target/surefire-reports/
+          if-no-files-found: warn
+      - name: Remove only this job's containers and owned anonymous volumes
+        if: always() && env.DATA_REDIS_CONTAINER != ''
+        shell: bash
+        run: docker rm --force --volumes "$DATA_REDIS_CONTAINER" "$DATA_MONGO_CONTAINER"

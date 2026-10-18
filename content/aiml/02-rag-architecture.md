@@ -86,6 +86,43 @@ effective policy. Rewording the prompt alone cannot make stale evidence current.
 
 ---
 
+### Run a permission-aware baseline before adding vector search
+
+A **tenant** is the customer or organization whose data must be isolated. A **principal** is the
+authenticated caller. The application derives permissions from that identity; the question text
+cannot choose either value. The [Java knowledge lab](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/ai-backend/KNOWLEDGE.md)
+starts with exact word matching so this boundary is visible before embeddings introduce another variable.
+
+```bash
+mvn verify -f examples/ai-backend/pom.xml
+python3 examples/ai-backend/verify_http.py
+```
+
+These are runnable repository commands after the declared Java/Python prerequisites are installed.
+The smoke generates temporary credentials, starts owned processes and performs actual HTTP requests.
+Its generation server is explicitly a deterministic fixture; that does not establish live-answer quality.
+
+| Change | Alice's permitted evidence | Required observation |
+|---|---|---|
+| Create refund policy at version 1 | Refund within 14 days | Citation `policy:v1` |
+| Bob creates the same ID in his tenant | Still Alice's own policy | Bob's 99-day policy is never supplied to Alice's generator |
+| Update Alice's policy at expected version 1 | Refund within 30 days | Citation changes to `policy:v2` |
+| Revoke Alice's policy | No matching allowed source | Insufficient evidence without a model call |
+
+Versions stay monotonic through tombstones, which are disabled records representing removal.
+A stale update receives a conflict instead of overwriting another editor. The service also checks
+source versions and permissions after generation; a revoked or changed snapshot is rejected.
+There is no answer cache in this baseline. Adding one later requires permission/source-version keys
+and revocation behavior, not just a long time-to-live.
+
+**Predict:** can a valid `policy:v1` citation prove every generated sentence? No; it shows a permitted
+source reference, while claim support requires a separate check. **Change:** update the document
+while generation runs. **Debug:** the old snapshot must fail its final check; inspect version and
+principal evidence before changing retrieval depth. Revoking access cannot retract information
+already transmitted to an external provider, so provider retention is a separate boundary.
+
+---
+
 ## 🟡 Intermediate Level
 
 ### Retrieval-augmented generation pipeline
@@ -465,13 +502,37 @@ The server derives tenant and principal filters from authenticated identity, nev
 
 Replay a fixed set of retrieved contexts through the old and new generation configurations so retrieval is held constant. Compare claim-to-span support, citation validity, abstention rate, and prompt assembly traces rather than relying on answer fluency. If the regression follows the generator version, roll it back or canary a corrected prompt; changing chunking or top-k would obscure the actual fault.
 
+**Answer rubric**
+- **Say it:** Hold retrieved evidence fixed to isolate a generation change.
+- **Mechanism:** Replay the same permitted contexts through old/new prompt and model configurations; compare claim support, citation validity and abstention.
+- **Example:** A source still says 14 days, but the new generator answers 30 days with its valid citation ID.
+- **Limit:** Correct citations alone do not establish that all answer claims follow from their spans.
+- **Watch for:** Changing chunking and model simultaneously, making the cause impossible to isolate.
+- **Follow-up:** What would you compare if the answer is correct but cites a source the user cannot access?
+
 **Q12. Scenario: users receive old policy answers after a CMS update. What do you check?** `[hard]`
 
 Compare the CMS version and timestamp with indexed chunk versions and ingestion-event status. Inspect parser output, chunk counts, and retirement of old chunks. The cause may be a missed CDC event, non-atomic index swap, or cache key lacking a source version; increasing top-k does not fix freshness.
 
+**Answer rubric**
+- **Say it:** Trace the source version through parsing, indexing, publication and caching.
+- **Mechanism:** Compare the current document revision with chunk metadata and query-selected versions; inspect failures and retirement of old chunks.
+- **Example:** The JDBC baseline changes policy:v1 to policy:v2 and rejects a stale version-1 update.
+- **Limit:** A successful ingestion job can still index empty or incomplete extracted text.
+- **Watch for:** Increasing top-k to compensate for an index that has never received the new revision.
+- **Follow-up:** How do you serve a complete old or new version during a large backfill?
+
 **Q13. Scenario: an employee receives a cited answer about another customer. What failed?** `[hard]`
 
 Contain the exposure and inspect retrieval filters, cached answers, parent-chunk expansion and citation rendering; the symptom alone does not identify one faulty stage. Follow incident policy and compare source permissions with the authenticated principal at each boundary. Add server-controlled access checks and permission-change tests before restoring the affected path.
+
+**Answer rubric**
+- **Say it:** Contain the exposure and investigate every boundary that can introduce a source.
+- **Mechanism:** Derive identity from authentication, filter before generation and recheck allowed versions before response; inspect cache and parent expansion too.
+- **Example:** Alice and Bob store policy under the same ID, but a tenant-scoped primary key and queries keep their bodies separate.
+- **Limit:** Application checks do not erase data already sent to a provider before a later revocation.
+- **Watch for:** Letting question text supply tenant identity, or believing a cited answer must be authorized.
+- **Follow-up:** Which test demonstrates that Bob’s text never reaches Alice’s generator?
 
 **Q14. Scenario: relevance falls after top-k rises from 8 to 40. Why?** `[hard]`
 

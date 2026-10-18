@@ -61,9 +61,9 @@ describe('application route recovery', () => {
 
   it('updates the browser title when returning from a category path to home', async () => {
     renderApp('/category/java-spring')
-    await waitFor(() => expect(document.title).toBe('Java & Spring | CS Fundamentals'))
+    await waitFor(() => expect(document.title).toBe('Java & Spring | Backend Engineering'))
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Breadcrumb' })).getByRole('link', { name: 'Learning paths' }))
-    await waitFor(() => expect(document.title).toBe('Learning paths | CS Fundamentals'))
+    await waitFor(() => expect(document.title).toBe('Learning paths | Backend Engineering'))
   })
 
   it('renders actionable recovery links for an unknown route', () => {
@@ -77,12 +77,12 @@ describe('application route recovery', () => {
   it('names unknown topic and malformed topic paths as errors', async () => {
     const { unmount } = renderApp('/topic/missing-topic')
     await screen.findByRole('heading', { name: 'Topic not found' })
-    await waitFor(() => expect(document.title).toBe('Topic not found | CS Fundamentals'))
+    await waitFor(() => expect(document.title).toBe('Topic not found | Backend Engineering'))
     expect(screen.getByRole('main')).toHaveAccessibleName('Topic not found')
     unmount()
 
     renderApp('/topic/missing-topic/extra')
-    await waitFor(() => expect(document.title).toBe('Page not found | CS Fundamentals'))
+    await waitFor(() => expect(document.title).toBe('Page not found | Backend Engineering'))
     expect(screen.getByRole('main')).toHaveAccessibleName('Page not found')
   })
 
@@ -90,18 +90,18 @@ describe('application route recovery', () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('offline'))
     renderApp('/topic/java-oop-pillars')
     await screen.findByRole('alert')
-    await waitFor(() => expect(document.title).toBe("Couldn't load this lesson | CS Fundamentals"))
+    await waitFor(() => expect(document.title).toBe("Couldn't load this lesson | Backend Engineering"))
     expect(screen.getByRole('main')).toHaveAccessibleName("Couldn't load this lesson")
   })
 
   it('distinguishes a category interview page from an unknown interview category', async () => {
     const { unmount } = renderApp('/interview/java-spring')
-    await waitFor(() => expect(document.title).toBe('Java & Spring interview practice | CS Fundamentals'))
+    await waitFor(() => expect(document.title).toBe('Java & Spring interview practice | Backend Engineering'))
     expect(screen.getByRole('main')).toHaveAccessibleName('Java & Spring interview practice')
     unmount()
 
     renderApp('/interview/no-such-category')
-    await waitFor(() => expect(document.title).toBe('Unknown interview category | CS Fundamentals'))
+    await waitFor(() => expect(document.title).toBe('Unknown interview category | Backend Engineering'))
     expect(screen.getByRole('main')).toHaveAccessibleName('Unknown interview category')
   })
 

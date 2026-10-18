@@ -5,6 +5,7 @@ import java.time.Duration;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,7 +23,22 @@ class AiConfiguration {
     @Bean KnowledgeStore knowledgeStore(@Value("${ai.jdbc-url}") String url, @Value("${ai.jdbc-user}") String user, @Value("${ai.jdbc-password}") String password) {
         return new KnowledgeStore(url, user, password);
     }
-    @Bean KnowledgeService knowledgeService(KnowledgeStore store, ChatClient client) { return new KnowledgeService(store, client); }
+    @Bean KnowledgeRetrieval knowledgeRetrieval(KnowledgeStore store, Environment environment) {
+        String mode = environment.getProperty("ai.retrieval-mode", "lexical");
+        if (mode.equals("lexical")) return KnowledgeRetrieval.lexical(store);
+        if (!java.util.Set.of("pgvector-exact", "pgvector-ann").contains(mode)) throw new IllegalArgumentException("invalid_retrieval_mode");
+        var space = new EmbeddingSpace(environment.getRequiredProperty("ai.embedding.namespace"),
+                environment.getRequiredProperty("ai.embedding.model"), environment.getRequiredProperty("ai.embedding.revision"),
+                environment.getRequiredProperty("ai.embedding.dimensions", Integer.class), EmbeddingSpace.CHUNK_POLICY);
+        var provider = new OllamaEmbeddingProvider(URI.create(environment.getRequiredProperty("ai.embedding.origin")), space,
+                Duration.ofMillis(environment.getProperty("ai.embedding.timeout-ms", Long.class, 3000L)),
+                environment.getProperty("ai.embedding.max-calls", Integer.class, 100));
+        var index = new PgVectorKnowledgeIndex(environment.getRequiredProperty("ai.jdbc-url"),
+                environment.getProperty("ai.jdbc-user", ""), environment.getProperty("ai.jdbc-password", ""), space);
+        return new VectorKnowledgeRetrieval(store, provider, index,
+                mode.equals("pgvector-exact") ? PgVectorKnowledgeIndex.Mode.EXACT : PgVectorKnowledgeIndex.Mode.ANN);
+    }
+    @Bean KnowledgeService knowledgeService(KnowledgeStore store, ChatClient client, KnowledgeRetrieval retrieval) { return new KnowledgeService(store, client, retrieval); }
     @Bean RefundWorkflow refundWorkflow(@Value("${ai.jdbc-url}") String url, @Value("${ai.jdbc-user}") String user,
             @Value("${ai.jdbc-password}") String password, @Value("${ai.approval-secret}") String secret) {
         return new RefundWorkflow(url, user, password, secret, java.time.Clock.systemUTC());

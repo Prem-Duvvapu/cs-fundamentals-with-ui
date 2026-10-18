@@ -1,4 +1,4 @@
-# System Architecture & Development Context
+# Backend Engineering — System Architecture & Development Context
 
 
 ## Visitor analytics
@@ -600,3 +600,47 @@ Teaching API error contract: agent capacity is 503, invalid upstream model JSON/
 ## Backend coverage traceability — October 17
 
 `BACKEND_ENGINEERING_COVERAGE_2026-10-17.md` extends the practical backend/AI roadmap with BEC-01–BEC-77, preserving the learner's exact checklist order. It maps existing content and specific sibling-app routes to understand/build/debug/interview/verification criteria, while leaving incomplete outcomes open. Reuse existing DSA/LLD/HLD content; add only identified gaps and distinct backend integration exercises. HLD catalog drafts are distinguished from published topics. This documentation adds no production registry, route, shared progress state or curriculum topic. `content/COVERAGE_MANIFEST.json` continues to validate the existing lesson anchors; it does not certify this new practical completion bar.
+
+## October 18 integration contracts
+
+The public product name is Backend Engineering. Stable technical identifiers, routes, backup app
+IDs, storage/event keys and deployment URLs are preserved; branding tests assert legacy import compatibility.
+`MarkdownRenderer` receives source-category context from Study and the shared practice deck.
+`resolveCurriculumLink()` resolves repository-relative links from `content/<category>/`, maps known
+lesson filenames through the existing topic/category map and leaves native absolute/root/hash links
+intact. React Markdown's unsafe-protocol filtering remains in effect. Renderer component identities
+stay stable so code/diagram controls survive reading updates.
+
+All seven AI lessons now have at least three authored scenario rubrics: 77 overall, 953 unchanged
+question identities. Corpus assertions check 33 specifically added rubric IDs across pagination.
+`EvaluationSummary` separates acceptance and exact/per-field correctness, all-case/accepted-only
+denominators, per-slice results and observed nearest-rank latency quantiles. Dataset validation occurs
+before model calls. The earlier live-model report cannot supply per-field metrics retroactively.
+
+The new JVM and PostgreSQL labs own their subprocesses/temp/schema, reject remote database profiles
+and prove real deadlock, memory release, plan and blocker observations. CI runs them alongside the
+recommendation exercise; the PostgreSQL lab job now creates only its own container and ephemeral
+credentials. The link-maintenance workflow separately owns deterministic and live checks, preserving
+public-only failure reports. It currently detects a real HLD cache-aside deployment incompatibility;
+no cross-app deployment or successful live check is implied by a deterministic fixture pass.
+
+The optional [pgvector RAG milestone](examples/ai-backend/VECTOR_RETRIEVAL.md) is now integrated
+in this branch, with immutable embedding namespaces, tenant-scoped rebuilds, source freshness and
+exact/ANN modes. Local Java checks run without the missing PostgreSQL extension; real vector/index
+evidence must come from the dedicated CI job, which refuses skipped integration tests. Default
+lexical behavior is preserved. [Messaging](examples/backend-messaging/README.md) similarly separates
+actual durable-file checks from required actual Kafka/RabbitMQ CI evidence. The
+[reliability lab](examples/backend-reliability/README.md) composes bounded GET retries, deadlines,
+admission, cancellation and breaker behavior; it does not retry consequential mutations. These
+milestones do not imply full multi-node failure, saga, model quality or human learning completion.
+
+The Task Tracker [observability milestone](examples/java-spring/task-tracker/OBSERVABILITY.md)
+adds an explicit opt-in path across actual HTTP, async work, a loopback dependency and transactional
+JPA. The original in-memory default stays database-free. Its 29 tests and both packaged HTTP modes
+passed in the isolated package. Traces use the actual pinned SDK with local/in-memory exporters;
+no remote collector or deployed alert/notification service is claimed. Keep secrets and customer
+payloads out of spans/logs and retain fixed metric labels and existing owner/CSRF boundaries.
+
+`examples/backend-data-services/` is an isolated Java17 module using real Redis/MongoDB. It preserves source-version cache correctness, bounded local connections and owned test cleanup; it adds no application API or learner telemetry.
+
+The AI example has a short-lived, bounded document CLI using PDFBox3.0.8 and optional real Tesseract OCR. It does not expose a platform upload API. Task Tracker adds an opt-in `jwt` resource-server profile; explicit bearer requests use scoped, stateless validation while Basic/session requests retain CSRF protection. This is not an OAuth authorization server or completed PKCE flow.

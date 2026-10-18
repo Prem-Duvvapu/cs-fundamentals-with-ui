@@ -1,0 +1,44 @@
+name: Backend observability lab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/java-spring/task-tracker/**'
+      - '.github/workflows/backend-observability.yml'
+  pull_request:
+    paths:
+      - 'examples/java-spring/task-tracker/**'
+      - '.github/workflows/backend-observability.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-http-traces:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: examples/java-spring/task-tracker/pom.xml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify existing contracts and actual SDK exporter tests
+        run: mvn -B -f examples/java-spring/task-tracker/pom.xml verify
+      - name: Verify packaged production HTTP behavior
+        run: python3 examples/java-spring/task-tracker/verify_http.py
+      - name: Verify opt-in packaged HTTP async dependency persistence traces
+        run: python3 examples/java-spring/task-tracker/verify_http.py --observability
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: observability-test-evidence
+          path: examples/java-spring/task-tracker/target/surefire-reports/

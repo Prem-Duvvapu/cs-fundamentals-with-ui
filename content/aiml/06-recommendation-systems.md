@@ -121,6 +121,19 @@ Simple baselines remain valuable:
 A learned system should beat these baselines online, not merely on a complicated offline metric.
 Baselines also provide a safe fallback when model or vector infrastructure fails.
 
+
+**Runnable beginner exercise:** use the [recommendation lab and walkthrough](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/labs/aiml/RECOMMENDATIONS.md).
+Run `python3 examples/labs/aiml/recommend.py` from the repository root with Python 3.10+; it needs no packages or external services.
+It actually computes exact cosine retrieval, authored-score ranking and current-item filtering.
+Its vectors, probabilities and relevance grades are invented teaching fixtures, not learned embeddings, an ANN index or online quality evidence.
+
+**Predict:** with candidate K=2, the lab retrieves a and b. Can increasing c's margin make it win?
+**Answer:** no; a ranker cannot choose an item outside its input candidates.
+**Change:** raise candidate K to 3. The final list changes from b/a to c/b; authored candidate recall rises from 0.5 to 1.
+The final NDCG@2 ordering score rises from about 0.337 to 1 against the same complete judgment set; this demonstrates the mechanism, not measured product improvement.
+**Debug:** mark b unavailable after retrieval. Current metadata filtering removes it even though its vector remains indexed.
+If filtering leaves one allowed item, return a short list rather than adding an unavailable or already-consumed item.
+
 ---
 
 ## 🟡 Intermediate Level
@@ -529,6 +542,14 @@ Check whether the offline split leaked future interactions, overrepresented heav
 Inspect online diversity, novelty, hides, session depth, latency, and segment-level effects rather than assuming the rank order metric represents satisfaction.
 Keep the experiment controlled and use the discrepancy to revise labels or objectives instead of shipping based on offline gain alone.
 
+**Answer rubric**
+- **Say it:** An offline ordering gain does not establish improved retention under real exposure.
+- **Mechanism:** Check split leakage, old-policy selection bias, experiment validity and online guardrails by segment.
+- **Example:** A ranker lifts click-based NDCG but shows repetitive lessons that readers abandon.
+- **Limit:** Observational clicks cannot identify the causal retention effect without a suitable experiment.
+- **Watch for:** Do not ship solely because the offline metric increased or assume every discrepancy is model drift.
+- **Follow-up:** How would you separate a changed objective from a latency regression?
+
 **Q12. Scenario: recommendations become dominated by a few popular creators. How do you break the feedback loop?** `[hard]`
 
 Audit exposure and candidate-source distributions to confirm that popularity affects both retrieval probability and training labels.
@@ -541,11 +562,27 @@ Enforce a short retrieval deadline and switch to a prevalidated fallback such as
 Run final eligibility and already-consumed filters, mark the response source, and suppress retry amplification with circuit breaking.
 Alert on fallback rate because HTTP success alone would otherwise hide that personalized retrieval is down.
 
+**Answer rubric**
+- **Say it:** Switch promptly to an attributed fallback that still satisfies current eligibility rules.
+- **Mechanism:** Bound retrieval time, stop retry amplification, filter consumed/unavailable items and monitor fallback rate.
+- **Example:** The lab's editorial list b/e becomes only e when b was already consumed.
+- **Limit:** A cached list may be stale; returning fewer items is safer than padding with forbidden ones.
+- **Watch for:** Do not treat HTTP 200 as proof that personalized retrieval is healthy.
+- **Follow-up:** Which recovery signal would let you cautiously restore the primary source?
+
 **Q14. Scenario: a new high-quality item never receives impressions. Where can the pipeline be failing?** `[hard]`
 
 The item may lack a fresh content embedding, be absent from the ANN index, fail eligibility filters, or lose to collaborative popularity before ranking.
 Trace it through ingestion, index version, candidate-source counts, rank score, and re-ranker reason codes.
 Use content retrieval and bounded exploration to create evidence, while keeping safety and inventory constraints non-negotiable.
+
+**Answer rubric**
+- **Say it:** Trace candidate membership before blaming the ranking score.
+- **Mechanism:** Follow ingestion, compatible embeddings/index versions, eligibility, retrieval sources and final policy decisions.
+- **Example:** Lab item d has a high authored utility but cannot appear while missing from every candidate source.
+- **Limit:** Cold-start exploration must obey safety and availability constraints and needs outcome evidence.
+- **Watch for:** Do not assume increasing an omitted item's ranking score creates impressions.
+- **Follow-up:** What evidence distinguishes a missing index entry from rejection by the re-ranker?
 
 ### Further Reading
 

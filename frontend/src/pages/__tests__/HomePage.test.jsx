@@ -43,6 +43,7 @@ describe('HomePage', () => {
     renderPage()
 
     expect(await screen.findByRole('heading', { name: /Understand the systems behind your code/  })).toBeInTheDocument()
+    expect(screen.getByText('Backend Engineering · Learn with understanding')).toBeInTheDocument()
     await openBrowse()
     await screen.findByText('OOP Pillars')
     expect(screen.getByRole('navigation', { name: 'Curriculum categories' })).toBeInTheDocument()

@@ -260,24 +260,11 @@ API fields. It separates model selection, input, generation limits, output contr
 ```json
 {
   "model": "support-model-2026-08",
-  "messages": [
-    {"role": "user", "content": "Summarise ticket 4821"}
-  ],
-  "max_output_tokens": 400,
-  "stream": true,
-  "response_format": {
-    "type": "json_schema",
-    "name": "ticket_summary",
-    "schema": {
-      "type": "object",
-      "properties": {
-        "summary": {"type": "string"},
-        "priority": {"enum": ["low", "medium", "high"]}
-      },
-      "required": ["summary", "priority"],
-      "additionalProperties": false
-    }
-  },
+  "messages": [{"role": "user", "content": "Summarise ticket 4821"}],
+  "max_output_tokens": 400, "stream": true, "response_format": {"type": "json_schema", "name": "ticket_summary",
+    "schema": {"type": "object",
+      "properties": {"summary": {"type": "string"}, "priority": {"enum": ["low", "medium", "high"]}},
+      "required": ["summary", "priority"], "additionalProperties": false}},
   "conversation_id": "conv_7f31"
 }
 ```
@@ -358,6 +345,13 @@ The server should define whether retries are safe for a generation request.
 For plain text generation, a retry may create a different sample even with identical input if randomness or load-dependent scheduling differs.
 
 For a request that triggers an external action, retries must be protected by an idempotency key and explicit tool-execution state.
+
+The [Java integration lab](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/ai-backend/README.md)
+implements a bounded HTTP adapter, input/output validation and fixture/live evaluation modes.
+Its 7B experiment exhausted useful memory headroom on a 6.8 GiB WSL instance; a 0.5B model completed
+requests but failed the measured field task. These are local observations, not engine benchmarks.
+**Predict/change/debug:** account for weights, KV state, runtime and test processes together; stop
+concurrent load and inspect memory before adding retries or assuming a smaller model meets quality.
 
 ### Multi-tenancy and isolation
 
@@ -556,9 +550,25 @@ A draft model, prediction heads or another supported proposal method suggests se
 
 Inspect request queue delay, prefill scheduler policy, maximum prompt length, admission control, and whether static batching waits too long to form work. Low average GPU utilisation can coexist with a serial bottleneck or an overly conservative scheduler. Add per-stage latency metrics, impose prompt-token budgets, and test continuous batching with a first-token SLO.
 
+**Answer rubric**
+- **Say it:** Measure where first-token time is spent instead of diagnosing from utilization alone.
+- **Mechanism:** Separate client/queue/tokenization/prefill/model/transport timing and inspect admission, prompt lengths and batching behavior.
+- **Example:** A low-utilization worker can coexist with requests waiting in a serialized preprocessing queue.
+- **Limit:** A throughput improvement can worsen tail first-token latency for interactive requests.
+- **Watch for:** Adding replicas without locating the serial stage or declaring utilization a user-experience metric.
+- **Follow-up:** Which span boundary distinguishes provider queueing from your application’s queue?
+
 **Q12. Scenario: an engine begins OOM failures after a product enables 8,000-token contexts. How do you respond?** `[hard]`
 
 Calculate and measure KV-cache bytes per token, active sequence count, weight footprint, and allocator reserve before simply adding retries. Lower concurrent-token admission, set context and output limits, enable paged allocation where supported, or add model-parallel capacity. Return explicit overload responses while protecting existing active requests rather than letting all requests fail together.
+
+**Answer rubric**
+- **Say it:** Bound concurrent token memory before multiplying retries.
+- **Mechanism:** Estimate weights plus KV cache, allocator/runtime reserve and active requests, then validate against observed memory.
+- **Example:** The teaching environment’s 7B runner consumed roughly 4.9 GiB RSS while browser tests also needed memory; serializing work restored headroom.
+- **Limit:** Fitting a smaller model in RAM does not establish task quality, and this host observation is not a GPU capacity benchmark.
+- **Watch for:** Sizing from weight files alone or retrying an overload without an admission budget.
+- **Follow-up:** How do maximum context and simultaneous sequences change the safe capacity?
 
 **Q13. Scenario: retrieved content says “ignore all prior rules” and asks the model to call a refund tool. How should the serving layer respond?** `[hard]`
 
@@ -567,6 +577,14 @@ authority. Even if the model proposes the call, the server must enforce a tool a
 arguments, check the user's refund permission, and require confirmation or idempotency where the
 business action demands it. Record the injection signal and outcome for evaluation without logging
 unredacted sensitive context.
+
+**Answer rubric**
+- **Say it:** Retrieved content cannot authorize a tool or override the user’s permission boundary.
+- **Mechanism:** Enforce allowlists, typed arguments, ownership, approval and idempotency in application code; record bounded denial evidence.
+- **Example:** The read-only agent rejects refund_order even if a retrieved document or model proposes it.
+- **Limit:** Prompt instructions and a valid schema cannot prevent every semantic or injection failure.
+- **Watch for:** Sending raw sensitive prompts to logs or treating MCP capability discovery as business authorization.
+- **Follow-up:** What state must be durable before an uncertain write can be retried?
 
 **Q14. How would you safely roll out a quantised model version?** `[hard]`
 

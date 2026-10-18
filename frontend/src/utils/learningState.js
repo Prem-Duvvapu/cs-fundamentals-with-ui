@@ -138,7 +138,7 @@ export function previewLearningImport(text, knownTopicIds = null) {
   let value
   try { value = JSON.parse(text) } catch { return { ok: false, error: 'This file is not valid JSON.' } }
   if (!isRecord(value) || (value.app !== undefined && value.app !== APP_ID) || !Number.isInteger(value.version)) {
-    return { ok: false, error: 'This is not a CS Fundamentals backup file.' }
+    return { ok: false, error: 'This is not a Backend Engineering backup file.' }
   }
   if (value.version > LEARNING_BACKUP_VERSION) {
     return { ok: false, error: 'This backup was made by a newer version of the app. Update the app, then import it again.' }

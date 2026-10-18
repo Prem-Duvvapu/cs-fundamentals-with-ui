@@ -276,6 +276,36 @@ or interpret an arbitrary epsilon as a universal statistical significance rule.
 
 ## 🔴 Expert Level
 
+### Reproduce a prediction before deciding to retrain
+
+Start with a small artifact you can inspect. The [training lab](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/labs/aiml/train.py)
+fits means/scales and weights on training rows, chooses a threshold on validation rows and reports
+held-out results. From the repository root, save its full report:
+
+```bash
+python3 examples/labs/aiml/train.py > /tmp/support-model-run.json
+```
+
+The report includes the dataset digest/seed, preprocessing parameters, fitted weights, optimizer
+settings and chosen threshold. Those belong together: combining new weights with old means changes
+the function even when both files load successfully. This is a synthetic training artifact, not a
+running feature store or production model registry.
+
+| Symptom | Check before replacing the model |
+|---|---|
+| Missing values become zero | Whether zero means observed zero, unknown or a fallback |
+| Offline success, online failure | Input availability times and the exact transformation version |
+| Feature distribution shifts | Sample size, seasonality and performance when labels mature |
+| Rollback loads successfully but stays wrong | Weights, preprocessing, threshold and feature definitions as one compatible set |
+
+**Predict:** a newer model reads a feature that did not exist when historical decisions were made.
+Can a join using only event time prove a valid replay? No; check the availability policy in the
+[feature-history lab](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/blob/main/examples/labs/README.md).
+**Change:** substitute a different preprocessing mean without changing weights. Predictions can
+change despite an unchanged model filename. **Debug:** replay a known input with its recorded
+artifact/feature versions, then decide whether data recovery, rollback or retraining addresses the cause.
+A low invalid-JSON rate from an LLM endpoint likewise measures a format proxy, not answer quality.
+
 ### Lineage and reproducible training
 
 Lineage answers, “Which raw data, transformation, feature definitions, and model code produced this prediction?” A production prediction record should link at least the model version, feature service version, feature-view versions, source snapshot or partition range, transformation commit, and inference timestamp.
@@ -426,9 +456,25 @@ Monitor schema validity, missingness, feature freshness, latency, prediction dis
 
 First determine whether zero is an observed value or a silent default by checking missingness indicators, event timestamps, watermarks, and per-partition materialisation status. Compare sampled online vectors with point-in-time offline recomputation and inspect recent schema, transformation, and cache-key version changes. If required features are unavailable, route to a validated reduced-feature model or fail closed rather than preserving latency with semantically corrupt inputs.
 
+**Answer rubric**
+- **Say it:** Investigate whether zero is real data or a silent missing-value substitute.
+- **Mechanism:** Trace feature availability, materialization, transformations and caches; compare a reproducible offline input with the served vector.
+- **Example:** A pipeline keeps latency healthy by replacing an unavailable required value with zero, changing the model’s decision.
+- **Limit:** A fallback needs its own validated feature contract; fast responses do not make missing input correct.
+- **Watch for:** Retraining before discovering that the serving pipeline changed feature meaning.
+- **Follow-up:** Which versions and timestamps would reproduce this exact prediction?
+
 **Q12. Scenario: PSI rises sharply after a holiday, but labelled model metrics remain stable. Should you retrain?** `[hard]`
 
 Do not retrain solely because PSI crossed a generic threshold; first segment the shift, check sample size and bucket sensitivity, and determine whether it reflects expected seasonality. Stable mature-label performance suggests the moved feature may not have changed the decision boundary, although rare slices can still be harmed. Record the event, strengthen slice monitoring, and retrain only when evaluation shows a durable benefit or the current model no longer meets an agreed objective.
+
+**Answer rubric**
+- **Say it:** Distribution drift is a diagnostic signal, not an automatic retraining command.
+- **Mechanism:** Check seasonal slices and sample/bucket effects, then compare matured-label quality against the agreed objective.
+- **Example:** Holiday behavior shifts a feature distribution while the model still makes acceptable decisions.
+- **Limit:** Stable aggregate quality can hide damage to a rare or important slice.
+- **Watch for:** Treating a universal PSI threshold as a correctness guarantee.
+- **Follow-up:** How do delayed labels change the decision to roll back or retrain today?
 
 **Q13. Scenario: a shadow model looks accurate, but its 5% canary overloads the online store. How do you respond?** `[hard]`
 
@@ -437,6 +483,14 @@ Stop or reduce the canary using the predeclared saturation rollback threshold, b
 **Q14. Scenario: a region fails and the model starts in the backup region against an empty online store. How should recovery be designed?** `[hard]`
 
 Treat the online store as a rebuildable projection, but pre-provision or continuously replicate enough version-compatible state to meet the recovery objective. Fail over the model artifact, registry metadata, feature definitions, and online values as one compatibility set, validating freshness before accepting traffic. If rebuilding exceeds the business deadline, use a tested reduced-feature model or deterministic rule rather than silently serving the primary model with defaults.
+
+**Answer rubric**
+- **Say it:** Recover a compatible model-and-feature state before admitting traffic.
+- **Mechanism:** Restore artifact, preprocessing, feature definitions and online values together; check freshness and use a tested fallback if deadlines cannot be met.
+- **Example:** An intact weight file cannot recover a predictor that expects features absent from the backup store.
+- **Limit:** A fallback must preserve permission and business constraints even if personalization is reduced.
+- **Watch for:** Serving missing feature defaults silently merely to keep the health check green.
+- **Follow-up:** Which recovery test demonstrates that yesterday’s acknowledged state can actually be used?
 
 ### Further Reading
 

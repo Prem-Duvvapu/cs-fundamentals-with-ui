@@ -9,7 +9,7 @@ const TOUR_STEPS = [
     id: 'welcome',
     path: '/',
     target: null,
-    title: 'Welcome to CS Fundamentals',
+    title: 'Welcome to Backend Engineering',
     body: 'A quick tour of learning paths, the reader, practice and progress — about a minute, and you can skip it any time.'
   },
   {

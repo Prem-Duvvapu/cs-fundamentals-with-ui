@@ -502,3 +502,50 @@ RCA-2026-10-16-01 resolving commit: `03620b7`. RCA-2026-10-16-02 resolving commi
 - Verification: all 29 example tests and the packaged authenticated cross-feature smoke pass with generated values. Final-head GitGuardian/CI checks must pass before merge.
 - Prevention: examples fail closed without explicit credentials; deterministic tests generate their own values rather than embedding defaults in configuration.
 - Resolving commit: final sanitized checkpoint, recorded in the implementation ledger after creation.
+
+
+## RCA-2026-10-18-01 — Lesson artifact links resolved against application routes
+
+- Evidence: twelve existing relative links from canonical lessons to example guides resolved under the deployed application instead of the source repository. The SPA could return its shell for that path, so HTTP 200 alone did not establish a usable guide.
+- Root cause: the Markdown renderer had no curriculum source location and used browser-relative URL resolution for source-relative Markdown links.
+- Resolution: resolve known curriculum files to their registered topic route and other source-relative artifacts to the canonical repository. Preserve native absolute, root-relative, fragment and query links and the existing unsafe-protocol filter.
+- Verification: five real-renderer regressions cover artifact links, cross-category lessons, unknown lessons, existing native links and unsafe protocols; all eighteen related renderer/control/deck tests passed. Full frontend verification passed 826 tests.
+- Prevention: treat source-relative Markdown links as a rendering contract; test the resulting anchor destination rather than only HTTP availability.
+- Resolving commit: `a8a161a4def216d37442edea70aa313d297527af`.
+
+## RCA-2026-10-18-02 — Completed HTTP smoke servers competed with independent MCP startup
+
+- Evidence: a parallel local verification missed application readiness; a subsequent serial HTTP/evaluation run reached MCP but timed out its initialization while the completed HTTP fixture/application remained live. The same packaged JAR passed the isolated MCP check. The phased full smoke then passed.
+- Root cause: the harness retained two no-longer-needed owned servers while launching an independent JVM on the constrained local environment. This was unnecessary resource overlap; an out-of-memory event was not measured in these runs.
+- Resolution: stop only the completed smoke's owned HTTP servers before running the independent MCP subprocess, retaining bounded cleanup in the finalizer. Build completion precedes the smoke.
+- Verification: packaged HTTP, authentication/CSRF, tenant/version/revocation, approved replay, both 30/20 fixture splits and real MCP negotiation passed in sequence without increasing protocol timeouts.
+- Prevention: scope child-process lifetime to the evidence phase that needs it, and serialize resource-heavy local verification.
+- Resolving commit: `a8a161a4def216d37442edea70aa313d297527af`.
+
+## RCA-2026-10-18-03 — Oversized embedding numbers escaped the typed upstream boundary
+
+- Evidence: an embedding response containing the finite JSON number 1e100 raised Jackson's numeric conversion exception while converting to float, instead of the intended bounded provider failure.
+- Root cause: JSON numeric validity was checked before conversion, but float conversion itself could fail outside the provider's typed error translation.
+- Resolution: normalize conversion failures into the embedding-provider failure boundary, producing the existing HTTP 502 behavior and preventing index publication.
+- Verification: the invalidDimensionsTypesZeroVectorsAndWrongBatchAreRejected regression covers oversized numbers, invalid dimensions/types, zero vectors and batch mismatch. Integrated Java verify passed 55 tests with eight actual PostgreSQL cases explicitly skipped locally; dedicated CI must execute those cases.
+- Prevention: validate the target numeric representation as well as JSON token type; malformed upstream output must remain within a typed failure boundary.
+- Resolving commit: `3d33556` (source package `79ca5db`).
+
+## RCA-2026-10-18-04 — Reliability admission raced executor handoff
+
+- Evidence: a logically idle slot could receive an OVERLOADED result while its executor worker was still returning, where the next call should observe the circuit's OPEN state.
+- Root cause: direct executor handoff and logical admission did not share a complete release/publication ordering; executor availability briefly lagged the logical slot.
+- Resolution: use explicit semaphore admission with a bounded handoff buffer, and release admission before publishing completion. Requests still do not wait for capacity and admitted work remains bounded.
+- Verification: all nineteen reliability tests and the packaged retry demo passed, including immediate rejection, cancellation, half-open behavior and zero admitted/active work after completion.
+- Prevention: test the boundary between logical capacity, executor lifecycle and externally visible completion; do not hide admission races behind retrying tests.
+- Resolving commit: `9ef9961` (source package `d983f66`).
+
+
+## RCA-2026-10-18-05 — Join-first vector query did not establish HNSW execution
+
+- Evidence: actual pgvector CI run39126466506 executed all63 tests without skips and failed the index-plan assertion. The plan used tenant primary-key scans, a nested join and a sort; disabling sequential scans did not force or prove an HNSW access path. Kafka/RabbitMQ and Redis/MongoDB jobs passed separately.
+- Root cause: the nearest-neighbor ORDER BY/LIMIT shared a query level with the canonical-document join. The planner could choose the cheaper primary-key path for the tiny fixture, so the query/test did not demonstrate the intended vector access path.
+- Resolution: materialize a bounded, tenant-partition-scoped nearest-candidate phase before the current enabled/version authorization join. The explicit diagnostic discourages both sequential scans and sorts, runs EXPLAIN ANALYZE BUFFERS, and requires positive actual loops on the named HNSW index. Normal application queries retain planner freedom; no index speedup is claimed.
+- Verification: targeted local compilation/regressions passed thirteen tests with eight actual PostgreSQL cases explicitly skipped. Final-head real-service CI must pass the unchanged eight-case no-skip gate before merge; this record does not substitute for that evidence.
+- Prevention: distinguish index existence, eligible SQL, planned access and actual index execution. Preserve tenant/freshness checks when making nearest-neighbor access eligible; never weaken the assertion to accept a sort.
+- Resolving commit: `df001dc155fd87822eb657045cd046e4883b781f` (source `c1fc3b5`).

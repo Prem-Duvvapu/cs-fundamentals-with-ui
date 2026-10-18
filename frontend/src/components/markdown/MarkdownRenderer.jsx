@@ -1,7 +1,8 @@
 import CodeBlock from './CodeBlock'
-import { Children, isValidElement, memo, useLayoutEffect, useMemo, useRef } from 'react'
+import { Children, isValidElement, memo, useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { rehypeHeadingIds } from '../../utils/markdownHeadings'
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown'
+import { resolveCurriculumLink } from '../../utils/curriculumLinks'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
@@ -47,7 +48,10 @@ function getTierHeading(children) {
  * content/. Replaces the previous 68-line regex renderer in TopicViewer —
  * see content/CONTENT_SPEC.md for what topic authors may rely on here.
  */
-function MarkdownRenderer({ content, onReady }) {
+function MarkdownRenderer({ content, onReady, sourceCategory }) {
+  const urlTransform = useCallback((url, key) => defaultUrlTransform(
+    key === 'href' ? resolveCurriculumLink(url, sourceCategory) : url
+  ), [sourceCategory])
   // A lesson can render several tables; each needs a distinct accessible name
   // so assistive tech doesn't announce identical "Scrollable table" regions.
   const tableCountRef = useRef(0)
@@ -99,6 +103,7 @@ function MarkdownRenderer({ content, onReady }) {
         [rehypeHighlight, { languages: HIGHLIGHT_LANGUAGES, detect: false }]
       ]}
       components={components}
+      urlTransform={urlTransform}
     >
       {content}
     </ReactMarkdown>

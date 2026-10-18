@@ -298,3 +298,21 @@ Primary sources: [Boot database initialization](https://docs.spring.io/spring-bo
 [Spring request authorization](https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html),
 [Spring caching](https://docs.spring.io/spring-framework/reference/integration/cache/annotations.html), and
 [Actuator endpoint exposure](https://docs.spring.io/spring-boot/reference/actuator/endpoints.html).
+
+## Optional observability milestone
+
+The [observability walkthrough](OBSERVABILITY.md) adds an opt-in `observability` profile:
+real HTTP → bounded async work → owned loopback dependency → transactional JPA work,
+with OpenTelemetry spans, correlated local JSON log payloads and bounded Micrometer metrics.
+Default in-memory behavior is unchanged. Tests use the official SDK's in-memory exporter;
+no remote collector deployment is implied. Run Maven verification first, then
+`python3 examples/java-spring/task-tracker/verify_http.py --observability` from the repository root.
+
+## Optional JWT and security milestone
+
+The [security walkthrough and complete OWASP mapping](SECURITY.md) add an opt-in `jwt`
+profile on the existing project endpoints. Actual HTTP tests validate generated token
+signatures, issuer/audience/timestamps/scopes, object/field ownership and bounded JWKS
+rotation. Basic/session requests retain CSRF protection. The local public-key fixture
+is not an OAuth authorization server or cloud secret-store deployment; open risks and
+procedures are explicitly recorded in the Web Top 10:2025 and API Top 10:2023 matrices.

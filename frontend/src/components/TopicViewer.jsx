@@ -307,7 +307,7 @@ export default function TopicViewer({ topicId, category, mode = 'theory', practi
               <span /><span /><span />
             </div>
           )}>
-            <MarkdownRenderer content={content} onReady={handleRendererReady} />
+            <MarkdownRenderer content={content} onReady={handleRendererReady} sourceCategory={category || getTopicCategory(topicId)} />
           </Suspense>
         </article>
         {questions.length > 0 && <div className="practice-invitation"><p>Ready to explain this? Practise recalling it in your own words.</p>{onPractice && <button type="button" className="ui-button ui-button--secondary" onClick={onPractice}><Icon name="interview" size={16} />Practise this lesson</button>}</div>}

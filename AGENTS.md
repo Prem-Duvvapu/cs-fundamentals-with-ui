@@ -1,4 +1,4 @@
-# AI Agent Context — CS Fundamentals with UI
+# AI Agent Context — Backend Engineering
 
 
 ## Visitor analytics
@@ -671,4 +671,51 @@ Preserve explicit agent overload/upstream-error HTTP behavior (503/502) and its 
 
 Follow `BACKEND_ENGINEERING_COVERAGE_2026-10-17.md` for all 77 requested backend items (BEC-01–BEC-77), alongside the AI/debug/BE/CLOSE IDs in the practical plan. Reuse specific existing DSA/LLD/HLD lesson and exercise links instead of duplicating their content. Add only missing concepts and distinct backend integration/debugging work; record the source route, evidence scope and remaining gaps. Never count HLD draft topics as delivered lessons or an in-process LLD example as actual broker/Redis/distributed durability evidence. No additional registry or shared progress is introduced. Link completion evidence and merged releases in the implementation ledger; do not equate a mapped item or passing content-anchor gate with a complete practical learning outcome.
 
-Cross-project links are currently verified snapshots, not monitored subscriptions. Follow the coverage checklist’s link-maintenance section for stable IDs, owner redirects, route/lesson-identity validation and scheduled CI checks. HTTP 200 from an SPA fallback is insufficient evidence. Keep automation marked pending until implemented and tested; never send learner state in link checks.
+The October 17 link-maintenance proposal is superseded by the implemented October 18 audit described below. Keep stable IDs, verified destination identity and the public-only privacy boundary; HTTP 200 alone is insufficient.
+
+## October 18 implementation checkpoint
+
+Use **Backend Engineering** for visible branding; preserve all technical IDs, routes, local-storage
+keys/events, backup envelopes and deployment URLs. Keep the learning-network subject taxonomy and
+independent-progress behavior. The current authored-rubric total is **77** across 953 questions,
+including at least three in each AI lesson; earlier dated 56/59 totals are historical. Preserve
+all six new AI lesson rubric sets and the corpus assertions.
+
+Relative Markdown links need source-category context in Study and Practice. Keep
+`resolveCurriculumLink` tied to the existing topic/category map, preserve fragments/native URLs and
+React Markdown's unsafe-protocol filtering, and keep renderer identities stable. Do not replace
+reader links with broken deployment `/examples` paths. Run the real link-rendering tests and
+control-persistence tests after changing this behavior.
+
+The link audit is implemented: `scripts/audit-learning-links.mjs` reads the existing reference
+inventory, checks public catalogs/rendered lesson identity and distinguishes temporary availability
+from confirmed removal/incompatibility. Its PR tests are deterministic; scheduled/dispatch/relevant
+main-push audits run live. Current HLD cache-aside deployment is incompatible (backend model 1.0.0,
+frontend requires 1.0.1); preserve the finding until the owner redeploys and the live audit passes.
+
+Run `test_recommendations.py`, `test_backend_debug.py` and `test_backend_database.py` for the new
+labs; keep synthetic recommendation geometry separate from real learned model quality. Evaluation
+reports include per-field/slice diagnostics and undefined rates as null; failed requests remain in
+the all-case denominator. Do not infer missing old per-field results from all-fields-match flags.
+Vector retrieval, messaging and reliability are integrated as isolated learning modules; require their stated real-service evidence and preserve their documented limits.
+
+The optional [pgvector RAG milestone](examples/ai-backend/VECTOR_RETRIEVAL.md) is now integrated
+in this branch, with immutable embedding namespaces, tenant-scoped rebuilds, source freshness and
+exact/ANN modes. Local Java checks run without the missing PostgreSQL extension; real vector/index
+evidence must come from the dedicated CI job, which refuses skipped integration tests. Default
+lexical behavior is preserved. [Messaging](examples/backend-messaging/README.md) similarly separates
+actual durable-file checks from required actual Kafka/RabbitMQ CI evidence. The
+[reliability lab](examples/backend-reliability/README.md) composes bounded GET retries, deadlines,
+admission, cancellation and breaker behavior; it does not retry consequential mutations. These
+milestones do not imply full multi-node failure, saga, model quality or human learning completion.
+
+The Task Tracker [observability milestone](examples/java-spring/task-tracker/OBSERVABILITY.md)
+adds an explicit opt-in path across actual HTTP, async work, a loopback dependency and transactional
+JPA. The original in-memory default stays database-free. Its 29 tests and both packaged HTTP modes
+passed in the isolated package. Traces use the actual pinned SDK with local/in-memory exporters;
+no remote collector or deployed alert/notification service is claimed. Keep secrets and customer
+payloads out of spans/logs and retain fixed metric labels and existing owner/CSRF boundaries.
+
+Data-services examples live in `examples/backend-data-services/`; local default service skips are explicit. Its dedicated CI must execute Redis/MongoDB/combined cases without skips. Cache source-version checks and tenant isolation are correctness contracts, not optional optimizations.
+
+Preserve document byte/page/pixel/text/process bounds and provenance. Missing real OCR must fail when explicitly enabled; its dedicated CI refuses skipped OCR cases. Preserve Task Tracker JWT issuer/audience/time/algorithm/scope/owner validation, operator-selected bounded JWKS source and legacy Basic/session CSRF behavior. Its OWASP matrices distinguish tested controls from procedures and open work; do not label them a security certification.

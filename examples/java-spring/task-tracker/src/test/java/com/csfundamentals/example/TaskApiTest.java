@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class TaskApiTest {
     @Autowired MockMvc mvc;
+    @Autowired org.springframework.context.ApplicationContext context;
     @Test void createsAndRetrievesThroughRealMvcSerialization() throws Exception {
         String location = mvc.perform(post("/api/tasks").contentType("application/json").content("{\"title\":\"Read\"}"))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.title").value("Read"))
@@ -19,6 +20,10 @@ class TaskApiTest {
         mvc.perform(get(location)).andExpect(status().isOk()).andExpect(jsonPath("$.completed").value(false));
         mvc.perform(put(location + "/completion").contentType("application/json").content("{\"completed\":true}"))
             .andExpect(status().isOk()).andExpect(jsonPath("$.completed").value(true));
+    }
+    @Test void observabilityFixtureIsAbsentByDefault() throws Exception {
+        org.junit.jupiter.api.Assertions.assertTrue(context.getBeansOfType(com.csfundamentals.example.observability.TeachingTelemetry.class).isEmpty());
+        mvc.perform(post("/api/observability/probe")).andExpect(status().isNotFound());
     }
     @Test void exposesUsefulFailureResponses() throws Exception {
         mvc.perform(post("/api/tasks").contentType("application/json").content("{\"title\":\" \"}"))

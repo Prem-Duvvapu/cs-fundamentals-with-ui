@@ -114,3 +114,10 @@ Primary references: [Spring AI compatibility](https://docs.spring.io/spring-ai/r
 [ChatClient](https://docs.spring.io/spring-ai/reference/api/chatclient.html),
 [Ollama API](https://docs.ollama.com/api/chat),
 [OWASP prompt injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/).
+
+## Diagnose evaluation results
+
+The [evaluation guide](EVALUATION.md) explains dataset preflight, schema versus semantic success,
+per-field and per-slice reports, failure denominators and observed p50/p95. The current example
+suite has 39 tests before the separate vector-retrieval extension. Old saved reports without
+per-field data remain valid historical evidence and cannot be backfilled from exact-match totals.

@@ -1,11 +1,11 @@
-# CS Fundamentals with UI
+# Backend Engineering
 
 Part of the [Learning Hub](https://learning-hub-with-ui.vercel.app/).
 The shared **Learning network** navigation offers Learning Home and same-tab
 links between DSA, LLD, HLD, and CS fundamentals on every route. These remain
 independent apps: themes, backend state, and progress are not synchronized.
 
-**Interactive learning platform for Computer Science fundamentals — from beginner to expert.**
+**Learn backend engineering: foundations, Java/Spring, databases, distributed systems, DevOps and practical AI — from beginner to expert.**
 
 This project helps you prepare for **CS interviews** and software engineering excellence through a reading-first learning experience with optional interactive simulations. Every topic is structured in three tiers: 🟢 Beginner → 🟡 Intermediate → 🔴 Expert with real-world failure modes, trade-offs, and interview Q&As.
 
@@ -432,3 +432,45 @@ The agent API reports recoverable capacity exhaustion as HTTP 503 and malformed 
 ### Backend coverage checklist — October 17
 
 The [77-item backend checklist](BACKEND_ENGINEERING_COVERAGE_2026-10-17.md) maps every requested concept to its owner, current depth and remaining build/debug/interview evidence. It includes specific existing DSA, LLD and published HLD links so their lessons and exercises can be reused. Additions focus on uncovered concepts and backend integration practice; mapping is not a claim that all outcomes are complete. The AI/ML roadmap remains required alongside this checklist.
+
+### Backend Engineering release work — October 18
+
+The product name is now **Backend Engineering**. Existing URLs, technical package identifiers,
+local preferences, saved answers and backup compatibility remain stable. The learning-network
+subject label stays CS fundamentals.
+
+The AI learning path now has three authored scenario rubrics in every AI lesson (**77 corpus-wide**),
+a [runnable recommendation exercise](examples/labs/aiml/RECOMMENDATIONS.md), and
+[per-field/slice evaluation diagnostics](examples/ai-backend/EVALUATION.md). The recommendation
+fixture uses authored vectors/scores; it does not claim trained ranking or online quality.
+Try the [real JVM/PostgreSQL diagnosis labs](examples/labs/backend/README.md) to observe deadlock,
+retained memory, query plans and lock waits. These are bounded local exercises, not production benchmarks.
+
+[Learning-link maintenance](docs/LEARNING_LINK_MAINTENANCE.md) now has deterministic PR checks
+and separate scheduled/live identity checks. The first audit found an actual HLD cache-aside
+frontend/backend version mismatch; its owning deployment needs correction. A successful HTTP
+response alone does not certify a lesson. Relative lesson links to repository guides now resolve
+to the repository, while registered lesson links stay in the app. See the
+[implementation ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md) for verified releases
+and explicitly open AI/backend/learner-accessibility gates.
+
+The optional [pgvector RAG milestone](examples/ai-backend/VECTOR_RETRIEVAL.md) is now integrated
+in this branch, with immutable embedding namespaces, tenant-scoped rebuilds, source freshness and
+exact/ANN modes. Local Java checks run without the missing PostgreSQL extension; real vector/index
+evidence must come from the dedicated CI job, which refuses skipped integration tests. Default
+lexical behavior is preserved. [Messaging](examples/backend-messaging/README.md) similarly separates
+actual durable-file checks from required actual Kafka/RabbitMQ CI evidence. The
+[reliability lab](examples/backend-reliability/README.md) composes bounded GET retries, deadlines,
+admission, cancellation and breaker behavior; it does not retry consequential mutations. These
+milestones do not imply full multi-node failure, saga, model quality or human learning completion.
+
+The Task Tracker [observability milestone](examples/java-spring/task-tracker/OBSERVABILITY.md)
+adds an explicit opt-in path across actual HTTP, async work, a loopback dependency and transactional
+JPA. The original in-memory default stays database-free. Its 29 tests and both packaged HTTP modes
+passed in the isolated package. Traces use the actual pinned SDK with local/in-memory exporters;
+no remote collector or deployed alert/notification service is claimed. Keep secrets and customer
+payloads out of spans/logs and retain fixed metric labels and existing owner/CSRF boundaries.
+
+The [Redis/MongoDB lab](examples/backend-data-services/README.md) exercises actual TTL/Lua, tenant/version cache isolation, document indexes and optimistic conflicts; its dedicated CI requires real services without skips.
+
+The [document-input lab](examples/ai-backend/DOCUMENTS.md) distinguishes digital PDFs from scans and records page provenance; CI requires real OCR. The [security lab](examples/java-spring/task-tracker/SECURITY.md) adds an opt-in JWT/JWKS path and complete OWASP Web2025/API2023 control-and-gap matrices.

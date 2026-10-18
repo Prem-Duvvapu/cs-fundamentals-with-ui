@@ -21,6 +21,19 @@ class KnowledgeController {
     @PostMapping("/api/ask") KnowledgeService.Answer ask(Principal principal, @RequestBody Question question) {
         return service.ask(principal.getName(), question.question());
     }
+    @PostMapping("/api/index/rebuild") PgVectorKnowledgeIndex.Status rebuild(Principal principal) {
+        return service.rebuildIndex(principal.getName());
+    }
+    @GetMapping("/api/index/status") PgVectorKnowledgeIndex.Status indexStatus(Principal principal) {
+        return service.indexStatus(principal.getName());
+    }
+    @ExceptionHandler(EmbeddingProvider.Failure.class) ResponseEntity<Map<String, String>> embeddingFailure(EmbeddingProvider.Failure e) {
+        return ResponseEntity.status(502).body(Map.of("error", e.getMessage()));
+    }
+    @ExceptionHandler(KnowledgeRetrieval.Unavailable.class) ResponseEntity<Map<String, String>> indexUnavailable(KnowledgeRetrieval.Unavailable e) {
+        int status = e.getMessage().equals("vector_database_unavailable") || e.getMessage().equals("vector_rebuild_in_progress") ? 503 : 409;
+        return ResponseEntity.status(status).body(Map.of("error", e.getMessage()));
+    }
     @ExceptionHandler(IllegalArgumentException.class) ResponseEntity<Map<String, String>> invalid(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("error", e.getMessage())); }
     @ExceptionHandler(SecurityException.class) ResponseEntity<Map<String, String>> forbidden(SecurityException e) { return ResponseEntity.status(403).body(Map.of("error", "source_not_authorized")); }
     @ExceptionHandler(KnowledgeStore.Conflict.class) ResponseEntity<Map<String, String>> conflict() { return ResponseEntity.status(409).body(Map.of("error", "document_version_conflict")); }

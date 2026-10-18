@@ -1,0 +1,153 @@
+# Messaging: real broker delivery and local durability boundaries
+
+This standalone **Java 17 / Maven** lab teaches what happens after an application delegates work to a broker. Start with the existing [LLD pub/sub design](https://lld-with-ui.vercel.app/pub-sub) for the pattern and in-process implementation. Reuse that explanation; the distinct work here is actual Kafka/RabbitMQ delivery, consumer recovery and a durable local effect.
+
+No customer records, payments, email or cloud resources are involved. The synthetic business operation increments a ticket-activity projection in an owned temporary H2 database. The executable entry points are JUnit tests, not a web application.
+
+## 1. Understand the three acknowledgements
+
+Imagine the support service records that ticket `ticket-1` gained one activity. It must update its own state and eventually notify another service.
+
+| Boundary | What success establishes | What it does not establish |
+|---|---|---|
+| Local source transaction | Source change and outbox record commit together | Broker received the event |
+| Kafka completed send / Rabbit publisher confirm | Broker accepted under its configured acknowledgement/durability rules | A consumer committed its database work |
+| Consumer database commit | Projection and inbox ID commit together | Broker stored the consumer's ACK/offset |
+
+Failure between boundaries creates ambiguity. Repeating a send can be correct, provided the event keeps its identity and the consumer recognizes duplicates. Committing an offset or acknowledging a delivery **before** the local effect risks losing work after a crash.
+
+A producer's idempotence setting concerns its broker protocol; it does not make a later outbox replay or arbitrary external side effect universally exactly-once. Here only the inbox and projection inside the **same H2 transaction** are deduplicated. A remote payment or email would need its own durable idempotency/reconciliation contract.
+
+## 2. Run local durable-file tests
+
+Requirements: JDK 17+ and Maven 3.8+. From the repository root:
+
+```bash
+mvn -B -f examples/backend-messaging/pom.xml verify
+```
+
+Expected locally: **8 tests pass; 2 real-broker tests are skipped** unless explicitly enabled. Maven also compiles the real official-client integration code. Skipping is explicit evidence of a missing broker run, not a broker pass.
+
+The tests generate passwords at runtime, create fresh database files under JUnit temporary directories and reopen them to verify state. No credentials or database files should be committed. Reset requires no command: JUnit removes its owned temporary directory. No normal unit test starts a network service.
+
+`DurableStoreTest` covers:
+
+1. Crash before source commit: both source mutation and outbox insert roll back.
+2. Publish then crash before the sent flag: reopening shows the same pending event, which is published again with the same ID.
+3. Crash before consumer commit: both projection and inbox roll back.
+4. Commit the consumer effect then crash before acknowledgement: reopening recognizes the ID and does not apply the effect twice.
+5. Reuse an ID with changed business fields: reject it instead of silently accepting a different operation.
+6. Send failure/ambiguous result: retain the outbox event for reconciliation/retry.
+7. Additive schema metadata is readable; unsupported versions, malformed JSON, duplicate keys, trailing values and wrong required types fail.
+8. Refuse remote H2 URLs, URL options and missing generated secrets.
+
+The local publisher is an explicitly named in-process list, so those local tests prove JDBC boundary behavior, **not broker delivery**. The crash points throw after/before precisely identified commits and release/reopen JDBC connections. They are deterministic process-replacement simulations; they do not simulate sudden power loss or validate disk hardware flush guarantees.
+
+## 3. Run the actual brokers
+
+Pinned versions checked against primary sources on **2026-10-18**:
+
+| Component | Pin |
+|---|---|
+| Kafka official Java client and JVM broker image | 4.3.1 |
+| RabbitMQ official Java client | 5.37.0 |
+| RabbitMQ Docker Official Image | 4.3.6 |
+| H2 | 2.4.240 |
+| Jackson databind | 2.21.4 |
+| JUnit Jupiter | 5.12.2 |
+
+The container commands additionally pin the registry-verified multi-platform image digests. These are reproducible selected versions, not a claim that every one is the newest release. Kafka's official quickstart documents the standalone Docker launch used here. The Java client runs on JDK 17; the broker image supplies its own runtime.
+
+The dedicated [GitHub Actions workflow](../../.github/workflows/backend-messaging.yml) provisions both actual containers, generates RabbitMQ credentials, checks readiness within 90 seconds, runs all tests and uploads Surefire evidence. A job-level deadline caps the complete run. Its final step removes only the two containers with this job's generated names, including their anonymous volumes. It uses no hosted broker or paid resources.
+
+If Docker is available locally, reproduce it in a fresh terminal using unused loopback ports 9092/5672:
+
+```bash
+set -euo pipefail
+messaging_id="lab-$(openssl rand -hex 8)"
+kafka_container="messaging-kafka-$messaging_id"
+rabbit_container="messaging-rabbit-$messaging_id"
+export RABBIT_USER="lab_$(openssl rand -hex 8)"
+export RABBIT_PASSWORD="$(openssl rand -hex 32)"
+export RABBIT_PORT=5672 KAFKA_BOOTSTRAP=127.0.0.1:9092
+cleanup_messaging() {
+  for name in "$kafka_container" "$rabbit_container"; do
+    if docker inspect "$name" >/dev/null 2>&1; then docker rm -fv "$name"; fi
+  done
+}
+trap cleanup_messaging EXIT
+
+docker run -d --name "$kafka_container" -p 127.0.0.1:9092:9092 apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837
+docker run -d --name "$rabbit_container" -p 127.0.0.1:5672:5672 \
+  -e RABBITMQ_DEFAULT_USER="$RABBIT_USER" -e RABBITMQ_DEFAULT_PASS="$RABBIT_PASSWORD" rabbitmq:4.3.6@sha256:3e5cc23235b0eb850f604e8ace10d9a9b6d05be3e36730e53522ee9ead707a9e
+
+messaging_ready=false
+for attempt in $(seq 1 45); do
+  if docker exec "$kafka_container" /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1 \
+    && docker exec "$rabbit_container" rabbitmq-diagnostics -q ping >/dev/null 2>&1; then
+    messaging_ready=true
+    break
+  fi
+  sleep 2
+done
+if [ "$messaging_ready" != true ]; then echo 'Broker readiness deadline exceeded' >&2; exit 1; fi
+MESSAGING_BROKERS=true mvn -B -f examples/backend-messaging/pom.xml verify
+```
+
+Do not enable shell tracing: it would expose generated credentials. Authentication is required for RabbitMQ. Kafka uses plaintext without authentication on loopback only, in an isolated throwaway lab; do not expose this configuration to a network. The code refuses a non-loopback Kafka bootstrap and always connects RabbitMQ to loopback. Never point the tests at shared brokers: random topic/queue names prevent collisions, but the lab assumes permission to create/delete its own resources. Each test deletes only its own names in `finally`; the container teardown removes any residual resources after an early failure.
+
+Expected with healthy brokers: **10 tests pass; none skipped**. Inspect the two broker test names in the uploaded report rather than reading only `BUILD SUCCESS`.
+
+## 4. Trace Kafka's behavior
+
+`KafkaBrokerTest` creates a two-partition event topic and a one-partition dead-letter topic with random names. The producer sends a stable `ticket-1` key sequentially, waits for each completed send, and checks the returned partition and increasing offsets. Same-key partition placement assumes the same partitioner and unchanged partition count; there is no total order across different partitions or independently coordinated producers.
+
+The test deliberately publishes the first outbox event, crashes before marking it sent, reopens the source database and publishes the same ID again. The producer has `enable.idempotence=true`, yet this application-level replay still produces a second record. Two additional distinct events and one poison event produce five records in that partition.
+
+The first consumer uses a named group with automatic offset commits disabled. It commits the local projection for the first event, then closes **without committing its Kafka offset**. A replacement using the same group receives that same offset again. The inbox prevents a duplicate projection update; after processing each valid record, the replacement explicitly commits `offset + 1` for that partition.
+
+The unsupported-version record is sent to the dead-letter topic and its broker send completes **before** the source offset is committed. A crash in between can duplicate the dead-letter record, so the envelope includes source partition/offset for identification. A separate consumer verifies that a DLQ record exists. Dead-lettering is a deliberate terminal policy for this unsupported schema, not a forever-retry loop.
+
+Finally, reopening the completed worker group yields no processed records, while a different audit group independently reads all five. The projection is 3, even though the valid event was delivered repeatedly. Group IDs identify independent subscriptions, not individual work items. Kafka group assignment occurs during subscription/restart here; concurrent membership changes, rebalance listeners, long processing pauses and partition revocation under load are **not tested**.
+
+Requests, producer delivery, metadata blocking, polls and test duration have explicit bounds. Automatic producer retries are constrained by the delivery deadline and backoff. No unbounded application retry loop is used. Offsets and projection are separate commits; this is at-least-once processing with an idempotent local effect, not a Kafka transaction spanning H2.
+
+## 5. Trace RabbitMQ's behavior
+
+`RabbitBrokerTest` declares an owned durable direct exchange, work queue, binding, dead-letter exchange and dead-letter queue. The event's routing key must match the binding. A mandatory publish to a missing binding produces a return even when the publisher receives a confirm: **confirmed does not mean routed to the intended queue or consumed**.
+
+Two persistent messages are published with confirms. A push consumer uses manual ACK and `basicQos(1)`. After it receives the first message, the test verifies that the second is withheld while one remains unacknowledged. This tests consumer prefetch; RabbitMQ's polling `basic.get` API does not enforce that prefetch window.
+
+The first local effect commits, then the channel closes without ACK. A replacement channel receives the first message with the redelivery flag. The durable inbox recognizes the duplicate; only then does that channel ACK its own delivery tag. The second event is processed and ACKed, leaving projection value 2. Delivery tags belong to their channel; reusing an old channel's tag or acknowledging twice can close the channel.
+
+An unsupported schema is rejected with `requeue=false`, and the test observes it in the dead-letter queue. The final DLQ inspection uses `basic.get` only to inspect the poison result, not to claim prefetch behavior. Classic-queue dead-letter forwarding is not a universal lossless transaction; broker/target failure behavior requires further tests and deployment choices.
+
+Automatic connection recovery is deliberately disabled so closure/replacement boundaries remain visible. This lab does not prove transparent reconnect behavior. A redelivery flag is a diagnostic hint, not the durable deduplication key; use event ID and business payload binding.
+
+## 6. Change the schema safely
+
+`TicketEvent` has `schemaVersion: 1`, `type: TicketActivity`, `id`, `ticketId` and a positive integer `delta`. Required fields have strict types and bounded values; messages over 4,096 characters are rejected. Unknown additive metadata such as `traceId` is ignored by this reader. A new major version is rejected until a handler is deliberately added.
+
+Do not turn a number into a string, change `delta`'s meaning or remove a required field while retaining version 1. Additive compatibility is specific to this reader policy; a reader that rejects unknown fields has a different contract. The lab is not a schema-registry deployment and does not establish compatibility for every consumer in an organization.
+
+## 7. Predict, change and debug
+
+1. **Predict:** A broker accepted an event, but the source process crashed before marking it sent. Will the relay send it again? **Answer:** yes. The durable pending row remains; reuse the same ID. Only marking it sent before confirmed acceptance would create a lost-delivery gap.
+2. **Change:** Move the consumer ACK/offset commit before the projection commit in a local experiment. **Answer:** crashing between those steps can permanently skip the business effect. Revert the experiment; effect-first plus durable dedupe handles duplicate delivery instead.
+3. **Change:** Set Rabbit prefetch to 2. **Answer:** the second delivery may arrive before the first ACK, so the existing test should fail. Prefetch bounds outstanding work; raising it changes memory, concurrency and fairness, not correctness by itself.
+4. **Debug:** The API is healthy, but activity counts lag. **Evidence:** pending outbox rows, broker send/confirm errors, group offsets/lag, unacknowledged Rabbit deliveries, schema errors and DLQ growth. Locate the stuck boundary before increasing retries.
+5. **Debug:** The same ID arrives with a different `delta`. **Answer:** reject and investigate the producer or identity scope. Silent dedupe would hide changed business meaning. Never generate a new ID for each retry of the same event.
+6. **Interview:** Why not claim exactly-once? **Answer:** source commit, broker acceptance, consumer effect and ACK/offset are separate durability boundaries. The inbox and effect share one local transaction; arbitrary external effects and broker failover remain separate problems.
+
+## Evidence and limits
+
+Local verification is the eight durable-file/schema tests; the real broker tests require opt-in environment and Docker/CI evidence. The initial development environment has no Docker daemon, so this package does not claim a local actual-broker pass. Keep this distinction in release records until the dedicated workflow passes.
+
+The example uses a single source relay and sequential consumer handlers. Its dedicated projection database gives event IDs one scope; multiple handlers or tenants need an explicit consumer/tenant identity scope in their inbox keys. Multiple relay workers need claiming/leases and per-aggregate sequencing; concurrent consumers need explicit duplicate-race handling/retry. The outbox's lexical ID ordering is deterministic teaching order, not a production causal-order guarantee. File reopen is not hardware power-loss testing. There is no multi-node replication/failover, Kafka transaction, distributed saga compensation, live rebalance-load drill, schema registry, delayed retry topology, retention/replay operations or production observability deployment here. Those remain follow-up BE-04 work; this package closes the smaller broker/durability-boundary milestone.
+
+## Primary sources checked
+
+- [Apache Kafka quickstart](https://kafka.apache.org/quickstart/) documents the official Docker setup; [Kafka producer configuration](https://kafka.apache.org/43/configuration/producer-configs/) explains idempotence, ordering and delivery deadlines.
+- [Kafka consumer configuration](https://kafka.apache.org/43/configuration/consumer-configs/) defines group/offset settings and automatic commit behavior.
+- [RabbitMQ Java client releases](https://github.com/rabbitmq/rabbitmq-java-client/releases/tag/v5.37.0) and [Docker Official Image version inputs](https://github.com/docker-library/rabbitmq/blob/master/versions.json) establish the selected pins.
+- [RabbitMQ confirms and acknowledgements](https://www.rabbitmq.com/docs/confirms) distinguishes publishing, consuming and prefetch; [Java client recovery behavior](https://www.rabbitmq.com/client-libraries/java-api-guide) explains why applications must still handle redeliveries.
