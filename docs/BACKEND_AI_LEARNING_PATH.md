@@ -82,6 +82,11 @@ Observe that valid JSON containing an invented order ID fails semantic validatio
 summary can still be wrong. Record field quality separately from availability and latency.
 Never execute generated text or grant access based on a model's suggested identity.
 
+Before moving on, run the [streaming exercise](../examples/ai-backend/STREAMING.md): observe partial
+content, cancel a stalled request, distinguish incomplete output from a final answer, and calculate
+scenario cost with failed attempts retained. Missing usage is unknown; a finished stream still
+needs content review. Start with its owned HTTP fixture before the optional single local-model call.
+
 ## 5. Retrieve knowledge and control actions
 
 The [lexical RAG baseline](../examples/ai-backend/KNOWLEDGE.md) and [controlled-action/MCP baseline](../examples/ai-backend/WORKFLOW.md) are runnable. The [optional real-pgvector milestone](../examples/ai-backend/VECTOR_RETRIEVAL.md) is available too; further semantic-quality and operations work remains in the roadmap:

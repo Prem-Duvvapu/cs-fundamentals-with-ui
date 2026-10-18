@@ -731,3 +731,15 @@ The Java runtime lab must keep platformJava17 separate from optional stableJava2
 Keep the rule baseline separate from model evidence and preserve review cases in all-case rates. Raw hashes bind actual input bytes; the additional LF-normalized hash supports cross-platform JSONL comparisons without erasing the raw provenance. The public held-out set is regression data after inspection, not a fresh blind model-selection experiment. `verify_rules.py` must work with unusable provider settings; no model call is permitted in that mode.
 
 ProjectC reports must keep expected refusals, bounded stops, completed tasks and observed policy violations separate. Keep full-row invariant observation independent of expected labels and emit only sanitized assertion names; raw tool/prompt/token/private fixture strings cannot enter reports. `verify_workflow.py` verifies the actual teaching-JAR dispatch after packaging. Identity tests require actual framework AS→S256code/token→unchangedTaskTracker HTTP evidence; preserve client state/exactredirect/scopes/owner/BasicCSRF checks and generated credentials. Operations may act only on its newkind cluster/privatekubeconfig/ownednamespace; actual CI namespace/EndpointSlice/Pod/rollback/cleanup evidence is mandatory. Guard tests are not Kubernetes evidence.
+
+The [streaming learning module](examples/ai-backend/STREAMING.md) demonstrates bounded native
+Ollama NDJSON over actual HTTP, strict UTF-8 framing, cancellation/deadlines, explicit incomplete
+results and nullable provider usage/timing. `verify_streaming.py` exercises the normal teaching-JAR
+dispatch with an owned fixture; it runs in Verify after packaging. Scenario cost arithmetic requires
+explicit dated assumptions and includes failed attempts; missing usage is not zero. Transport
+completion and business acceptance remain distinct. This adds no platform routes or analytics.
+
+Preserve streaming limits, first-nonempty-content measurement and nullable final metadata. Never
+call fixture frames model quality, natural-language refusals standardized native markers, or local
+client cancellation remote cancellation. Known cloud model tags are rejected; loopback/aliases
+alone cannot prove local inference. A live observation needs inspected model/runtime provenance.

@@ -15,3 +15,12 @@ Require a complete report and model/runtime provenance before drawing quality co
 `2026-10-18-rag-fixture-development.json` and `2026-10-18-rag-fixture-held-out.json` are actual completed runs of the teaching JAR, with corpus/query hashes and per-case diagnostics. Development:21/30 expected-fact matches,26/30 expected outcomes; held-out:13/20 fact matches,16/20 outcomes. Retrieval recall@3 is25/26 and15/17 respectively, averaged over answerable labelled cases. These are copy-fixture scores, not LLM accuracy. A relevant citation can accompany the injected wrong answer, and irrelevant allowed sources can defeat abstention. `held-wrong-answer` never reaches generation because lexical retrieval misses “shipping”; `modelCalls=0`/`not-called` preserves that upstream failure rather than pretending the fault executed. Timings include per-case setup and are not capacity measurements. See [metric definitions](../RAG_EVALUATION.md).
 
 The October18 ticket-rule reports record29/30 development and17/20 public-held-out field matches, with1/3 review cases respectively. They are actual deterministic executions, not model outputs. Raw bytes differ from the historical local-model input only by LF/CRLF checkout endings; the new LF-normalized held-out hash equals the historical raw digest. Keep both hashes and treat this already-inspected split as regression evidence. [Decision notes](../ADAPTATION_DECISIONS.md) explain counterexamples, accepted-only bias and the limits of comparing methods across dates/hardware.
+
+## October18 streaming observations
+
+The `streaming-fixture-2026-10-18/` reports record four actual packaged-JAR HTTP cases with exact
+one-call behavior and owned cleanup. `streaming-local-2026-10-18.json` records one completed
+already-installed0.5B model call, with separately inspected GGUF/runtime provenance in the adjacent
+file. No download or paid call was made. First content/total2,382/2,643ms and36/10 reported tokens
+are one dated observation, not quality, throughput or pricing evidence. Missing cache counts
+stay null. See [the learning guide](../STREAMING.md) for boundaries and cost arithmetic.

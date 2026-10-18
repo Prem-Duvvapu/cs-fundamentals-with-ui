@@ -1,0 +1,41 @@
+{
+  "budgetReservations" : 1,
+  "schemaVersion" : 1,
+  "at" : "2026-10-18T18:08:19.504282258Z",
+  "evidence" : "fixture",
+  "model" : "teaching-stream-fixture",
+  "modelDigest" : "fixture",
+  "runtimeVersion" : "fixture",
+  "status" : "COMPLETE",
+  "failure" : "NONE",
+  "httpStatus" : 200,
+  "requestStarted" : true,
+  "contentChars" : 7,
+  "finishReason" : "stop",
+  "inputTokens" : null,
+  "cachedInputTokens" : null,
+  "outputTokens" : null,
+  "providerTimingNanoseconds" : {
+    "totalNs" : null,
+    "loadNs" : null,
+    "promptEvaluationNs" : null,
+    "generationNs" : null
+  },
+  "usageSource" : "Provider reported if present; missing is unknown, not zero. No character-based estimate.",
+  "firstNonemptyContentMs" : 423,
+  "totalMs" : 430,
+  "frames" : 2,
+  "bodyBytes" : 120,
+  "limits" : {
+    "frameBytes" : 16384,
+    "bodyBytes" : 65536,
+    "frames" : 256,
+    "contentChars" : 8192,
+    "inputChars" : 12000,
+    "calls" : 1,
+    "concurrentCalls" : 1,
+    "deadline" : "PT6S"
+  },
+  "acceptanceAssessment" : "not-evaluated",
+  "scope" : "Actual owned HTTP/NDJSON contract only; no live model quality or actual provider price/cost measured."
+}

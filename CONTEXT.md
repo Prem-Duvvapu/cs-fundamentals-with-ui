@@ -656,3 +656,10 @@ The main Verify workflow uses `push.branches: [main]` plus `pull_request`, avoid
 `--evaluate-rules` reuses the ticket dataset validator and failure-inclusive evaluator without constructing a model client. It records rule/runtime version, raw and LF-normalized dataset hashes and an explicit `usesModel:false`; it does not change the authenticated extraction API or business permissions.
 
 The teaching JAR dispatches `--evaluate-workflow` before Spring startup. Its deterministic proposer drives actual permission/approval/H2 policy and reports sanitized assertions; it is not live-agent quality evidence. Separate identity tooling builds a private temporary copy of existingTaskTracker and exercises real framework OAuth/S256 PKCE without modifying its source. The operations runner provisions only a fresh ownedkind cluster/privatekubeconfig and tests actual TaskTracker readiness/rollout behavior, with pinned images/tools and explicit cleanup.
+
+The [streaming learning module](examples/ai-backend/STREAMING.md) demonstrates bounded native
+Ollama NDJSON over actual HTTP, strict UTF-8 framing, cancellation/deadlines, explicit incomplete
+results and nullable provider usage/timing. `verify_streaming.py` exercises the normal teaching-JAR
+dispatch with an owned fixture; it runs in Verify after packaging. Scenario cost arithmetic requires
+explicit dated assumptions and includes failed attempts; missing usage is not zero. Transport
+completion and business acceptance remain distinct. This adds no platform routes or analytics.

@@ -85,6 +85,7 @@ jobs:
       - run: python3 examples/ai-backend/verify_rag.py
       - run: python3 examples/ai-backend/verify_rules.py
       - run: python3 examples/ai-backend/verify_workflow.py
+      - run: python3 examples/ai-backend/verify_streaming.py
       - run: python3 -m unittest discover -s examples/labs -p test_training.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_recommendations.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_backend_debug.py -v

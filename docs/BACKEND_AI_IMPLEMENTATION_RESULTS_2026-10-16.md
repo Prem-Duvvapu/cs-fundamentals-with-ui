@@ -216,3 +216,33 @@ The no-model evaluator passed11 focused Java tests and the packaged30/20-case ve
 - OAuth source `8899891` (root `7853a42`):2Java guards,4Python client guards and13actual HTTP groups passed against a framework AS and unmodified TaskTracker source built privately. Code replay, S256/verifier/state/exactredirect failures, scope/owner/audience/signature/expiry and existingBasicCSRF boundaries are observed. Generated keys/users are not tracked; owned processes/source-copy/H2 are removed. OIDC/refresh/deployedrevocation and productionidentity operations are outside this milestone. Actual dedicated CI remains required.
 - Operations source `71173c5` (root `50301f9`):9native guards, Java17probe compilation and Python syntax passed. No actual local cluster execution is claimed. The dedicated pinnedkind CI must prove namespaceUID, ServiceDNS/auth, readyendpoint withdrawal, samePod/no-restart recovery, failed-startup logs and oldreplica availability, rollback and cleanup beforemerge. OOM/PV/multinode/cloudIAM/NetworkPolicy exercises remain open.
 - Streaming code is unfinished in a separate worktree and excluded from this requested release. Integrated full verification and every final-head remote gate must pass; source-package evidence alone does not authorize a merge with failing integration checks.
+
+## PR76 merged release evidence — October18
+
+[PR76](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/76) merged at18:02:44UTC as
+`1db0e242fe61754d7f3bd964e8881227b389eb58`. All16 final-head checks succeeded, including actual
+OAuth HTTP, kind recovery, PostgreSQL incidents, Java21, brokers, vector retrieval, PDF/OCR,
+full Verify, security and deployment preview. The original main worktree was fast-forwarded cleanly.
+This resolves the CI-pending statements in the immediately preceding frozen-release checkpoint
+for their stated scope. It does not close semantic model quality, manual accessibility, learner
+comprehension, OOM/cloud/network or other explicit remaining roadmap requirements.
+
+## Streaming implementation — next release
+
+New isolated native-client exercise targets AI-05/11/12: bounded NDJSON and strict UTF-8 framing,
+explicit cancellation/deadline/incomplete outcomes, first parsed nonempty content, optional provider
+usage and nanosecond durations, and dated scenario arithmetic with failure-inclusive costs.
+The normal teaching-JAR dispatch and four-case owned HTTP verifier are integrated into Verify.
+Auth/CSRF/extraction behavior is unchanged. Fixture results are transport evidence; they are not
+quality, hosted billing or capacity evidence. Final test/live observations are recorded below
+when complete; this checkpoint is not itself a release/acceptance claim.
+
+Streaming local verification completed:117Java tests discovered,106executed successfully,
+11existing optionalPG/OCR skips; all17 new streaming/cost tests ran without skips. The packaged
+four-case streaming verifier and existing actual HTTP/CSRF/RAG/action/MCP/50-case evaluation smoke
+passed. A single actual installed `qwen2.5:0.5b` call onOllama0.32.5 completed with first parsed
+content2,382ms,total2,643ms,36input/10output reported tokens; cachedinput remainednull. The inspected
+GGUF digest/runtime and zero-download provenance are recorded beside the sanitized report. This
+is transport evidence with acceptance not evaluated; no model-quality or billing claim follows.
+Independent review caught the unpublished cloud-tag guard defect, corrected with regression tests
+and recorded inRCA2026-10-18-07. Final-head remote release gates are still required.
