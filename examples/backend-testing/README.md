@@ -44,7 +44,7 @@ mvn -B -f examples/backend-testing/pom.xml -Dtest=LabGuardTest verify
 python3 -m unittest discover -s examples/backend-testing -p 'test_verify.py' -v
 ```
 
-Those commands execute four real local tests and four Python evidence guards. They compile the actual integration suite but **do not run it**. They cannot establish actual PostgreSQL, concurrent-provider, restart or workload evidence. Missing Docker is a failure of the full command, never an automatic skip or an H2 replacement. The [dedicated workflow](../../.github/workflows/backend-testing.yml) requires the full command on Docker-capable CI.
+Those commands execute four real local tests and six Python evidence guards. They compile the actual integration suite but **do not run it**. They cannot establish actual PostgreSQL, concurrent-provider, restart or workload evidence. Missing Docker is a failure of the full command, never an automatic skip or an H2 replacement. The [dedicated workflow](../../.github/workflows/backend-testing.yml) requires the full command on Docker-capable CI.
 
 For direct failure diagnosis on your own machine:
 
@@ -132,9 +132,9 @@ There are no arbitrary sleeps, date/clock guesses or retries-until-green. The fi
 
 The Testcontainers instance owns its generated-password PostgreSQL container and anonymous volume; reuse is disabled. Its mapped database port binds IPv4 loopback. Task Tracker owns an ephemeral loopback HTTP listener and a pool of two. Closing its application context closes those resources. Try/finally and `@AfterAll` stop the exact owned resources, while Testcontainers' resource reaper provides normal JVM-exit cleanup. The code never prunes Docker, stops a user's database or kills unrelated JVMs.
 
-The verifier clears inherited application/Java/Testcontainers injection settings, rejects remote Docker endpoints, caps Maven output/time and reaps only its own build process group. Raw build/application output is consumed privately rather than uploaded. Public success reports contain no passwords, JDBC locations, request bodies or task titles. Only the two sanitized JSON reports are workflow artifacts; the full suite must execute with no skipped tests before verification is published.
+The verifier clears inherited application/Java/Testcontainers injection settings, rejects remote Docker endpoints, caps Maven output/time and stops only its own build process group. Cleanup follows the owned process group even if Maven has already exited while a fork still holds stdout open. An actual owned-process regression creates that condition, observes the parent terminal, then verifies the surviving SIGTERM-resistant child cannot remain executable after cleanup. Raw build/application output is consumed privately rather than uploaded. Failure diagnostics extract only allowlisted suite/method names and numeric counts from bounded JUnit XML; exception text, system output, JDBC details and credentials are never copied into those diagnostics. Public success reports contain no passwords, JDBC locations, request bodies or task titles. Only the two sanitized JSON reports are workflow artifacts; the full suite must execute with no skipped tests before verification is published.
 
-Local evidence from 2026-10-18: all four Java guard/stub/async/statistics tests and all four Python evidence guards passed; the actual suite compiled. Docker is unavailable in the authoring WSL environment. **Actual PostgreSQL/load/restart evidence is pending the dedicated CI run** until its no-skip verification artifact exists. A future green CI run proves only the scenarios and workload stated here, not every BE-07/production requirement.
+Local evidence from 2026-10-18: all four Java guard/stub/async/statistics tests and all six Python evidence guards passed; the actual suite compiled. Docker is unavailable in the authoring WSL environment. **Actual PostgreSQL/load/restart evidence is pending the dedicated CI run** until its no-skip verification artifact exists. A future green CI run proves only the scenarios and workload stated here, not every BE-07/production requirement.
 
 ## 7. Answer the interview from your observations
 
