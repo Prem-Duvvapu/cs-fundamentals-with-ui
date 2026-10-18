@@ -121,7 +121,7 @@ Coverage verification for this documentation checks the exact 77 requested label
 - The packaged HTTP smoke now passes actual extraction/auth/CSRF, tenant/version/revocation, approval/replay, both 30/20 fixture evaluations and real MCP negotiation. Initial parallel verification missed the startup bound, and a later run timed out MCP initialization while completed HTTP servers were still live. The unchanged JAR MCP check passed alone; stopping only the owned completed HTTP servers before the independent MCP check made the full smoke pass without increasing protocol timeouts. RCA records the failed and passing evidence.
 - Link automation passed eleven deterministic tests and validated 18 inventory references. Live audit verified 17 and confirmed HLD cache-aside incompatible: deployed backend model 1.0.0 versus expected 1.0.1. Matching backend source is already merged in HLD; owner redeployment and a passing live audit remain required. No sibling deployment has been performed.
 - Messaging module passed eight durable-file/schema tests; two real-broker tests are explicit local skips because Docker is unavailable. Dedicated CI must actually run both; the workflow refuses skipped broker evidence. Rebalance/multiple relay/failover/saga extensions remain open.
-- Vector retrieval, bounded reliability and Task Tracker observability are being implemented in isolated packages; no completion credit until their commits and evidence are integrated. Real participant/manual accessibility and remaining Java course notes remain external closure gates.
+- Vector retrieval, bounded reliability and Task Tracker observability are integrated below with their bounded local evidence. Real-service CI remains required. Real participant/manual accessibility and remaining Java course notes remain external closure gates.
 
 ### Vector, messaging and reliability integration
 
@@ -143,3 +143,12 @@ learner telemetry is added. Whole integrated CI/release remains pending.
 Integrated Java verification after vector + evaluator composition: **63 discovered, 55 passed,
 eight PostgreSQL cases explicitly skipped locally**; no failures/errors. The dedicated pgvector
 CI must run all63 with zero skips. Integrated reliability Maven verification also passed all19.
+
+
+### Integrated review checkpoint
+
+Implementation checkpoint `a8a161a4def216d37442edea70aa313d297527af` combines the packages above;
+its final frontend suite passed **826/826 tests across 64 files**. The four confirmed regressions
+and their resolving commits are recorded in [RCA.md](../RCA.md#rca-2026-10-18-01--lesson-artifact-links-resolved-against-application-routes).
+Release checks and real pgvector/Kafka/RabbitMQ jobs are pending until the review branch runs in CI.
+A passing local run with explicit integration skips is not a passing real-service integration.
