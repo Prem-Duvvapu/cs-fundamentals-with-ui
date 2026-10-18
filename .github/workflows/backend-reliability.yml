@@ -1,0 +1,30 @@
+name: Backend reliability lab
+on:
+  pull_request:
+    paths:
+      - examples/backend-reliability/**
+      - .github/workflows/backend-reliability.yml
+  push:
+    branches: [main]
+    paths:
+      - examples/backend-reliability/**
+      - .github/workflows/backend-reliability.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-http-faults:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: examples/backend-reliability/pom.xml
+      - name: Test real local HTTP faults and deterministic policy boundaries
+        run: mvn --batch-mode --no-transfer-progress -f examples/backend-reliability/pom.xml verify
+      - name: Run the successfully packaged owned dependency demo
+        run: java -jar examples/backend-reliability/target/backend-reliability-lab-1.0.0.jar
