@@ -21,7 +21,12 @@
         <java.version>17</java.version>
     </properties>
 
+    <dependencyManagement><dependencies>
+        <dependency><groupId>io.opentelemetry</groupId><artifactId>opentelemetry-bom</artifactId><version>1.67.0</version><type>pom</type><scope>import</scope></dependency>
+    </dependencies></dependencyManagement>
     <dependencies>
+        <dependency><groupId>io.opentelemetry</groupId><artifactId>opentelemetry-sdk</artifactId></dependency>
+        <dependency><groupId>io.opentelemetry</groupId><artifactId>opentelemetry-sdk-testing</artifactId><scope>test</scope></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-flyway</artifactId></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-cache</artifactId></dependency>

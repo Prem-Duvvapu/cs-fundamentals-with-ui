@@ -28,7 +28,7 @@ public class SecurityConfiguration {
             .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
             .requestMatchers("/api/csrf").authenticated()
             .requestMatchers(HttpMethod.GET, "/api/projects/**").hasAnyRole("LEARNER", "VIEWER")
-            .requestMatchers("/api/projects/**", "/actuator/metrics/**").hasRole("LEARNER")
+            .requestMatchers("/api/projects/**", "/api/observability/**", "/actuator/metrics/**").hasRole("LEARNER")
             .anyRequest().denyAll()).httpBasic(Customizer.withDefaults()).build();
     }
     @Bean @Profile("secure") PasswordEncoder passwords() { return PasswordEncoderFactories.createDelegatingPasswordEncoder(); }
