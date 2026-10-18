@@ -50,3 +50,38 @@ including failures and contradictory preferences. Prioritize blocked access, inc
 models, lost work and unclear next steps. Mark the learner-validation item complete only after
 real observations have informed a revision and the changed task has been retested. A prepared
 protocol, an automated axe pass or an AI-generated persona does not close it.
+
+## AI beginner and backend practice extension — October 18
+
+This adds the practical AI plan's real-person acceptance tasks. Status remains **not run**.
+Use at least one person with no AI background and one backend engineer; record actual experience
+rather than assigning a generated persona. An engineer can be new to AI too. Do not infer that a
+successful command proves an explanation was understood.
+
+Start the AI beginner at [the vocabulary and tiny training example](docs/BACKEND_AI_LEARNING_PATH.md),
+then let them find the next step without facilitator directions. Use a 30–45 minute session;
+choose one explanation, one build/run and one debugging task rather than rushing through all rows.
+Ask for an initial prediction before opening a solution. Record which prerequisite was missing.
+Use synthetic inputs and existing fixture mode; a paid API or model download is not necessary.
+
+| Task | Ask the participant | Independent observation / transfer check |
+|---|---|---|
+| AI vocabulary | A rule checks words, a model was trained yesterday, and a ticket arrives today. Which step changes learned parameters? | Distinguishes training from inference; new ticket does not automatically train the model. Ask what changes when a prompt is edited. |
+| Evaluation | Of three proposed escalations, two were correct; three tickets actually needed escalation. Explain precision and recall. | Both equal 2/3 here for different reasons. Change the actual-needed count to four; recall becomes 2/4 while precision stays 2/3. |
+| First AI boundary | Run Project A's fixture, trace one request and explain why a well-formed invented order ID is rejected. | Separates parsing, schema, source-ID checks and ownership. Ask why a source ID still does not authorize a refund. |
+| RAG diagnosis | A tenant receives no answer even though a similar document exists. What evidence would you inspect first? | Checks principal/ACL, ingestion/version/filter and retrieval before changing a prompt. Does not remove tenant filtering to improve recall. |
+| Partial stream | Observe a fixture that emits text and closes without a final marker. Is it safe to call this a finished answer or a free request? | Keeps incomplete status and unknown usage. Ask why cancel does not prove remote work stopped. |
+| Durable action | A response times out after a committed action. Explain what a retry should inspect. | Looks up durable operation/receipt binding before retrying; distinguishes idempotency from blanket exactly-once claims. |
+| Performance reasoning | A small local run has a lower average but more failed requests. Should it replace the baseline? | Keeps failures in denominators, inspects tail latency and load/resource assumptions; does not infer production capacity. |
+
+Use the existing observation record for each chosen task. Keep original reasoning separate from
+post-hint answers. Add the exact lesson/guide commit, command attempted, error observed and the
+participant's changed-example explanation. Do not store personal data, credentials, raw private
+work tickets or recordings in the repository.
+
+The facilitator may clarify task wording, but should record a hint as assistance. Once a specific
+barrier is found, revise the owning explanation or navigation, link the actual change and run a
+fresh variation. Record next-day recall where feasible. Completion needs explain/build/debug
+observations and a real revision/retest; a prepared protocol or passing fixture is insufficient.
+
+Related access work uses [the manual accessibility journey](docs/MANUAL_ACCESSIBILITY_PROTOCOL.md).

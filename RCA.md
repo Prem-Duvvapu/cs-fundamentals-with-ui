@@ -571,3 +571,28 @@ observed; the draft was not released.
 client tests, and state the residual alias/custom-daemon boundary in the guide. Optional live
 checks use an explicitly inspected, already-installed local model; no download or paid call is
 required. Keep operator-declared command provenance separate from independently observed inventory.
+
+## 2026-10-18-08 — container idle timeout beat webhook body handling
+
+**Observed failure:** the new lab's actual incomplete-body HTTP test received 500 after 2.088 seconds.
+Its original two-second container idle-read budget fired before the application body timer of
+2.5 seconds. Passing signature/transaction unit tests had not exercised that transport ordering.
+
+**Correction and regression:** the owned loopback listener now allows five seconds for the container
+idle read; the application body timer can return its fixed 408 first. The packaged regression
+requires an actual 408 within four seconds and records measured duration (3.227 seconds in the
+source checkpoint). SQL locks/queries and injected post-commit delay retain separate budgets.
+This resolves the observed ordering; it does not claim a hard end-to-end preemption deadline.
+
+## 2026-10-18-09 — test-runner cleanup depended on parent liveness
+
+**Finding:** the new testing harness originally terminated its owned process group only while the
+Maven parent was alive. A parent can exit while a fork retains stdout, leaving the read loop to
+reach its deadline with a surviving child. Review identified the ownership/liveness mismatch.
+
+**Correction and evidence:** cleanup now always targets the exact group created with
+`start_new_session`, with bounded TERM grace, KILL fallback and parent reaping. An actual fork
+regression exits its parent, holds stdout and ignores TERM; it verifies the corrected deadline
+path leaves no executable child. Six Python guards pass, including a privacy regression that
+keeps injected secrets/errors out of the allowlisted failure diagnostics. No foreign process
+name scan or global container cleanup is used.

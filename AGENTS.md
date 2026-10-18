@@ -743,3 +743,24 @@ Preserve streaming limits, first-nonempty-content measurement and nullable final
 call fixture frames model quality, natural-language refusals standardized native markers, or local
 client cancellation remote cancellation. Known cloud model tags are rejected; loopback/aliases
 alone cannot prove local inference. A live observation needs inspected model/runtime provenance.
+
+The [signed-webhook lab](examples/backend-webhooks/README.md) demonstrates exact-byte signatures,
+durable tenant/event deduplication, compatible payloads, key rotation and actual timeout/crash/replay
+recovery. The [testing lab](examples/backend-testing/README.md) reuses unchanged Task Tracker source
+for real PostgreSQL/Testcontainers, HTTP contracts, concurrent requests, bounded error-inclusive load
+and a causally reproduced/fixed async test. Dedicated no-skip CI proves the external dependency
+cases; local compilation or mocks cannot substitute. Neither lab changes the platform runtime.
+
+The [Java source ledger](docs/JAVA_COURSE_SOURCE_LEDGER.md) records all 40 familiar-course entries
+and separates HTTP shells from reviewed note content. [Manual access checks](docs/MANUAL_ACCESSIBILITY_PROTOCOL.md)
+and [real learner tasks](LEARNER_USABILITY_STUDY.md) remain human evidence gates; prepared protocols
+and automated tests do not close them.
+
+Keep webhook signatures bound to exact bytes, tenant and timestamp; persist event/body binding with
+its local effect and preserve receipts across signing-key rotation. An expired signature can be
+rejected before an already-recorded event is considered; a sender may re-sign original bytes with
+a fresh valid timestamp. Keep the actual commit-signal/timeout/crash/reopen test. Separate body,
+SQL and fault-delay budgets; asynchronous callback timeouts are not hard preemption guarantees.
+The testing module must import the existing Task Tracker source, refuse skipped actual cases,
+retain failed attempts in latency/throughput calculations, and publish only sanitized evidence.
+Keep actual container execution separate from native guard/stub tests and production capacity.

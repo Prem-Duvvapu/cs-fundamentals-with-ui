@@ -1,6 +1,7 @@
 # Practical backend and AI implementation evidence
 
-Baseline: `c5e5df1`. Branch: `feat/2026-10-16-practical-backend-ai`.
+Historical planning baseline: `c5e5df1`; original implementation branch: `feat/2026-10-16-practical-backend-ai`.
+Current releases and scoped evidence are recorded below; historical checkpoints retain their original observations.
 Plan: [capabilities and acceptance criteria](../BACKEND_AI_PRACTICAL_LEARNING_PLAN_2026-10-16.md).
 
 ## Evidence boundaries
@@ -15,14 +16,14 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | AI-02 | Partial: training metrics and diagnostic report | Evaluation foundations |
 | AI-03 | Partial: attention/training trace and rubrics | How LLMs work |
 | AI-04 | Partial: prompt/context and failure exercises | Prompt and context engineering |
-| AI-05 | Partial: executable A | Model API integration |
+| AI-05 | Partial: structured Project A plus verified bounded native streaming | Model API integration |
 | AI-06 | Partial: actual pgvector/index CI verified; semantic quality open | Embeddings and retrieval |
 | AI-07 | Partial: lexical plus explicit versioned vector implementation | RAG lifecycle |
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
 | AI-09 | Partial: per-field/slice/failure report, local tests | Quality and regression evaluation |
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
-| AI-11 | Partial: serving failure diagnosis; telemetry open | Operations and debugging |
-| AI-12 | Partial: capacity/quality trade-off exercise | Cost, capacity and model choice |
+| AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry open | Operations and debugging |
+| AI-12 | Partial: actual token usage and failure-inclusive scenario costs; model comparison open | Cost, capacity and model choice |
 | AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
 | AI-14 | Pending | AI-assisted engineering |
 | AI-15 | Partial: digital PDF and actual OCR CI verified; richer modalities open | Multimodal inputs |
@@ -32,26 +33,26 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | D-02 | Partial: actual lexical miss and diagnostic report | Relevant document never retrieved |
 | D-03 | Partial: injected wrong generation with correct retrieval | Correct sources, unsupported answer |
 | D-04 | Partial: JDBC and HTTP tenant tests | Tenant data appears in another answer |
-| D-05 | Partial: deadlines/overload tests; tracing open | Slow or hanging response |
+| D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; AI tracing open | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
 | D-07 | Partial: bounded read-only agent tests | Agent keeps calling tools |
 | D-08 | Pending | Quality drops after an upgrade |
-| D-09 | Pending | Costs rise without more useful results |
+| D-09 | Partial: failure-inclusive cost arithmetic and unknown-usage diagnosis; comparative budget report open | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR labs; IDE/config open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuthPKCE/JWT/owner tests and OWASP matrices | API/security: REST + Spring Security |
-| BE-07 / P1 | Pending | Testing/delivery: Spring testing + CI/CD |
-| BE-08 / P1 | Partial: ownedkind recovery implementation; actual cluster CI required | Operations: Docker/Kubernetes/cloud |
+| BE-06 / P1 | Partial: actual OAuth/JWT plus signed-webhook replay/rotation/compatibility; generic SSRF open | API/security: REST + Spring Security |
+| BE-07 / P1 | Implemented local guards/stubs/flaky fix; actual Testcontainers/load CI pending | Testing/delivery: Spring testing + CI/CD |
+| BE-08 / P1 | Partial: actual kind probe/routing/rollback CI verified; OOM/throttling/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
-| BE-10 / P1 | Local verified: actualJava21 capacity comparison; CI pending | Modern Java choices: JVM/concurrency + Spring |
+| BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | Pending | Java course familiarity |
-| CLOSE-03 | Pending | Manual accessibility |
-| CLOSE-04 | Pending | Learner comprehension |
+| CLOSE-02 | Inventory verified: 40 entries/31 links; source review and two-lesson pilot open | Java course familiarity |
+| CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
+| CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Pending | Editorial maintenance |
 | CLOSE-06 | Partial: seven AI lessons with three rubrics each | Practice consistency |
 
@@ -246,3 +247,46 @@ GGUF digest/runtime and zero-download provenance are recorded beside the sanitiz
 is transport evidence with acceptance not evaluated; no model-quality or billing claim follows.
 Independent review caught the unpublished cloud-tag guard defect, corrected with regression tests
 and recorded inRCA2026-10-18-07. Final-head remote release gates are still required.
+
+## PR77 merged release evidence — October 18
+
+[PR77](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/77) merged at 18:16:06 UTC as
+`f82ad332c83abe6cef336c85071b402af41a3753`. All 11 final-head checks passed, including full
+frontend responsive/accessibility/diagram checks, actual practical-AI integration, pgvector,
+PDF/OCR, platform backend, labs, containers, security and deployment preview. Workflows scoped to
+unmodified identity/operations/runtime/persistence directories were not triggered for this PR;
+their PR76 evidence remains separate. The new streaming module is delivered for its stated scope.
+
+## Signed webhooks and testing — next release
+
+The [webhook lab](../examples/backend-webhooks/README.md) uses exact-body/tenant/timestamp HMAC,
+strict compatible payload versions, one local receipt/effect/balance transaction, concurrency,
+restart reconciliation and key overlap/retirement. Integrated local verification passed all
+8 Java tests, 5 harness guards and 29 actual packaged HTTP cases without skips. The response
+really times out after an observed commit, then an owned JVM is killed and the same file reopened;
+replay produces no second effect. This is one local database boundary, not a remote-payment or
+multi-node exactly-once guarantee. Source `deda749`, integrated `dd9b492`.
+
+The [testing lab](../examples/backend-testing/README.md) imports unchanged Task Tracker source.
+Four local Java stub/statistics/synchronization tests and the evidence guards pass. The four
+actual PostgreSQL/Testcontainers cases compile but cannot run against this WSL environment's
+unavailable Docker daemon. Dedicated CI must execute all eight Java cases without skips and prove
+concurrent persisted rows, real migration constraints/restart, error-inclusive bounded load,
+observed pool starvation/recovery and owned cleanup. No current local throughput numbers or
+PostgreSQL outcome is invented. Source `d990d49`, integrated `489d6bd`.
+
+[Java source inventory](JAVA_COURSE_SOURCE_LEDGER.md) now accounts for all 40 course entries,
+31 distinct links, seven Drive URLs, 22 identical Zoho HTML shells and two OneDrive URLs. Entry 3
+has no source; entry 39 returned HTTP 401. HTTP availability is not factual-review evidence.
+The earlier three-page execution PDF remains the only documented complete source review;
+remaining note/image review, familiar navigation and real two-lesson pilot stay open.
+
+[Manual access protocol](MANUAL_ACCESSIBILITY_PROTOCOL.md) and the expanded
+[learner tasks](../LEARNER_USABILITY_STUDY.md) make CLOSE-03/04 executable by real participants.
+No participant, screen-reader announcement, browser-zoom observation or comprehension success
+is fabricated. Required human observations and revision/retest remain pending.
+
+Before the next release, testing-harness review also corrected cleanup after an already-exited
+Maven parent. The integrated six Python guards include an actual surviving fork/held-stdout/TERM
+regression and allowlisted diagnostics privacy checks; all pass. The four local Java guards still
+pass. Actual Testcontainers/HTTP/load cases remain awaiting mandatory CI at this checkpoint.
