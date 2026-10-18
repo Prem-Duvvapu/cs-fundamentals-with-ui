@@ -34,7 +34,9 @@ class ActualPostgresHttpTest {
     static long savedId;
     static int savedRows;
 
-    @BeforeAll static void startOwnedDatabaseAndUnchangedApplication() {
+    @BeforeAll static void startOwnedDatabaseAndUnchangedApplication() throws Throwable {
+        String stage = "container-create";
+        try {
         // No disabledWithoutDocker/assumption/fallback: missing Docker is an actual failure of this suite.
         database = new PostgreSQLContainer(DockerImageName.parse(IMAGE))
                 .withDatabaseName("testing_lab").withUsername("teaching_owner").withPassword(PASSWORD)
@@ -42,9 +44,12 @@ class ActualPostgresHttpTest {
                 .withLabel("backend-testing-owned", "true")
                 .withCreateContainerCmdModifier(command -> command.getHostConfig().withPortBindings(
                         new PortBinding(Ports.Binding.bindIp("127.0.0.1"), new ExposedPort(5432))));
+        stage = "container-start";
         database.start();
+        stage = "container-host-check";
         if (!Set.of("localhost", "127.0.0.1", "::1").contains(database.getHost()))
             throw new IllegalStateException("local_owned_docker_daemon_required");
+        stage = "application-start";
         startApplication();
         evidence.put("evidence", "actual-testcontainers-postgresql-and-unchanged-task-tracker-http");
         evidence.put("image", IMAGE); evidence.put("javaVersion", System.getProperty("java.version"));
@@ -52,6 +57,10 @@ class ActualPostgresHttpTest {
         evidence.put("springBootVersion", org.springframework.boot.SpringBootVersion.getVersion());
         evidence.put("hibernateVersion", org.hibernate.Version.getVersionString());
         evidence.put("scope", "Bounded single-JVM loopback teaching run; not production capacity, external arrival traffic, HA or a distributed load generator.");
+        } catch (Throwable failure) {
+            SetupDiagnostics.write(stage, failure);
+            throw failure;
+        }
     }
     static void startApplication() {
         application = new SpringApplicationBuilder(TaskTrackerApplication.class).profiles("persistence")
