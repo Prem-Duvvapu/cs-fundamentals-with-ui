@@ -148,3 +148,12 @@ A production security completion review also needs transport/browser hardening, 
 ## Primary implementation reference
 
 [Spring Security JWT resource-server reference](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html) documents signature/issuer/audience validation and scope mapping. The explicit bounded source and additional required-claim/lifetime policy above are this teaching application's choices, not a claim that all framework defaults enforce those exact limits.
+
+## Separate inbound webhook exercise
+
+The [signed-webhook lab](../../backend-webhooks/README.md) now demonstrates replay-safe durable
+receipts, exact-byte signatures, compatible payload versions and overlap/retirement of generated
+runtime keys. It is a separate owned loopback receiver, not an endpoint silently added to Task
+Tracker. Its actual timeout-after-commit and restart tests complement this module's OAuth/JWT
+checks. Production key distribution, audit/revocation ownership and generic SSRF controls remain
+separate operational/security requirements.

@@ -418,6 +418,11 @@ The same immutable image should move through environments; only external configu
 
 Flaky tests are production defects in the delivery system. Quarantine may preserve short-term flow, but every quarantine needs ownership and a removal deadline rather than becoming a permanent ignored suite.
 
+**Try it:** the [testing and delivery lab](../../examples/backend-testing/README.md) combines actual PostgreSQL through Testcontainers, real HTTP and concurrent requests; full verification requires Docker.
+A passing HTTP stub proves the consumer accepts its configured response, not that the real provider implements it; compare the same contract against both.
+**Predict:** can a low p95 coexist with failed requests? Inspect the bounded load report with failed attempts included, alongside throughput, errors and pool signals.
+**Debug:** reproduce an asynchronous flake with controlled ordering, then await actual completion; longer sleeps or retries do not repair the missing dependency.
+
 ### Common Misconceptions
 
 1. **"SpringBootTest is the best annotation because it tests everything."**

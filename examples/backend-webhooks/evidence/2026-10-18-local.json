@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "evidence": "actual-packaged-loopback-http-and-file-h2",
+  "at": "2026-10-18T18:15:32Z",
+  "java_tests": 8,
+  "java_skips": 0,
+  "http_cases": [
+    {
+      "name": "observer_authentication",
+      "passed": true
+    },
+    {
+      "name": "missing_signature",
+      "passed": true
+    },
+    {
+      "name": "old_key_during_overlap_v1",
+      "passed": true
+    },
+    {
+      "name": "new_key_during_overlap_v2",
+      "passed": true
+    },
+    {
+      "name": "same_bytes_replay",
+      "passed": true
+    },
+    {
+      "name": "same_event_changed_bytes_conflict",
+      "passed": true
+    },
+    {
+      "name": "exact_raw_body_binding",
+      "passed": true
+    },
+    {
+      "name": "authenticated_tenant_binding",
+      "passed": true
+    },
+    {
+      "name": "stale_timestamp",
+      "passed": true
+    },
+    {
+      "name": "future_timestamp",
+      "passed": true
+    },
+    {
+      "name": "breaking_schema_rejected",
+      "passed": true
+    },
+    {
+      "name": "duplicate_json_fields_rejected",
+      "passed": true
+    },
+    {
+      "name": "trailing_json_rejected",
+      "passed": true
+    },
+    {
+      "name": "invalid_utf8_rejected",
+      "passed": true
+    },
+    {
+      "name": "body_size_limit",
+      "passed": true
+    },
+    {
+      "name": "media_type_boundary",
+      "passed": true
+    },
+    {
+      "name": "duplicate_auth_header_rejected",
+      "passed": true
+    },
+    {
+      "name": "chunked_body_size_limit",
+      "passed": true
+    },
+    {
+      "name": "incomplete_body_deadline",
+      "passed": true
+    },
+    {
+      "name": "concurrent_duplicate_exact_one_commit",
+      "passed": true
+    },
+    {
+      "name": "same_event_id_other_tenant_is_independent",
+      "passed": true
+    },
+    {
+      "name": "retired_key_rejected_after_restart",
+      "passed": true
+    },
+    {
+      "name": "active_key_works_after_rotation",
+      "passed": true
+    },
+    {
+      "name": "rotation_preserves_committed_receipts",
+      "passed": true
+    },
+    {
+      "name": "actual_response_timeout_after_commit",
+      "passed": true
+    },
+    {
+      "name": "actual_owned_jvm_crash",
+      "passed": true
+    },
+    {
+      "name": "reopen_reconcile_duplicate_not_second_effect",
+      "passed": true
+    },
+    {
+      "name": "restarted_durable_exact_one_effect",
+      "passed": true
+    },
+    {
+      "name": "restart_changed_request_rejected",
+      "passed": true
+    }
+  ],
+  "observations": {
+    "incomplete_body_seconds": 3.227,
+    "before_rotation": {
+      "tenant-a": {
+        "balance": 19,
+        "effects": 3,
+        "receipts": 3
+      },
+      "tenant-b": {
+        "balance": 11,
+        "effects": 1,
+        "receipts": 1
+      }
+    },
+    "before_crash": {
+      "tenant-a": {
+        "balance": 21,
+        "effects": 4,
+        "receipts": 4
+      },
+      "tenant-b": {
+        "balance": 11,
+        "effects": 1,
+        "receipts": 1
+      }
+    },
+    "commit_signal_seconds": 0.186,
+    "final_state": {
+      "tenant-a": {
+        "receipts": 5,
+        "balance": 34,
+        "effects": 5
+      },
+      "tenant-b": {
+        "receipts": 1,
+        "balance": 11,
+        "effects": 1
+      }
+    }
+  },
+  "owned_processes_and_temporary_database_cleaned": true,
+  "jar_sha256": "4232944d8f651c05fcb6e77c1b677586fc6e0776af7cb0d00880b610e8b47d42",
+  "limits": "Synthetic integer credit ledger; same H2 transaction only. No remote payment, power-loss, multi-node, global exactly-once, cloud secrets or production TLS claim."
+}

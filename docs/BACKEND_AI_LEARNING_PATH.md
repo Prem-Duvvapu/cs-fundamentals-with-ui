@@ -148,3 +148,9 @@ For backend incident practice, run [N+1/pool/migration/restore](../examples/back
 Before adapting a model, use the [measured rule baseline and decision records](../examples/ai-backend/ADAPTATION_DECISIONS.md). Predict the limits of a keyword rule and distinguish current private facts from stable output behaviour. Use the explicit review count rather than accepted-only accuracy when explaining the choice.
 
 Use the [50-case controlled-workflow evaluator](../examples/ai-backend/WORKFLOW_EVALUATION.md) to distinguish successful work from an expected refusal and a policy violation. Trace [real OAuth/PKCE](../examples/backend-identity/README.md) before trusting a token, then diagnose [actual Kubernetes readiness and rollback](../examples/backend-operations/README.md) using the declared owned-cluster prerequisites.
+
+For inbound integrations, use the [signed-webhook exercise](../examples/backend-webhooks/README.md)
+to predict duplicate, changed-body, stale-signature and key-retirement behavior before observing
+actual crash/replay recovery. Then use [the testing/load exercise](../examples/backend-testing/README.md)
+to distinguish stub contracts from real PostgreSQL evidence, reproduce an async test race, and
+explain errors and tail latency without claiming a small closed-loop run measures production capacity.

@@ -663,3 +663,15 @@ results and nullable provider usage/timing. `verify_streaming.py` exercises the 
 dispatch with an owned fixture; it runs in Verify after packaging. Scenario cost arithmetic requires
 explicit dated assumptions and includes failed attempts; missing usage is not zero. Transport
 completion and business acceptance remain distinct. This adds no platform routes or analytics.
+
+The [signed-webhook lab](examples/backend-webhooks/README.md) demonstrates exact-byte signatures,
+durable tenant/event deduplication, compatible payloads, key rotation and actual timeout/crash/replay
+recovery. The [testing lab](examples/backend-testing/README.md) reuses unchanged Task Tracker source
+for real PostgreSQL/Testcontainers, HTTP contracts, concurrent requests, bounded error-inclusive load
+and a causally reproduced/fixed async test. Dedicated no-skip CI proves the external dependency
+cases; local compilation or mocks cannot substitute. Neither lab changes the platform runtime.
+
+The [Java source ledger](docs/JAVA_COURSE_SOURCE_LEDGER.md) records all 40 familiar-course entries
+and separates HTTP shells from reviewed note content. [Manual access checks](docs/MANUAL_ACCESSIBILITY_PROTOCOL.md)
+and [real learner tasks](LEARNER_USABILITY_STUDY.md) remain human evidence gates; prepared protocols
+and automated tests do not close them.

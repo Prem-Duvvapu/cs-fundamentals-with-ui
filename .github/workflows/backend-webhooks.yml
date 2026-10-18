@@ -1,0 +1,65 @@
+name: Actual signed webhook and durable recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/backend-webhooks/**'
+      - '.github/workflows/backend-webhooks.yml'
+  pull_request:
+    paths:
+      - 'examples/backend-webhooks/**'
+      - '.github/workflows/backend-webhooks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  actual-http-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: examples/backend-webhooks/pom.xml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Runtime isolation, privacy and owned-process failure guards
+        run: python3 -m unittest discover -s examples/backend-webhooks -p 'test_verify.py' -v
+      - name: Actual transaction tests and packaged HTTP/rotation/crash recovery
+        run: python3 examples/backend-webhooks/verify.py
+      - name: Require actual no-skip evidence and owned cleanup
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('examples/backend-webhooks/target/evidence/verification.json').read_text())
+          assert report['java_tests'] == 8 and report['java_skips'] == 0
+          assert report['evidence'] == 'actual-packaged-loopback-http-and-file-h2'
+          cases = {case['name']: case['passed'] for case in report['http_cases']}
+          assert len(cases) >= 28 and all(cases.values())
+          for required in ('concurrent_duplicate_exact_one_commit', 'incomplete_body_deadline',
+                           'actual_response_timeout_after_commit', 'actual_owned_jvm_crash',
+                           'restarted_durable_exact_one_effect', 'retired_key_rejected_after_restart',
+                           'breaking_schema_rejected', 'chunked_body_size_limit'):
+              assert cases[required]
+          assert report['owned_processes_and_temporary_database_cleaned']
+          PY
+      - name: Upload sanitized evidence and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webhook-http-recovery-evidence
+          path: |
+            examples/backend-webhooks/target/evidence/
+            examples/backend-webhooks/target/surefire-reports/

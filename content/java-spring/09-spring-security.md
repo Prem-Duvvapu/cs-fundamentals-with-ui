@@ -357,6 +357,10 @@ sequenceDiagram
 
 If the authorization server or JWKS endpoint is temporarily unavailable, cached trusted keys can permit validation of unexpired tokens while the configured freshness and key-retirement policy allow it. A resource server that fetches keys on every request converts an identity-system slowdown into a complete API outage.
 
+**Predict:** a timed-out sender signs the same original body with a fresh valid timestamp; may its effect run twice? The [signed-webhook lab](../../examples/backend-webhooks/README.md) shows why authenticating a retry does not make it a new event.
+Persist the authenticated tenant, event ID, original-body hash and outcome with its local effect in one transaction; matching retries return the recorded outcome, while changed bodies conflict.
+Key rotation changes which signatures are accepted; it does not erase durable receipts for events committed under an older key.
+
 ### Common attack and failure modes
 
 **Broken object-level authorization** occurs when an endpoint checks that the caller is logged in but never checks ownership of the requested identifier. `/accounts/123` must not become readable merely because the caller can change `123` to `124`.
