@@ -1,0 +1,66 @@
+name: Backend operations lab
+on:
+  push:
+    branches: [main]
+    paths: ['examples/backend-operations/**', 'examples/java-spring/task-tracker/**', '.github/workflows/backend-operations.yml']
+  pull_request:
+    paths: ['examples/backend-operations/**', 'examples/java-spring/task-tracker/**', '.github/workflows/backend-operations.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  actual-kind-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Native guard contracts (not cluster evidence)
+        run: python3 -m unittest discover -s examples/backend-operations -p test_contracts.py -v
+      - name: Install checksummed pinned kind and kubectl into runner-owned directory
+        run: |
+          mkdir -p "$RUNNER_TEMP/operations-bin"
+          curl --fail --location --retry 1 --connect-timeout 10 --max-time 90 https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 -o "$RUNNER_TEMP/operations-bin/kind"
+          echo 'aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d  '"$RUNNER_TEMP/operations-bin/kind" | sha256sum --check --strict
+          curl --fail --location --retry 1 --connect-timeout 10 --max-time 90 https://dl.k8s.io/release/v1.37.0/bin/linux/amd64/kubectl -o "$RUNNER_TEMP/operations-bin/kubectl"
+          echo '6129359f4e1f3848a5572ccb0b26cf28b8ca08cef38c95a765b2f64a2c961a2f  '"$RUNNER_TEMP/operations-bin/kubectl" | sha256sum --check --strict
+          chmod +x "$RUNNER_TEMP/operations-bin/kind" "$RUNNER_TEMP/operations-bin/kubectl"
+          echo "$RUNNER_TEMP/operations-bin" >> "$GITHUB_PATH"
+      - name: Actual fresh kind cluster recovery cases (no skips)
+        run: python3 examples/backend-operations/lab.py --run-cluster
+      - name: Require actual namespace, five completed cases and cleanup
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('examples/backend-operations/build/evidence/result.json').read_text())
+          if not result.get('namespaceUid') or result.get('actualCasesExecuted')!=5 or result.get('skipped')!=0 or result.get('cleanupVerified') is not True:
+              raise SystemExit('Actual owned namespace/five recovery cases/cleanup required; contracts or skips are insufficient')
+          for key in ['dnsAndAuthenticatedService','readinessRecovery','badRolloutOldReplicaAvailable','rollbackRecovery']:
+              if result[key].get('authenticatedStatus')!=200 or result[key].get('dnsResolved') is not True:
+                  raise SystemExit('Actual authenticated Service/DNS observation missing: '+key)
+          if result['readinessWithdrawal'].get('connectionUnavailable') is not True:
+              raise SystemExit('Actual Service withdrawal observation missing')
+          if result.get('withdrawnReadyEndpointCount')!=0 or result.get('readinessSamePodNoRestart') is not True:
+              raise SystemExit('Actual endpoint withdrawal/same-Pod recovery evidence missing')
+          print('Five actual cluster cases executed without skips; owned cluster cleanup verified.')
+          PY
+      - name: Retry only owned cluster cleanup on failure/cancellation
+        if: always()
+        run: python3 examples/backend-operations/lab.py --cleanup
+      - name: Retain synthetic diagnostics (never kubeconfig or Secret)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operations-evidence
+          path: examples/backend-operations/build/evidence/
+          if-no-files-found: warn
