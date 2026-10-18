@@ -36,7 +36,7 @@ class ActualPostgresHttpTest {
 
     @BeforeAll static void startOwnedDatabaseAndUnchangedApplication() {
         // No disabledWithoutDocker/assumption/fallback: missing Docker is an actual failure of this suite.
-        database = new PostgreSQLContainer(DockerImageName.parse(IMAGE))
+        database = new PostgreSQLContainer(DockerImageName.parse(IMAGE).asCompatibleSubstituteFor("postgres"))
                 .withDatabaseName("testing_lab").withUsername("teaching_owner").withPassword(PASSWORD)
                 .withReuse(false).withStartupTimeout(Duration.ofSeconds(70))
                 .withLabel("backend-testing-owned", "true")

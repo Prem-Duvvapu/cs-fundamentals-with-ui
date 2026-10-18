@@ -596,3 +596,16 @@ regression exits its parent, holds stdout and ignores TERM; it verifies the corr
 path leaves no executable child. Six Python guards pass, including a privacy regression that
 keeps injected secrets/errors out of the allowlisted failure diagnostics. No foreign process
 name scan or global container cleanup is used.
+
+## 2026-10-18-10 — pinned PostgreSQL image rejected before Testcontainers startup
+
+**Observed:** PR78's actual test job failed in class setup, while four native Java guards passed.
+The completed diagnostic reproduced Testcontainers rejecting the exact `postgres:16.15@sha256:...`
+image string as an incompatible substitute before Docker/application startup. Owned native
+probe resources were cleaned; this was not a PostgreSQL query/load failure.
+
+**Minimum release correction:** explicitly declare that the already-pinned official PostgreSQL
+image is compatible with `postgres`, as required by Testcontainers' image identity check. The
+image digest and actual server-version assertion remain unchanged. No skip, fallback database,
+relaxed counts or bypass is introduced. Actual Docker CI must still execute all eight Java cases
+and validate the load/cleanup report before merge. New implementation work is frozen per request.
