@@ -91,7 +91,7 @@ export default function HomePage() {
   return (
     <div className="roadmap-index home-page">
       <header className="home-hero">
-        <p className="eyebrow">CS Fundamentals · Learn with understanding</p>
+        <p className="eyebrow">Backend Engineering · Learn with understanding</p>
         <h1>Understand the systems behind your code.</h1>
         <p className="home-lead">
           {status === 'ready' ? `${topics.length} lessons` : 'Lessons'} on the fundamentals interviewers actually ask about — each read at three depths, with diagrams, worked examples and interview questions.

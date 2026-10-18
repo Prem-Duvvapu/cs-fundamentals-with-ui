@@ -241,7 +241,7 @@ it('restores simulation from its URL and follows browser history without losing 
     <HistoryControls /><Routes><Route path="/topic/:topicId" element={<TopicPage />} /></Routes>
   </MemoryRouter>)
   expect(screen.getByRole('tab', { name: /simulation/i })).toHaveAttribute('aria-selected', 'true')
-  expect(document.title).toBe('B/B+ Tree Indexing & Storage Structures | CS Fundamentals')
+  expect(document.title).toBe('B/B+ Tree Indexing & Storage Structures | Backend Engineering')
   fireEvent.click(screen.getByRole('tab', { name: /study/i }))
   expect(screen.getByTestId('location')).toHaveTextContent('/topic/dbms-indexing?source=course')
   fireEvent.click(screen.getByRole('button', { name: 'Back in history' }))

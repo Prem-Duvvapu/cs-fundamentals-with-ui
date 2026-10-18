@@ -31,7 +31,9 @@ describe('Navbar', () => {
   it('renders the home logo and every canonical category inside the Learn disclosure', () => {
     renderNavbar()
 
-    expect(screen.getByRole('link', { name: 'CS Fundamentals home' })).toHaveAttribute('href', '/')
+    const brand = screen.getByRole('link', { name: 'Backend Engineering home' })
+    expect(brand).toHaveAttribute('href', '/')
+    expect(brand).toHaveTextContent('Backend Engineering')
     const learn = screen.getByRole('button', { name: /^Learn/ })
     expect(learn).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByRole('list', { name: 'Curriculum categories' })).not.toBeInTheDocument()

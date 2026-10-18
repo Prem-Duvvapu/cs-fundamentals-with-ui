@@ -53,9 +53,9 @@ describe('learning backups', () => {
 
   it.each([
     ['{', /not valid JSON/],
-    ['null', /not a CS Fundamentals backup/],
-    ['[]', /not a CS Fundamentals backup/],
-    [JSON.stringify({ app: 'other-app', version: 2, progress: {} }), /not a CS Fundamentals backup/],
+    ['null', /not a Backend Engineering backup/],
+    ['[]', /not a Backend Engineering backup/],
+    [JSON.stringify({ app: 'other-app', version: 2, progress: {} }), /not a Backend Engineering backup/],
     [JSON.stringify({ app: 'cs-fundamentals-with-ui', version: 4, progress: {} }), /newer version/],
     [JSON.stringify({ app: 'cs-fundamentals-with-ui', version: 2, progress: {} }), /damaged/]
   ])('rejects %s with an explanation', (text, error) => {

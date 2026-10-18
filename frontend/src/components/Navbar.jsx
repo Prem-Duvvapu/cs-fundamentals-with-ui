@@ -51,9 +51,9 @@ export default function Navbar({ onStartTour }) {
 
   return (
     <nav className={`navbar${menu.open ? ' navbar--expanded' : ''}`} aria-label="Primary navigation" {...menu.containerProps}>
-      <Link to="/" className="logo" aria-label="CS Fundamentals home">
+      <Link to="/" className="logo" aria-label="Backend Engineering home">
         <svg className="logo-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5 21.5 12 12 21.5 2.5 12Z" /></svg>
-        <span className="logo-text">CS Fundamentals</span>
+        <span className="logo-text">Backend Engineering</span>
       </Link>
 
       <Link to="/search" className={`nav-item nav-search${pathname === '/search' ? ' is-active' : ''}`} aria-current={pathname === '/search' ? 'page' : undefined} aria-label="Search" title="Search (Ctrl+K)">

@@ -53,7 +53,7 @@ export default function TopicPage() {
 
   useEffect(() => {
     const previousTitle = document.title
-    document.title = `${title} | CS Fundamentals`
+    document.title = `${title} | Backend Engineering`
     return () => { document.title = previousTitle }
   }, [title])
 
