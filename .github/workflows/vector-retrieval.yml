@@ -1,0 +1,72 @@
+name: Vector retrieval
+
+on:
+  push:
+    branches: [main]
+    paths: ['examples/ai-backend/**', '.github/workflows/vector-retrieval.yml']
+  pull_request:
+    paths: ['examples/ai-backend/**', '.github/workflows/vector-retrieval.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pgvector:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Generate credentials for the owned ephemeral database
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, secrets
+          values = {'POSTGRES_PASSWORD': secrets.token_hex(32),
+                    'AI_VECTOR_TEST_DB_PASSWORD': secrets.token_hex(32)}
+          with open(os.environ['GITHUB_ENV'], 'a') as target:
+              for name, value in values.items():
+                  print('::add-mask::' + value)
+                  target.write(name + '=' + value + '\n')
+          PY
+      - name: Start pinned pgvector and create the constrained lab role
+        shell: bash
+        run: |
+          set -euo pipefail
+          vector_lab_container="cs-vector-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "VECTOR_LAB_CONTAINER=$vector_lab_container" >> "$GITHUB_ENV"
+          docker run --detach --name "$vector_lab_container" \
+            --publish 127.0.0.1:5433:5432 --env POSTGRES_PASSWORD \
+            --health-cmd 'pg_isready -U postgres' --health-interval 1s \
+            --health-timeout 3s --health-retries 30 \
+            pgvector/pgvector:0.8.7-pg16-bookworm
+          for vector_lab_attempt in $(seq 1 30); do
+            if docker exec "$vector_lab_container" pg_isready -U postgres; then break; fi
+            sleep 1
+          done
+          docker exec -i "$vector_lab_container" psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 <<SQL
+          CREATE EXTENSION vector;
+          CREATE ROLE vector_lab LOGIN PASSWORD '$AI_VECTOR_TEST_DB_PASSWORD';
+          GRANT CREATE ON DATABASE postgres TO vector_lab;
+          SQL
+      - name: Run actual PostgreSQL vector integration and all Java regressions
+        env:
+          AI_VECTOR_TEST_JDBC_URL: jdbc:postgresql://127.0.0.1:5433/postgres?connectTimeout=3&socketTimeout=8
+          AI_VECTOR_TEST_DB_USER: vector_lab
+        run: mvn -B --no-transfer-progress -f examples/ai-backend/pom.xml verify
+      - name: Publish test and EXPLAIN evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vector-retrieval-evidence
+          path: examples/ai-backend/target/surefire-reports/
+          if-no-files-found: warn
+      - name: Remove only this job's database container
+        if: always() && env.VECTOR_LAB_CONTAINER != ''
+        shell: bash
+        run: docker rm --force "$VECTOR_LAB_CONTAINER"

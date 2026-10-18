@@ -58,7 +58,7 @@ public final class KnowledgeStore {
         } catch (SQLException e) { throw new IllegalStateException("knowledge_database_unavailable", e); }
     }
     public boolean stillAuthorized(String principal, List<Document> snapshot) {
-        var current = visible(principal).stream().map(Document::citation).collect(java.util.stream.Collectors.toSet());
-        return snapshot.stream().allMatch(doc -> doc.tenant().equals(tenant(principal)) && current.contains(doc.citation()));
+        var current = visible(principal).stream().collect(java.util.stream.Collectors.toMap(Document::citation, doc -> doc));
+        return snapshot.stream().allMatch(doc -> doc.tenant().equals(tenant(principal)) && doc.equals(current.get(doc.citation())));
     }
 }
