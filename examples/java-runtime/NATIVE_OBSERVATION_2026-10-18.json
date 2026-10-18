@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-10-18T12:39:54.909477+00:00",
+  "scope": "Original synthetic loopback work and one owned CPU worker; no production performance comparison.",
+  "notPerformanceBenchmark": true,
+  "jdkArchiveSha256": "ce79869e1307ed8ee1e2baa86a412b1eb5b75d10a01006d788a6f968bcfaee94",
+  "tests": {
+    "testsRun": 5,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "allFiveExecutedAndPassed": true
+  },
+  "concurrency": {
+    "runtimeFeature": 21,
+    "cases": [
+      {
+        "mode": "platform-limited",
+        "total": 12,
+        "succeeded": 12,
+        "failed": 0,
+        "virtualTasks": 0,
+        "downstreamMaximum": 2,
+        "activeAfterCleanup": 0,
+        "elapsedMs": 246
+      },
+      {
+        "mode": "virtual-limited",
+        "total": 12,
+        "succeeded": 12,
+        "failed": 0,
+        "virtualTasks": 12,
+        "downstreamMaximum": 2,
+        "activeAfterCleanup": 0,
+        "elapsedMs": 173
+      },
+      {
+        "mode": "virtual-unlimited",
+        "total": 12,
+        "succeeded": 12,
+        "failed": 0,
+        "virtualTasks": 12,
+        "downstreamMaximum": 12,
+        "activeAfterCleanup": 0,
+        "elapsedMs": 43
+      },
+      {
+        "mode": "virtual-timeout",
+        "total": 12,
+        "succeeded": 0,
+        "failed": 12,
+        "virtualTasks": 12,
+        "downstreamMaximum": 10,
+        "activeAfterCleanup": 0,
+        "elapsedMs": 1229
+      }
+    ]
+  },
+  "cpu": {
+    "cpuNanos": 2000077592,
+    "wallNanos": 2708722280,
+    "batches": 6664,
+    "blackhole": -8255952154446705668,
+    "hotLoopJfrSamples": 196,
+    "recordingBytes": 122200,
+    "jdkVersion": "openjdk version \"21.0.12.1\" 2026-08-18 LTS\nOpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)\nOpenJDK 64-Bit Server VM Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS, mixed mode, sharing)"
+  },
+  "jfrSha256": "b0b01777ec4f8e31d95ee34c9c40199481822e8ef7b42cdbd4881914b4306693"
+}

@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-18",
+  "vendor": "Eclipse Temurin / Adoptium",
+  "release": "jdk-21.0.12.1+1",
+  "platform": "linux-x64-hotspot",
+  "archiveBytes": 207473347,
+  "archiveSha256": "ce79869e1307ed8ee1e2baa86a412b1eb5b75d10a01006d788a6f968bcfaee94",
+  "archiveUrl": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12.1_1.tar.gz",
+  "vendorChecksumUrl": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12.1_1.tar.gz.sha256.txt",
+  "releaseMetadataUrl": "https://api.github.com/repos/adoptium/temurin21-binaries/releases/tags/jdk-21.0.12.1%2B1",
+  "scope": "Native verification only; owned ignored build directory, no global Java installation. CI independently selects supported Temurin21 maintenance build."
+}
