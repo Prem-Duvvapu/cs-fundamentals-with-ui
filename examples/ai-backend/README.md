@@ -121,3 +121,5 @@ The [evaluation guide](EVALUATION.md) explains dataset preflight, schema versus 
 per-field and per-slice reports, failure denominators and observed p50/p95. The current example
 suite has 39 tests before the separate vector-retrieval extension. Old saved reports without
 per-field data remain valid historical evidence and cannot be backfilled from exact-match totals.
+
+Use [RAG evaluation](RAG_EVALUATION.md) after the knowledge baseline: diagnose a retrieval miss, correct retrieval with wrong generation, and revoked sources as separate cases. Run `python3 examples/ai-backend/verify_rag.py` from the repository root after packaging to verify the actual30/20-case CLI.

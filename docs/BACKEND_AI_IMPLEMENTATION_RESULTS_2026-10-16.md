@@ -16,7 +16,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | AI-03 | Partial: attention/training trace and rubrics | How LLMs work |
 | AI-04 | Partial: prompt/context and failure exercises | Prompt and context engineering |
 | AI-05 | Partial: executable A | Model API integration |
-| AI-06 | Partial: vector implementation/local tests; actual PG CI pending | Embeddings and retrieval |
+| AI-06 | Partial: actual pgvector/index CI verified; semantic quality open | Embeddings and retrieval |
 | AI-07 | Partial: lexical plus explicit versioned vector implementation | RAG lifecycle |
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
 | AI-09 | Partial: per-field/slice/failure report, local tests | Quality and regression evaluation |
@@ -25,12 +25,12 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | AI-12 | Partial: capacity/quality trade-off exercise | Cost, capacity and model choice |
 | AI-13 | Pending | Adaptation decisions |
 | AI-14 | Pending | AI-assisted engineering |
-| AI-15 | Partial: digital PDF/provenance verified; real OCR CI required | Multimodal inputs |
+| AI-15 | Partial: digital PDF and actual OCR CI verified; richer modalities open | Multimodal inputs |
 | AI-16 | Partial: actual small-model training | Classical ML lifecycle |
 | AI-17 | Local verified: runnable authored ranking and lesson | Recommendation systems |
 | D-01 | Partial: failed live task fit and field diagnostics | Wrong but schema-valid extraction |
-| D-02 | Pending | Relevant document never retrieved |
-| D-03 | Pending | Correct sources, unsupported answer |
+| D-02 | Partial: actual lexical miss and diagnostic report | Relevant document never retrieved |
+| D-03 | Partial: injected wrong generation with correct retrieval | Correct sources, unsupported answer |
 | D-04 | Partial: JDBC and HTTP tenant tests | Tenant data appears in another answer |
 | D-05 | Partial: deadlines/overload tests; tracing open | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
@@ -185,3 +185,9 @@ everyday-engineering and RAG-evaluation work is isolated from this release. Fina
 status live on the linked PR, avoiding a fabricated pre-merge completion claim in this ledger.
 
 The combined clean-build packaged HTTP/MCP smoke also passed after PDF integration; no unfinished RAG evaluator is packaged in that release build.
+
+## October18 merged release and next RAG checkpoint
+
+PR[#57](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/57) merged as `ac1cebe14cca7de6ad0fd4e7d6b169372cb7ae10` after exact-head checks: frontend/browser/axe/diagram decode, platform/backend examples, containers and real backend journey, actual pgvectorHNSW, Kafka/RabbitMQ, Redis/MongoDB, realOCR, observability, reliability, deterministiclink contracts and secret scanning. The scheduled/main live link job is separate; the known HLD backend deployment mismatch remains open. Localmain was fast-forwarded and clean.
+
+ProjectB now has original30dev/20held-out query fixtures, actual lexical/store/validator execution, separate retrieval/rank/citation/substring-fact/outcome scores, slice counts and failure-inclusive stage quantiles. Whole Java verify:91 discovered,80 passed,11 explicit localPG/OCR skips; the new six evaluator regressions and packaged50-case CLI passed. Committed copy-fixture reports show21/30 and13/20 expected-fact matches, not model accuracy; no baseline weakness was hidden. Expected labels stay outside generation. Live RAG/embedding semantic quality, human support labels and cross-model comparison remain open.

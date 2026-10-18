@@ -644,3 +644,5 @@ payloads out of spans/logs and retain fixed metric labels and existing owner/CSR
 `examples/backend-data-services/` is an isolated Java17 module using real Redis/MongoDB. It preserves source-version cache correctness, bounded local connections and owned test cleanup; it adds no application API or learner telemetry.
 
 The AI example has a short-lived, bounded document CLI using PDFBox3.0.8 and optional real Tesseract OCR. It does not expose a platform upload API. Task Tracker adds an opt-in `jwt` resource-server profile; explicit bearer requests use scoped, stateless validation while Basic/session requests retain CSRF protection. This is not an OAuth authorization server or completed PKCE flow.
+
+`--evaluate-rag` is a short-lived CLI on the teaching JAR. It uses isolated tenant-filtered H2 knowledge stores, bounded lexical retrieval and the actual answer validator; it checkpoints source/outcome/label metrics and stage timings without raw prompts/answers. Expected labels never enter the generation fixture. The platform API and learner persistence are unchanged.

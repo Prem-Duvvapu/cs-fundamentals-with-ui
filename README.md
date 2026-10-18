@@ -474,3 +474,5 @@ payloads out of spans/logs and retain fixed metric labels and existing owner/CSR
 The [Redis/MongoDB lab](examples/backend-data-services/README.md) exercises actual TTL/Lua, tenant/version cache isolation, document indexes and optimistic conflicts; its dedicated CI requires real services without skips.
 
 The [document-input lab](examples/ai-backend/DOCUMENTS.md) distinguishes digital PDFs from scans and records page provenance; CI requires real OCR. The [security lab](examples/java-spring/task-tracker/SECURITY.md) adds an opt-in JWT/JWKS path and complete OWASP Web2025/API2023 control-and-gap matrices.
+
+The [RAG evaluation exercise](examples/ai-backend/RAG_EVALUATION.md) runs30 development and20 held-out queries, separating retrieval coverage from fact-label/citation diagnostics and policy rejections. Its committed results are labelled copy-fixture evidence, not live-model quality.

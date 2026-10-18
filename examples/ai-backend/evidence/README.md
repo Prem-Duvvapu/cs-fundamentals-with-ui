@@ -9,3 +9,7 @@ The pre-existing Ollama server was retained; only the experiment's evaluator/mod
 
 Future reports checkpoint each completed case atomically and retain `state: running` when interrupted.
 Require a complete report and model/runtime provenance before drawing quality conclusions.
+
+## October18 lexical RAG fixture baseline
+
+`2026-10-18-rag-fixture-development.json` and `2026-10-18-rag-fixture-held-out.json` are actual completed runs of the teaching JAR, with corpus/query hashes and per-case diagnostics. Development:21/30 expected-fact matches,26/30 expected outcomes; held-out:13/20 fact matches,16/20 outcomes. Retrieval recall@3 is25/26 and15/17 respectively, averaged over answerable labelled cases. These are copy-fixture scores, not LLM accuracy. A relevant citation can accompany the injected wrong answer, and irrelevant allowed sources can defeat abstention. `held-wrong-answer` never reaches generation because lexical retrieval misses “shipping”; `modelCalls=0`/`not-called` preserves that upstream failure rather than pretending the fault executed. Timings include per-case setup and are not capacity measurements. See [metric definitions](../RAG_EVALUATION.md).
