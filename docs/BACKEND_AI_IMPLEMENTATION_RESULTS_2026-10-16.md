@@ -43,9 +43,9 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual JWT/JWKS/owner tests and OWASP matrices | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuthPKCE/JWT/owner tests and OWASP matrices | API/security: REST + Spring Security |
 | BE-07 / P1 | Pending | Testing/delivery: Spring testing + CI/CD |
-| BE-08 / P1 | Pending | Operations: Docker/Kubernetes/cloud |
+| BE-08 / P1 | Partial: ownedkind recovery implementation; actual cluster CI required | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Local verified: actualJava21 capacity comparison; CI pending | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
@@ -209,3 +209,10 @@ Source `94bab74` (root `50dd095`) passed all5 actual native tests without skips 
 ### Rule baseline and adaptation decisions
 
 The no-model evaluator passed11 focused Java tests and the packaged30/20-case verifier with intentionally unusable provider settings. Actual rule results:29/30 dev,17/20 public-held-out full field matches;1/3 review cases remain in denominators. Known out-of-vocabulary/negation limits and a schema-valid wrong synonym example are taught. Four written decisions compare rules, a classifier, prompting/RAG and conditional fine-tuning; no training/quality gain is invented. New reports retain raw and LF-normalized hashes: the historical local-model report used LF input, current checkout CRLF, and normalized hashes prove unchanged JSONL. Public-held-out results are already-inspected regression evidence, not independent prospective model selection.
+
+### Completed code frozen for requested PR76 merge
+
+- Controlled-workflow evaluator source `8901acf` (root `f18625e`): six new tests, full source-package suite80executed/11existing native skips, and actual packaged standalone50-case execution passed. It records13 completed tasks,33 expected refusals,four bounded stops,44 fixture proposals andzero observed invariant/contract failures. Actual response timeout occurs after the commit signal, then the file is reopened/reconciled/replayed. A negative observer test proves database mutations are detected independently of labels. Root adds the normal Boot-JAR dispatch and packaged verifier. Fixture output is not live-agent, controller, MCP or payment quality evidence.
+- OAuth source `8899891` (root `7853a42`):2Java guards,4Python client guards and13actual HTTP groups passed against a framework AS and unmodified TaskTracker source built privately. Code replay, S256/verifier/state/exactredirect failures, scope/owner/audience/signature/expiry and existingBasicCSRF boundaries are observed. Generated keys/users are not tracked; owned processes/source-copy/H2 are removed. OIDC/refresh/deployedrevocation and productionidentity operations are outside this milestone. Actual dedicated CI remains required.
+- Operations source `71173c5` (root `50301f9`):9native guards, Java17probe compilation and Python syntax passed. No actual local cluster execution is claimed. The dedicated pinnedkind CI must prove namespaceUID, ServiceDNS/auth, readyendpoint withdrawal, samePod/no-restart recovery, failed-startup logs and oldreplica availability, rollback and cleanup beforemerge. OOM/PV/multinode/cloudIAM/NetworkPolicy exercises remain open.
+- Streaming code is unfinished in a separate worktree and excluded from this requested release. Integrated full verification and every final-head remote gate must pass; source-package evidence alone does not authorize a merge with failing integration checks.

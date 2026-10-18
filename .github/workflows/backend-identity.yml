@@ -2,6 +2,7 @@ name: Actual OAuth PKCE and Task Tracker integration
 
 on:
   push:
+    branches: [main]
     paths:
       - 'examples/backend-identity/**'
       - 'examples/java-spring/task-tracker/**'
@@ -15,6 +16,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   real-http:

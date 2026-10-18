@@ -484,3 +484,5 @@ Verification runs on pull requests and main pushes; newer revisions cancel super
 The optional [Java21 runtime lab](examples/java-runtime/README.md) compares actual platform/virtual threads under the same downstream limit and captures a real CPU thread dump/JFR profile. The platform remains on Java17.
 
 Start AI model selection with the [measured rule baseline and adaptation decisions](examples/ai-backend/ADAPTATION_DECISIONS.md). It compares explicit task completion/review rates and explains when to choose rules, a classifier, prompting, retrieval or fine-tuning.
+
+The [controlled-workflow evaluator](examples/ai-backend/WORKFLOW_EVALUATION.md) separates completed tasks, expected refusals and policy violations across50 original cases. The [OAuth/PKCE lab](examples/backend-identity/README.md) exercises a real framework authorization server against TaskTracker. The [Kubernetes recovery lab](examples/backend-operations/README.md) requires actual kind evidence for DNS, readiness and rollback; native guard tests alone cannot establish those outcomes.

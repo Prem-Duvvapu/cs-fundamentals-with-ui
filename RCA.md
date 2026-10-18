@@ -549,3 +549,13 @@ RCA-2026-10-16-01 resolving commit: `03620b7`. RCA-2026-10-16-02 resolving commi
 - Verification: targeted local compilation/regressions passed thirteen tests with eight actual PostgreSQL cases explicitly skipped. Final-head real-service CI must pass the unchanged eight-case no-skip gate before merge; this record does not substitute for that evidence.
 - Prevention: distinguish index existence, eligible SQL, planned access and actual index execution. Preserve tenant/freshness checks when making nearest-neighbor access eligible; never weaken the assertion to accept a sort.
 - Resolving commit: `df001dc155fd87822eb657045cd046e4883b781f` (source `c1fc3b5`).
+
+
+## RCA-2026-10-18-06 — Workflow evaluator report retained raw fixture evidence
+
+- Evidence: the first ProjectC privacy regression found a synthetic private marker in the report. An expected-evidence match had been copied into `result.evidence`. This was an evaluator-output bug involving fictional fixtures, not a business-data or model disclosure.
+- Root cause: the evaluator reused raw values needed for internal assertions as externally emitted evidence instead of separating observation from a safe assertion label.
+- Resolution: compare raw evidence internally; emit only numbered output-check labels or a small allowlist of non-sensitive operational names. Reports omit prompts, tool payloads and approval tokens.
+- Verification: `fiftyRealApplicationCasesKeepTaskRefusalAndPolicyMetricsSeparate` now passes, the full source-package suite passes, and the actual packaged50-case report was independently scanned for private markers, tokens, JDBC and absolute temporary paths. An independent negative observer test verifies policy violations can still be detected without outputting raw values.
+- Prevention: separate internal sensitive observation from published evidence; assert both behavior and report privacy. These are synthetic tests, not proof that all future real inputs are safe to log.
+- Resolving commit: `f18625e` (source `8901acfd89350ac479d1e19601ce15871f2e1f3e`).
