@@ -152,3 +152,14 @@ its final frontend suite passed **826/826 tests across 64 files**. The four conf
 and their resolving commits are recorded in [RCA.md](../RCA.md#rca-2026-10-18-01--lesson-artifact-links-resolved-against-application-routes).
 Release checks and real pgvector/Kafka/RabbitMQ jobs are pending until the review branch runs in CI.
 A passing local run with explicit integration skips is not a passing real-service integration.
+
+### Redis and MongoDB checkpoint
+
+Data-services source `40bcc81` (integrated `c79bf78`) adds actual Redis and MongoDB exercises.
+Nine schema/guard/application contracts passed; a separate owned native Redis8.6.2 run passed
+all four actual Redis cases without skips. MongoDB's four and the three combined cache/database
+cases require the dedicated digest-pinned CI service job. The workflow requires all20 tests and
+zero skipped service cases; default local skips are explicit. Tenant/version cache keys and
+canonical version checks prevent late stale population or failed invalidation from making old
+bytes current, at the documented extra database-query cost. No stampede/failover/recovery or
+production-auth deployment is claimed. Final integrated packaged AI HTTP/MCP smoke passed again.

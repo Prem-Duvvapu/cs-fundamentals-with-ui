@@ -640,3 +640,5 @@ JPA. The original in-memory default stays database-free. Its 29 tests and both p
 passed in the isolated package. Traces use the actual pinned SDK with local/in-memory exporters;
 no remote collector or deployed alert/notification service is claimed. Keep secrets and customer
 payloads out of spans/logs and retain fixed metric labels and existing owner/CSRF boundaries.
+
+`examples/backend-data-services/` is an isolated Java17 module using real Redis/MongoDB. It preserves source-version cache correctness, bounded local connections and owned test cleanup; it adds no application API or learner telemetry.
