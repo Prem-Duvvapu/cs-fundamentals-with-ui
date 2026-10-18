@@ -596,3 +596,7 @@ The first ML expansion preserves all 953 question identities and raises authored
 The teaching application now includes JDBC document versions/tombstones and tenant-filtered lexical retrieval. Citation validation rechecks source versions after generation. A separate local fake refund workflow binds approval to principal/action/version/expiry and commits its order update with an idempotent operation record. Its read-only agent cannot access mutation APIs. Official MCP SDK 2.0.0 powers a separate stdio server/client demonstration; tested negotiation is 2025-11-25. Runtime credentials have no committed defaults.
 
 Teaching API error contract: agent capacity is 503, invalid upstream model JSON/action is 502, client input is 400, and authorization denial is 403. The final example suite contains 31 tests.
+
+## Backend coverage traceability — October 17
+
+`BACKEND_ENGINEERING_COVERAGE_2026-10-17.md` extends the practical backend/AI roadmap with BEC-01–BEC-77, preserving the learner's exact checklist order. It maps existing content and specific sibling-app routes to understand/build/debug/interview/verification criteria, while leaving incomplete outcomes open. Reuse existing DSA/LLD/HLD content; add only identified gaps and distinct backend integration exercises. HLD catalog drafts are distinguished from published topics. This documentation adds no production registry, route, shared progress state or curriculum topic. `content/COVERAGE_MANIFEST.json` continues to validate the existing lesson anchors; it does not certify this new practical completion bar.

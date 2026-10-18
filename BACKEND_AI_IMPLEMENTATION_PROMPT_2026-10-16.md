@@ -7,7 +7,7 @@ Start by reading the current AGENTS.md, content/CONTENT_SPEC.md, the plan, relev
 Scope:
 1. Cover AI-01 through AI-17 through improvements to the seven existing AI lessons and linked practical guides/labs.
 2. Deliver three connected Java/Spring projects: validated ticket/document extraction, a permission-aware RAG assistant and a controlled tool workflow with a bounded agent/MCP demonstration.
-3. Implement the D-01 through D-10 debugging exercises and BE-01 through BE-10 backend engineering packages.
+3. Implement the D-01 through D-10 debugging exercises and BE-01 through BE-10 backend engineering packages. Include all 77 requirements (BEC-01–BEC-77) in BACKEND_ENGINEERING_COVERAGE_2026-10-17.md. Reuse its specific existing DSA/LLD/HLD links instead of duplicating content; add only missing concepts and distinct backend integration/debugging work. Draft HLD pages do not count as delivered coverage.
 4. Track CLOSE-01 through CLOSE-06 separately, including Java course alignment, documentation/tooling cleanup and real learner/manual accessibility evidence.
 
 Keep one canonical content source, the current six categories and all existing IDs/routes. Use separate one-file content-edit units and integration units, as required by CONTENT_SPEC.md. Avoid a new topic registry or oversized lessons; keep long executable walkthroughs in examples and link them visibly from their owning lessons. Verify links in the reader. No new registered topic is required by this plan.
