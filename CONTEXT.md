@@ -644,3 +644,15 @@ payloads out of spans/logs and retain fixed metric labels and existing owner/CSR
 `examples/backend-data-services/` is an isolated Java17 module using real Redis/MongoDB. It preserves source-version cache correctness, bounded local connections and owned test cleanup; it adds no application API or learner telemetry.
 
 The AI example has a short-lived, bounded document CLI using PDFBox3.0.8 and optional real Tesseract OCR. It does not expose a platform upload API. Task Tracker adds an opt-in `jwt` resource-server profile; explicit bearer requests use scoped, stateless validation while Basic/session requests retain CSRF protection. This is not an OAuth authorization server or completed PKCE flow.
+
+`--evaluate-rag` is a short-lived CLI on the teaching JAR. It uses isolated tenant-filtered H2 knowledge stores, bounded lexical retrieval and the actual answer validator; it checkpoints source/outcome/label metrics and stage timings without raw prompts/answers. Expected labels never enter the generation fixture. The platform API and learner persistence are unchanged.
+
+Additional isolated teaching modules cover three-file H2 saga reconciliation, actual PostgreSQL/Hibernate/Hikari migration/restore incidents, and disposable Git/Linux/offline-Maven investigation. They introduce no platform endpoints, shared learning state or customer analytics. Each owns its test resources and publishes only synthetic/sanitized evidence.
+
+The main Verify workflow uses `push.branches: [main]` plus `pull_request`, avoiding duplicate feature-push/PR runs. Workflow/ref concurrency cancels superseded PR revisions while retaining active main verification. This follows the [GitHub concurrency contract](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency); it changes scheduling, not test scope.
+
+`examples/java-runtime/` is standaloneJava21/Python tooling, with no Maven/platform runtime change. Actual loopback concurrency, abandoned downstream work after client timeout and bounded CPU/JFR evidence are verified independently in its dedicated no-skip CI job.
+
+`--evaluate-rules` reuses the ticket dataset validator and failure-inclusive evaluator without constructing a model client. It records rule/runtime version, raw and LF-normalized dataset hashes and an explicit `usesModel:false`; it does not change the authenticated extraction API or business permissions.
+
+The teaching JAR dispatches `--evaluate-workflow` before Spring startup. Its deterministic proposer drives actual permission/approval/H2 policy and reports sanitized assertions; it is not live-agent quality evidence. Separate identity tooling builds a private temporary copy of existingTaskTracker and exercises real framework OAuth/S256 PKCE without modifying its source. The operations runner provisions only a fresh ownedkind cluster/privatekubeconfig and tests actual TaskTracker readiness/rollout behavior, with pinned images/tools and explicit cleanup.

@@ -1,0 +1,56 @@
+name: Java runtime labs
+
+on:
+  push:
+    branches: [main]
+    paths: ['examples/java-runtime/**', '.github/workflows/java-runtime.yml']
+  pull_request:
+    paths: ['examples/java-runtime/**', '.github/workflows/java-runtime.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  actual-java21:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run actual loopback, CPU and JFR cases without skips
+        run: python3 examples/java-runtime/run_tests.py
+      - name: Require actual selected runtime and diagnostic evidence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('examples/java-runtime/build/evidence')
+          result=json.loads((root/'test-result.json').read_text())
+          if result!={'testsRun':5,'skipped':0,'failures':0,'errors':0,'allFiveExecutedAndPassed':True}:
+              raise SystemExit('All five runtime tests must execute and pass without skips')
+          concurrency=json.loads((root/'concurrency.json').read_text())
+          cpu=json.loads((root/'cpu-summary.json').read_text())
+          if concurrency['runtimeFeature']!=21 or len(concurrency['cases'])!=4:
+              raise SystemExit('Actual JDK21/four-workload evidence missing')
+          if cpu['hotLoopJfrSamples']<1 or not (root/'owned-cpu.jfr').is_file():
+              raise SystemExit('Actual hot-loop JFR recording/execution samples missing')
+          print('Actual JDK21 virtual/platform workloads and hot-loop JFR evidence verified.')
+          PY
+      - name: Retain actual synthetic runtime observations and JFR recording
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-runtime-evidence
+          path: examples/java-runtime/build/evidence/
+          if-no-files-found: warn

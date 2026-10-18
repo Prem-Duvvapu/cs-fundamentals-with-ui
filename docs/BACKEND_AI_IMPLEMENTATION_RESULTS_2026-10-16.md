@@ -16,21 +16,21 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | AI-03 | Partial: attention/training trace and rubrics | How LLMs work |
 | AI-04 | Partial: prompt/context and failure exercises | Prompt and context engineering |
 | AI-05 | Partial: executable A | Model API integration |
-| AI-06 | Partial: vector implementation/local tests; actual PG CI pending | Embeddings and retrieval |
+| AI-06 | Partial: actual pgvector/index CI verified; semantic quality open | Embeddings and retrieval |
 | AI-07 | Partial: lexical plus explicit versioned vector implementation | RAG lifecycle |
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
 | AI-09 | Partial: per-field/slice/failure report, local tests | Quality and regression evaluation |
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
 | AI-11 | Partial: serving failure diagnosis; telemetry open | Operations and debugging |
 | AI-12 | Partial: capacity/quality trade-off exercise | Cost, capacity and model choice |
-| AI-13 | Pending | Adaptation decisions |
+| AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
 | AI-14 | Pending | AI-assisted engineering |
-| AI-15 | Partial: digital PDF/provenance verified; real OCR CI required | Multimodal inputs |
+| AI-15 | Partial: digital PDF and actual OCR CI verified; richer modalities open | Multimodal inputs |
 | AI-16 | Partial: actual small-model training | Classical ML lifecycle |
 | AI-17 | Local verified: runnable authored ranking and lesson | Recommendation systems |
 | D-01 | Partial: failed live task fit and field diagnostics | Wrong but schema-valid extraction |
-| D-02 | Pending | Relevant document never retrieved |
-| D-03 | Pending | Correct sources, unsupported answer |
+| D-02 | Partial: actual lexical miss and diagnostic report | Relevant document never retrieved |
+| D-03 | Partial: injected wrong generation with correct retrieval | Correct sources, unsupported answer |
 | D-04 | Partial: JDBC and HTTP tenant tests | Tenant data appears in another answer |
 | D-05 | Partial: deadlines/overload tests; tracing open | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
@@ -38,16 +38,16 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | D-08 | Pending | Quality drops after an upgrade |
 | D-09 | Pending | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
-| BE-01 / P0 | Partial: real JVM deadlock/memory lab | Debugging workflow: JVM, concurrency, Spring boot/MVC |
+| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR labs; IDE/config open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Partial: real PG plans/blocker/timeout lab | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual JWT/JWKS/owner tests and OWASP matrices | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuthPKCE/JWT/owner tests and OWASP matrices | API/security: REST + Spring Security |
 | BE-07 / P1 | Pending | Testing/delivery: Spring testing + CI/CD |
-| BE-08 / P1 | Pending | Operations: Docker/Kubernetes/cloud |
-| BE-09 / P1 | Pending | Everyday engineering: Java execution/Boot + CI/CD |
-| BE-10 / P1 | Pending | Modern Java choices: JVM/concurrency + Spring |
+| BE-08 / P1 | Partial: ownedkind recovery implementation; actual cluster CI required | Operations: Docker/Kubernetes/cloud |
+| BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
+| BE-10 / P1 | Local verified: actualJava21 capacity comparison; CI pending | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
 | CLOSE-02 | Pending | Java course familiarity |
 | CLOSE-03 | Pending | Manual accessibility |
@@ -185,3 +185,34 @@ everyday-engineering and RAG-evaluation work is isolated from this release. Fina
 status live on the linked PR, avoiding a fabricated pre-merge completion claim in this ledger.
 
 The combined clean-build packaged HTTP/MCP smoke also passed after PDF integration; no unfinished RAG evaluator is packaged in that release build.
+
+## October18 merged release and next RAG checkpoint
+
+PR[#57](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/57) merged as `ac1cebe14cca7de6ad0fd4e7d6b169372cb7ae10` after exact-head checks: frontend/browser/axe/diagram decode, platform/backend examples, containers and real backend journey, actual pgvectorHNSW, Kafka/RabbitMQ, Redis/MongoDB, realOCR, observability, reliability, deterministiclink contracts and secret scanning. The scheduled/main live link job is separate; the known HLD backend deployment mismatch remains open. Localmain was fast-forwarded and clean.
+
+ProjectB now has original30dev/20held-out query fixtures, actual lexical/store/validator execution, separate retrieval/rank/citation/substring-fact/outcome scores, slice counts and failure-inclusive stage quantiles. Whole Java verify:91 discovered,80 passed,11 explicit localPG/OCR skips; the new six evaluator regressions and packaged50-case CLI passed. Committed copy-fixture reports show21/30 and13/20 expected-fact matches, not model accuracy; no baseline weakness was hidden. Expected labels stay outside generation. Live RAG/embedding semantic quality, human support labels and cross-model comparison remain open.
+
+### Saga, persistence and everyday-engineering integration
+
+- Saga source `3c2f48b` (root `5acd375`):21 discovered,19 local tests passed,2 broker cases explicitly skipped. Eleven new tests exercise actual owned child-JVM exits after reserve/charge/release commits, independently reopened H2 files, ambiguous outcomes, bounded manual review and exact request/tenant compensation. Broker CI must still execute its cases. Fake inventory/payment and three independent local commits are not a global exactly-once/real payment guarantee.
+- Persistence source `8a89427` (root `99792bf`): actual PostgreSQL16.15 run passed5 Java tests with no skips,5 verifier guard tests, actual dump/restore data/FK/CHECK/identity verification and owned-resource cleanup. N+1 statements4→1 with equal results; bounded Hikari pool timeout/recovery; expand/backfill/fenced contract and transactional rollback plus old-writer restoration. Digest-pinned container CI transport remains required; small fixtures are not production performance or migration-SLA evidence.
+- Engineering workflow source `f7f5e23` (root `ab62eb8`):4 tests and actual CLI passed. Disposable Git bisect identifies the behavioral culprit; append-only revert retains later work;17 golden Java cases preserve refactor behavior. Real owned Linux socket/file/process evidence and actual offline Maven mediation/class loading/config precedence are recorded. Independent-repository isolation and failure cleanup are tested. Manual IDE/unfamiliar-repo/security review tasks stay open.
+
+Four single-file teaching units connect RAG/distributed-data/JPA/SOLID to the runnable evaluation/recovery/persistence/refactor guides. Each passed its content validator (550/581/510/491 lines respectively), with existing diagrams and14 questions per file preserved. No new question/rubric/diagram identity or registration was added. PR76 runs the combined checks.
+
+Observed queue evidence:14 dependency Verify entries and3 project Verify entries were queued during integration. Main/PR trigger deduplication and superseded-PR concurrency reduce repeated work without removing checks; the actual final-head run remains the release evidence.
+
+### Optional Java21 runtime checkpoint
+
+Source `94bab74` (root `50dd095`) passed all5 actual native tests without skips using a checksum-verified owned Temurin21 JDK; system/platformJava17 stays unchanged. Twelve healthy calls reached downstream maxima2/2/12 for platform-limited/virtual-limited/virtual-unlimited, with actual `isVirtual` evidence. A client timeout experiment explicitly shows remote work can outlive client permits and verifies zero handlers after cleanup. A bounded CPU worker used2.000CPU seconds; namedRUNNABLE thread and196 matching actualJFR samples identify the hot loop. The dedicatedJDK21 CI job must execute all5 cases without skips; timings/sample counts are dated observations, not universal performance claims.
+
+### Rule baseline and adaptation decisions
+
+The no-model evaluator passed11 focused Java tests and the packaged30/20-case verifier with intentionally unusable provider settings. Actual rule results:29/30 dev,17/20 public-held-out full field matches;1/3 review cases remain in denominators. Known out-of-vocabulary/negation limits and a schema-valid wrong synonym example are taught. Four written decisions compare rules, a classifier, prompting/RAG and conditional fine-tuning; no training/quality gain is invented. New reports retain raw and LF-normalized hashes: the historical local-model report used LF input, current checkout CRLF, and normalized hashes prove unchanged JSONL. Public-held-out results are already-inspected regression evidence, not independent prospective model selection.
+
+### Completed code frozen for requested PR76 merge
+
+- Controlled-workflow evaluator source `8901acf` (root `f18625e`): six new tests, full source-package suite80executed/11existing native skips, and actual packaged standalone50-case execution passed. It records13 completed tasks,33 expected refusals,four bounded stops,44 fixture proposals andzero observed invariant/contract failures. Actual response timeout occurs after the commit signal, then the file is reopened/reconciled/replayed. A negative observer test proves database mutations are detected independently of labels. Root adds the normal Boot-JAR dispatch and packaged verifier. Fixture output is not live-agent, controller, MCP or payment quality evidence.
+- OAuth source `8899891` (root `7853a42`):2Java guards,4Python client guards and13actual HTTP groups passed against a framework AS and unmodified TaskTracker source built privately. Code replay, S256/verifier/state/exactredirect failures, scope/owner/audience/signature/expiry and existingBasicCSRF boundaries are observed. Generated keys/users are not tracked; owned processes/source-copy/H2 are removed. OIDC/refresh/deployedrevocation and productionidentity operations are outside this milestone. Actual dedicated CI remains required.
+- Operations source `71173c5` (root `50301f9`):9native guards, Java17probe compilation and Python syntax passed. No actual local cluster execution is claimed. The dedicated pinnedkind CI must prove namespaceUID, ServiceDNS/auth, readyendpoint withdrawal, samePod/no-restart recovery, failed-startup logs and oldreplica availability, rollback and cleanup beforemerge. OOM/PV/multinode/cloudIAM/NetworkPolicy exercises remain open.
+- Streaming code is unfinished in a separate worktree and excluded from this requested release. Integrated full verification and every final-head remote gate must pass; source-package evidence alone does not authorize a merge with failing integration checks.

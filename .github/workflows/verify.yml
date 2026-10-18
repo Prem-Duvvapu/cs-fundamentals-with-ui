@@ -2,7 +2,12 @@ name: Verify
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   frontend:
@@ -61,6 +66,7 @@ jobs:
       - run: node --test scripts/verify-java-examples.test.mjs
       - run: javac --release 17 -d /tmp/core-accuracy-java examples/labs/java/AccuracyContracts.java
       - run: java -cp /tmp/core-accuracy-java AccuracyContracts
+      - run: python3 -m unittest discover -s examples/engineering-workflow -p 'test_*.py' -v
 
   practical-ai:
     runs-on: ubuntu-latest
@@ -76,6 +82,9 @@ jobs:
           python-version: '3.12'
       - run: mvn verify -f examples/ai-backend/pom.xml
       - run: python3 examples/ai-backend/verify_http.py
+      - run: python3 examples/ai-backend/verify_rag.py
+      - run: python3 examples/ai-backend/verify_rules.py
+      - run: python3 examples/ai-backend/verify_workflow.py
       - run: python3 -m unittest discover -s examples/labs -p test_training.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_recommendations.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_backend_debug.py -v

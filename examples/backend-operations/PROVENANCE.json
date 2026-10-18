@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-18",
+  "kind": {
+    "version": "v0.33.0",
+    "linuxAmd64Sha256": "aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d",
+    "release": "https://github.com/kubernetes-sigs/kind/releases/tag/v0.33.0",
+    "checksum": "https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64.sha256sum",
+    "nodeImage": "kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5",
+    "nodeCompatibilitySource": "The exact node image/digest is listed in this kind release's official notes."
+  },
+  "kubectl": {
+    "version": "v1.37.0",
+    "linuxAmd64Sha256": "6129359f4e1f3848a5572ccb0b26cf28b8ca08cef38c95a765b2f64a2c961a2f",
+    "checksum": "https://dl.k8s.io/release/v1.37.0/bin/linux/amd64/kubectl.sha256",
+    "binary": "https://dl.k8s.io/release/v1.37.0/bin/linux/amd64/kubectl"
+  },
+  "applicationBaseIndexes": [
+    {
+      "image": "maven:3.9-eclipse-temurin-17",
+      "digest": "sha256:1a352420f7aba21f5ad08df31bab55f74c013fb491f1ae8ab1dd7ff9ed698584",
+      "primaryManifest": "https://registry-1.docker.io/v2/library/maven/manifests/3.9-eclipse-temurin-17"
+    },
+    {
+      "image": "eclipse-temurin:17-jre",
+      "digest": "sha256:e04fa72be13b257a59fdec6dc14af78c8f80f035d3c1ed4e03e45552a231d4c8",
+      "primaryManifest": "https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/17-jre"
+    }
+  ],
+  "verification": "Kind asset API digest matched its independently fetched vendor checksum. kubectl checksum was fetched from the official release host. Both Docker Official Image index response digests matched SHA256 of the fetched manifest bytes. No local Docker image execution or actual cluster execution is asserted by this provenance file."
+}

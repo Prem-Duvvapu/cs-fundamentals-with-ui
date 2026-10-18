@@ -10,19 +10,25 @@ import tools.jackson.databind.ObjectMapper;
 
 final class EvaluateTickets {
     static void run(String[] args) throws Exception {
-        if (args.length != 3) throw new IllegalArgumentException("Usage: --evaluate <cases.jsonl> <report.json>");
-        String evidence = System.getenv().getOrDefault("AI_EVIDENCE", "fixture");
-        if (!Set.of("fixture", "live-local").contains(evidence)) throw new IllegalArgumentException("Use fixture or live-local evidence");
-        String endpoint = System.getenv().getOrDefault("AI_ENDPOINT", "http://127.0.0.1:9193/api/chat");
-        URI uri = URI.create(endpoint);
-        if (!Set.of("127.0.0.1", "localhost", "[::1]").contains(uri.getHost()))
-            throw new IllegalArgumentException("This evaluator only contacts a loopback fixture/local model");
-        String model = System.getenv().getOrDefault("AI_MODEL", "teaching-fixture");
-        if (evidence.equals("fixture") != model.equals("teaching-fixture"))
-            throw new IllegalArgumentException("Explicit model/evidence mode mismatch");
-        int timeout = Integer.parseInt(System.getenv().getOrDefault("AI_TIMEOUT_MS", "3000"));
-        int budget = Integer.parseInt(System.getenv().getOrDefault("AI_MAX_CALLS", "100"));
-        var service = new ExtractionService(ChatClient.create(new OllamaHttpModel(uri, model, Duration.ofMillis(timeout), budget)));
+        if (args.length != 3) throw new IllegalArgumentException("Usage: --evaluate|--evaluate-rules <cases.jsonl> <report.json>");
+        boolean rules = args[0].equals("--evaluate-rules");
+        String evidence = rules ? "rule" : System.getenv().getOrDefault("AI_EVIDENCE", "fixture");
+        if (!rules && !Set.of("fixture", "live-local").contains(evidence)) throw new IllegalArgumentException("Use fixture or live-local evidence");
+        String model = rules ? TicketRuleBaseline.VERSION : System.getenv().getOrDefault("AI_MODEL", "teaching-fixture");
+        java.util.function.Function<String, ExtractionService.Ticket> extract;
+        if (rules) extract = TicketRuleBaseline::extract;
+        else {
+            String endpoint = System.getenv().getOrDefault("AI_ENDPOINT", "http://127.0.0.1:9193/api/chat");
+            URI uri = URI.create(endpoint);
+            if (!Set.of("127.0.0.1", "localhost", "[::1]").contains(uri.getHost()))
+                throw new IllegalArgumentException("This evaluator only contacts a loopback fixture/local model");
+            if (evidence.equals("fixture") != model.equals("teaching-fixture"))
+                throw new IllegalArgumentException("Explicit model/evidence mode mismatch");
+            int timeout = Integer.parseInt(System.getenv().getOrDefault("AI_TIMEOUT_MS", "3000"));
+            int budget = Integer.parseInt(System.getenv().getOrDefault("AI_MAX_CALLS", "100"));
+            var service = new ExtractionService(ChatClient.create(new OllamaHttpModel(uri, model, Duration.ofMillis(timeout), budget)));
+            extract = service::extract;
+        }
         var json = new ObjectMapper();
         Path datasetPath = Path.of(args[1]);
         if (Files.size(datasetPath) > 8 * 1024 * 1024) throw new IllegalArgumentException("dataset_size_limit");
@@ -33,14 +39,17 @@ final class EvaluateTickets {
         int accepted = 0, correct = 0;
         long totalMs = 0;
         Path reportPath = Path.of(args[2]).toAbsolutePath();
-        String digest = System.getenv().getOrDefault("AI_MODEL_DIGEST", "fixture");
-        String runtime = System.getenv().getOrDefault("AI_RUNTIME_VERSION", "fixture");
+        String digest = rules ? "not-applicable" : System.getenv().getOrDefault("AI_MODEL_DIGEST", "fixture");
+        String runtime = rules ? System.getProperty("java.runtime.version") : System.getenv().getOrDefault("AI_RUNTIME_VERSION", "fixture");
         if (evidence.equals("live-local") && (!digest.matches("[a-f0-9]{64}") || runtime.equals("fixture")))
             throw new IllegalArgumentException("Live runs require AI_MODEL_DIGEST and AI_RUNTIME_VERSION provenance");
         var report = new LinkedHashMap<String, Object>();
         report.put("evidence", evidence); report.put("model", model); report.put("modelDigest", digest);
-        report.put("runtimeVersion", runtime); report.put("promptVersion", ExtractionService.PROMPT_VERSION);
+        report.put("runtimeVersion", runtime); report.put("promptVersion", rules ? TicketRuleBaseline.VERSION : ExtractionService.PROMPT_VERSION);
         report.put("datasetSha256", HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(dataset)));
+        report.put("datasetLfSha256", HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(
+                new String(dataset, java.nio.charset.StandardCharsets.UTF_8).replace("\r\n", "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8))));
+        report.put("usesModel", !rules);
         report.put("at", Instant.now().toString()); report.put("cases", cases); report.put("state", "running");
         report.put("limits", "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.");
         for (var row : datasetCases) {
@@ -53,7 +62,7 @@ final class EvaluateTickets {
             boolean schemaAccepted = false;
             String errorCode = null;
             try {
-                var ticket = service.extract(row.path("text").asString());
+                var ticket = extract.apply(row.path("text").asString());
                 accepted++;
                 fieldMatches.put("category", ticket.category().equals(row.path("expected").path("category").asString()));
                 fieldMatches.put("priority", ticket.priority().equals(row.path("expected").path("priority").asString()));

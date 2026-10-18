@@ -474,3 +474,15 @@ payloads out of spans/logs and retain fixed metric labels and existing owner/CSR
 The [Redis/MongoDB lab](examples/backend-data-services/README.md) exercises actual TTL/Lua, tenant/version cache isolation, document indexes and optimistic conflicts; its dedicated CI requires real services without skips.
 
 The [document-input lab](examples/ai-backend/DOCUMENTS.md) distinguishes digital PDFs from scans and records page provenance; CI requires real OCR. The [security lab](examples/java-spring/task-tracker/SECURITY.md) adds an opt-in JWT/JWKS path and complete OWASP Web2025/API2023 control-and-gap matrices.
+
+The [RAG evaluation exercise](examples/ai-backend/RAG_EVALUATION.md) runs30 development and20 held-out queries, separating retrieval coverage from fact-label/citation diagnostics and policy rejections. Its committed results are labelled copy-fixture evidence, not live-model quality.
+
+Practice [durable saga recovery](examples/backend-messaging/README.md#8-persisted-saga-reconcile-separate-local-commits), [real PostgreSQL incidents](examples/backend-persistence/README.md), and the [Git/Linux/Maven/Clean Code workflow](examples/engineering-workflow/README.md). Each guide includes predictions, failure evidence, repairs and an interview explanation. These extend the existing curriculum and sibling lessons.
+
+Verification runs on pull requests and main pushes; newer revisions cancel superseded PR verification. The full release checks remain required before merging.
+
+The optional [Java21 runtime lab](examples/java-runtime/README.md) compares actual platform/virtual threads under the same downstream limit and captures a real CPU thread dump/JFR profile. The platform remains on Java17.
+
+Start AI model selection with the [measured rule baseline and adaptation decisions](examples/ai-backend/ADAPTATION_DECISIONS.md). It compares explicit task completion/review rates and explains when to choose rules, a classifier, prompting, retrieval or fine-tuning.
+
+The [controlled-workflow evaluator](examples/ai-backend/WORKFLOW_EVALUATION.md) separates completed tasks, expected refusals and policy violations across50 original cases. The [OAuth/PKCE lab](examples/backend-identity/README.md) exercises a real framework authorization server against TaskTracker. The [Kubernetes recovery lab](examples/backend-operations/README.md) requires actual kind evidence for DNS, readiness and rollback; native guard tests alone cannot establish those outcomes.

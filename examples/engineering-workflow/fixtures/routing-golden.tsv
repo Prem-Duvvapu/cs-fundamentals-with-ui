@@ -1,0 +1,18 @@
+id	tier	priority	security	expected	reason
+standard-normal	STANDARD	NORMAL	false	STANDARD_QUEUE	Default support routing
+standard-urgent	STANDARD	URGENT	false	INCIDENT_QUEUE	Urgency outranks customer tier
+enterprise-normal	ENTERPRISE	NORMAL	false	ENTERPRISE_QUEUE	Enterprise route when not urgent
+enterprise-urgent	ENTERPRISE	URGENT	false	INCIDENT_QUEUE	Urgency must outrank enterprise tier
+standard-security	STANDARD	NORMAL	true	SECURITY_ONCALL	Security outranks routine routing
+urgent-security	STANDARD	URGENT	true	SECURITY_ONCALL	Security outranks urgency
+enterprise-security	ENTERPRISE	NORMAL	true	SECURITY_ONCALL	Security outranks customer tier
+enterprise-urgent-security	ENTERPRISE	URGENT	true	SECURITY_ONCALL	Security still wins when both apply
+lowercase	enterprise	urgent	false	INCIDENT_QUEUE	Documented case normalization
+whitespace	 ENTERPRISE 	 NORMAL 	false	ENTERPRISE_QUEUE	Documented surrounding whitespace
+mixedcase	Standard	Urgent	false	INCIDENT_QUEUE	Caller casing does not change priority
+null-tier	<null>	NORMAL	false	INVALID	Missing tier is rejected
+null-priority	STANDARD	<null>	false	INVALID	Missing priority is rejected
+unknown-tier	PREMIUM	NORMAL	false	INVALID	Unrecognized tier is not silently privileged
+unknown-priority	ENTERPRISE	LOW	false	INVALID	Unrecognized priority is rejected
+empty-tier		NORMAL	false	INVALID	Empty tier is not a default customer
+invalid-security-input	UNKNOWN	NORMAL	true	INVALID	Validate input before applying overrides

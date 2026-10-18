@@ -102,6 +102,8 @@ These are runnable repository commands after the declared Java/Python prerequisi
 The smoke generates temporary credentials, starts owned processes and performs actual HTTP requests.
 Its generation server is explicitly a deterministic fixture; that does not establish live-answer quality.
 
+Then run the [30/20-case evaluation](../../examples/ai-backend/RAG_EVALUATION.md). Predict a missing source, a wrong answer with a relevant citation, and a source revoked during generation; inspect retrieval scores, fact-label checks and policy outcomes separately. The copy fixture has known failures and is not a real-model quality score.
+
 | Change | Alice's permitted evidence | Required observation |
 |---|---|---|
 | Create refund policy at version 1 | Refund within 14 days | Citation `policy:v1` |

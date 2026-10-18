@@ -84,7 +84,7 @@ Never execute generated text or grant access based on a model's suggested identi
 
 ## 5. Retrieve knowledge and control actions
 
-The [lexical RAG baseline](../examples/ai-backend/KNOWLEDGE.md) and [controlled-action/MCP baseline](../examples/ai-backend/WORKFLOW.md) are runnable. Dense retrieval and further quality/operations work remain in the roadmap:
+The [lexical RAG baseline](../examples/ai-backend/KNOWLEDGE.md) and [controlled-action/MCP baseline](../examples/ai-backend/WORKFLOW.md) are runnable. The [optional real-pgvector milestone](../examples/ai-backend/VECTOR_RETRIEVAL.md) is available too; further semantic-quality and operations work remains in the roadmap:
 
 1. [Embeddings](../content/aiml/01-embeddings-vector-db.md): exact similarity first, then approximation
    and relevance. A nearest neighbor need not answer the user's question.
@@ -135,3 +135,11 @@ thread/histogram/query-plan/blocker evidence. Start with one symptom and two hyp
 change one thing and rerun. Read [evaluation diagnostics](../examples/ai-backend/EVALUATION.md)
 before attributing every schema-valid wrong answer to a provider. These exercises extend the
 learning path; real learner sessions and remaining production/AI milestones are still open.
+
+Run the [30/20-case RAG evaluation](../examples/ai-backend/RAG_EVALUATION.md) after building ProjectB. Predict a retrieval miss, then compare it with correct retrieval plus a wrong answer. A relevant citation is not proof of answer support. The copy fixture has known failing slices; use the report to choose the next investigation instead of treating valid JSON as correctness.
+
+For backend incident practice, run [N+1/pool/migration/restore](../examples/backend-persistence/README.md) after the JDBC/SQL baseline, then [saga recovery](../examples/backend-messaging/README.md#8-persisted-saga-reconcile-separate-local-commits). Use the [engineering workflow](../examples/engineering-workflow/README.md) to practice finding and explaining a regression before applying an AI-suggested patch. Verify the business contract and final diff; a generated explanation is not execution evidence.
+
+Before adapting a model, use the [measured rule baseline and decision records](../examples/ai-backend/ADAPTATION_DECISIONS.md). Predict the limits of a keyword rule and distinguish current private facts from stable output behaviour. Use the explicit review count rather than accepted-only accuracy when explaining the choice.
+
+Use the [50-case controlled-workflow evaluator](../examples/ai-backend/WORKFLOW_EVALUATION.md) to distinguish successful work from an expected refusal and a policy violation. Trace [real OAuth/PKCE](../examples/backend-identity/README.md) before trusting a token, then diagnose [actual Kubernetes readiness and rollback](../examples/backend-operations/README.md) using the declared owned-cluster prerequisites.

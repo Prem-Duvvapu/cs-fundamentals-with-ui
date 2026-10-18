@@ -9,6 +9,8 @@ SOLID principles and design patterns are vocabulary for managing change, depende
 
 **After this lesson you can:** explain the requirement behind an abstraction, choose a small pattern when it helps, and describe its added complexity.
 
+**Practice a small refactor:** The [engineering workflow](../../examples/engineering-workflow/README.md) gives a ticket-routing rule and seventeen independent behavior checks. Predict the urgent enterprise ticket's queue, locate the regression with Git, then simplify the Java code while preserving those outcomes. Start with the contract and one reason to change; adding more patterns is not the exercise's goal.
+
 ## 🟢 Beginner Level
 
 ### Let a changing requirement motivate the design

@@ -6,6 +6,8 @@ A distributed database stores or replicates one logical data set across independ
 **After this lesson:** Trace an uncertain commit, calculate replica-set overlap, and distinguish replicated bytes from a correct wallet transaction.
 **Practice boundary:** The [SQL lab](../../examples/labs/README.md) verifies local query/rollback behavior. It does not simulate replicas, failover or distributed atomic commit; the traces below are worked models.
 
+**Run the failure boundary:** The [messaging and saga lab](../../examples/backend-messaging/README.md#8-persisted-saga-reconcile-separate-local-commits) exercises real brokers separately from three independent local H2 commits. Stop after a participant commits, reopen the files, and explain how a durable receipt prevents repeating that effect. Fake payment/inventory and compensation do not prove global exactly-once behavior or real replica failover.
+
 ---
 
 ## 🟢 Beginner Level

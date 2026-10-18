@@ -1,0 +1,342 @@
+{
+  "evidence" : "rule",
+  "model" : "ticket-rules-v1",
+  "modelDigest" : "not-applicable",
+  "runtimeVersion" : "17.0.20.1+1-1-24.04-Ubuntu",
+  "promptVersion" : "ticket-rules-v1",
+  "datasetSha256" : "99406ddad34c9f1ad5ce84296e836e7c0fdea5660782fb24833a6e5355c32572",
+  "datasetLfSha256" : "b313c6f19846ec733d917b6da90ec5a85968f211d832f2bc605bae8f04cb2084",
+  "usesModel" : false,
+  "at" : "2026-10-18T12:54:09.392583390Z",
+  "cases" : [ {
+    "id" : "held-out-01",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 11,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-02",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 1,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-03",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-04",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-05",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-06",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 7,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-07",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-08",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-09",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-10",
+    "slice" : "ordinary",
+    "accepted" : false,
+    "fieldsCorrect" : false,
+    "error" : "rule_needs_review",
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : false,
+      "priority" : false,
+      "orderId" : false
+    }
+  }, {
+    "id" : "held-out-11",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 1,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-12",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-13",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 2,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-14",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-15",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-16",
+    "slice" : "ordinary",
+    "accepted" : false,
+    "fieldsCorrect" : false,
+    "error" : "rule_needs_review",
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : false,
+      "priority" : false,
+      "orderId" : false
+    }
+  }, {
+    "id" : "held-out-17",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-18",
+    "slice" : "ordinary",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  }, {
+    "id" : "held-out-19",
+    "slice" : "adversarial",
+    "accepted" : false,
+    "fieldsCorrect" : false,
+    "error" : "rule_needs_review",
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : false,
+      "priority" : false,
+      "orderId" : false
+    }
+  }, {
+    "id" : "held-out-20",
+    "slice" : "adversarial",
+    "accepted" : true,
+    "fieldsCorrect" : true,
+    "totalMs" : 0,
+    "fieldMatches" : {
+      "category" : true,
+      "priority" : true,
+      "orderId" : true
+    }
+  } ],
+  "state" : "complete",
+  "limits" : "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+  "summary" : {
+    "cases" : 20,
+    "accepted" : 17,
+    "exactFieldMatches" : 17,
+    "acceptanceRate" : 0.85,
+    "exactFieldMatchRate" : 0.85,
+    "fields" : {
+      "category" : {
+        "correct" : 17,
+        "rateOverAllCases" : 0.85,
+        "rateOverAcceptedCases" : 1.0
+      },
+      "priority" : {
+        "correct" : 17,
+        "rateOverAllCases" : 0.85,
+        "rateOverAcceptedCases" : 1.0
+      },
+      "orderId" : {
+        "correct" : 17,
+        "rateOverAllCases" : 0.85,
+        "rateOverAcceptedCases" : 1.0
+      }
+    },
+    "latencyMs" : {
+      "samples" : 20,
+      "p50" : 0,
+      "p95" : 7,
+      "total" : 22
+    },
+    "errors" : {
+      "rule_needs_review" : 3
+    },
+    "slices" : {
+      "adversarial" : {
+        "cases" : 2,
+        "accepted" : 1,
+        "exactFieldMatches" : 1,
+        "acceptanceRate" : 0.5,
+        "exactFieldMatchRate" : 0.5,
+        "fields" : {
+          "category" : {
+            "correct" : 1,
+            "rateOverAllCases" : 0.5,
+            "rateOverAcceptedCases" : 1.0
+          },
+          "priority" : {
+            "correct" : 1,
+            "rateOverAllCases" : 0.5,
+            "rateOverAcceptedCases" : 1.0
+          },
+          "orderId" : {
+            "correct" : 1,
+            "rateOverAllCases" : 0.5,
+            "rateOverAcceptedCases" : 1.0
+          }
+        },
+        "latencyMs" : {
+          "samples" : 2,
+          "p50" : 0,
+          "p95" : 0,
+          "total" : 0
+        },
+        "errors" : {
+          "rule_needs_review" : 1
+        }
+      },
+      "ordinary" : {
+        "cases" : 18,
+        "accepted" : 16,
+        "exactFieldMatches" : 16,
+        "acceptanceRate" : 0.8888888888888888,
+        "exactFieldMatchRate" : 0.8888888888888888,
+        "fields" : {
+          "category" : {
+            "correct" : 16,
+            "rateOverAllCases" : 0.8888888888888888,
+            "rateOverAcceptedCases" : 1.0
+          },
+          "priority" : {
+            "correct" : 16,
+            "rateOverAllCases" : 0.8888888888888888,
+            "rateOverAcceptedCases" : 1.0
+          },
+          "orderId" : {
+            "correct" : 16,
+            "rateOverAllCases" : 0.8888888888888888,
+            "rateOverAcceptedCases" : 1.0
+          }
+        },
+        "latencyMs" : {
+          "samples" : 18,
+          "p50" : 0,
+          "p95" : 11,
+          "total" : 22
+        },
+        "errors" : {
+          "rule_needs_review" : 2
+        }
+      }
+    }
+  },
+  "metricDefinition" : "Field rates include rejected cases; accepted-only field rates are also shown. Latency uses nearest-rank observed milliseconds, including failures. Small synthetic slices are descriptive, not population guarantees.",
+  "accepted" : 17,
+  "fieldsCorrect" : 17,
+  "totalMs" : 22
+}

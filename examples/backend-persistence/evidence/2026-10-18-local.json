@@ -1,0 +1,36 @@
+{
+  "nplusone": {
+    "projects": 3,
+    "tasks": 6,
+    "naive_statements": 4,
+    "fetch_join_statements": 1,
+    "equivalent_results": true
+  },
+  "pool": {
+    "maximum_connections": 2,
+    "waiting_threads_observed": 1,
+    "timeout_ms": 543,
+    "recovered_query": 42
+  },
+  "migration": {
+    "expanded_legacy_write": true,
+    "contract_fence_enforced": true,
+    "ddl_rollback_preserved_rows": true,
+    "committed_contract_breaks_old_reader": true,
+    "reexpanded_rows": 6,
+    "old_writer_restored": true
+  },
+  "restore": {
+    "source_accounts": 3,
+    "restored_accounts": 3,
+    "restored_entries": 3,
+    "dataset_sha256": "4fd6fd0cbba8c2e1eab08838800b276eba979dc9097f60da52e73445baeb4ed5",
+    "equivalent_dataset": true,
+    "foreign_key_enforced": true,
+    "check_constraint_enforced": true,
+    "next_identity_after_rejected_insert": 5
+  },
+  "postgres_version_num": 160015,
+  "evidence_scope": "Actual local PostgreSQL, Hibernate, Hikari and pg_dump/pg_restore; original small fixtures, not throughput/HA evidence",
+  "owned_resources_cleaned": true
+}
