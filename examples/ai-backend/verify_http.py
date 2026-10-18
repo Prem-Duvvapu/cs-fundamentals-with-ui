@@ -20,6 +20,17 @@ def port():
         return sock.getsockname()[1]
 
 
+def stop_owned(processes):
+    for process in reversed(processes):
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+
+
 def verify():
     processes = []
     with tempfile.TemporaryDirectory(prefix='ai-http-') as temp:
@@ -91,6 +102,9 @@ def verify():
                     data = json.loads(report.read_text())
                     assert data['evidence'] == 'fixture' and data['state'] == 'complete' and len(data['cases']) == count, data
                     assert data['accepted'] == count and data['fieldsCorrect'] == count, data
+                # The MCP subprocess owns its own store; completed HTTP servers are no longer needed.
+                stop_owned(processes)
+                processes.clear()
                 subprocess.run(['java', '-jar', str(jar), '--mcp-check', str(jar)], check=True, timeout=60, stdout=log, stderr=log)
                 print('Packaged HTTP + Basic/CSRF + tenant/version/revocation RAG + bounded agent + approved/idempotent mutation + real MCP + 30 development/20 held-out fixture evaluation cases passed. Not live-model quality evidence.')
             except Exception:
@@ -98,11 +112,8 @@ def verify():
                 print(log.read()[-5000:])
                 raise
             finally:
-                for process in reversed(processes):
-                    if process.poll() is None:
-                        process.terminate()
-                        try: process.wait(timeout=10)
-                        except subprocess.TimeoutExpired: process.kill(); process.wait(timeout=5)
+                stop_owned(processes)
+
 
 if __name__ == '__main__':
     verify()

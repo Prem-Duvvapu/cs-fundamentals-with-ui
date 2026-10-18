@@ -172,3 +172,14 @@ Expect one PASS line and exit status zero; these are language/API counterexample
 performance measurements. Compilation output is confined to the disposable directory.
 
 The evaluation examples follow [scikit-learn evaluation definitions](https://scikit-learn.org/stable/modules/model_evaluation.html). [Feast point-in-time joins](https://docs.feast.dev/getting-started/concepts/point-in-time-joins) explains historical event-time lookup; the SQL fixture adds an explicitly recorded online-availability requirement for serving replay.
+
+## Recommendation and backend diagnosis extensions — October 18
+
+Use [the recommendation lab](aiml/RECOMMENDATIONS.md) for actual exact-cosine candidate selection,
+authored ranking/filtering and recall/NDCG arithmetic. Its seven checks do not claim learned
+embeddings, ANN behavior or production outcome quality.
+
+Use [the backend diagnosis guide](backend/README.md) for owned real Java deadlock/memory and
+PostgreSQL plan/lock-wait exercises, safety checks and cleanup. The Java tests require a JDK with
+javac/jcmd; database tests require the documented local PostgreSQL connection. Both sets run in CI.
+The guide lists the remaining JVM/DB incidents that these first observations do not close.

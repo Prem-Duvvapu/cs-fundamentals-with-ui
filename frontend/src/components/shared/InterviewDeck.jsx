@@ -3,6 +3,7 @@ import useLearningState from '../../hooks/useLearningState'
 import { questionKey, savePractice, updateLearning, recordPracticeAttempt, moveReview } from '../../utils/learningState'
 import { splitInterviewAnswer } from '../../utils/interviewQuestions'
 import Icon from './Icon'
+import { getTopicCategory } from '../../utils/topicCategories'
 
 // react-markdown + KaTeX + highlight.js are ~600KB and are only needed once an
 // answer is actually revealed, so they get their own chunk.
@@ -48,6 +49,7 @@ export default function InterviewDeck({
   const selectedIndex = questions.findIndex(question => questionKey(question) === selectedId)
   const safeIndex = Math.max(0, selectedIndex)
   const current = questions[safeIndex]
+  const sourceCategory = current.category || getTopicCategory(current.topicId || current.id.replace(/-q\d+$/, ''), null)
   const { answerMarkdown, rubric } = splitInterviewAnswer(current.answerMarkdown)
   const rubricMarkdown = rubric && `${['Say it', 'Mechanism', 'Example', 'Limit', 'Watch for']
     .map((label, index) => `${index + 1}. **${label}:** ${rubric[label]}`)
@@ -112,11 +114,11 @@ export default function InterviewDeck({
       {revealed && (
         <div id={answerId} className="interview-answer">
           <Suspense fallback={<p>Loading answer…</p>}>
-            <MarkdownRenderer content={answerMarkdown} />
+            <MarkdownRenderer content={answerMarkdown} sourceCategory={sourceCategory} />
           </Suspense>
         </div>
       )}
-      {revealed && (rubric ? <details className="practice-guidance"><summary>Answer checklist and follow-up</summary><Suspense fallback={<p>Loading checklist…</p>}><MarkdownRenderer content={rubricMarkdown} /></Suspense><p>Compare your explanation with these points; your self-rating is not an automatic grade.</p></details> : <details className="practice-guidance"><summary>How to compare your answer</summary><ol><li>Did you state the main idea directly?</li><li>Did you explain the mechanism or sequence, not just name it?</li><li>Could you give a concrete example and say when the answer changes?</li><li>Did you mention an important limit or trade-off?</li></ol><p>Use the model answer to check your reasoning. These prompts are a guide, not an automatic score.</p></details>)}
+      {revealed && (rubric ? <details className="practice-guidance"><summary>Answer checklist and follow-up</summary><Suspense fallback={<p>Loading checklist…</p>}><MarkdownRenderer content={rubricMarkdown} sourceCategory={sourceCategory} /></Suspense><p>Compare your explanation with these points; your self-rating is not an automatic grade.</p></details> : <details className="practice-guidance"><summary>How to compare your answer</summary><ol><li>Did you state the main idea directly?</li><li>Did you explain the mechanism or sequence, not just name it?</li><li>Could you give a concrete example and say when the answer changes?</li><li>Did you mention an important limit or trade-off?</li></ol><p>Use the model answer to check your reasoning. These prompts are a guide, not an automatic score.</p></details>)}
       <fieldset className="practice-assessment"><legend>Your self-assessment</legend>{[['review', 'Needs review'], ['partial', 'Partly recalled'], ['confident', 'Recalled confidently']].map(([value, label]) => <button key={value} type="button" aria-pressed={saved.assessment === value} onClick={() => savePractice(current, { assessment: value })}>{label}</button>)}</fieldset>
       <div className="saved-answer-actions">
         <button type="button" className={`ui-button ${revealed && canRecord ? 'ui-button--primary' : 'ui-button--secondary'}`} disabled={!canRecord} onClick={() => {

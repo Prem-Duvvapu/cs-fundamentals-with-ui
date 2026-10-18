@@ -253,10 +253,12 @@ content-contract integration rather than an undocumented placeholder.
 
 ## 6. Link maintenance when another app changes
 
-**Current behavior:** this document is a verified snapshot. It does not subscribe to sibling
-changes, automatically rewrite URLs, run periodic link monitoring or provide redirects. HTTP 200
-alone cannot detect a React application's fallback page. Link-maintenance automation remains open
-under BE-07/CLOSE-01; the checks recorded above are one-time verification, not monitoring.
+**October 18 implementation:** [the maintenance guide](docs/LEARNING_LINK_MAINTENANCE.md)
+describes the implemented audit, deterministic PR tests, bounded live checks and scheduled/main-push/
+manual workflow. Stable reference IDs remain the link inventory. The live audit currently reports
+17 verified references and one confirmed HLD cache-aside frontend/backend deployment incompatibility.
+The owner must redeploy the already-merged matching backend; no successful repair is claimed yet.
+HTTP 200 alone remains insufficient. The requirements below govern the implemented and future checks.
 
 Required implementation:
 
@@ -285,9 +287,8 @@ Required implementation:
    or simulation inputs to another app or to the audit logs.
 
 Completion evidence must include a valid link, redirect-to-the-same-concept, removed/draft target,
-SPA fallback returning 200, identity mismatch, temporary outage and a repaired reference. Until
-that automation exists, repeat the source/route/HTTP checks before releases that change links
-and record the date and any remaining availability limits. No failure should be called a content
+SPA fallback returning 200, identity mismatch, temporary outage and a repaired reference. Continue source/route/identity checks before releases that change links
+and record dates, reports and remaining availability limits. No failure should be called a content
 removal merely because a transient request failed.
 
 ## 7. Release and completion gate
@@ -297,7 +298,8 @@ removal merely because a transient request failed.
 - [x] Link this checklist from the practical plan, handoff and repository documentation.
 - [ ] For every BEC ID, link the reviewed explanation, executable exercise, diagnostic case,
   interview question/rubric, actual verification and merged release in the implementation ledger.
-- [ ] Implement and verify the cross-project link-maintenance checks in section 6.
+- [x] Implement and deterministically verify the cross-project link-maintenance checks in section 6.
+- [ ] Resolve the HLD cache-aside deployment mismatch and rerun the live destination audit.
 - [ ] Finish all ten BE packages and the independent AI/debugging/closure requirements.
 - [ ] Run checks appropriate to the actual changes; preserve existing URLs, saved progress/answers,
   themes, privacy, reading/practice behavior and the learning-network contract.

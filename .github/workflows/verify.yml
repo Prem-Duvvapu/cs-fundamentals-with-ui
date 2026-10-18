@@ -77,6 +77,8 @@ jobs:
       - run: mvn verify -f examples/ai-backend/pom.xml
       - run: python3 examples/ai-backend/verify_http.py
       - run: python3 -m unittest discover -s examples/labs -p test_training.py -v
+      - run: python3 -m unittest discover -s examples/labs -p test_recommendations.py -v
+      - run: python3 -m unittest discover -s examples/labs -p test_backend_debug.py -v
       - run: python3 -m unittest discover -s scripts -p test_topic_inventory.py -v
 
   real-backend-journey:
@@ -141,31 +143,29 @@ jobs:
 
   labs:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_PASSWORD: lab-password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Start an owned PostgreSQL instance with ephemeral credentials
+        run: |
+          lab_password=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+          echo "::add-mask::$lab_password"
+          printf 'PGPASSWORD=%s\nPGHOST=127.0.0.1\nPGUSER=postgres\nPGDATABASE=postgres\n' "$lab_password" >> "$GITHUB_ENV"
+          POSTGRES_PASSWORD="$lab_password" docker run --detach --name cs-labs-postgres --publish 127.0.0.1:5432:5432 --env POSTGRES_PASSWORD postgres:16
+          for attempt in {1..40}; do
+            if pg_isready -h 127.0.0.1 -U postgres; then exit 0; fi
+            sleep 1
+          done
+          docker logs cs-labs-postgres
+          exit 1
       - run: python3 -m unittest discover -s examples/labs -p test_labs.py -v
-      - run: psql -X -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f examples/labs/sql/verify.sql
-        env:
-          PGPASSWORD: lab-password
-      - run: psql -X -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f examples/labs/sql/accuracy.sql
-        env:
-          PGPASSWORD: lab-password
-      - run: psql -X -v ON_ERROR_STOP=1 -h localhost -U postgres -d postgres -f examples/labs/sql/feature-availability.sql
-        env:
-          PGPASSWORD: lab-password
+      - run: python3 -m unittest discover -s examples/labs -p test_backend_database.py -v
+      - run: psql -X -v ON_ERROR_STOP=1 -f examples/labs/sql/verify.sql
+      - run: psql -X -v ON_ERROR_STOP=1 -f examples/labs/sql/accuracy.sql
+      - run: psql -X -v ON_ERROR_STOP=1 -f examples/labs/sql/feature-availability.sql
+      - name: Remove only this job's database
+        if: always()
+        run: docker rm --force cs-labs-postgres || true

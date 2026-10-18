@@ -2,6 +2,7 @@ name: Backend messaging lab
 
 on:
   push:
+    branches: [main]
     paths:
       - 'examples/backend-messaging/**'
       - '.github/workflows/backend-messaging.yml'

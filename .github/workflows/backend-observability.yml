@@ -2,6 +2,7 @@ name: Backend observability lab
 
 on:
   push:
+    branches: [main]
     paths:
       - 'examples/java-spring/task-tracker/**'
       - '.github/workflows/backend-observability.yml'

@@ -122,3 +122,16 @@ Before moving on, be able to explain training versus inference, calculate a conf
 run the small model, run Project A, trigger its validation failures and distinguish fixture results
 from a real-model report. Later milestones add RAG, tools, multimodal inputs and incident diagnosis.
 No participant comprehension sessions have been performed for this path yet.
+
+## 8. Trace recommendation choices and backend failures
+
+Run the [recommendation exercise](../examples/labs/aiml/RECOMMENDATIONS.md): predict which
+candidate never reaches the ranker, change the retrieval cutoff, then diagnose stale eligibility.
+The vectors/scores are authored fixtures, so the measured ranking arithmetic is not trained-model
+or user-outcome evidence. Explain candidate recall before discussing ranking improvements.
+
+Use the [JVM/PostgreSQL incident guide](../examples/labs/backend/README.md) to collect actual
+thread/histogram/query-plan/blocker evidence. Start with one symptom and two hypotheses; observe,
+change one thing and rerun. Read [evaluation diagnostics](../examples/ai-backend/EVALUATION.md)
+before attributing every schema-valid wrong answer to a provider. These exercises extend the
+learning path; real learner sessions and remaining production/AI milestones are still open.
