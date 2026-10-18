@@ -38,7 +38,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | D-08 | Pending | Quality drops after an upgrade |
 | D-09 | Pending | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
-| BE-01 / P0 | Partial: real JVM deadlock/memory lab | Debugging workflow: JVM, concurrency, Spring boot/MVC |
+| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR labs; IDE/config open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
@@ -47,7 +47,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | BE-07 / P1 | Pending | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Pending | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
-| BE-10 / P1 | Pending | Modern Java choices: JVM/concurrency + Spring |
+| BE-10 / P1 | Local verified: actualJava21 capacity comparison; CI pending | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
 | CLOSE-02 | Pending | Java course familiarity |
 | CLOSE-03 | Pending | Manual accessibility |
@@ -201,3 +201,7 @@ ProjectB now has original30dev/20held-out query fixtures, actual lexical/store/v
 Four single-file teaching units connect RAG/distributed-data/JPA/SOLID to the runnable evaluation/recovery/persistence/refactor guides. Each passed its content validator (550/581/510/491 lines respectively), with existing diagrams and14 questions per file preserved. No new question/rubric/diagram identity or registration was added. PR76 runs the combined checks.
 
 Observed queue evidence:14 dependency Verify entries and3 project Verify entries were queued during integration. Main/PR trigger deduplication and superseded-PR concurrency reduce repeated work without removing checks; the actual final-head run remains the release evidence.
+
+### Optional Java21 runtime checkpoint
+
+Source `94bab74` (root `50dd095`) passed all5 actual native tests without skips using a checksum-verified owned Temurin21 JDK; system/platformJava17 stays unchanged. Twelve healthy calls reached downstream maxima2/2/12 for platform-limited/virtual-limited/virtual-unlimited, with actual `isVirtual` evidence. A client timeout experiment explicitly shows remote work can outlive client permits and verifies zero handlers after cleanup. A bounded CPU worker used2.000CPU seconds; namedRUNNABLE thread and196 matching actualJFR samples identify the hot loop. The dedicatedJDK21 CI job must execute all5 cases without skips; timings/sample counts are dated observations, not universal performance claims.

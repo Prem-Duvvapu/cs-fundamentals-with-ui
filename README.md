@@ -480,3 +480,5 @@ The [RAG evaluation exercise](examples/ai-backend/RAG_EVALUATION.md) runs30 deve
 Practice [durable saga recovery](examples/backend-messaging/README.md#8-persisted-saga-reconcile-separate-local-commits), [real PostgreSQL incidents](examples/backend-persistence/README.md), and the [Git/Linux/Maven/Clean Code workflow](examples/engineering-workflow/README.md). Each guide includes predictions, failure evidence, repairs and an interview explanation. These extend the existing curriculum and sibling lessons.
 
 Verification runs on pull requests and main pushes; newer revisions cancel superseded PR verification. The full release checks remain required before merging.
+
+The optional [Java21 runtime lab](examples/java-runtime/README.md) compares actual platform/virtual threads under the same downstream limit and captures a real CPU thread dump/JFR profile. The platform remains on Java17.

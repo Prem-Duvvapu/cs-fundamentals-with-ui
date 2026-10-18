@@ -650,3 +650,5 @@ The AI example has a short-lived, bounded document CLI using PDFBox3.0.8 and opt
 Additional isolated teaching modules cover three-file H2 saga reconciliation, actual PostgreSQL/Hibernate/Hikari migration/restore incidents, and disposable Git/Linux/offline-Maven investigation. They introduce no platform endpoints, shared learning state or customer analytics. Each owns its test resources and publishes only synthetic/sanitized evidence.
 
 The main Verify workflow uses `push.branches: [main]` plus `pull_request`, avoiding duplicate feature-push/PR runs. Workflow/ref concurrency cancels superseded PR revisions while retaining active main verification. This follows the [GitHub concurrency contract](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency); it changes scheduling, not test scope.
+
+`examples/java-runtime/` is standaloneJava21/Python tooling, with no Maven/platform runtime change. Actual loopback concurrency, abandoned downstream work after client timeout and bounded CPU/JFR evidence are verified independently in its dedicated no-skip CI job.
