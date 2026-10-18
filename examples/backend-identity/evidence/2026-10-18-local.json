@@ -1,0 +1,70 @@
+{
+  "scope": "Actual packaged Spring Security authorization server, public S256 client and unchanged packaged TaskTracker JWT/persistence HTTP",
+  "versions": {
+    "spring_boot": "4.1.1",
+    "spring_security_authorization_server": "7.1.1"
+  },
+  "java_guard_tests": 2,
+  "http_cases": [
+    {
+      "case": "actual_form_login_rejects_wrong_password_and_missing_csrf",
+      "passed": true
+    },
+    {
+      "case": "actual_jwks_is_public_only",
+      "passed": true
+    },
+    {
+      "case": "real_code_s256_token_and_packaged_task_tracker_persistence",
+      "passed": true
+    },
+    {
+      "case": "authorization_code_single_use_and_callback_replay_rejected",
+      "passed": true
+    },
+    {
+      "case": "exact_redirect_s256_required_missing_challenge_and_unregistered_scope_rejected",
+      "passed": true
+    },
+    {
+      "case": "wrong_pkce_verifier_rejected_by_framework",
+      "passed": true
+    },
+    {
+      "case": "actual_callback_rejects_missing_and_changed_state_before_exchange",
+      "passed": true
+    },
+    {
+      "case": "real_issued_read_scope_cannot_write",
+      "passed": true
+    },
+    {
+      "case": "real_second_subject_cannot_read_first_subject_object",
+      "passed": true
+    },
+    {
+      "case": "wrong_audience_tampered_signature_and_malformed_tokens_rejected",
+      "passed": true
+    },
+    {
+      "case": "actually_expired_framework_token_rejected_after_resource_skew",
+      "passed": true
+    },
+    {
+      "case": "host_rebinding_rejected_forwarded_headers_not_trusted",
+      "passed": true
+    },
+    {
+      "case": "existing_basic_and_session_csrf_boundary_preserved",
+      "passed": true
+    }
+  ],
+  "owned_processes_and_temporary_database_cleaned": true,
+  "limitations": [
+    "loopback HTTP teaching only",
+    "in-memory authorization/session/key state",
+    "no OIDC nonce/ID token claim",
+    "no refresh/offline access or deployed revocation evidence",
+    "not production identity operations or browser UI evidence"
+  ]
+}
