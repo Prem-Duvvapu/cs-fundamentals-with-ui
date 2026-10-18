@@ -1,0 +1,59 @@
+name: AI document extraction and OCR
+on:
+  pull_request:
+    paths:
+      - examples/ai-backend/**
+      - .github/workflows/ai-documents.yml
+  push:
+    branches: [main]
+    paths:
+      - examples/ai-backend/**
+      - .github/workflows/ai-documents.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-pdf-and-ocr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: examples/ai-backend/pom.xml
+      - name: Install real English OCR and record runtime versions
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng fonts-dejavu-core
+          tesseract --version
+          dpkg-query -W tesseract-ocr tesseract-ocr-eng
+      - name: Digital PDF, bounds and existing example regressions
+        run: mvn --batch-mode --no-transfer-progress -f examples/ai-backend/pom.xml verify
+      - name: Real scanned PDF and image OCR, explicitly enabled
+        run: mvn --batch-mode --no-transfer-progress -f examples/ai-backend/pom.xml -Ddocuments.ocr=true -Dtest=DocumentOcrTests test
+      - name: Refuse a green result from absent or skipped OCR tests
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          report = Path('examples/ai-backend/target/surefire-reports/TEST-com.csfundamentals.aiexample.documents.DocumentOcrTests.xml')
+          suite = ET.parse(report).getroot()
+          assert int(suite.attrib['tests']) == 3, suite.attrib
+          assert all(int(suite.attrib[key]) == 0 for key in ('skipped', 'failures', 'errors')), suite.attrib
+          evidence = list(Path('examples/ai-backend/target').glob('document-ocr-*.json'))
+          assert len(evidence) == 4, evidence
+          print('Three real OCR tests passed without skips; four provenance reports recorded.')
+          PY
+      - name: Preserve synthetic OCR provenance and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-document-ocr-evidence
+          path: |
+            examples/ai-backend/target/document-ocr-*.json
+            examples/ai-backend/target/surefire-reports/*documents*
+          if-no-files-found: warn
+          retention-days: 14
