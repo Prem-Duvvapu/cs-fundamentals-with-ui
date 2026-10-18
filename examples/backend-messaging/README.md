@@ -26,7 +26,7 @@ Requirements: JDK 17+ and Maven 3.8+. From the repository root:
 mvn -B -f examples/backend-messaging/pom.xml verify
 ```
 
-Expected locally: **8 tests pass; 2 real-broker tests are skipped** unless explicitly enabled. Maven also compiles the real official-client integration code. Skipping is explicit evidence of a missing broker run, not a broker pass.
+Expected locally: **19 tests pass; 2 real-broker tests are skipped** unless explicitly enabled. Maven also compiles the real official-client integration code. Skipping is explicit evidence of a missing broker run, not a broker pass.
 
 The tests generate passwords at runtime, create fresh database files under JUnit temporary directories and reopen them to verify state. No credentials or database files should be committed. Reset requires no command: JUnit removes its owned temporary directory. No normal unit test starts a network service.
 
@@ -96,7 +96,7 @@ MESSAGING_BROKERS=true mvn -B -f examples/backend-messaging/pom.xml verify
 
 Do not enable shell tracing: it would expose generated credentials. Authentication is required for RabbitMQ. Kafka uses plaintext without authentication on loopback only, in an isolated throwaway lab; do not expose this configuration to a network. The code refuses a non-loopback Kafka bootstrap and always connects RabbitMQ to loopback. Never point the tests at shared brokers: random topic/queue names prevent collisions, but the lab assumes permission to create/delete its own resources. Each test deletes only its own names in `finally`; the container teardown removes any residual resources after an early failure.
 
-Expected with healthy brokers: **10 tests pass; none skipped**. Inspect the two broker test names in the uploaded report rather than reading only `BUILD SUCCESS`.
+Expected with healthy brokers: **21 tests pass; none skipped**. Inspect the two broker test names in the uploaded report rather than reading only `BUILD SUCCESS`.
 
 ## 4. Trace Kafka's behavior
 
@@ -141,9 +141,153 @@ Do not turn a number into a string, change `delta`'s meaning or remove a require
 
 ## Evidence and limits
 
-Local verification is the eight durable-file/schema tests; the real broker tests require opt-in environment and Docker/CI evidence. The initial development environment has no Docker daemon, so this package does not claim a local actual-broker pass. Keep this distinction in release records until the dedicated workflow passes.
+Local verification includes eight outbox/inbox/schema tests and eleven persisted-saga tests; the real broker tests require opt-in environment and Docker/CI evidence. The initial development environment has no Docker daemon, so this package does not claim a local actual-broker pass. Keep this distinction in release records until the dedicated workflow passes.
 
-The example uses a single source relay and sequential consumer handlers. Its dedicated projection database gives event IDs one scope; multiple handlers or tenants need an explicit consumer/tenant identity scope in their inbox keys. Multiple relay workers need claiming/leases and per-aggregate sequencing; concurrent consumers need explicit duplicate-race handling/retry. The outbox's lexical ID ordering is deterministic teaching order, not a production causal-order guarantee. File reopen is not hardware power-loss testing. There is no multi-node replication/failover, Kafka transaction, distributed saga compensation, live rebalance-load drill, schema registry, delayed retry topology, retention/replay operations or production observability deployment here. Those remain follow-up BE-04 work; this package closes the smaller broker/durability-boundary milestone.
+The example uses a single source relay and sequential consumer handlers. Its dedicated projection database gives event IDs one scope; multiple handlers or tenants need an explicit consumer/tenant identity scope in their inbox keys. Multiple relay workers need claiming/leases and per-aggregate sequencing; concurrent consumers need explicit duplicate-race handling/retry. The outbox's lexical ID ordering is deterministic teaching order, not a production causal-order guarantee. File reopen is not hardware power-loss testing. There is no multi-node replication/failover, Kafka transaction, broker-carried/distributed saga deployment, live rebalance-load drill, schema registry, delayed retry topology, retention/replay operations or production observability deployment here. Those remain follow-up BE-04 work; this package closes the smaller broker/durability-boundary milestone.
+
+## 8. Persisted saga: reconcile separate local commits
+
+This incremental **BEC-40/41 / BE-04** exercise adds an orchestrated saga with
+independent durable coordinator, inventory and payment files. Reuse the existing
+[distributed transactions/saga lesson](../../content/dbms/09-distributed-databases-cap.md)
+for the pattern. The distinct work is executable commit/restart/compensation
+behavior; neither participant is a real inventory service or payment processor.
+The fake payment simply increments a synthetic captured-cents counter.
+
+Think of booking two things separately: one confirmation can arrive while the
+other is uncertain. A **compensation** is a new business operation undoing a
+specific earlier effect, not a magical rollback of every database or observation.
+An orchestration state records which participant outcome must be reconciled next.
+
+```mermaid
+flowchart TD
+    R[Reserve pending] -->|Reserved receipt| P[Payment pending]
+    R -->|Declined receipt| X[Rejected]
+    P -->|Charged receipt| C[Confirmed]
+    P -->|Declined receipt| L[Release pending]
+    L -->|Released receipt| U[Compensated]
+    R -->|Three transient failures| M[Manual review]
+    P -->|Three transient failures| M
+    L -->|Three transient failures| M
+    M -->|Resume recorded reserve step| R
+    M -->|Resume recorded payment step| P
+    M -->|Resume recorded release step| L
+```
+
+A review resumes only the recorded original pending stage: reserve, payment
+**or release**; it cannot choose a different operation or fresh key. A manual
+review state stops the automatic driver; it does not mean the business operation
+has completed or its reservation has been released.
+
+Run from the repository root:
+
+```sh
+mvn -B --no-transfer-progress -f examples/backend-messaging/pom.xml -Dtest=DurableSagaTest test
+mvn -B --no-transfer-progress -f examples/backend-messaging/pom.xml verify
+```
+
+The focused command executes **eleven saga cases with no service prerequisites**.
+The full local command also retains all eight earlier local cases and explicitly
+skips the two broker cases. Tests generate secrets and temporary paths; no static
+password, real payment, public listener, extra container or production table is used.
+
+### Follow the actual durability boundaries
+
+| File / owner | One local atomic transaction | Gap deliberately left visible |
+|---|---|---|
+| Coordinator | Persist exact request, pending stage and transition/version | Participant may commit before this stage advances |
+| Fake inventory | Reserve/release stock and store exact operation receipt | Coordinator acknowledgement is separate |
+| Fake payment | Capture/decline fake cents and store exact operation receipt | Inventory and coordinator are not in that transaction |
+
+`SagaRequest` binds tenant, saga ID, SKU, quantity and cents. Stable participant
+keys append `reserve`, `charge` or `release`; retry does not mint a new ID. Stored
+receipts retain the full bound request. Changed fields under the same key are
+rejected. Release references that exact reservation and quantity; it cannot
+compensate another tenant's reservation or accidentally add stock twice.
+
+Each `tick` performs one bounded stage rather than running a hidden retry loop.
+Before mutating, it queries the participant's durable receipt. If the receipt is
+present, it reconciles that outcome; if absent, it may issue the same idempotent
+operation. A timeout is an **unknown result**, not a decline. Payment pending only
+moves to release after a persisted **DECLINED** receipt; an already charged result
+moves to confirmed, not to accidental stock release and another charge.
+
+### Predict, change, diagnose and explain
+
+1. **Predict:** after `start`, should stock change? No. The exact intent is durably
+   pending before any participant is contacted. Reopening retains it; submitting
+   changed quantity under the same saga ID is a conflict.
+2. **Observe success:** stock starts at 10, reserving two leaves 8, and the fake
+   capture is 1200 cents. Reopening every step and repeating a terminal tick leaves
+   one reservation and one capture. Confirmation keeps the allocation; this lab
+   has no separate fulfilment/shipping stage.
+3. **Observe a reserve failure:** an unknown SKU produces a durable decline. The
+   saga is rejected with no payment effect and no stock compensation to invent.
+4. **Observe a payment decline:** reserved stock is released by one compensating
+   transaction; the final stock is 10, capture is zero and state is compensated.
+5. **Diagnose an ambiguous payment:** the participant commits then simulates a
+   timeout. The coordinator stays payment-pending. On reopening, receipt lookup
+   finds CHARGED and confirms without a second effect. Treating every timeout as
+   failure would choose the wrong business transition.
+6. **Diagnose interrupted compensation:** a release commits but its response is
+   lost. Reopening finds the release receipt and marks compensated; stock stays
+   10 rather than incorrectly becoming 12. The same applies after a real worker
+   process exits at that committed boundary.
+7. **Observe bounded retries:** three persisted transient lookup failures during
+   release produce MANUAL_REVIEW, retaining the original release stage and held
+   reservation. No terminal loop silently keeps calling dependencies. A reviewer
+   supplies the current coordinator version and a short note to permit another
+   reconciliation attempt. A stale review version is rejected; request/keys remain
+   unchanged. The note records this local decision, not a complete audit service.
+8. **Observe a real database wait:** a separate owned H2 transaction locks the
+   inventory row. The participant's lock timeout fails the step while the
+   coordinator preserves intent and the retry count. Three failures request
+   manual review, with no stock or payment effect. Releasing an unrelated lock is
+   not performed automatically by this lab.
+9. **Change one thing:** sketch replacing the stable charge key on each retry with
+   a random key. Predict duplicate captures after an unknown result. Keep the
+   original key in the executable code; the stored-result reconciliation tests
+   exist to guard this exact boundary.
+10. **Interview:** “My saga persists intent and tracks separate local commits. Each
+    participant binds an idempotency key to the exact operation and stores its
+    outcome atomically with its effect. On unknown results I reconcile before
+    choosing the next step. Compensation is a new exact operation and can itself
+    fail; bounded attempts surface manual review rather than claiming success.”
+
+### What the crash tests prove and assume
+
+`realOwnedJvmHaltsAfterEachCommittedParticipantBoundaryAndReconciles` starts a fresh
+owned child JVM for each of reserve, charge and release. The child commits the
+participant, prints its boundary marker and invokes `Runtime.halt(93)` **before**
+the coordinator advances. The parent requires that exact exit/marker, reopens the
+files and verifies the correct final state and single effects. It terminates only
+its own child on a deadline; credentials travel through the child environment,
+not command arguments. These are actual process-exit/file-restart tests rather
+than method mocks. The remaining timeout fixtures are explicitly simulated after
+real commits, not claims of an actual network outage.
+
+H2 uses `WRITE_DELAY=0`, a one-second lock timeout and two-second JDBC statement
+limits. Those are individual operation bounds, not a hard end-to-end saga deadline.
+Every JDBC connection is scoped and closed. Tests have deadlines and the teaching
+driver attempts at most eight ticks; transient failures are capped at three per
+pending stage, then require review. A production scheduler would additionally need
+retry timing/backoff, fair work admission and observability.
+
+Reconciliation assumes the participant can durably look up a retained receipt and
+honor the same exact key after restart. If a real provider cannot provide that
+contract, loses/forgets receipts, or returns an unverifiable status, the safe
+business decision may require manual reconciliation. “Not found” must have a
+well-defined meaning before it authorizes another side effect. This lab's receipt
+lookup is local and immediately consistent; it does not prove that property for
+remote providers or an eventually consistent status API.
+
+The example has no globally atomic transaction, automatic rollback of every side
+effect, real money, arbitrary refund support, saga isolation, participant failover,
+message choreography, out-of-order broker command delivery or production leases
+for multiple coordinators. State transitions use optimistic versions, but the
+exercise assumes one active driver per saga; it does not certify a multi-worker
+scheduler. File/process tests do not establish hardware power-loss guarantees or
+a backup/restore policy. Keep those BE-04 gaps visible.
 
 ## Primary sources checked
 
@@ -151,3 +295,5 @@ The example uses a single source relay and sequential consumer handlers. Its ded
 - [Kafka consumer configuration](https://kafka.apache.org/43/configuration/consumer-configs/) defines group/offset settings and automatic commit behavior.
 - [RabbitMQ Java client releases](https://github.com/rabbitmq/rabbitmq-java-client/releases/tag/v5.37.0) and [Docker Official Image version inputs](https://github.com/docker-library/rabbitmq/blob/master/versions.json) establish the selected pins.
 - [RabbitMQ confirms and acknowledgements](https://www.rabbitmq.com/docs/confirms) distinguishes publishing, consuming and prefetch; [Java client recovery behavior](https://www.rabbitmq.com/client-libraries/java-api-guide) explains why applications must still handle redeliveries.
+
+The saga follow-up uses the [orchestration/compensation pattern](https://microservices.io/patterns/data/saga.html) and [H2 JDBC/file behavior](https://h2database.github.io/html/features.html). Its participant business rules and failure fixtures are original synthetic examples.
