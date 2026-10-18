@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # jsdom 30 / vitest 5 (A-10) require Node >=22.22.2 — on Node 20 every test file fails
           # to start with "webidl.util.markAsUncloneable is not a function" (undici's CacheStorage
@@ -92,7 +92,7 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
