@@ -2,6 +2,7 @@ name: Backend persistence incident lab
 
 on:
   push:
+    branches: [main]
     paths:
       - 'examples/backend-persistence/**'
       - '.github/workflows/backend-persistence.yml'

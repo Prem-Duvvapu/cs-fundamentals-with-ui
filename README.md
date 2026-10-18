@@ -476,3 +476,5 @@ The [Redis/MongoDB lab](examples/backend-data-services/README.md) exercises actu
 The [document-input lab](examples/ai-backend/DOCUMENTS.md) distinguishes digital PDFs from scans and records page provenance; CI requires real OCR. The [security lab](examples/java-spring/task-tracker/SECURITY.md) adds an opt-in JWT/JWKS path and complete OWASP Web2025/API2023 control-and-gap matrices.
 
 The [RAG evaluation exercise](examples/ai-backend/RAG_EVALUATION.md) runs30 development and20 held-out queries, separating retrieval coverage from fact-label/citation diagnostics and policy rejections. Its committed results are labelled copy-fixture evidence, not live-model quality.
+
+Practice [durable saga recovery](examples/backend-messaging/README.md#durable-saga-recovery), [real PostgreSQL incidents](examples/backend-persistence/README.md), and the [Git/Linux/Maven/Clean Code workflow](examples/engineering-workflow/README.md). Each guide includes predictions, failure evidence, repairs and an interview explanation. These extend the existing curriculum and sibling lessons.

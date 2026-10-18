@@ -40,13 +40,13 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real JVM deadlock/memory lab | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Partial: real PG plans/blocker/timeout lab | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual JWT/JWKS/owner tests and OWASP matrices | API/security: REST + Spring Security |
 | BE-07 / P1 | Pending | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Pending | Operations: Docker/Kubernetes/cloud |
-| BE-09 / P1 | Pending | Everyday engineering: Java execution/Boot + CI/CD |
+| BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Pending | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
 | CLOSE-02 | Pending | Java course familiarity |
@@ -191,3 +191,9 @@ The combined clean-build packaged HTTP/MCP smoke also passed after PDF integrati
 PR[#57](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/57) merged as `ac1cebe14cca7de6ad0fd4e7d6b169372cb7ae10` after exact-head checks: frontend/browser/axe/diagram decode, platform/backend examples, containers and real backend journey, actual pgvectorHNSW, Kafka/RabbitMQ, Redis/MongoDB, realOCR, observability, reliability, deterministiclink contracts and secret scanning. The scheduled/main live link job is separate; the known HLD backend deployment mismatch remains open. Localmain was fast-forwarded and clean.
 
 ProjectB now has original30dev/20held-out query fixtures, actual lexical/store/validator execution, separate retrieval/rank/citation/substring-fact/outcome scores, slice counts and failure-inclusive stage quantiles. Whole Java verify:91 discovered,80 passed,11 explicit localPG/OCR skips; the new six evaluator regressions and packaged50-case CLI passed. Committed copy-fixture reports show21/30 and13/20 expected-fact matches, not model accuracy; no baseline weakness was hidden. Expected labels stay outside generation. Live RAG/embedding semantic quality, human support labels and cross-model comparison remain open.
+
+### Saga, persistence and everyday-engineering integration
+
+- Saga source `3c2f48b` (root `5acd375`):21 discovered,19 local tests passed,2 broker cases explicitly skipped. Eleven new tests exercise actual owned child-JVM exits after reserve/charge/release commits, independently reopened H2 files, ambiguous outcomes, bounded manual review and exact request/tenant compensation. Broker CI must still execute its cases. Fake inventory/payment and three independent local commits are not a global exactly-once/real payment guarantee.
+- Persistence source `8a89427` (root `99792bf`): actual PostgreSQL16.15 run passed5 Java tests with no skips,5 verifier guard tests, actual dump/restore data/FK/CHECK/identity verification and owned-resource cleanup. N+1 statements4→1 with equal results; bounded Hikari pool timeout/recovery; expand/backfill/fenced contract and transactional rollback plus old-writer restoration. Digest-pinned container CI transport remains required; small fixtures are not production performance or migration-SLA evidence.
+- Engineering workflow source `f7f5e23` (root `ab62eb8`):4 tests and actual CLI passed. Disposable Git bisect identifies the behavioral culprit; append-only revert retains later work;17 golden Java cases preserve refactor behavior. Real owned Linux socket/file/process evidence and actual offline Maven mediation/class loading/config precedence are recorded. Independent-repository isolation and failure cleanup are tested. Manual IDE/unfamiliar-repo/security review tasks stay open.
