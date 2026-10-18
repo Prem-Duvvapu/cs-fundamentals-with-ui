@@ -1,0 +1,72 @@
+name: Backend persistence incident lab
+
+on:
+  push:
+    paths:
+      - 'examples/backend-persistence/**'
+      - '.github/workflows/backend-persistence.yml'
+  pull_request:
+    paths:
+      - 'examples/backend-persistence/**'
+      - '.github/workflows/backend-persistence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-postgresql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: examples/backend-persistence/pom.xml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify provisioning and privacy guards
+        run: python3 -m unittest discover -s examples/backend-persistence -p 'test_verify.py' -v
+      - name: Start only this job's PostgreSQL with a generated password
+        shell: bash
+        run: |
+          set -euo pipefail
+          persistence_container="persistence-pg-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          admin_password="$(openssl rand -hex 32)"
+          echo "::add-mask::$admin_password"
+          echo "PERSISTENCE_PG_TOOL_CONTAINER=$persistence_container" >> "$GITHUB_ENV"
+          echo "PERSISTENCE_ADMIN_PASSWORD=$admin_password" >> "$GITHUB_ENV"
+          export POSTGRES_PASSWORD="$admin_password"
+          docker run -d --name "$persistence_container" -p 127.0.0.1:55432:5432 -e POSTGRES_PASSWORD \
+            postgres:16.15@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d
+          for attempt in $(seq 1 45); do
+            if docker exec "$persistence_container" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then exit 0; fi
+            sleep 2
+          done
+          echo 'Owned PostgreSQL failed its readiness deadline' >&2
+          exit 1
+      - name: Actual Hibernate pool migration dump and restore evidence
+        env:
+          PERSISTENCE_ADMIN_MODE: tcp
+          PERSISTENCE_ADMIN_HOST: '127.0.0.1'
+          PERSISTENCE_ADMIN_PORT: '55432'
+          PERSISTENCE_ADMIN_USER: postgres
+        run: python3 examples/backend-persistence/verify.py
+      - name: Upload actual test and restore evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: persistence-incident-evidence
+          path: |
+            examples/backend-persistence/target/evidence/
+            examples/backend-persistence/target/surefire-reports/
+      - name: Remove only the owned PostgreSQL container and volumes
+        if: always()
+        shell: bash
+        run: |
+          persistence_container="persistence-pg-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          if docker inspect "$persistence_container" >/dev/null 2>&1; then docker rm -fv "$persistence_container"; fi
