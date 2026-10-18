@@ -697,7 +697,7 @@ Run `test_recommendations.py`, `test_backend_debug.py` and `test_backend_databas
 labs; keep synthetic recommendation geometry separate from real learned model quality. Evaluation
 reports include per-field/slice diagnostics and undefined rates as null; failed requests remain in
 the all-case denominator. Do not infer missing old per-field results from all-fields-match flags.
-Vector retrieval, messaging and reliability work remain separate packages until integrated and verified.
+Vector retrieval, messaging and reliability are integrated as isolated learning modules; require their stated real-service evidence and preserve their documented limits.
 
 The optional [pgvector RAG milestone](examples/ai-backend/VECTOR_RETRIEVAL.md) is now integrated
 in this branch, with immutable embedding namespaces, tenant-scoped rebuilds, source freshness and
@@ -717,3 +717,5 @@ no remote collector or deployed alert/notification service is claimed. Keep secr
 payloads out of spans/logs and retain fixed metric labels and existing owner/CSRF boundaries.
 
 Data-services examples live in `examples/backend-data-services/`; local default service skips are explicit. Its dedicated CI must execute Redis/MongoDB/combined cases without skips. Cache source-version checks and tenant isolation are correctness contracts, not optional optimizations.
+
+Preserve document byte/page/pixel/text/process bounds and provenance. Missing real OCR must fail when explicitly enabled; its dedicated CI refuses skipped OCR cases. Preserve Task Tracker JWT issuer/audience/time/algorithm/scope/owner validation, operator-selected bounded JWKS source and legacy Basic/session CSRF behavior. Its OWASP matrices distinguish tested controls from procedures and open work; do not label them a security certification.

@@ -642,3 +642,5 @@ no remote collector or deployed alert/notification service is claimed. Keep secr
 payloads out of spans/logs and retain fixed metric labels and existing owner/CSRF boundaries.
 
 `examples/backend-data-services/` is an isolated Java17 module using real Redis/MongoDB. It preserves source-version cache correctness, bounded local connections and owned test cleanup; it adds no application API or learner telemetry.
+
+The AI example has a short-lived, bounded document CLI using PDFBox3.0.8 and optional real Tesseract OCR. It does not expose a platform upload API. Task Tracker adds an opt-in `jwt` resource-server profile; explicit bearer requests use scoped, stateless validation while Basic/session requests retain CSRF protection. This is not an OAuth authorization server or completed PKCE flow.

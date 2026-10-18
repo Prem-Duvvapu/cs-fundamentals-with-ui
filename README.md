@@ -472,3 +472,5 @@ no remote collector or deployed alert/notification service is claimed. Keep secr
 payloads out of spans/logs and retain fixed metric labels and existing owner/CSRF boundaries.
 
 The [Redis/MongoDB lab](examples/backend-data-services/README.md) exercises actual TTL/Lua, tenant/version cache isolation, document indexes and optimistic conflicts; its dedicated CI requires real services without skips.
+
+The [document-input lab](examples/ai-backend/DOCUMENTS.md) distinguishes digital PDFs from scans and records page provenance; CI requires real OCR. The [security lab](examples/java-spring/task-tracker/SECURITY.md) adds an opt-in JWT/JWKS path and complete OWASP Web2025/API2023 control-and-gap matrices.

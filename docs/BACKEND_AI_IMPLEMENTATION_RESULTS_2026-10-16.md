@@ -163,3 +163,23 @@ zero skipped service cases; default local skips are explicit. Tenant/version cac
 canonical version checks prevent late stale population or failed invalidation from making old
 bytes current, at the documented extra database-query cost. No stampede/failover/recovery or
 production-auth deployment is claimed. Final integrated packaged AI HTTP/MCP smoke passed again.
+
+### Document and JWT checkpoints
+
+Digital-PDF/OCR package `d0c9fff` (integrated `986930b`) passed50 tests with3 actual OCR cases explicitly disabled locally. Actual packaged digital-PDF extraction recorded page/line/source hash/runtime provenance, and the existing HTTP/MCP smoke passed. Enabling missing OCR fails explicitly with no published report. Dedicated CI installs Tesseract and must run all3 OCR cases without skips and retain4 provenance artifacts. Generative field quality, complex layout, handwriting and multilingual coverage remain open.
+
+JWT package `d300b9a` (integrated `84b73e1`) passed39 tests and both packaged HTTP modes. Actual HTTP/JWKS tests cover bounded refresh, rotation, issuer/audience/time/algorithm/scopes, owner checks and untrusted credential sources. The full version-labelled OWASP Web2025/API2023 matrices document20 categories with tested controls, procedures and gaps. Full OAuthAS/PKCE/OIDC/refresh/revocation, webhook replay, deployed secrets and broader risk management remain open.
+
+Real-service CI on checkpoint `4902db8` passed Kafka/RabbitMQ, Redis/MongoDB, reliability and observability jobs. Actual pgvector execution exposed a query-plan evidence failure (sort rather than HNSW); it remains a release blocker until corrected and verified on the final head. Unfinished RAG evaluation work is preserved separately and is excluded from this release.
+
+
+### Release scope frozen for requested merge
+
+[PR #57](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/57) contains the completed
+packages above. The pgvector query correction is `df001dc` (source `c1fc3b5`); final-head CI must
+prove actual HNSW execution and all eight PostgreSQL cases without skips. Before that correction,
+the combined PDF/vector/evaluator clean Java build passed74 tests with eleven explicit local
+service/OCR skips (85 discovered). Its final packaged smoke is recorded separately. No skipped
+local test is represented as actual external-service evidence. Remaining saga, persistence,
+everyday-engineering and RAG-evaluation work is isolated from this release. Final merge and check
+status live on the linked PR, avoiding a fabricated pre-merge completion claim in this ledger.
