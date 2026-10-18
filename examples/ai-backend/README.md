@@ -123,3 +123,5 @@ suite has 39 tests before the separate vector-retrieval extension. Old saved rep
 per-field data remain valid historical evidence and cannot be backfilled from exact-match totals.
 
 Use [RAG evaluation](RAG_EVALUATION.md) after the knowledge baseline: diagnose a retrieval miss, correct retrieval with wrong generation, and revoked sources as separate cases. Run `python3 examples/ai-backend/verify_rag.py` from the repository root after packaging to verify the actual30/20-case CLI.
+
+Before selecting a model, run the [rule baseline and adaptation exercise](ADAPTATION_DECISIONS.md). `--evaluate-rules` makes no model call and keeps ambiguous cases in its review/failure denominator.

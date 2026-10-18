@@ -83,6 +83,7 @@ jobs:
       - run: mvn verify -f examples/ai-backend/pom.xml
       - run: python3 examples/ai-backend/verify_http.py
       - run: python3 examples/ai-backend/verify_rag.py
+      - run: python3 examples/ai-backend/verify_rules.py
       - run: python3 -m unittest discover -s examples/labs -p test_training.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_recommendations.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_backend_debug.py -v

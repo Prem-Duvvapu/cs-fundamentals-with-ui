@@ -652,3 +652,5 @@ Additional isolated teaching modules cover three-file H2 saga reconciliation, ac
 The main Verify workflow uses `push.branches: [main]` plus `pull_request`, avoiding duplicate feature-push/PR runs. Workflow/ref concurrency cancels superseded PR revisions while retaining active main verification. This follows the [GitHub concurrency contract](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency); it changes scheduling, not test scope.
 
 `examples/java-runtime/` is standaloneJava21/Python tooling, with no Maven/platform runtime change. Actual loopback concurrency, abandoned downstream work after client timeout and bounded CPU/JFR evidence are verified independently in its dedicated no-skip CI job.
+
+`--evaluate-rules` reuses the ticket dataset validator and failure-inclusive evaluator without constructing a model client. It records rule/runtime version, raw and LF-normalized dataset hashes and an explicit `usesModel:false`; it does not change the authenticated extraction API or business permissions.

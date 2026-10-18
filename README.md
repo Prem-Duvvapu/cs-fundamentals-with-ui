@@ -482,3 +482,5 @@ Practice [durable saga recovery](examples/backend-messaging/README.md#8-persiste
 Verification runs on pull requests and main pushes; newer revisions cancel superseded PR verification. The full release checks remain required before merging.
 
 The optional [Java21 runtime lab](examples/java-runtime/README.md) compares actual platform/virtual threads under the same downstream limit and captures a real CPU thread dump/JFR profile. The platform remains on Java17.
+
+Start AI model selection with the [measured rule baseline and adaptation decisions](examples/ai-backend/ADAPTATION_DECISIONS.md). It compares explicit task completion/review rates and explains when to choose rules, a classifier, prompting, retrieval or fine-tuning.

@@ -23,7 +23,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
 | AI-11 | Partial: serving failure diagnosis; telemetry open | Operations and debugging |
 | AI-12 | Partial: capacity/quality trade-off exercise | Cost, capacity and model choice |
-| AI-13 | Pending | Adaptation decisions |
+| AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
 | AI-14 | Pending | AI-assisted engineering |
 | AI-15 | Partial: digital PDF and actual OCR CI verified; richer modalities open | Multimodal inputs |
 | AI-16 | Partial: actual small-model training | Classical ML lifecycle |
@@ -205,3 +205,7 @@ Observed queue evidence:14 dependency Verify entries and3 project Verify entries
 ### Optional Java21 runtime checkpoint
 
 Source `94bab74` (root `50dd095`) passed all5 actual native tests without skips using a checksum-verified owned Temurin21 JDK; system/platformJava17 stays unchanged. Twelve healthy calls reached downstream maxima2/2/12 for platform-limited/virtual-limited/virtual-unlimited, with actual `isVirtual` evidence. A client timeout experiment explicitly shows remote work can outlive client permits and verifies zero handlers after cleanup. A bounded CPU worker used2.000CPU seconds; namedRUNNABLE thread and196 matching actualJFR samples identify the hot loop. The dedicatedJDK21 CI job must execute all5 cases without skips; timings/sample counts are dated observations, not universal performance claims.
+
+### Rule baseline and adaptation decisions
+
+The no-model evaluator passed11 focused Java tests and the packaged30/20-case verifier with intentionally unusable provider settings. Actual rule results:29/30 dev,17/20 public-held-out full field matches;1/3 review cases remain in denominators. Known out-of-vocabulary/negation limits and a schema-valid wrong synonym example are taught. Four written decisions compare rules, a classifier, prompting/RAG and conditional fine-tuning; no training/quality gain is invented. New reports retain raw and LF-normalized hashes: the historical local-model report used LF input, current checkout CRLF, and normalized hashes prove unchanged JSONL. Public-held-out results are already-inspected regression evidence, not independent prospective model selection.
