@@ -1,0 +1,89 @@
+name: Backend messaging lab
+
+on:
+  push:
+    paths:
+      - 'examples/backend-messaging/**'
+      - '.github/workflows/backend-messaging.yml'
+  pull_request:
+    paths:
+      - 'examples/backend-messaging/**'
+      - '.github/workflows/backend-messaging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-brokers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: examples/backend-messaging/pom.xml
+      - name: Unit and durable-file tests without brokers
+        run: mvn -B -f examples/backend-messaging/pom.xml verify
+      - name: Generate ephemeral resources and start owned brokers
+        shell: bash
+        run: |
+          set -euo pipefail
+          messaging_id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rabbit_user="lab_$(openssl rand -hex 8)"
+          rabbit_password="$(openssl rand -hex 32)"
+          echo "::add-mask::$rabbit_password"
+          echo "::add-mask::$rabbit_user"
+          echo "MESSAGING_ID=$messaging_id" >> "$GITHUB_ENV"
+          echo "RABBIT_USER=$rabbit_user" >> "$GITHUB_ENV"
+          echo "RABBIT_PASSWORD=$rabbit_password" >> "$GITHUB_ENV"
+          docker run -d --name "messaging-kafka-$messaging_id" -p 127.0.0.1:9092:9092 apache/kafka:4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837
+          docker run -d --name "messaging-rabbit-$messaging_id" -p 127.0.0.1:5672:5672 \
+            -e RABBITMQ_DEFAULT_USER="$rabbit_user" -e RABBITMQ_DEFAULT_PASS="$rabbit_password" rabbitmq:4.3.6@sha256:3e5cc23235b0eb850f604e8ace10d9a9b6d05be3e36730e53522ee9ead707a9e
+          for attempt in $(seq 1 45); do
+            if docker exec "messaging-kafka-$messaging_id" /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1 \
+              && docker exec "messaging-rabbit-$messaging_id" rabbitmq-diagnostics -q ping >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'Owned brokers failed the bounded readiness check' >&2
+          exit 1
+      - name: Verify actual Kafka and RabbitMQ contracts
+        env:
+          MESSAGING_BROKERS: 'true'
+          KAFKA_BOOTSTRAP: '127.0.0.1:9092'
+          RABBIT_PORT: '5672'
+        run: mvn -B -f examples/backend-messaging/pom.xml verify
+      - name: Refuse a skipped actual-broker run
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          reports = Path('examples/backend-messaging/target/surefire-reports')
+          for name in ('KafkaBrokerTest', 'RabbitBrokerTest'):
+              report = ET.parse(reports / f'TEST-com.csfundamentals.messaging.{name}.xml').getroot()
+              assert int(report.attrib['tests']) >= 1, f'{name}: no tests'
+              for result in ('skipped', 'failures', 'errors'):
+                  assert int(report.attrib.get(result, '0')) == 0, f'{name}: {result}'
+              print(f'{name}: actual broker test ran and passed')
+          PYTHON
+      - name: Upload evidence and test failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: messaging-test-evidence
+          path: examples/backend-messaging/target/surefire-reports/
+      - name: Remove only this job's broker containers and anonymous volumes
+        if: always()
+        shell: bash
+        run: |
+          messaging_id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          for name in "messaging-kafka-$messaging_id" "messaging-rabbit-$messaging_id"; do
+            if docker inspect "$name" >/dev/null 2>&1; then
+              docker rm -fv "$name"
+            fi
+          done
