@@ -9,6 +9,8 @@ Jakarta Persistence defines a portable object-relational mapping API, while Hibe
 
 **After this lesson you can:** trace a managed object into a database change, distinguish detached objects from stored rows, and identify extra queries.
 
+**Practice after the Beginner tier:** Use the [PostgreSQL incident lab](../../examples/backend-persistence/README.md) to observe N+1 statements fall from four to one with equal results, then exhaust a two-connection pool and verify recovery. Its migration/restore exercises explain why a query fix, a rollback and a restored backup are different kinds of evidence; the guide declares Java/database prerequisites and cleans up only its own resources.
+
 ## 🟢 Beginner Level
 
 ### Separate the Java object from the database row
