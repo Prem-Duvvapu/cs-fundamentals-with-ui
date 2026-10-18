@@ -144,7 +144,18 @@ public final class PgVectorKnowledgeIndex {
         catch (SQLException failure) { throw unavailable(failure); }
     }
     private String query() {
-        return "SELECT d.id,d.tenant,d.version,d.title,d.body,d.enabled,v.ordinal,v.body FROM " + table + " v JOIN knowledge_documents d ON d.tenant=v.tenant AND d.id=v.document_id AND d.version=v.version AND d.enabled=TRUE WHERE v.tenant=? ORDER BY v.embedding <=> CAST(? AS vector) LIMIT ?";
+        // Keep nearest-neighbor ORDER BY/LIMIT on the vector relation. Joining first can
+        // turn the query into a primary-key scan plus sort and lose the HNSW access path.
+        // Tenant partition pruning happens inside the candidate phase; source authorization
+        // and version checks still happen before any candidate becomes model context.
+        return "WITH nearest AS MATERIALIZED (SELECT tenant,document_id,version,ordinal,body,embedding <=> CAST(? AS vector) AS distance FROM "
+                + table + " WHERE tenant=? ORDER BY embedding <=> CAST(? AS vector) LIMIT ?) "
+                + "SELECT d.id,d.tenant,d.version,d.title,d.body,d.enabled,v.ordinal,v.body FROM nearest v JOIN knowledge_documents d "
+                + "ON d.tenant=v.tenant AND d.id=v.document_id AND d.version=v.version AND d.enabled=TRUE ORDER BY v.distance LIMIT ?";
+    }
+    private void bind(PreparedStatement query,String tenant,String literal,Mode mode,int limit) throws SQLException {
+        query.setString(1,literal); query.setString(2,tenant); query.setString(3,literal);
+        query.setInt(4,mode==Mode.EXACT?128:40); query.setInt(5,limit);
     }
     public KnowledgeRetrieval.Result search(String principal, float[] vector, Mode mode, int limit) {
         if (limit < 1 || limit > 3) throw new IllegalArgumentException("retrieval_limit");
@@ -153,7 +164,7 @@ public final class PgVectorKnowledgeIndex {
             connection.setAutoCommit(false); connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ); configure(connection, mode);
             if (!status(connection, tenant).ready()) throw new KnowledgeRetrieval.Unavailable("vector_index_missing_or_stale");
             try (var query = connection.prepareStatement(query())) {
-                query.setString(1, tenant); query.setString(2, literal); query.setInt(3, limit);
+                bind(query,tenant,literal,mode,limit);
                 try (var rows = query.executeQuery()) {
                     var result = new ArrayList<KnowledgeRetrieval.Evidence>();
                     while (rows.next()) {
@@ -167,13 +178,15 @@ public final class PgVectorKnowledgeIndex {
         } catch (SQLException failure) { throw unavailable(failure); }
     }
     // Package-private diagnostic hook used only by the explicit PostgreSQL integration test.
-    String explain(String principal, float[] vector, Mode mode, boolean discourageSequentialScan) {
+    String explain(String principal, float[] vector, Mode mode, boolean discourageNonVectorPaths) {
         String tenant = KnowledgeStore.tenant(principal);
         try (var connection = connect()) {
             connection.setAutoCommit(false); configure(connection, mode);
-            if (discourageSequentialScan) try (var statement = connection.createStatement()) { statement.execute("SET LOCAL enable_seqscan=off"); }
-            try (var query = connection.prepareStatement("EXPLAIN (FORMAT JSON) " + query())) {
-                query.setString(1, tenant); query.setString(2, space.literal(vector)); query.setInt(3, 3);
+            if (discourageNonVectorPaths) try (var statement = connection.createStatement()) {
+                statement.execute("SET LOCAL enable_seqscan=off"); statement.execute("SET LOCAL enable_sort=off");
+            }
+            try (var query = connection.prepareStatement("EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + query())) {
+                bind(query,tenant,space.literal(vector),mode,3);
                 try (var rows = query.executeQuery()) { rows.next(); return rows.getString(1); }
             }
         } catch (SQLException failure) { throw unavailable(failure); }

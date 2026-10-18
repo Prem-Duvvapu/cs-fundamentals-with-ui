@@ -22,8 +22,9 @@ with any learning app.
 
 `Answer.retrieval` names the configured strategy. PostgreSQL can still choose a
 sequential/exact plan for a tiny table in ANN mode. Inspect EXPLAIN before claiming
-an index actually ran. The dedicated integration test discourages sequential scans
-for its HNSW-plan diagnostic only, verifies the real partition HNSW index appears,
+an index actually ran. The dedicated integration test discourages sequential scans and sorts
+for its HNSW diagnostic only, executes EXPLAIN ANALYZE and requires a positive
+actual-loop count on the real partition HNSW index,
 and does not claim that this forced plan is a production tuning recommendation.
 
 Each namespace fixes **model name + installed model digest + dimension + chunk
@@ -142,8 +143,13 @@ answer-quality evaluation.
   check leaves the previous generation intact. The fingerprint changes on source
   ID, version, title, body or tenant; raw source text is not a log key.
 - Search requires a manifest matching current enabled sources and separately joins
-  every retrieved row to its enabled canonical source and matching version. The
-  generated answer uses only those chunks; stale-version rows cannot independently
+  every retrieved row to its enabled canonical source and matching version. A
+  MATERIALIZED nearest-candidate phase keeps vector ORDER BY/LIMIT on the vector
+  relation, with tenant filtering/partition pruning inside that phase. Exact mode
+  considers the bounded 128-chunk corpus; ANN considers at most 40 candidates.
+  The canonical join then filters stale/revoked versions before up to three chunks
+  become model context. Filtering can leave fewer results; no fallback fills them.
+  The generated answer uses only those chunks; stale-version rows cannot independently
   authorize a source. ANN filters can still reduce returned results. This example
   uses `ef_search=40`, strict iterative order and a 1000-tuple scan cap, not an
   unbounded “keep searching until something appears” loop.

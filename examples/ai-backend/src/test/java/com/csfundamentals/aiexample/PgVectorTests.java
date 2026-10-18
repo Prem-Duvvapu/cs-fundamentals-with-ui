@@ -61,6 +61,13 @@ class PgVectorTests {
         return new VectorKnowledgeRetrieval(store, provider, index, mode);
     }
     private List<String> ids(KnowledgeRetrieval.Result result) { return result.sources().stream().map(KnowledgeRetrieval.Evidence::citation).toList(); }
+    private static boolean executedHnsw(tools.jackson.databind.JsonNode node) {
+        if (node.isObject() && node.path("Index Name").isString()
+                && node.path("Index Name").asString().equals("knowledge_vectors_fixture_v1_a_ann")
+                && node.path("Actual Loops").asDouble(0)>0) return true;
+        for (var child : node) if (executedHnsw(child)) return true;
+        return false;
+    }
     @Test void actualPgvectorExactAnnTenantIsolationAndHnswPlan() throws Exception {
         store.put("alice", "refund", 0, "Refund", "Refund within 14 days", true);
         store.put("alice", "sports", 0, "Sports", "sports basketball", true);
@@ -79,7 +86,9 @@ class PgVectorTests {
         String annPlan = index.explain("alice", new float[]{1,0,0}, PgVectorKnowledgeIndex.Mode.ANN, true);
         assertFalse(exactPlan.contains("_ann"), exactPlan);
         assertTrue(annPlan.contains("knowledge_vectors_fixture_v1_a_ann"), annPlan);
-        // This fixture forces a planner choice only to prove the real HNSW access path is usable.
+        assertTrue(executedHnsw(new ObjectMapper().readTree(annPlan)), annPlan);
+        // This fixture discourages seqscan and sort only for the diagnostic, and asserts the
+        // real HNSW access path actually executed. Runtime queries retain normal planner freedom.
         // It does not claim a production planner choice, ANN error rate, semantic relevance or speedup.
         System.out.println("PGVECTOR_EXACT_PLAN=" + exactPlan.replaceAll("\\s+", " "));
         System.out.println("PGVECTOR_HNSW_PLAN=" + annPlan.replaceAll("\\s+", " "));
