@@ -25,7 +25,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | AI-12 | Partial: capacity/quality trade-off exercise | Cost, capacity and model choice |
 | AI-13 | Pending | Adaptation decisions |
 | AI-14 | Pending | AI-assisted engineering |
-| AI-15 | Pending | Multimodal inputs |
+| AI-15 | Partial: digital PDF/provenance verified; real OCR CI required | Multimodal inputs |
 | AI-16 | Partial: actual small-model training | Classical ML lifecycle |
 | AI-17 | Local verified: runnable authored ranking and lesson | Recommendation systems |
 | D-01 | Partial: failed live task fit and field diagnostics | Wrong but schema-valid extraction |
@@ -37,13 +37,13 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | D-07 | Partial: bounded read-only agent tests | Agent keeps calling tools |
 | D-08 | Pending | Quality drops after an upgrade |
 | D-09 | Pending | Costs rise without more useful results |
-| D-10 | Pending | PDF/image output misses a value |
+| D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real JVM deadlock/memory lab | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG plans/blocker/timeout lab | Database incidents: SQL, optimizer, transactions, JPA |
-| BE-04 / P0 | Partial: durable local tests; actual-broker CI pending | Messaging: distributed DBMS + Spring async |
+| BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Pending | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual JWT/JWKS/owner tests and OWASP matrices | API/security: REST + Spring Security |
 | BE-07 / P1 | Pending | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Pending | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Pending | Everyday engineering: Java execution/Boot + CI/CD |
@@ -142,7 +142,7 @@ learner telemetry is added. Whole integrated CI/release remains pending.
 
 Integrated Java verification after vector + evaluator composition: **63 discovered, 55 passed,
 eight PostgreSQL cases explicitly skipped locally**; no failures/errors. The dedicated pgvector
-CI must run all63 with zero skips. Integrated reliability Maven verification also passed all19.
+CI must execute all eight actual PostgreSQL cases without skips. Later-added OCR cases are verified separately by their own real-engine job. Integrated reliability Maven verification also passed all19.
 
 
 ### Integrated review checkpoint
@@ -183,3 +183,5 @@ service/OCR skips (85 discovered). Its final packaged smoke is recorded separate
 local test is represented as actual external-service evidence. Remaining saga, persistence,
 everyday-engineering and RAG-evaluation work is isolated from this release. Final merge and check
 status live on the linked PR, avoiding a fabricated pre-merge completion claim in this ledger.
+
+The combined clean-build packaged HTTP/MCP smoke also passed after PDF integration; no unfinished RAG evaluator is packaged in that release build.
