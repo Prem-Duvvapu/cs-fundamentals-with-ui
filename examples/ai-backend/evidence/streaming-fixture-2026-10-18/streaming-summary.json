@@ -1,0 +1,29 @@
+{
+  "evidence": "actual-owned-http-fixture-not-live-model",
+  "jarSha256": "f26bd7d2b43c83f2820b208d6b41eb44d41dd5ada8d900410e7857e05c0c9855",
+  "calls": 4,
+  "outcomes": [
+    {
+      "case": "complete-known",
+      "status": "COMPLETE",
+      "failure": "NONE"
+    },
+    {
+      "case": "complete-unknown",
+      "status": "COMPLETE",
+      "failure": "NONE"
+    },
+    {
+      "case": "missing-final",
+      "status": "INCOMPLETE",
+      "failure": "NONE"
+    },
+    {
+      "case": "rate-limit",
+      "status": "FAILED",
+      "failure": "RATE_LIMITED"
+    }
+  ],
+  "ownedChildrenReaped": true,
+  "ownedFixtureStopped": true
+}

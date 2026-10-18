@@ -559,3 +559,15 @@ RCA-2026-10-16-01 resolving commit: `03620b7`. RCA-2026-10-16-02 resolving commi
 - Verification: `fiftyRealApplicationCasesKeepTaskRefusalAndPolicyMetricsSeparate` now passes, the full source-package suite passes, and the actual packaged50-case report was independently scanned for private markers, tokens, JDBC and absolute temporary paths. An independent negative observer test verifies policy violations can still be detected without outputting raw values.
 - Prevention: separate internal sensitive observation from published evidence; assert both behavior and report privacy. These are synthetic tests, not proof that all future real inputs are safe to log.
 - Resolving commit: `f18625e` (source `8901acfd89350ac479d1e19601ce15871f2e1f3e`).
+
+## 2026-10-18-07 — incomplete cloud-tag rejection in unpublished streaming draft
+
+**Finding:** independent prerelease review found the new loopback streaming constructor rejected
+`:cloud` but allowed Ollama's documented `:120b-cloud` form. Loopback alone cannot establish local
+inference because a daemon can proxy a cloud model. No cloud-model request or data disclosure was
+observed; the draft was not released.
+
+**Correction:** reject known cloud suffix forms, cover both forms/case variants in the actual
+client tests, and state the residual alias/custom-daemon boundary in the guide. Optional live
+checks use an explicitly inspected, already-installed local model; no download or paid call is
+required. Keep operator-declared command provenance separate from independently observed inventory.
