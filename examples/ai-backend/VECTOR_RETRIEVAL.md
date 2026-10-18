@@ -126,7 +126,9 @@ answer-quality evaluation.
   **16 texts**. A process admits one rebuild at a time and rejects concurrent
   rebuilds; it does not create an unbounded queue. It checks a 30-second budget
   between batches, so an already-running bounded batch can extend past that check
-  boundary. SQL publication has its own statement/lock limits.
+  boundary. SQL publication has its own statement/lock limits. This is a scheduling
+  budget, **not a hard 30-second end-to-end HTTP deadline**; publication and its
+  connection/statement waits can add time after embeddings finish.
 - Embedding HTTP responses are capped at **512 KiB**, numbers/types/dimensions
   checked, and input is never silently truncated (`truncate:false`). No source
   or embedding is printed in normal server logs by these classes.
@@ -175,8 +177,8 @@ mvn -B --no-transfer-progress -f examples/ai-backend/pom.xml verify
 ```
 
 The dedicated [Vector retrieval workflow](../../.github/workflows/vector-retrieval.yml)
-executes PostgreSQL/HNSW tests and publishes Surefire XML/text containing real
-EXPLAIN plans. It checks tenant exclusion, exact/ANN retrieval, stale/revoked
+executes PostgreSQL/HNSW tests, requires all eight integration cases to execute
+without skips, and publishes Surefire XML/text containing real EXPLAIN plans. It checks tenant exclusion, exact/ANN retrieval, stale/revoked
 sources, interrupted rebuild, namespace mismatch/migration, source-version join
 protection and the real Java answer service. Local environments without pgvector
 must report those cases as skipped until that CI run passes.

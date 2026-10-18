@@ -59,6 +59,25 @@ jobs:
           AI_VECTOR_TEST_JDBC_URL: jdbc:postgresql://127.0.0.1:5433/postgres?connectTimeout=3&socketTimeout=8
           AI_VECTOR_TEST_DB_USER: vector_lab
         run: mvn -B --no-transfer-progress -f examples/ai-backend/pom.xml verify
+      - name: Require every real pgvector case to execute without skips
+        shell: bash
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          report = Path('examples/ai-backend/target/surefire-reports/TEST-com.csfundamentals.aiexample.PgVectorTests.xml')
+          if not report.is_file():
+              raise SystemExit('Missing PostgreSQL vector integration report')
+          suite = ET.parse(report).getroot()
+          cases = suite.findall('testcase')
+          if len(cases) != 8 or suite.get('tests') != '8':
+              raise SystemExit('Expected all 8 real PostgreSQL vector cases; update the evidence gate when adding cases')
+          if any(int(suite.get(key, '0')) for key in ('skipped', 'failures', 'errors')):
+              raise SystemExit('PostgreSQL vector integration contains skips, failures or errors')
+          if any(case.find(tag) is not None for case in cases for tag in ('skipped', 'failure', 'error')):
+              raise SystemExit('A real PostgreSQL vector case did not pass')
+          print('All 8 actual pgvector cases executed and passed; no integration skips.')
+          PYTHON
       - name: Publish test and EXPLAIN evidence
         if: always()
         uses: actions/upload-artifact@v4
