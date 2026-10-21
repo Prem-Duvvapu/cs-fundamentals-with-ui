@@ -765,4 +765,4 @@ alive. A second actual non-group timeout forbids killpg. All14 native guards pas
 prior startup/scope-entry cancellation and actual Java17 fixture compilation. Dedicated actual
 Nginx/container CI is still required and is not implied by this process-only observation.
 
-**Resolving commit:**5406ce0 (source a5b685edce3a2ca7f3ddf5f65d1eb0d104ed7254).
+**Resolving commit:**99e89a2 (source a5b685edce3a2ca7f3ddf5f65d1eb0d104ed7254).

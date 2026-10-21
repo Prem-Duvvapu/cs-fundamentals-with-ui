@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR83 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR84 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -583,7 +583,7 @@ release remain pending until that job succeeds; no native observation is promote
 
 ## Nginx gateway continuation — unreleased
 
-Sources132f5b3/33f15ce/a5b685e (integrated64becd5/db68fe8/5406ce0) add the isolated
+Sources132f5b3/33f15ce/a5b685e (integratedb1570bc/3c2cfe1/99e89a2) add the isolated
 [gateway learning journey](../examples/backend-gateway/README.md). The unchanged service retains
 Basic authentication, role/owner checks and CSRF while actual Nginx controls routing, forwarding,
 request bounds and a per-peer limiter. The auth subrequest is a fixed one-row read, not a new
@@ -594,3 +594,18 @@ The dedicated actual-nginx-http job must execute all20 HTTP assertions without s
 source hashes, actual Nginx1.30.6, worker replacement, response/log distinctions, and exact labelled
 resource cleanup. No local Docker/Nginx execution is claimed. TLS, multi-node fairness, production
 proxy trust/egress, capacity and cloud policy remain separate work. Final-head CI/release is pending.
+
+## PR84 merged release evidence — October 21
+
+PR [84](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/84) merged at
+2026-10-21T20:40:52Z as941e8a2d979f317e61fe92087893d22adecb63f9. All ten checks passed at
+exact head9cc3fc411863c7d64d410db1cac552e784a625bb, including actual-brokers, Verify's six jobs,
+GitGuardian and both Vercel checks. The [actual broker job](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39671778169/job/119471229127)
+ran all22 tests without skips, required the three broker suites and verified exact cleanup.
+
+The [persistent sanitized receipt](evidence/KAFKA_REBALANCE_2026-10-21.json) retains the original
+artifact/report and executed-source hashes. Actual broker state moves one→two→one; partition1,
+offset0 is applied by B without a broker commit, replayed by A with no second effect, then followed
+by a fresh offset1 record and actual next-offset2 commit. Both owner threads stop; the generated
+topic/group and job containers are removed. This supersedes Kafka's preceding CI-pending notes,
+not the open multi-broker/failover/process-crash or global exactly-once limitations.
