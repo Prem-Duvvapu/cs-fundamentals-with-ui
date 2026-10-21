@@ -26,7 +26,7 @@ Requirements: JDK 17+ and Maven 3.8+. From the repository root:
 mvn -B -f examples/backend-messaging/pom.xml verify
 ```
 
-Expected locally: **19 tests pass; 2 real-broker tests are skipped** unless explicitly enabled. Maven also compiles the real official-client integration code. Skipping is explicit evidence of a missing broker run, not a broker pass.
+Expected locally: **19 tests pass; 3 real-broker tests are skipped** unless explicitly enabled. Maven also compiles the real official-client integration code. Skipping is explicit evidence of a missing broker run, not a broker pass.
 
 The tests generate passwords at runtime, create fresh database files under JUnit temporary directories and reopen them to verify state. No credentials or database files should be committed. Reset requires no command: JUnit removes its owned temporary directory. No normal unit test starts a network service.
 
@@ -96,7 +96,7 @@ MESSAGING_BROKERS=true mvn -B -f examples/backend-messaging/pom.xml verify
 
 Do not enable shell tracing: it would expose generated credentials. Authentication is required for RabbitMQ. Kafka uses plaintext without authentication on loopback only, in an isolated throwaway lab; do not expose this configuration to a network. The code refuses a non-loopback Kafka bootstrap and always connects RabbitMQ to loopback. Never point the tests at shared brokers: random topic/queue names prevent collisions, but the lab assumes permission to create/delete its own resources. Each test deletes only its own names in `finally`; the container teardown removes any residual resources after an early failure.
 
-Expected with healthy brokers: **21 tests pass; none skipped**. Inspect the two broker test names in the uploaded report rather than reading only `BUILD SUCCESS`.
+Expected with healthy brokers: **22 tests pass; none skipped**. Inspect all three broker test names in the uploaded report rather than reading only `BUILD SUCCESS`.
 
 ## 4. Trace Kafka's behavior
 
@@ -188,7 +188,7 @@ mvn -B --no-transfer-progress -f examples/backend-messaging/pom.xml verify
 
 The focused command executes **eleven saga cases with no service prerequisites**.
 The full local command also retains all eight earlier local cases and explicitly
-skips the two broker cases. Tests generate secrets and temporary paths; no static
+skips the three broker cases. Tests generate secrets and temporary paths; no static
 password, real payment, public listener, extra container or production table is used.
 
 ### Follow the actual durability boundaries

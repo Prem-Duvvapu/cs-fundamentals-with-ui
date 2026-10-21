@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR82 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR83 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -549,9 +549,20 @@ The [persistent local receipt](evidence/BACKEND_DEBUGGING_2026-10-21.json) retai
 origins, runtime/event observations and source/report hashes. No other-major runtime was executed;
 negative receipt tests are not a cross-JDK experiment. Remote release CI remains required.
 
+## PR83 merged release evidence — October 21
+
+PR [83](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/83) merged at
+2026-10-21T20:31:47Z as fb2fd2d6cdfb4e2bb6eaa7f3036b6567a5435b4d. Exact head
+79b16209708f87843ed97513b7cc8a8cb71fa4a9 passed all ten checks: dedicated actual-spring-jdi;
+Verify frontend/backend/practical-ai/labs/containers/real-backend-journey; GitGuardian and both
+Vercel checks. The dedicated job requires six actual Spring configuration launches, observed
+Java17 runtimes, actual JDI breakpoint/step/exception events and owned cleanup with zero skips.
+This supersedes the configuration/JDI module's preceding release-pending statements. It does
+not establish GUI IDE proficiency, other-major compatibility or a real learner session.
+
 ## Concurrent Kafka recovery continuation — unreleased
 
-Sources59ac491/2f8ebb0 (integrated0aa6bb7/305da3b) add a real Kafka group scenario to the existing
+Sources59ac491/2f8ebb0 (rebased integration; original local0aa6bb7/305da3b) add a real Kafka group scenario to the existing
 messaging lab. Two owner threads poll a fresh two-partition topic; broker membership/assignment and
 callbacks independently establish one→two→one ownership. The departing member commits a local
 effect without its offset. The survivor must observe the identical partition/offset/event, report
