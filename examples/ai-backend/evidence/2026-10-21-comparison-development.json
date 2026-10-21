@@ -1,0 +1,1556 @@
+{
+  "schemaVersion": 1,
+  "evidence": "live-local",
+  "state": "complete",
+  "dataset": {
+    "cases": 30,
+    "ids": [
+      "development-01",
+      "development-02",
+      "development-03",
+      "development-04",
+      "development-05",
+      "development-06",
+      "development-07",
+      "development-08",
+      "development-09",
+      "development-10",
+      "development-11",
+      "development-12",
+      "development-13",
+      "development-14",
+      "development-15",
+      "development-16",
+      "development-17",
+      "development-18",
+      "development-19",
+      "development-20",
+      "development-21",
+      "development-22",
+      "development-23",
+      "development-24",
+      "development-25",
+      "development-26",
+      "development-27",
+      "development-28",
+      "development-29",
+      "development-30"
+    ],
+    "sha256": "0714895140d466f70bb154735f8c166effb63a5f20c1b38051d872328fd9a40a",
+    "lfSha256": "4f093073f7de3a5c83a9543938d9c8203a74a226df0955880d4496669738f128"
+  },
+  "provider": {
+    "model": "qwen2.5:0.5b",
+    "modelDigest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "runtimeVersion": "0.32.5",
+    "inventoryRequests": 3,
+    "artifactBytes": 397821319,
+    "format": "gguf",
+    "attestationLimit": "Inspected daemon inventory, not independent attestation of daemon code or network isolation."
+  },
+  "candidateFreezeCommit": "2d1247d",
+  "gateVersion": "ticket-field-gate-v1",
+  "runOrder": [
+    "ticket-v1",
+    "ticket-examples-v2",
+    "ticket-rules-v1"
+  ],
+  "orderLimit": "Sequential complete-dataset runs; caching/cold start can change latency. Not a speed benchmark.",
+  "variants": {
+    "ticket-v1": {
+      "evidence": "live-local",
+      "model": "qwen2.5:0.5b",
+      "modelDigest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "runtimeVersion": "0.32.5",
+      "promptVersion": "ticket-v1",
+      "systemPromptSha256": "d1cc84ac02cbc6dfb05f71ba188cc885da9c81bb3d09ece9727f4de580ab53fa",
+      "datasetSha256": "0714895140d466f70bb154735f8c166effb63a5f20c1b38051d872328fd9a40a",
+      "datasetLfSha256": "4f093073f7de3a5c83a9543938d9c8203a74a226df0955880d4496669738f128",
+      "usesModel": true,
+      "at": "2026-10-21T18:20:29.968658542Z",
+      "cases": [
+        {
+          "id": "development-01",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "provider_deadline",
+          "totalMs": 8179,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-02",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 3233,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-03",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 3586,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-04",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2282,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-05",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2546,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-06",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 3430,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-07",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1914,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-08",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2503,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-09",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 3037,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-10",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2110,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-11",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2548,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-12",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 3071,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-13",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2826,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-14",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 2339,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-15",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2479,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-16",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 2622,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-17",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1864,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-18",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2099,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-19",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1795,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-20",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1351,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-21",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1575,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-22",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1751,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-23",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1769,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-24",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1877,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-25",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1434,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-26",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1671,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-27",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2216,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-28",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2150,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-29",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1681,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-30",
+          "slice": "adversarial",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2191,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        }
+      ],
+      "state": "complete",
+      "limits": "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+      "summary": {
+        "cases": 30,
+        "accepted": 28,
+        "exactFieldMatches": 3,
+        "acceptanceRate": 0.9333333333333333,
+        "exactFieldMatchRate": 0.1,
+        "fields": {
+          "category": {
+            "correct": 18,
+            "rateOverAllCases": 0.6,
+            "rateOverAcceptedCases": 0.6428571428571429
+          },
+          "priority": {
+            "correct": 7,
+            "rateOverAllCases": 0.23333333333333334,
+            "rateOverAcceptedCases": 0.25
+          },
+          "orderId": {
+            "correct": 23,
+            "rateOverAllCases": 0.7666666666666667,
+            "rateOverAcceptedCases": 0.8214285714285714
+          }
+        },
+        "latencyMs": {
+          "samples": 30,
+          "p50": 2191,
+          "p95": 3586,
+          "total": 74129
+        },
+        "errors": {
+          "invalid_schema": 1,
+          "provider_deadline": 1
+        },
+        "slices": {
+          "adversarial": {
+            "cases": 1,
+            "accepted": 1,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 1,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 1,
+              "p50": 2191,
+              "p95": 2191,
+              "total": 2191
+            },
+            "errors": {}
+          },
+          "ordinary": {
+            "cases": 29,
+            "accepted": 27,
+            "exactFieldMatches": 3,
+            "acceptanceRate": 0.9310344827586207,
+            "exactFieldMatchRate": 0.10344827586206896,
+            "fields": {
+              "category": {
+                "correct": 17,
+                "rateOverAllCases": 0.5862068965517241,
+                "rateOverAcceptedCases": 0.6296296296296297
+              },
+              "priority": {
+                "correct": 7,
+                "rateOverAllCases": 0.2413793103448276,
+                "rateOverAcceptedCases": 0.25925925925925924
+              },
+              "orderId": {
+                "correct": 22,
+                "rateOverAllCases": 0.7586206896551724,
+                "rateOverAcceptedCases": 0.8148148148148148
+              }
+            },
+            "latencyMs": {
+              "samples": 29,
+              "p50": 2216,
+              "p95": 3586,
+              "total": 71938
+            },
+            "errors": {
+              "invalid_schema": 1,
+              "provider_deadline": 1
+            }
+          }
+        }
+      },
+      "metricDefinition": "Field rates include rejected cases; accepted-only field rates are also shown. Latency uses nearest-rank observed milliseconds, including failures. Small synthetic slices are descriptive, not population guarantees.",
+      "accepted": 28,
+      "fieldsCorrect": 3,
+      "totalMs": 74129
+    },
+    "ticket-examples-v2": {
+      "evidence": "live-local",
+      "model": "qwen2.5:0.5b",
+      "modelDigest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "runtimeVersion": "0.32.5",
+      "promptVersion": "ticket-examples-v2",
+      "systemPromptSha256": "ecd77ecd02aed1f2d7dba615ffb7b7ffd389bb4470d0d60919ce08ae107922ed",
+      "datasetSha256": "0714895140d466f70bb154735f8c166effb63a5f20c1b38051d872328fd9a40a",
+      "datasetLfSha256": "4f093073f7de3a5c83a9543938d9c8203a74a226df0955880d4496669738f128",
+      "usesModel": true,
+      "at": "2026-10-21T18:21:46.516036716Z",
+      "cases": [
+        {
+          "id": "development-01",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 7966,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-02",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 2423,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-03",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1937,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-04",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2405,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-05",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 2879,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-06",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 3326,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-07",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2665,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-08",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 2637,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-09",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1376,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-10",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2092,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-11",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1455,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-12",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 2245,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-13",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1659,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-14",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1417,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-15",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1617,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-16",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 2061,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-17",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1308,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-18",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 2222,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-19",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 3226,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-20",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2612,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-21",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2283,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-22",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 4246,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-23",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1871,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-24",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 2043,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-25",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1522,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-26",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 2435,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-27",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1520,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-28",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1841,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-29",
+          "slice": "ordinary",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 4088,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "development-30",
+          "slice": "adversarial",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 2338,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        }
+      ],
+      "state": "complete",
+      "limits": "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+      "summary": {
+        "cases": 30,
+        "accepted": 14,
+        "exactFieldMatches": 5,
+        "acceptanceRate": 0.4666666666666667,
+        "exactFieldMatchRate": 0.16666666666666666,
+        "fields": {
+          "category": {
+            "correct": 13,
+            "rateOverAllCases": 0.43333333333333335,
+            "rateOverAcceptedCases": 0.9285714285714286
+          },
+          "priority": {
+            "correct": 5,
+            "rateOverAllCases": 0.16666666666666666,
+            "rateOverAcceptedCases": 0.35714285714285715
+          },
+          "orderId": {
+            "correct": 14,
+            "rateOverAllCases": 0.4666666666666667,
+            "rateOverAcceptedCases": 1.0
+          }
+        },
+        "latencyMs": {
+          "samples": 30,
+          "p50": 2222,
+          "p95": 4246,
+          "total": 73715
+        },
+        "errors": {
+          "invalid_schema": 16
+        },
+        "slices": {
+          "adversarial": {
+            "cases": 1,
+            "accepted": 0,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 0.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": null
+              },
+              "priority": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": null
+              },
+              "orderId": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": null
+              }
+            },
+            "latencyMs": {
+              "samples": 1,
+              "p50": 2338,
+              "p95": 2338,
+              "total": 2338
+            },
+            "errors": {
+              "invalid_schema": 1
+            }
+          },
+          "ordinary": {
+            "cases": 29,
+            "accepted": 14,
+            "exactFieldMatches": 5,
+            "acceptanceRate": 0.4827586206896552,
+            "exactFieldMatchRate": 0.1724137931034483,
+            "fields": {
+              "category": {
+                "correct": 13,
+                "rateOverAllCases": 0.4482758620689655,
+                "rateOverAcceptedCases": 0.9285714285714286
+              },
+              "priority": {
+                "correct": 5,
+                "rateOverAllCases": 0.1724137931034483,
+                "rateOverAcceptedCases": 0.35714285714285715
+              },
+              "orderId": {
+                "correct": 14,
+                "rateOverAllCases": 0.4827586206896552,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 29,
+              "p50": 2222,
+              "p95": 4246,
+              "total": 71377
+            },
+            "errors": {
+              "invalid_schema": 15
+            }
+          }
+        }
+      },
+      "metricDefinition": "Field rates include rejected cases; accepted-only field rates are also shown. Latency uses nearest-rank observed milliseconds, including failures. Small synthetic slices are descriptive, not population guarantees.",
+      "accepted": 14,
+      "fieldsCorrect": 5,
+      "totalMs": 73715
+    },
+    "ticket-rules-v1": {
+      "evidence": "rule",
+      "model": "ticket-rules-v1",
+      "modelDigest": "not-applicable",
+      "runtimeVersion": "17.0.20.1+1-1-24.04-Ubuntu",
+      "promptVersion": "ticket-rules-v1",
+      "systemPromptSha256": "not-applicable",
+      "datasetSha256": "0714895140d466f70bb154735f8c166effb63a5f20c1b38051d872328fd9a40a",
+      "datasetLfSha256": "4f093073f7de3a5c83a9543938d9c8203a74a226df0955880d4496669738f128",
+      "usesModel": false,
+      "at": "2026-10-21T18:23:02.400447961Z",
+      "cases": [
+        {
+          "id": "development-01",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 5,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-02",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-03",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-04",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-05",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-06",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-07",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-08",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-09",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-10",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-11",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-12",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-13",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-14",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-15",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-16",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 6,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-17",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-18",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-19",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-20",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-21",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-22",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-23",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-24",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-25",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-26",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-27",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-28",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-29",
+          "slice": "ordinary",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "development-30",
+          "slice": "adversarial",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "rule_needs_review",
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        }
+      ],
+      "state": "complete",
+      "limits": "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+      "summary": {
+        "cases": 30,
+        "accepted": 29,
+        "exactFieldMatches": 29,
+        "acceptanceRate": 0.9666666666666667,
+        "exactFieldMatchRate": 0.9666666666666667,
+        "fields": {
+          "category": {
+            "correct": 29,
+            "rateOverAllCases": 0.9666666666666667,
+            "rateOverAcceptedCases": 1.0
+          },
+          "priority": {
+            "correct": 29,
+            "rateOverAllCases": 0.9666666666666667,
+            "rateOverAcceptedCases": 1.0
+          },
+          "orderId": {
+            "correct": 29,
+            "rateOverAllCases": 0.9666666666666667,
+            "rateOverAcceptedCases": 1.0
+          }
+        },
+        "latencyMs": {
+          "samples": 30,
+          "p50": 0,
+          "p95": 5,
+          "total": 11
+        },
+        "errors": {
+          "rule_needs_review": 1
+        },
+        "slices": {
+          "adversarial": {
+            "cases": 1,
+            "accepted": 0,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 0.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": null
+              },
+              "priority": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": null
+              },
+              "orderId": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": null
+              }
+            },
+            "latencyMs": {
+              "samples": 1,
+              "p50": 0,
+              "p95": 0,
+              "total": 0
+            },
+            "errors": {
+              "rule_needs_review": 1
+            }
+          },
+          "ordinary": {
+            "cases": 29,
+            "accepted": 29,
+            "exactFieldMatches": 29,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 1.0,
+            "fields": {
+              "category": {
+                "correct": 29,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 29,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 29,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 29,
+              "p50": 0,
+              "p95": 5,
+              "total": 11
+            },
+            "errors": {}
+          }
+        }
+      },
+      "metricDefinition": "Field rates include rejected cases; accepted-only field rates are also shown. Latency uses nearest-rank observed milliseconds, including failures. Small synthetic slices are descriptive, not population guarantees.",
+      "accepted": 29,
+      "fieldsCorrect": 29,
+      "totalMs": 11
+    }
+  },
+  "decision": {
+    "status": "prefer-no-model-reference-for-this-sample",
+    "gateVersion": "ticket-field-gate-v1",
+    "exactFieldTarget": 0.9,
+    "eligible": {
+      "ticket-v1": false,
+      "ticket-examples-v2": false,
+      "ticket-rules-v1": true
+    },
+    "exactFieldDelta": 2,
+    "pairedTransitions": {
+      "improved": 5,
+      "regressed": 3,
+      "bothCorrect": 0,
+      "bothWrong": 22
+    },
+    "applicationDefaultChanged": false,
+    "summaryFaithfulness": "not-assessed",
+    "humanReview": "not-performed"
+  },
+  "applicationDefault": "ticket-v1",
+  "usageAndPrice": {
+    "tokens": null,
+    "costPerAcceptedResult": null,
+    "reason": "This nonstreaming adapter does not expose metering. Unknown is not zero."
+  },
+  "limits": {
+    "cases": 50,
+    "modelCalls": 60,
+    "timeoutPerCallMs": 8000,
+    "overallSeconds": 300
+  },
+  "scope": "Synthetic field-match experiment only; no summary entailment, human learning, real-world quality, paid execution or automatic deployment claim.",
+  "jarSha256": "32fec3adc1ae561c2347ec81f32cb43ed74fb4ef28b4a66d387a1f0d8323f747",
+  "ownedChildrenReaped": true
+}

@@ -19,9 +19,9 @@ and [Java learning plan](../JAVA_LEARNING_PLAN.md) alongside this record.
 - All 22 Zoho responses had the same 27,561-byte HTML shell/hash. A successful shell response
   does not prove the note text or images loaded. Drive viewer pages and the entry-40 OneDrive
   HTML likewise are not evidence of a factual source review.
-- Only the execution-pipeline PDF has the earlier documented three-page factual review. The
-  OOP source and remaining notes still need actual text/image inspection, primary-source checks
-  and reproducible examples. Do not label a destination reviewed from its heading alone.
+- The execution-pipeline PDF has the earlier three-page factual review. The OOP PDF now has
+  an [eleven-page text/image review](JAVA_OOP_SOURCE_REVIEW_2026-10-21.md), Java 17 primary-source
+  checks and independent runnable/negative-compile examples. Remaining notes still need review. Do not label a destination reviewed from its heading alone.
 
 No license or reproduction permission is inferred from a public link or the repository owner.
 The earlier review found no repository license; linked handwritten notes may have different rights
@@ -36,7 +36,7 @@ pilot remain open; this Markdown inventory alone does not implement that UI or p
 
 | Entry | Familiar concept | Existing destination / gap | Source | Review state |
 |---|---|---|---|---|
-| 1 | OOP pillars | [OOP pillars](../content/java-spring/01d-java-oop-pillars.md) | S01 | Source text/images not reviewed |
+| 1 | OOP pillars | [OOP pillars](../content/java-spring/01d-java-oop-pillars.md) | S01 | [All 11 pages reviewed](JAVA_OOP_SOURCE_REVIEW_2026-10-21.md); learner pilot pending |
 | 2 | JVM, runtime and JDK | [JVM, runtime and JDK](../content/java-spring/01b-java-execution-pipeline.md) | S02 | Prior PDF review; learner pilot pending |
 | 3 | Public classes and source files | [Public classes and source files](../content/java-spring/01b-java-execution-pipeline.md) | None linked | No linked source; verify against JLS |
 | 4 | Primitive values | [Primitive values](../content/java-spring/01c-java-memory-model.md) | S03 | Source text/images not reviewed |
@@ -85,7 +85,7 @@ instead of duplicating opaque share-query strings. No original note contents are
 
 | Source | Entries | Link | Observed response | Factual-review evidence |
 |---|---|---|---|---|
-| S01 | 1 | [Source S01](https://drive.google.com/file/d/1eg_I2kdII2_KPtzGifky-YEvFcgaCX4H/view) | 200 viewer/HTML; document content unverified | Pending |
+| S01 | 1 | [Source S01](https://drive.google.com/file/d/1eg_I2kdII2_KPtzGifky-YEvFcgaCX4H/view) | Public PDF downloaded October 21, 2,703,416 bytes | [11-page review and Java 17 checks](JAVA_OOP_SOURCE_REVIEW_2026-10-21.md) |
 | S02 | 2 | [Source S02](https://drive.google.com/file/d/1orNECv5ucicgyhcC58tsQ10lTqj0Xc0K/view) | 200 viewer/HTML; document content unverified | Earlier three-page PDF review only |
 | S03 | 4, 5 | [Source S03](https://drive.google.com/file/d/1vWVJ9nAIbih0vier0XD-jFaUCujWuYnU/view) | 200 viewer/HTML; document content unverified | Pending |
 | S04 | 6 | [Source S04](https://drive.google.com/file/d/1y23GVqAKPxQ72ZAP1_uOsJW2XfnBDhX5/view) | 200 viewer/HTML; document content unverified | Pending |
@@ -119,9 +119,9 @@ instead of duplicating opaque share-query strings. No original note contents are
 
 ## Next review unit and acceptance
 
-1. Open the OOP source and inspect all pages/images. Record document identity, page/section
-   bounds and actual access status. If it cannot be read, record that limitation instead of
-   pretending its heading was an audit.
+1. Use the completed OOP and execution source reviews for the two-lesson pilot. For each next
+   unreviewed source, inspect every page/image and record identity and actual access limits.
+   Never count an HTML shell or a familiar heading as a factual review.
 2. Compare each proposed clarification with Java 17 JLS/JVMS/API documentation and an independently
    written runnable example. Keep Java 21 virtual-thread/sequenced-collection cases version-labelled.
 3. Pilot execution and OOP as two canonical lessons: recognizable concepts, plain mental model,

@@ -15,12 +15,12 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | AI-01 | Partial: beginner guide and actual classifier | AI/ML from zero |
 | AI-02 | Partial: training metrics and diagnostic report | Evaluation foundations |
 | AI-03 | Partial: attention/training trace and rubrics | How LLMs work |
-| AI-04 | Partial: prompt/context and failure exercises | Prompt and context engineering |
+| AI-04 | Partial: frozen actual prompt comparison and failure exercises; broader context work open | Prompt and context engineering |
 | AI-05 | Partial: structured Project A plus verified bounded native streaming | Model API integration |
 | AI-06 | Partial: actual pgvector/index CI verified; semantic quality open | Embeddings and retrieval |
 | AI-07 | Partial: lexical plus explicit versioned vector implementation | RAG lifecycle |
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
-| AI-09 | Partial: per-field/slice/failure report, local tests | Quality and regression evaluation |
+| AI-09 | Partial: actual paired prompt regression and failure-inclusive reports; human quality open | Quality and regression evaluation |
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
 | AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry open | Operations and debugging |
 | AI-12 | Partial: actual token usage and failure-inclusive scenario costs; model comparison open | Cost, capacity and model choice |
@@ -36,7 +36,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; AI tracing open | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
 | D-07 | Partial: bounded read-only agent tests | Agent keeps calling tools |
-| D-08 | Pending | Quality drops after an upgrade |
+| D-08 | Partial: actual frozen prompt regression with paired cases; model/context upgrades open | Quality drops after an upgrade |
 | D-09 | Partial: failure-inclusive cost arithmetic and unknown-usage diagnosis; comparative budget report open | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR labs; IDE/config open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
@@ -45,12 +45,12 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT plus signed-webhook replay/rotation/compatibility; generic SSRF open | API/security: REST + Spring Security |
-| BE-07 / P1 | Implemented local guards/stubs/flaky fix; actual Testcontainers/load CI pending | Testing/delivery: Spring testing + CI/CD |
+| BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind probe/routing/rollback CI verified; OOM/throttling/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | Inventory verified: 40 entries/31 links; source review and two-lesson pilot open | Java course familiarity |
+| CLOSE-02 | Inventory plus execution/OOP source reviews verified; other notes/navigation/learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Pending | Editorial maintenance |
@@ -75,7 +75,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## External evidence pending
 
-- Live generative-model evaluation: no paid calls authorized; provide bounded opt-in configuration.
+- Broader live-model/semantic-quality evidence: bounded local runs are recorded below; paid/cloud execution and human answer-support assessment are not performed.
 - Beginner and backend-engineer participant sessions.
 - Manual screen-reader/zoom sessions.
 - Remaining external Java course notes and rights/access review.
@@ -290,3 +290,60 @@ Before the next release, testing-harness review also corrected cleanup after an 
 Maven parent. The integrated six Python guards include an actual surviving fork/held-stdout/TERM
 regression and allowlisted diagnostics privacy checks; all pass. The four local Java guards still
 pass. Actual Testcontainers/HTTP/load cases remain awaiting mandatory CI at this checkpoint.
+
+
+## PR78 release reconciliation — October 21
+
+[PR78](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/78) merged October 18 at 18:33:23 UTC
+as 1d4eaaa7e32fba03303ed46988f019d124151522. All 14 final-head checks passed. This supersedes
+the preceding historical Testcontainers-CI-pending statements for that release. The actual artifact
+records PostgreSQL 16.15, eight Java tests with zero failures/errors/skips, unchanged Task Tracker
+source, 24 concurrent inserts/25 total distinct rows, migrations and restart. The 60-attempt measured
+workload retains 24 healthy successes, 12 deliberately starved HTTP 500s and 24 recovered successes;
+owned application/container cleanup is verified. These are bounded single-run observations, not
+production throughput or saturation claims. Webhook, kind, trace, identity and full platform gates
+also passed at that final head.
+
+## October 21 completion continuation
+
+The independent [OOP source review](JAVA_OOP_SOURCE_REVIEW_2026-10-21.md) covers all 11 original
+PDF pages, diagrams and handwritten code. Java 17 evidence includes one original runnable program
+and four expected compilation failures. Source rights and remaining sources are still separate
+from this factual review; no notes/PDF/images were republished. S01 is updated in the source
+ledger, with CLOSE-02 still open for the remaining notes, familiar navigation and real pilot.
+
+The resource-incident extension preserves all five original kind checks and adds three mandatory
+owned Pod observations: Java heap OOME, actual kernel/cgroup OOMKilled+137, and actual CPU quota/
+throttling deltas. All 13 native guards pass, including Java 17 compilation. Actual execution of the
+three new resource cases requires the updated no-skip dedicated CI; local Docker is unavailable.
+IAM/network restriction scenarios remain open.
+
+The ticket quality comparison freezes candidate 2d1247d before root inspects the independently
+authored 20-case holdout (50396ae, LF SHA256 feaa735baddfbc440c0788403445d72484972adb498feb4231ad4c65e4bb3709).
+It compares identical cases through original/few-shot prompts plus a no-model reference, retaining
+all failure denominators and explicit narrow field gates. AI-authored synthetic labels and
+unassessed summary faithfulness are not human calibration or production quality. Final live and
+integrated verification results follow when completed.
+
+
+### October 21 actual comparison and local integration
+
+Both frozen prompt variants and the deterministic reference completed on the same existing local
+qwen2.5:0.5b / Ollama 0.32.5. Development exact counts are 3/30, 5/30 and 29/30; independent
+synthetic holdout exact counts are 2/20, 8/20 and 6/20. The candidate improves seven holdout cases
+and regresses one, but neither model nor rule reaches the held-out 90% gate. The application
+retains its original prompt. These are failed narrow quality gates with useful diagnostic evidence,
+not successful production-quality or human-learning outcomes. Reports, prompt/dataset hashes,
+run order, unknown usage and separate post-hardening development validation are linked from the
+[comparison evidence notes](../examples/ai-backend/evidence/README.md).
+
+Local Maven verification discovers 120 tests: 109 execute successfully and eleven pre-existing
+optional PostgreSQL/OCR cases skip without their local prerequisites. The new three prompt tests
+run without skips. Existing packaged HTTP/auth/CSRF/RAG/tool/MCP/evaluation smoke passes. Eleven
+comparison Python guards and the new actual eight-call packaged comparison pass; native operations
+contracts pass thirteen tests. The resource Pods and integrated release still require mandatory
+final-head remote CI. No Testcontainers/cluster result is inferred from local contract tests.
+
+The integrated content validator passes all 68 lessons/83 manifest entries; all 295 diagram bodies
+and 953 question identities are preserved. The focused Markdown/parser suites pass 279 tests,
+and all 227 local links inspected in the touched learning/source/evidence documents resolve.

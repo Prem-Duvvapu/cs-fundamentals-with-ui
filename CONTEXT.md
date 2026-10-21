@@ -675,3 +675,12 @@ The [Java source ledger](docs/JAVA_COURSE_SOURCE_LEDGER.md) records all 40 famil
 and separates HTTP shells from reviewed note content. [Manual access checks](docs/MANUAL_ACCESSIBILITY_PROTOCOL.md)
 and [real learner tasks](LEARNER_USABILITY_STUDY.md) remain human evidence gates; prepared protocols
 and automated tests do not close them.
+
+The [controlled prompt comparison](examples/ai-backend/COMPARISON_PROTOCOL.md) freezes the
+experimental ticket prompt before an independently authored synthetic holdout. The original
+application prompt remains the default; comparisons preserve schema/field/failure distinctions,
+prompt/dataset/model hashes and a no-model reference. A narrow field gate is not production
+acceptance or human answer-support review. The [OOP source review](docs/JAVA_OOP_SOURCE_REVIEW_2026-10-21.md)
+records all eleven original PDF pages and Java 17 counterexamples without reproducing source notes.
+The operations lab now requires three resource Pods in addition to its five recovery cases;
+only actual cgroup/termination/CPU-counter observations and verified cleanup can close them.

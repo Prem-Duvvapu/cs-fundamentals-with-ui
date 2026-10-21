@@ -15,6 +15,8 @@ final class EvaluateTickets {
         String evidence = rules ? "rule" : System.getenv().getOrDefault("AI_EVIDENCE", "fixture");
         if (!rules && !Set.of("fixture", "live-local").contains(evidence)) throw new IllegalArgumentException("Use fixture or live-local evidence");
         String model = rules ? TicketRuleBaseline.VERSION : System.getenv().getOrDefault("AI_MODEL", "teaching-fixture");
+        TicketPrompts prompt = rules ? null : TicketPrompts.fromVersion(
+                System.getenv().getOrDefault("AI_TICKET_PROMPT", ExtractionService.PROMPT_VERSION));
         java.util.function.Function<String, ExtractionService.Ticket> extract;
         if (rules) extract = TicketRuleBaseline::extract;
         else {
@@ -26,7 +28,7 @@ final class EvaluateTickets {
                 throw new IllegalArgumentException("Explicit model/evidence mode mismatch");
             int timeout = Integer.parseInt(System.getenv().getOrDefault("AI_TIMEOUT_MS", "3000"));
             int budget = Integer.parseInt(System.getenv().getOrDefault("AI_MAX_CALLS", "100"));
-            var service = new ExtractionService(ChatClient.create(new OllamaHttpModel(uri, model, Duration.ofMillis(timeout), budget)));
+            var service = new ExtractionService(ChatClient.create(new OllamaHttpModel(uri, model, Duration.ofMillis(timeout), budget)), prompt);
             extract = service::extract;
         }
         var json = new ObjectMapper();
@@ -45,7 +47,8 @@ final class EvaluateTickets {
             throw new IllegalArgumentException("Live runs require AI_MODEL_DIGEST and AI_RUNTIME_VERSION provenance");
         var report = new LinkedHashMap<String, Object>();
         report.put("evidence", evidence); report.put("model", model); report.put("modelDigest", digest);
-        report.put("runtimeVersion", runtime); report.put("promptVersion", rules ? TicketRuleBaseline.VERSION : ExtractionService.PROMPT_VERSION);
+        report.put("runtimeVersion", runtime); report.put("promptVersion", rules ? TicketRuleBaseline.VERSION : prompt.version());
+        report.put("systemPromptSha256", rules ? "not-applicable" : prompt.sha256());
         report.put("datasetSha256", HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(dataset)));
         report.put("datasetLfSha256", HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(
                 new String(dataset, java.nio.charset.StandardCharsets.UTF_8).replace("\r\n", "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8))));

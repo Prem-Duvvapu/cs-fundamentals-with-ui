@@ -609,3 +609,28 @@ image is compatible with `postgres`, as required by Testcontainers' image identi
 image digest and actual server-version assertion remain unchanged. No skip, fallback database,
 relaxed counts or bypass is introduced. Actual Docker CI must still execute all eight Java cases
 and validate the load/cleanup report before merge. New implementation work is frozen per request.
+
+
+## 2026-10-21-11 — unpublished comparison cancellation, inventory and freeze binding
+
+**Observed:** independent prerelease review reproduced SIGTERM stopping the comparison wrapper
+while its newly created Java process group remained alive. The first draft also checked a prompt
+version name without enforcing the frozen instruction hash; its in-process inventory relied on
+socket timeouts rather than a whole-phase deadline. No released API or application default changed.
+
+**Cause:** normal child-error cleanup did not cover the wrapper's default SIGTERM exit; version
+labels were treated as sufficient attribution; inventory work preceded the overall run timer.
+
+**Correction:** resolving commit babf8f57cd5646758694f861d9ed8e33a838bb3f translates SIGTERM into
+owned-child cleanup and an interrupted report, restores the previous handler, validates actual
+reported prompt hashes against Java-17-compiled frozen commit 2d1247d, and executes inventory in
+an owned worker with a hard ten-second execution budget, output cap and proxy bypass. The overall
+clock starts before inventory; the separate bounded child-cleanup allowance is declared. Hash
+binding is explicitly narrower than independent build/JAR or daemon attestation.
+
+**Verification and prevention:** all eleven Python guards pass, including actual Java SIGTERM,
+slow-drip inventory deadline, output cap and frozen-hash mismatch regressions. The packaged HTTP
+exercise passes eight calls with exact counts 3/4, 2/4 and 4/4 and preserves its injected failure
+and paired regression. Both gates now run in Verify. The already-completed development report is
+retained byte-for-byte, with a separate dated validation record; no observations are fabricated
+or silently backfilled. Actual held-out execution uses the hardened wrapper.
