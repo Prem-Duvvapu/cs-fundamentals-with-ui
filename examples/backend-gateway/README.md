@@ -27,7 +27,7 @@ sequenceDiagram
     participant D as Metadata fixture
     C->>N: Host, Basic credentials, possibly forged forwarding headers
     Note over N: Fixed Host, 1 KiB body cap, optional per-peer rate limit
-    N->>T: GET /api/csrf (authentication subrequest, no original body)
+    N->>T: GET /api/projects?page=0&size=1 (auth subrequest, no original body)
     T-->>N: 2xx or 401/403
     alt authenticated API request
         N->>T: Original request, credentials, normalized forwarding headers
@@ -130,7 +130,19 @@ all infrastructure work is absent in every configuration.
 ## 4. Connect it to a Spring backend
 
 `auth_request` forwards a **GET**, drops the original body and clears Content-Length. It asks
-unchanged `/api/csrf` to validate Basic credentials; Nginx interprets its 2xx/401/403 result.
+unchanged `GET /api/projects?page=0&size=1` to validate Basic credentials and its existing read
+permission; both LEARNER and VIEWER can read. Nginx interprets its 2xx/401/403 result. The
+authentication check does not call `/api/csrf`, whose token materialization can create an unused
+session when an authentication subrequest discards Set-Cookie. Actual business writes still
+obtain and send their own CSRF token and session cookie.
+
+This fixed one-row read still consumes service/cache/database work. It is not a dedicated
+stateless authentication service; such a service would need its own contract, failure policy and
+operational evidence. The representative authenticated `/headers` GET sends no cookie and
+asserts that its main response has no Set-Cookie. Because `auth_request` discards subrequest
+Set-Cookie, that main-response assertion alone does not observe every authentication subrequest
+or establish general session statelessness.
+
 The business request still forwards credentials to Task Tracker. The service independently
 checks the principal, role, CSRF token and resource owner. Merely trusting `X-User` because a
 proxy supplied it would create a different, incomplete authentication design.

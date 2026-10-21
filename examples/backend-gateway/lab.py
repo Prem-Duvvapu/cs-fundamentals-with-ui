@@ -269,12 +269,13 @@ class Lab:
         status,challenge,_=self.request('GET','/headers',headers=forged,case='missing-auth')
         self.require('missing-auth-401-despite-identity-headers',status==401 and 'basic' in challenge.get('www-authenticate','').lower())
         self.require('invalid-auth-401',self.request('GET','/api/projects',headers={'Authorization':'Basic ZmFrZTpmYWtl'},case='invalid-auth')[0]==401)
-        status,_,body=self.request('GET','/headers',headers=forged,user='alice',case='headers')
+        status,response_headers,body=self.request('GET','/headers',headers=forged,user='alice',case='headers')
         metadata=json.loads(body)
-        self.require('forwarding-headers-sanitized',status==200 and metadata['calls']==1 and metadata['Host']=='gateway.example.test' and metadata['X-Forwarded-Proto']=='http'
+        self.require('forwarding-headers-sanitized',status==200 and 'set-cookie' not in response_headers and metadata['calls']==1 and metadata['Host']=='gateway.example.test' and metadata['X-Forwarded-Proto']=='http'
                      and metadata['X-Forwarded-For']==metadata['X-Real-IP'] and metadata['X-Real-IP']!='198.51.100.77'
                      and all(metadata[key]=='' for key in ['Forwarded','X-Forwarded-Host','X-Forwarded-Port','X-Forwarded-Prefix','X-User','X-Auth-Request-User','X-Forwarded-User']))
         self.observations['forwardedMetadata']=metadata
+        self.observations['representativeNoCookieGetResponseSetCookie']=False
         _,direct=self.command(['docker','exec',self.name+'-probe','java','-Xmx32m','-XX:ActiveProcessorCount=1','-cp','/probe','GatewayProbe','direct'])
         self.require('direct-service-forged-identity-401',json.loads(direct)['directServiceStatus']==401)
         self.require('service-csrf-still-required',self.request('POST','/api/projects',b'{"name":"Gateway original"}',user='alice',headers={'Content-Type':'application/json'},case='csrf-denied')[0]==403)

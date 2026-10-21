@@ -96,6 +96,8 @@ class GatewayContracts(unittest.TestCase):
         self.assertIn('location = /_authorize {\n            internal;\n            auth_request off;',config)
         self.assertIn('proxy_pass_request_body off;',config)
         self.assertIn('proxy_set_header Content-Length "";',config)
+        self.assertIn('proxy_pass http://task:9191/api/projects?page=0&size=1;',config)
+        self.assertNotIn('proxy_pass http://task:9191/api/csrf;',config)
         self.assertIn('limit_req_status 429;',config)
         self.assertIn('client_max_body_size 1k;',config)
         self.assertIn('proxy_read_timeout 20ms;',config)

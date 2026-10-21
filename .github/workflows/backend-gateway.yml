@@ -53,7 +53,8 @@ jobs:
               or result.get('cleanupVerified') is not True
               or not re.fullmatch('[a-f0-9]{64}',result.get('gatewayContainerId',''))
               or not re.fullmatch('sha256:[a-f0-9]{64}',result.get('gatewayResolvedImageId',''))
-              or result.get('nginxVersion')!='1.30.6' or not 20<=result.get('httpCalls',0)<=128):
+              or result.get('nginxVersion')!='1.30.6' or not 20<=result.get('httpCalls',0)<=128
+              or result.get('representativeNoCookieGetResponseSetCookie') is not False):
               raise SystemExit('All 20 actual Nginx assertions, no skips and verified cleanup are mandatory')
           import sys
           sys.path.insert(0,str(root))
