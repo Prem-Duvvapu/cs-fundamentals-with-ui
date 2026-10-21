@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-21",
+  "schemaVersion": 1,
+  "nginx": {
+    "image": "nginx:1.30.6-alpine",
+    "digest": "sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5",
+    "officialRelease": "https://nginx.org/en/download.html",
+    "primaryManifest": "https://registry-1.docker.io/v2/library/nginx/manifests/1.30.6-alpine",
+    "verification": "Docker Official Image OCI index response Docker-Content-Digest matched SHA256 of the independently fetched 10317 manifest bytes. The release page listed 1.30.6 as stable. No image execution is implied by manifest verification."
+  },
+  "taskTracker": {
+    "source": "../java-spring/task-tracker",
+    "sourcePolicy": "Read-only existing source context. A private copy of its Dockerfile replaces only the two reviewed FROM tags with existing verified digests; the lab refuses changed stage declarations.",
+    "baseProvenance": "../backend-operations/PROVENANCE.json",
+    "baseIndexes": {
+      "maven:3.9-eclipse-temurin-17": "sha256:1a352420f7aba21f5ad08df31bab55f74c013fb491f1ae8ab1dd7ff9ed698584",
+      "eclipse-temurin:17-jre": "sha256:e04fa72be13b257a59fdec6dc14af78c8f80f035d3c1ed4e03e45552a231d4c8"
+    },
+    "addition": "The owned derived image adds only GatewayProbe.class. It does not change the Task Tracker jar, source or business routes."
+  },
+  "evidence": {
+    "schemaVersion": 1,
+    "mandatoryAssertions": 20,
+    "path": "build/evidence/result.json",
+    "runtimePolicy": "Native guards and Java compilation are not actual Nginx proof. The dedicated Docker workflow must execute all 20 assertions with no skips, validate exact source hashes and actual 429/503 upstream observations, and verify owned cleanup. No local Docker execution or actual receipt is asserted by this file."
+  }
+}
