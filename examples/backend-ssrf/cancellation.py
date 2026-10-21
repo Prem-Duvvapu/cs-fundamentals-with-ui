@@ -1,4 +1,5 @@
 """Executable-boundary cancellation and its Linux-only owned subprocess regression."""
+from contextlib import contextmanager
 import ctypes
 import json
 import os
@@ -8,6 +9,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -17,20 +19,51 @@ class Cancelled(KeyboardInterrupt):
     pass
 
 
+_cancellation = threading.local()
+
+
 class CancellationScope:
-    """Install only in an executable's main thread; restore the caller's handler."""
+    """Executable-only TERM/INT policy; preserve caller handlers and masks."""
     def __enter__(self):
-        self.previous = signal.getsignal(signal.SIGTERM)
-        self.cancelled = False
+        if threading.current_thread() is not threading.main_thread():
+            raise RuntimeError('cancellation_scope_requires_executable_main_thread')
+        self.previous = {number:signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
+        self.outer = getattr(_cancellation, 'state', None)
+        self.state = {'depth':0, 'requested':False, 'delivered':False}
         def stop(signum, frame):
-            if not self.cancelled:
-                self.cancelled = True
+            if self.state['requested']:
+                return
+            self.state['requested'] = True
+            if not self.state['depth']:
+                self.state['delivered'] = True
                 raise Cancelled('termination_requested')
-        signal.signal(signal.SIGTERM, stop)
+        _cancellation.state = self.state
+        for number in self.previous:
+            signal.signal(number, stop)
         return self
 
     def __exit__(self, *args):
-        signal.signal(signal.SIGTERM, self.previous)
+        for number, handler in self.previous.items():
+            signal.signal(number, handler)
+        _cancellation.state = self.outer
+
+
+@contextmanager
+def defer_cancellation():
+    # Another unmasked thread can schedule Python's main-thread signal handler;
+    # masking only the spawning thread does not establish cleanup ownership.
+    state = getattr(_cancellation, 'state', None)
+    if state is None:
+        yield
+        return
+    state['depth'] += 1
+    try:
+        yield
+    finally:
+        state['depth'] -= 1
+        if not state['depth'] and state['requested'] and not state['delivered']:
+            state['delivered'] = True
+            raise Cancelled('termination_requested')
 
 
 def victim(directory):
@@ -71,8 +104,9 @@ def supervise():
     process, ready = None, None
     with tempfile.TemporaryDirectory(prefix='owned-ssrf-cancellation-') as directory:
         try:
-            process = subprocess.Popen([sys.executable, '-I', str(Path(__file__).resolve()), '--victim', directory],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+            with defer_cancellation():
+                process = subprocess.Popen([sys.executable, '-I', str(Path(__file__).resolve()), '--victim', directory],
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
             deadline = time.monotonic()+4
             ready_file = Path(directory)/'ready.json'
             while time.monotonic() < deadline:
@@ -116,15 +150,17 @@ def supervise():
 
 
 def run_regression():
-    process = subprocess.Popen([sys.executable, '-I', str(Path(__file__).resolve())],
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+    process = None
     try:
+        with defer_cancellation():
+            process = subprocess.Popen([sys.executable, '-I', str(Path(__file__).resolve())],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
         output, error = process.communicate(timeout=10)
         if process.returncode or error or len(output) > 2048:
             raise RuntimeError('owned_cancellation_regression_failed')
         return json.loads(output)
     finally:
-        if process.poll() is None:
+        if process is not None and process.poll() is None:
             process.send_signal(signal.SIGTERM)
             try:
                 process.communicate(timeout=5)

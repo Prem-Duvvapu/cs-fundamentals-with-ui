@@ -28,8 +28,8 @@ keys and short-lived resolver children. From the repository root:
 python3 examples/backend-ssrf/verify.py
 ```
 
-The executable accepts no URL or fetch destination. It runs **13 tests**, including
-**24 actual HTTP requests**, real TLS handshakes, zero-follow redirect cases and an
+The executable accepts no URL or fetch destination. It runs **15 tests**, including
+**26 actual HTTP requests**, real TLS handshakes, zero-follow redirect cases and an
 actual SIGTERM cancellation regression. Missing tools, skipped tests, failed
 assertions or incomplete cleanup fail the command. The dedicated
 [workflow](../../.github/workflows/backend-ssrf.yml) runs the same command and
@@ -119,6 +119,10 @@ additionally capped, including status/header/body reads. The client rejects:
 
 - Every `Transfer-Encoding`, including chunked and conflicting TE/Content-Length.
 - Duplicate, comma-separated, malformed or over-limit Content-Length values.
+  Canonical decimal text is bounded against the body cap **before** application
+  integer conversion; a real 5,000-digit header regression returns `body_limit` and
+  a subsequent request succeeds, proving malformed framing did not escape the
+  typed result or retain the only admission slot.
 - Nonidentity or multiple Content-Encoding values; no decompression is attempted.
 - Non-200 responses, redirects, wrong content type, oversized or incomplete bodies.
 
@@ -129,8 +133,17 @@ untrusted input. The exercise does not forward credentials on a redirect or proc
 a remote document as an instruction.
 
 Library code does not replace a caller's signal handlers. The verifier explicitly
-installs a restoring main-thread SIGTERM scope so cancellation raises through its
+installs a restoring main-thread TERM/INT scope so cancellation raises through its
 owned-operation `finally` blocks, closes fixtures and removes temporary TLS files.
+The scope defers its own cancellation handler briefly across process creation,
+assignment and registration, inside an already-active cleanup `try/finally`. It
+preserves caller signal masks and restores both previous handlers; no `preexec_fn`
+is used. Masking only the main thread would be insufficient when another unmasked
+thread receives the signal. A real-Popen startup regression delivers both TERM and
+INT before the caller receives its return value, including delivery through a
+live unmasked thread while the main thread blocks that signal. It requires exact
+child reaping and restored handlers/masks. These are executable-scoped semantics;
+callers using the library alone must explicitly own their cancellation policy.
 A separate short-lived Linux test supervisor TERM-cancels a wrapper while its
 resolver is active. It requires actual child reaping, closed fixture socket/thread,
 removed keys and no remaining resolver `/proc` entry. Only this test supervisor

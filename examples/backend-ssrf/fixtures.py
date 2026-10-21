@@ -7,15 +7,26 @@ import ssl
 import subprocess
 import threading
 import time
+from cancellation import defer_cancellation
 
 
 def certificate(directory, name):
     directory = Path(directory)
     key, cert = directory/(name+'.key'), directory/(name+'.crt')
-    subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
-                    '-keyout', str(key), '-out', str(cert), '-subj', '/CN='+name,
-                    '-addext', 'subjectAltName=DNS:'+name], check=True, timeout=10,
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    process = None
+    try:
+        with defer_cancellation():
+            process = subprocess.Popen(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
+                            '-keyout', str(key), '-out', str(cert), '-subj', '/CN='+name,
+                            '-addext', 'subjectAltName=DNS:'+name],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if process.wait(timeout=10):
+            raise RuntimeError('owned_fixture_certificate_generation_failed')
+    finally:
+        if process is not None:
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=1)
     os.chmod(key, 0o600)
     return cert, key
 
@@ -75,6 +86,8 @@ class Fixture:
                     elif mode == 'encoding':
                         self.send_header('Content-Length', str(len(body)))
                         self.send_header('Content-Encoding', 'gzip')
+                    elif mode == 'huge-length':
+                        self.send_header('Content-Length', '9'*5000)
                     elif mode == 'oversized-length':
                         self.send_header('Content-Length', '999999')
                     elif mode == 'oversized-close':

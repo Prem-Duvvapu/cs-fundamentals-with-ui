@@ -6,12 +6,13 @@ from pathlib import Path
 import socket
 import ssl
 import signal
+import threading
 import tempfile
 import time
 import unittest
 from unittest.mock import patch
 
-from cancellation import CancellationScope, run_regression
+from cancellation import CancellationScope, Cancelled, run_regression
 from fetch import FixturePermit, Limits, Partner, PartnerFetcher, Resolver, public_address, secure_context
 from fixtures import Fixture, certificate
 
@@ -188,6 +189,20 @@ class SSRFTests(unittest.TestCase):
         self.assertEqual(len(expected), server.count())
         self.record('actual_response_bounds_and_framing', requests=len(expected), accepted=0)
 
+    def test_huge_decimal_content_length_returns_typed_rejection_and_releases_capacity(self):
+        server = self.fixture()
+        client, base = self.client(server, limits=Limits(concurrency=1))
+        result = client.fetch(base+'huge-length')
+        self.assertFalse(result.accepted)
+        self.assertEqual('body_limit', result.reason)
+        self.assertEqual(b'', result.body)
+        recovery = client.fetch(base+'ok')
+        self.assertTrue(recovery.accepted, recovery.reason)
+        self.assertEqual(2, server.count())
+        self.assertFalse(client.resolver.active)
+        self.record('actual_huge_decimal_length_typed_rejection_and_recovery', decimalDigits=5000,
+                    rejection=result.reason, recoveryAccepted=True, httpRequests=2, resolverChildrenActive=0)
+
     def test_stalled_body_and_dripping_headers_have_actual_deadlines(self):
         server = self.fixture()
         client, base = self.client(server, limits=Limits(overall=.5,operation=.4))
@@ -231,6 +246,70 @@ class SSRFTests(unittest.TestCase):
         self.assertEqual(1, server.count())
         self.assertEqual(1, client.resolver.calls)
         self.record('actual_concurrency_and_call_caps', httpRequests=1, resolverCalls=1, overloadRejected=True, callLimitRejected=True)
+
+    def test_startup_term_and_int_defer_until_owned_child_registered_with_other_live_thread(self):
+        import fetch
+        server = self.fixture()
+        real_popen = fetch.subprocess.Popen
+        outcomes = []
+        for number in [signal.SIGTERM, signal.SIGINT]:
+            for via_thread in [False, True]:
+                with self.subTest(signal=number, otherThread=via_thread):
+                    original_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+                    previous_handlers = {item:signal.getsignal(item) for item in [signal.SIGTERM, signal.SIGINT]}
+                    ready, release, delivered = threading.Event(), threading.Event(), threading.Event()
+                    worker = threading.Thread(target=lambda:(ready.set(), release.wait(timeout=3)))
+                    worker.start()
+                    self.assertTrue(ready.wait(timeout=1))
+                    processes = []
+                    resolver = Resolver([{'sleep':5, 'answers':answers('127.0.0.1')}])
+                    self.resolvers.append(resolver)
+                    mask = original_mask | {signal.SIGUSR1} | ({number} if via_thread else set())
+                    signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+                    try:
+                        with CancellationScope():
+                            guarded = signal.getsignal(number)
+                            def observe(signum, frame):
+                                delivered.set()
+                                guarded(signum, frame)
+                            signal.signal(number, observe)
+                            def spawn(*args, **kwargs):
+                                process = real_popen(*args, **kwargs)
+                                processes.append(process)
+                                if via_thread:
+                                    signal.pthread_kill(worker.ident, number)
+                                else:
+                                    os.kill(os.getpid(), number)
+                                deadline = time.monotonic()+1
+                                while not delivered.is_set() and time.monotonic() < deadline:
+                                    time.sleep(.001)
+                                self.assertTrue(delivered.is_set(), 'real_handler_must_run_before_popen_returns')
+                                return process
+                            with patch.object(fetch.subprocess, 'Popen', side_effect=spawn):
+                                with self.assertRaises(Cancelled):
+                                    resolver.resolve('partner.example.test', server.port, 1)
+                        self.assertEqual(mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+                        for item, handler in previous_handlers.items():
+                            self.assertEqual(handler, signal.getsignal(item))
+                        self.assertEqual(1, len(processes))
+                        self.assertEqual(-9, processes[0].poll())
+                        self.assertFalse(Path(f'/proc/{processes[0].pid}').exists())
+                        self.assertTrue(processes[0].stdout.closed)
+                        self.assertTrue(resolver.events[-1]['reaped'])
+                        self.assertFalse(resolver.active)
+                        outcomes.append({'signal':'TERM' if number==signal.SIGTERM else 'INT',
+                                         'deliveredViaOtherThread':via_thread, 'reaped':True,
+                                         'priorHandlersAndMaskPreserved':True})
+                    finally:
+                        signal.pthread_sigmask(signal.SIG_SETMASK, original_mask)
+                        release.set()
+                        worker.join(timeout=1)
+                        for process in processes:
+                            if process.poll() is None:
+                                os.killpg(process.pid, signal.SIGKILL)
+                                process.communicate(timeout=1)
+        self.assertEqual(0, server.count())
+        self.record('actual_spawn_ownership_term_int_and_threaded_delivery', scenarios=outcomes, httpRequests=0)
 
     def test_actual_sigterm_boundary_reaps_resolver_and_closes_fixture(self):
         report = run_regression()

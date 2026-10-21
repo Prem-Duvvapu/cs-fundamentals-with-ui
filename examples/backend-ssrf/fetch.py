@@ -15,6 +15,7 @@ import sys
 import threading
 import time
 from urllib.parse import urlsplit
+from cancellation import defer_cancellation
 
 POLICY_VERSION = 'partner-address-v1-2026-10-21'
 IPV4_DENY = tuple(ipaddress.ip_network(value) for value in [
@@ -105,13 +106,14 @@ class Resolver:
         payload = json.dumps({'host': host, 'port': port, 'fixture': plan})
         if len(payload) > 4096:
             raise Rejected('resolver_input_limit')
-        process = subprocess.Popen([sys.executable, '-I', str(Path(__file__).with_name('resolver_worker.py'))],
-                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                                   text=True, start_new_session=True, env={'PATH': os.defpath, 'LANG': 'C.UTF-8'})
-        with self._lock:
-            self.active.add(process.pid)
-        timed_out = False
+        process, timed_out = None, False
         try:
+            with defer_cancellation():
+                process = subprocess.Popen([sys.executable, '-I', str(Path(__file__).with_name('resolver_worker.py'))],
+                                           stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                           text=True, start_new_session=True, env={'PATH': os.defpath, 'LANG': 'C.UTF-8'})
+                with self._lock:
+                    self.active.add(process.pid)
             if self.on_started is not None:
                 self.on_started(process.pid)
             try:
@@ -126,16 +128,17 @@ class Resolver:
             except ValueError:
                 raise Rejected('resolver_failed') from None
         finally:
-            if process.poll() is None:
-                try:
-                    os.killpg(process.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-            process.communicate(timeout=1)
-            with self._lock:
-                self.active.discard(process.pid)
-                self.events.append({'timedOut':timed_out, 'returnCode':process.returncode, 'reaped':process.poll() is not None})
-                del self.events[:-128]
+            if process is not None:
+                if process.poll() is None:
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                process.communicate(timeout=1)
+                with self._lock:
+                    self.active.discard(process.pid)
+                    self.events.append({'timedOut':timed_out, 'returnCode':process.returncode, 'reaped':process.poll() is not None})
+                    del self.events[:-128]
 
 
 def public_address(address):
@@ -330,8 +333,13 @@ class PartnerFetcher:
             lengths = response.headers.get_all('Content-Length', [])
             if len(lengths) > 1 or (lengths and not re.fullmatch(r'0|[1-9][0-9]*', lengths[0])):
                 raise Rejected('framing_rejected')
-            if lengths and int(lengths[0]) > self.limits.body_bytes:
-                raise Rejected('body_limit')
+            content_length = None
+            if lengths:
+                maximum = str(self.limits.body_bytes)
+                decimal = lengths[0]
+                if len(decimal) > len(maximum) or (len(decimal) == len(maximum) and decimal > maximum):
+                    raise Rejected('body_limit')
+                content_length = int(decimal)  # At most five canonical digits after the text bound.
             encodings = response.headers.get_all('Content-Encoding', [])
             if len(encodings) > 1 or (encodings and encodings[0].lower() != 'identity'):
                 raise Rejected('content_encoding_rejected')
@@ -340,7 +348,7 @@ class PartnerFetcher:
             body = response.read(self.limits.body_bytes + 1)
             if len(body) > self.limits.body_bytes:
                 raise Rejected('body_limit')
-            if lengths and len(body) != int(lengths[0]):
+            if content_length is not None and len(body) != content_length:
                 raise Rejected('incomplete_body')
             if deadline <= time.monotonic():
                 raise Rejected('overall_deadline')

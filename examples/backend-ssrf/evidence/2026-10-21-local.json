@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "execution": "actual-owned-loopback-http-and-tls",
-  "executedAt": "2026-10-21T18:59:29.281399+00:00",
+  "executedAt": "2026-10-21T19:33:50.513607+00:00",
   "addressPolicyVersion": "partner-address-v1-2026-10-21",
   "runtime": {
     "python": "3.13.3",
@@ -9,14 +9,14 @@
     "system": "Linux"
   },
   "sourceSha256LF": {
-    "fetch.py": "3678925a76de56ba3b5a93240687914013702c8ecb451192a9eafb11bfc9c13f",
+    "fetch.py": "638a41fa3680bfdaabd330455d756a32c1814688ed95edfaa52cf411635ffd87",
     "resolver_worker.py": "0ad23504c83cdfaf3004a92af779d2c98fca1520ff978849c22876efdd6d9ba5",
-    "fixtures.py": "36592e1c2523fa5480c11402be0e58ab47979b67f00117370779734df6fc917b",
-    "test_fetch.py": "89472239238f3cdcb6d630fa04b1b3910f077f18051a16311db37b61968d26eb",
-    "verify.py": "b00bba3ebd4eaa7ba23d99ab6ea33a74ef14c77549a202b5213be81562d4ff96",
-    "cancellation.py": "73afc290bd44d995229d220404a5cdd8154a9666ae6051d18488da9aa3a83fd7"
+    "fixtures.py": "8c709d1a48f2f4d6befe8da752d3eac0069f69702f921b75f92f808f793c0dc4",
+    "test_fetch.py": "2de66f7953fce6dfdad74d3f88ffdf64011ef313ef28899d6e8e2d9db685235c",
+    "verify.py": "cae6b4f133e21cb57a6382c51246cfb9c3282c418ff1e009561b012508d097ba",
+    "cancellation.py": "f91174f8b5f5587e2166b6fe021427b8f251631c4f7d93e71bc37276922b4c74"
   },
-  "testsRun": 13,
+  "testsRun": 15,
   "failures": 0,
   "errors": 0,
   "skipped": 0,
@@ -24,10 +24,10 @@
   "publicDNSExperiment": false,
   "cleanupVerified": true,
   "observations": {
-    "httpRequests": 24,
-    "resolverChildren": 38,
-    "resolverChildrenReaped": 38,
-    "fixtureServersClosed": 12,
+    "httpRequests": 26,
+    "resolverChildren": 44,
+    "resolverChildrenReaped": 44,
+    "fixtureServersClosed": 14,
     "temporaryTLSMaterialRemoved": true
   },
   "cases": [
@@ -74,6 +74,14 @@
       "accepted": 0
     },
     {
+      "case": "actual_huge_decimal_length_typed_rejection_and_recovery",
+      "decimalDigits": 5000,
+      "rejection": "body_limit",
+      "recoveryAccepted": true,
+      "httpRequests": 2,
+      "resolverChildrenActive": 0
+    },
+    {
       "case": "pure_address_policy_only",
       "deniedInputs": 29,
       "publicExampleInputs": 2,
@@ -98,6 +106,36 @@
       "failedRequests": 2,
       "overallBudgetMillis": 500,
       "slowDripElapsedMillis": 501
+    },
+    {
+      "case": "actual_spawn_ownership_term_int_and_threaded_delivery",
+      "scenarios": [
+        {
+          "signal": "TERM",
+          "deliveredViaOtherThread": false,
+          "reaped": true,
+          "priorHandlersAndMaskPreserved": true
+        },
+        {
+          "signal": "TERM",
+          "deliveredViaOtherThread": true,
+          "reaped": true,
+          "priorHandlersAndMaskPreserved": true
+        },
+        {
+          "signal": "INT",
+          "deliveredViaOtherThread": false,
+          "reaped": true,
+          "priorHandlersAndMaskPreserved": true
+        },
+        {
+          "signal": "INT",
+          "deliveredViaOtherThread": true,
+          "reaped": true,
+          "priorHandlersAndMaskPreserved": true
+        }
+      ],
+      "httpRequests": 0
     },
     {
       "case": "url_authority_path_query_bypasses",
