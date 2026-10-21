@@ -108,7 +108,7 @@ The first consumer uses a named group with automatic offset commits disabled. It
 
 The unsupported-version record is sent to the dead-letter topic and its broker send completes **before** the source offset is committed. A crash in between can duplicate the dead-letter record, so the envelope includes source partition/offset for identification. A separate consumer verifies that a DLQ record exists. Dead-lettering is a deliberate terminal policy for this unsupported schema, not a forever-retry loop.
 
-Finally, reopening the completed worker group yields no processed records, while a different audit group independently reads all five. The projection is 3, even though the valid event was delivered repeatedly. Group IDs identify independent subscriptions, not individual work items. Kafka group assignment occurs during subscription/restart here; concurrent membership changes, rebalance listeners, long processing pauses and partition revocation under load are **not tested**.
+Finally, reopening the completed worker group yields no processed records, while a different audit group independently reads all five. The projection is 3, even though the valid event was delivered repeatedly. Group IDs identify independent subscriptions, not individual work items. This original test remains sequential. The separate [concurrent rebalance exercise](#9-watch-a-partition-move-between-concurrent-consumers) adds membership changes and actual callback/offset evidence; session expiry and prolonged processing stalls remain outside that exercise.
 
 Requests, producer delivery, metadata blocking, polls and test duration have explicit bounds. Automatic producer retries are constrained by the delivery deadline and backoff. No unbounded application retry loop is used. Offsets and projection are separate commits; this is at-least-once processing with an idempotent local effect, not a Kafka transaction spanning H2.
 
@@ -141,9 +141,9 @@ Do not turn a number into a string, change `delta`'s meaning or remove a require
 
 ## Evidence and limits
 
-Local verification includes eight outbox/inbox/schema tests and eleven persisted-saga tests; the real broker tests require opt-in environment and Docker/CI evidence. The initial development environment has no Docker daemon, so this package does not claim a local actual-broker pass. Keep this distinction in release records until the dedicated workflow passes.
+Local verification includes eight outbox/inbox/schema tests and eleven persisted-saga tests; all three real broker tests require opt-in environment and Docker/CI evidence. The initial development environment has no Docker daemon, so this package does not claim a local actual-broker pass. Keep this distinction in release records until the dedicated workflow passes.
 
-The example uses a single source relay and sequential consumer handlers. Its dedicated projection database gives event IDs one scope; multiple handlers or tenants need an explicit consumer/tenant identity scope in their inbox keys. Multiple relay workers need claiming/leases and per-aggregate sequencing; concurrent consumers need explicit duplicate-race handling/retry. The outbox's lexical ID ordering is deterministic teaching order, not a production causal-order guarantee. File reopen is not hardware power-loss testing. There is no multi-node replication/failover, Kafka transaction, broker-carried/distributed saga deployment, live rebalance-load drill, schema registry, delayed retry topology, retention/replay operations or production observability deployment here. Those remain follow-up BE-04 work; this package closes the smaller broker/durability-boundary milestone.
+The example uses a single source relay and sequential consumer handlers. Its dedicated projection database gives event IDs one scope; multiple handlers or tenants need an explicit consumer/tenant identity scope in their inbox keys. Multiple relay workers need claiming/leases and per-aggregate sequencing; concurrent consumers need explicit duplicate-race handling/retry. The outbox's lexical ID ordering is deterministic teaching order, not a production causal-order guarantee. File reopen is not hardware power-loss testing. There is no multi-node replication/failover, Kafka transaction, broker-carried/distributed saga deployment, session-expiry/stalled-owner or production rebalance-load drill, schema registry, delayed retry topology, retention/replay operations or production observability deployment here. Those remain follow-up BE-04 work; this package closes the smaller broker/durability-boundary milestone.
 
 ## 8. Persisted saga: reconcile separate local commits
 
@@ -289,6 +289,125 @@ exercise assumes one active driver per saga; it does not certify a multi-worker
 scheduler. File/process tests do not establish hardware power-loss guarantees or
 a backup/restore policy. Keep those BE-04 gaps visible.
 
+## 9. Watch a partition move between concurrent consumers
+
+**Evidence status:** the new `KafkaRebalanceBrokerTest` compiles locally, but its
+actual broker scenario requires the pinned Kafka CI run. A local run without
+`MESSAGING_BROKERS=true` deliberately skips all three broker tests; it does not
+establish rebalance/recovery behavior. The dedicated workflow refuses any skipped
+`KafkaBrokerTest`, `KafkaRebalanceBrokerTest` or `RabbitBrokerTest` and requires the
+new actual `target/rebalance-evidence.json` receipt before passing.
+
+Use the existing broker startup and Maven commands above. This adds no new image,
+service, dependency or app. It uses the selected Kafka **4.3.1** client/broker,
+Java 17 and the **classic** group protocol with an eager `RangeAssignor`. This
+explicit selection makes revocation visible; it is not a comparison with the newer
+consumer protocol or cooperative assignment behavior.
+
+### Predict the ownership and durable state
+
+A partition belongs to one active member of this consumer group at a time. A
+second member can share work from a two-partition topic. Group membership itself
+does not commit either your database transaction or Kafka's recovery position.
+
+| Step | Expected broker ownership | Required observation |
+|---|---|---|
+| Start A alone | A owns both partitions | Actual assigned callback and Admin description with one member/two partitions |
+| Start B while A keeps polling | A and B each own one | Actual nonempty A revocation, distinct owner threads, stable two-member broker description and disjoint assignments |
+| Send one event per actual owner | Both consume and commit their local effects | Actual deliveries on each thread; A commits its next offset, B deliberately does not |
+| Unsubscribe/close B | A eventually owns both | Actual B revocation, A reassignment, stable one-member broker description |
+| A reads B's uncommitted record | Replay has original partition, offset and event ID | Independent B/A delivery observations, inbox reports no second business effect, A commits the next offset |
+| Send a new marker | A can continue useful work | New effect accepted; final broker offsets and projection totals match |
+
+The test chooses B's **observed assigned partition** after the broker is stable.
+It does not assume that a client name or random member ID always receives a
+particular partition. Events use explicit observed partitions for this experiment;
+key-based routing/order is demonstrated separately by the existing Kafka test.
+
+Both consumers have separate live polling loops on two executor threads. Each
+`KafkaConsumer` is constructed, subscribed, polled, committed, unsubscribed and
+closed only by its owner thread. The sole cross-thread client operation is
+`wakeup()` for bounded shutdown. Admin calls independently inspect actual group
+membership and committed offsets; local assignment fields alone are insufficient.
+
+### Separate the effect from its recovery offset
+
+Automatic commits are disabled. A processes the event, commits its H2 inbox and
+projection, then commits Kafka `record.offset() + 1`. B commits the same local
+transaction but intentionally omits that Kafka commit and pauses its assigned
+partition while continuing to poll and maintain membership.
+
+Before B leaves, the actual broker offset listing must contain A's completed
+position and **no committed entry for B's partition**. The test also checks B's
+observed delivery against the producer's returned partition/offset, verifies the
+local effect is 1, and records that evidence independently from A's later replay.
+
+B then unsubscribes and closes gracefully **without committing the held offset**.
+A receives the partition and the exact original record. `DurableStore.consume`
+returns `false` because that event's inbox row already committed, and reopening
+the H2 file still gives projection 1. A then commits its offset and accepts a fresh
+marker, giving projection 2 for that ticket and 1 for the other ticket.
+
+This is an actual concurrent membership handoff with a **controlled graceful
+member departure at the effect-before-offset boundary**. It is not an OS process
+crash, heartbeat/session expiry, broker failure, multi-node failover or H2/Kafka
+atomic transaction. Three original events plus one redelivery do not establish
+production throughput, realistic load behavior or universally exactly-once effects.
+
+### Revoke only what is completed
+
+The listener keeps a per-partition map of offsets whose local effect finished.
+`onPartitionsRevoked` commits only entries belonging to revoked partitions and
+then clears ownership state. It never commits a fetched-but-unfinished position.
+B has no completed offset entry for its deliberately held event, so its listener
+cannot accidentally acknowledge that effect-before-offset gap during departure.
+
+`onPartitionsLost` deliberately does not commit; ownership may already have moved.
+That defensive branch is present, but this graceful departure scenario does not
+claim to execute the lost/session-expiry path. All listeners execute on the
+consumer's owner thread. There is no asynchronous database handler continuing
+writes after its partition has been revoked in this experiment.
+
+### Inspect, change, debug and explain
+
+The version 1 receipt includes actual broker cluster ID, resolved client/runtime
+versions, stable group descriptions, assignments, callback phases/generations,
+original and replay deliveries, before/after committed offsets, projection checks
+and owned resource cleanup. It contains only original synthetic event IDs and
+metadata, no credentials, raw customer payloads or database paths. CI artifacts
+also retain the existing Surefire test reports. No fabricated local broker receipt
+is committed while actual execution is unavailable.
+
+**Debug:** if the local projection is already updated but a record repeats, compare
+the event ID, original partition/offset, current group assignment, committed Kafka
+position and durable inbox. Repetition alone does not prove the producer duplicated
+the message: a consumer may have finished its database effect before saving its
+recovery position. If a callback does not fire, verify subscription/group protocol
+and membership changes before adding arbitrary sleeps or retries.
+
+**Change one thing:** commit B's completed offset before it leaves and predict why
+A should no longer replay that record. The fixed regression intentionally expects
+the uncommitted gap, so change the prediction and evidence checks together. Or add
+a third member to a two-partition topic and predict that one member can be idle;
+that is a distinct extension, not claimed by the two-member evidence.
+
+**Interview answer:** “I observed a real two-member consumer group with disjoint
+partition ownership and actual revocation/reassignment callbacks. One member
+committed a local effect but not its Kafka offset, then left. The survivor replayed
+the same partition/offset/event ID; the transactional inbox prevented a second
+local effect, and the survivor committed its next position and processed new work.
+I only acknowledge completed partition work on graceful revocation. This is
+at-least-once delivery with a deduplicated local transaction, not a distributed
+exactly-once guarantee.”
+
+All work is bounded: at most two owner threads, one record per poll, 90-second
+owner lifetimes, 25-second observation waits, finite broker requests/commits/joins,
+64 callback/16 delivery entries per member and a 32KiB evidence cap. Each run creates
+one random topic and group. Cleanup closes both owners, deletes only those exact
+names and requires them absent from broker metadata; the workflow then removes
+only its owned broker containers. Physical disk erasure, foreign topics and shared
+broker administration are outside this lab.
+
 ## Primary sources checked
 
 - [Apache Kafka quickstart](https://kafka.apache.org/quickstart/) documents the official Docker setup; [Kafka producer configuration](https://kafka.apache.org/43/configuration/producer-configs/) explains idempotence, ordering and delivery deadlines.
@@ -297,3 +416,5 @@ a backup/restore policy. Keep those BE-04 gaps visible.
 - [RabbitMQ confirms and acknowledgements](https://www.rabbitmq.com/docs/confirms) distinguishes publishing, consuming and prefetch; [Java client recovery behavior](https://www.rabbitmq.com/client-libraries/java-api-guide) explains why applications must still handle redeliveries.
 
 The saga follow-up uses the [orchestration/compensation pattern](https://microservices.io/patterns/data/saga.html) and [H2 JDBC/file behavior](https://h2database.github.io/html/features.html). Its participant business rules and failure fixtures are original synthetic examples.
+- [Kafka 4.3 rebalance listeners](https://kafka.apache.org/43/javadoc/org/apache/kafka/clients/consumer/ConsumerRebalanceListener.html): assignment, graceful revocation and lost-ownership distinctions.
+- [Kafka 4.3 consumer API](https://kafka.apache.org/43/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html): owner-thread safety, polling and committed recovery position.
