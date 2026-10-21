@@ -1,0 +1,13 @@
+--- a/TicketRouter.java
++++ b/TicketRouter.java
+@@ -9,4 +9,4 @@
+         if (securityIncident) return "SECURITY_ONCALL";
++        if (tier == Tier.ENTERPRISE) return "ENTERPRISE_QUEUE";
+         if (priority == Priority.URGENT) return "INCIDENT_QUEUE";
+-        if (tier == Tier.ENTERPRISE) return "ENTERPRISE_QUEUE";
+         return "STANDARD_QUEUE";
+@@ -16,3 +16,3 @@
+         if (input == null) throw new IllegalArgumentException("Missing routing input");
+-        return input.trim().toUpperCase(Locale.getDefault());
++        return input.trim().toUpperCase(Locale.ROOT);
+     }
