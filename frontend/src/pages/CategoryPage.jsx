@@ -8,6 +8,7 @@ import { CATEGORY_METADATA } from '../utils/topicCategories'
 import { compareTopics } from '../utils/progressStats'
 import Icon from '../components/shared/Icon'
 import LessonRow from '../components/shared/LessonRow'
+import JavaCourseRevision from '../components/JavaCourseRevision'
 import NotFoundPage from './NotFoundPage'
 
 export default function CategoryPage() {
@@ -46,6 +47,7 @@ export default function CategoryPage() {
         <Link className="ui-button ui-button--quiet" to={`/interview/${categoryId}`}><Icon name="interview" size={18} />Practice this category</Link>
       </div>}
     </header>
+    {categoryId === 'java-spring' && status === 'ready' && <JavaCourseRevision topics={lessons} progress={progress} learning={learning} onToggleBookmark={toggleBookmark} />}
     {status === 'loading' && <p role="status">Loading learning path…</p>}
     {status === 'error' && <div className="reader-error" role="alert"><h2>Couldn't load this learning path</h2><p>Your saved progress is still on this device.</p><button type="button" className="ui-button ui-button--primary" onClick={retry}>Retry</button></div>}
     {status === 'ready' && lessons.length === 0 && <p role="status">No lessons are available in this path yet.</p>}

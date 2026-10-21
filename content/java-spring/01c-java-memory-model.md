@@ -65,10 +65,8 @@ Java has eight primitive types: `byte`, `short`, `int`, `long`, `float`, `double
 In Java 17, `var` cannot replace field types or method/constructor parameter types. Names are case-sensitive: `count` and `Count` differ.
 `camelCase` and uppercase constant names are conventions, not legality rules; `_count` is legal, but `_` alone is a keyword.
 
-A variable of a class, interface, array, or enum type contains a **reference value**. The reference
-may identify an object, or it may be `null`; the Java Language Specification deliberately does not
-expose its physical address. A useful diagram may draw an arrow, but code must never depend on an
-address such as `0x4A1` being stable or observable.
+A class, interface, array, or enum variable holds a **reference value** identifying an object, or `null`.
+An arrow is a useful model; Java does not expose a physical address such as `0x4A1` or promise it is stable.
 
 ```mermaid
 flowchart LR
@@ -134,20 +132,17 @@ control-flow path assigns it.
 
 ### Stack frames, heap objects, and lifetime
 
-Every platform thread has a private JVM stack. Invoking a method pushes a **stack frame** containing
-its local-variable slots, operand stack, and bookkeeping needed to return to the caller. Returning
-normally or exceptionally pops that frame, so its local variables disappear without garbage
-collection.
+Each platform thread has a private JVM stack. A method invocation pushes a **stack frame** with local-variable
+slots, an operand stack and return bookkeeping. Normal or exceptional return pops the frame;
+its local variables disappear without garbage collection.
 
-Objects and arrays are conceptually allocated on the shared **heap**. Instance primitive fields live
-inside their object, so “primitives are always on the stack” is false. Static fields belong to class
-state associated with the loaded class, while a local reference normally occupies a frame slot and
-identifies a heap object.
+Objects and arrays are conceptually allocated on the shared **heap**. Primitive instance fields live inside objects,
+so “primitives are always on the stack” is false. Static fields belong to loaded-class state;
+a local reference normally occupies a frame slot identifying a heap object.
 
-Object lifetime is based on reachability, not block scope. After a local reference disappears, an
-object remains alive if another root-reachable field, array, thread, class, or native handle still
-reaches it. Garbage collection reclaims an unreachable object later; assigning `null` does not
-immediately free memory.
+Object lifetime follows reachability, not block scope: another root-reachable field, array, thread,
+class or native handle can keep an object alive after a local disappears. Garbage collection can
+reclaim unreachable objects later; assigning `null` does not immediately free memory.
 
 Stack allocation is fast because frames follow last-in, first-out discipline, but each stack has a
 finite limit such as `-Xss1m`. Infinite recursion consumes frames until `StackOverflowError`.
@@ -156,9 +151,8 @@ space`; these failures have different causes and diagnostics.
 
 ### Java is pass-by-value
 
-Java always passes arguments **by value**. For a primitive, the copied value is the number or
-boolean. For an object expression, the copied value is a reference, so caller and callee initially
-refer to the same object while holding independent reference variables.
+Java always passes arguments **by value**: a primitive number/boolean or a reference is copied.
+Caller and callee initially reach the same object through independent reference variables.
 
 ```java
 static void adjust(Order order, int points) {
@@ -173,9 +167,25 @@ adjust(original, bonus);
 // original.id == 42, original.points == 15, bonus == 5
 ```
 
-The callee can mutate the shared object through its copied reference. Reassigning that parameter
-cannot redirect the caller's variable because the two variables are different storage locations.
-This is why Java is neither pass-by-reference nor “pass-by-reference for objects.”
+The callee can mutate a shared object through its copied reference. Reassigning that parameter cannot redirect the caller's variable because the two variables are different storage locations.
+Java is neither pass-by-reference nor “pass-by-reference for objects.”
+
+**Boxing** converts a primitive to a wrapper; **unboxing** retrieves its primitive value.
+`Integer` wraps `int` for reference-based APIs such as [generic containers](/topic/java-generics) (`List<Integer>`).
+
+**Excerpt — Java 17; inside `main`, no imports:**
+
+```java
+Integer count = 300, alias = count;
+count++;
+System.out.println(count + " / " + alias); // 301 / 300
+Integer missing = null;
+int unpacked = missing; // throws NullPointerException
+```
+
+`Integer` is immutable: `count++` unboxes, adds one, boxes and reassigns `count`; `alias` still holds 300.
+Passing either variable to a method still copies its reference: Java remains pass-by-value.
+The final line unboxes `null`; validate absence or choose an explicit domain default before unboxing.
 
 ### Strings, the pool, and immutable values
 
@@ -183,10 +193,9 @@ This is why Java is neither pass-by-reference nor “pass-by-reference for objec
 such as `toUpperCase()` return a string value, possibly the same object when no change is needed.
 Reassignment changes a reference rather than the original object. Immutability enables safe sharing, cached hash codes, and use as map keys.
 
-String literals and string-valued constant expressions are interned, so equal literals share one canonical object.
-Literal resolution can be lazy; do not assume all strings are interned when a class first loads.
-`new String("java")` explicitly creates a distinct string object, regardless of whether its character content equals the literal.
-The `==` operator tests reference **identity**; `equals()` tests logical string **equality**.
+String literals and string-valued constant expressions are interned: equal literals share a canonical object.
+Resolution can be lazy; class loading does not intern every string. `new String("java")` creates a distinct object
+with equal content. `==` tests reference **identity**; `equals()` tests string **equality**.
 
 ```java
 String a = "java";
@@ -199,14 +208,12 @@ System.out.println(a.equals(c));  // true: equal characters
 System.out.println(a == c.intern()); // true: canonical pooled reference
 ```
 
-`intern()` returns the pool's canonical representative, but mass-interning unbounded user data can
-retain more strings than intended. Use `equals()` for domain comparison and reserve identity checks
-for cases where identity itself is the contract.
+`intern()` returns the canonical pooled representative; mass-interning unbounded user data can retain unwanted strings.
+Use `equals()` for domain comparison; reserve identity checks for an explicit identity contract.
 
-Repeated concatenation in a loop creates avoidable intermediate values. `StringBuilder` provides a
-mutable character buffer for single-threaded assembly. `StringBuffer` synchronizes its methods and
-is thread-safe for individual operations, but external coordination is still needed for a compound
-sequence; it is rarely the best way to share text construction across threads.
+Repeated loop concatenation creates avoidable intermediate values; `StringBuilder` offers a mutable buffer for one thread.
+`StringBuffer` synchronizes individual methods, but compound sequences still need external coordination;
+it is rarely the best way to share text construction across threads.
 
 ---
 
@@ -237,10 +244,8 @@ HotSpot may store class metadata pointers and lock state in the header, but exac
 collector, compressed ordinary object pointers, architecture, and JVM version. The language contract
 does not promise field order or a particular byte count.
 
-Arrays are objects whose length is fixed at construction. An `int[]` stores primitive elements,
-whereas an `Order[]` stores reference values; constructing either array initializes elements to
-zero-like defaults. Local variables, unlike fields and array elements, have no automatic default and
-must be definitely assigned before use.
+Arrays have fixed lengths: `int[]` stores primitives initially zero; `Order[]` stores references initially `null`.
+Fields and array elements receive defaults; local variables must instead be definitely assigned before use.
 
 ### Worked example: encoding 13.25 as IEEE-754 binary32
 
@@ -284,17 +289,14 @@ At the return boundary:
 | object B | absent | reachable only through callee | eligible after return |
 | caller `bonus` | 5 | 5 | 5 |
 
-This trace also explains the migrated interview question about `u = new User("Bob")`: the caller's
-variable does not change. Object B becomes collectible after return if nothing else retained it.
-The original object remains reachable through the caller.
+This also explains `u = new User("Bob")`: reassigning the parameter leaves the caller's variable unchanged.
+The original object remains caller-reachable; B becomes collectible after return only if nothing else retained it.
 
 ### String construction and allocation trade-offs
 
-The compiler can fold constant expressions such as `"a" + "b"` into one pooled literal. Runtime
-concatenation is implemented using compiler-selected machinery, but repeated concatenation still
-copies growing character content. Building 10,000 one-character fragments with immutable
-concatenation can approach quadratic character-copy work, while a suitably growing builder is
-approximately linear.
+The compiler can fold `"a" + "b"` into one pooled literal and chooses the runtime concatenation machinery.
+Repeated concatenation copies growing content: building 10,000 one-character fragments can approach
+quadratic character-copy work, while a suitably growing builder is approximately linear.
 
 ```java
 StringBuilder csv = new StringBuilder(64);
@@ -307,10 +309,9 @@ for (int id : ids) {
 String result = csv.toString();
 ```
 
-Pre-sizing is useful when output length is predictable, but exact micro-optimisation should follow
-profiling. `StringBuilder` is appropriate when one thread owns the builder. A shared `StringBuffer`
-serialises method calls yet cannot make `if (buffer.length() > 0) buffer.append(',')` atomic as one
-logical action.
+Pre-sizing helps when output length is predictable; profile before micro-optimizing.
+Use `StringBuilder` when one thread owns it. A shared `StringBuffer` serialises method calls, but
+`if (buffer.length() > 0) buffer.append(',')` is a compound action that still needs coordination.
 
 ### Visibility, ordering, and happens-before
 

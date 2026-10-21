@@ -9,6 +9,14 @@ links the exercise; Java adapter, real production DNS/egress and broader securit
 outside this module. Executable cancellation defers TERM/INT until owned children are registered;
 the library does not install caller signal policy or change caller signal masks. See RCA12/13.
 
+`JavaCourseRevision.jsx` adds an optional native details disclosure inside the existing Java
+category route. Its two reviewed course entries resolve existing topic IDs from CategoryPage's
+canonical catalog and reuse LessonRow, topic progress and learning state. Section links use the
+reader's existing heading IDs; Practice uses the existing lesson view. There is no second topic
+registry, route, preference, progress store or analytics event. Missing canonical lessons suppress
+the pilot. The browser harness checks native keyboard disclosure, deep-link/history behavior and
+shared saved state; real course recognition remains a separate participant gate.
+
 Current delivery and remaining capability scope are recorded in the
 [implementation ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger).
 PR79's actual resource cases and frozen comparison are shipped; human learning/accessibility,

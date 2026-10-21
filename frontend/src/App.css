@@ -2211,6 +2211,19 @@ kbd { background: var(--bg-raised); border: var(--stroke-hair) solid var(--borde
 .path-progress { display: grid; gap: var(--space-2); max-width: 28rem; }
 .path-completion { color: var(--text-secondary); font-size: var(--ui-sm); }
 .path-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.course-revision { border: var(--stroke-hair) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+.course-revision > summary { align-items: center; color: var(--text-primary); cursor: pointer; display: flex; font-weight: 600; gap: var(--space-2); list-style: none; min-height: 3rem; padding: var(--space-3) var(--space-4); }
+.course-revision-label { align-items: baseline; display: flex; flex: 1; flex-wrap: wrap; gap: var(--space-2); min-width: 0; }
+.course-revision > summary::-webkit-details-marker { display: none; }
+.course-revision > summary:hover { background: var(--control-bg); }
+.course-revision > summary > .ui-icon { flex: none; margin-left: auto; }
+.course-revision[open] > summary > .ui-icon { transform: rotate(180deg); }
+.course-revision-count { color: var(--text-secondary); font-size: var(--ui-xs); font-weight: 400; }
+.course-revision-body { border-top: var(--stroke-hair) solid var(--border-subtle); display: grid; gap: var(--space-3); padding: var(--space-4); }
+.course-revision-body h2 { color: var(--text-primary); font: 600 var(--ui-lg)/1.4 var(--font-heading); }
+.course-revision-note { color: var(--text-secondary); font-size: var(--ui-sm); line-height: 1.6; }
+.course-revision-links { display: flex; flex-wrap: wrap; gap: 0 var(--space-4); list-style: none; }
+.course-revision-links a { align-items: center; color: var(--action-text); display: inline-flex; font-size: var(--ui-sm); min-height: 2.75rem; overflow-wrap: anywhere; text-underline-offset: 3px; }
 .topic-breadcrumb li[aria-current] { color: var(--text-secondary); }
 
 .search-form { max-width: 42rem; }

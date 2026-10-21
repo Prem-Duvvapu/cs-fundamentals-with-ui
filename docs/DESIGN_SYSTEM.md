@@ -133,6 +133,11 @@ Opening a lesson also reveals its row within the scrollable rail without scrolli
 
 ## October 5 refinement — current component system
 
+The Java category's optional familiar-course pilot uses a native details/summary disclosure with
+semantic surface/text/action tokens, a rotating shared chevron and a closed initial state. It
+reuses LessonRow and canonical saved state; its section/source/Practice links have 44px targets.
+Do not replace native keyboard behavior with a custom tree or add persistent course-view state.
+
 This section describes delivered behaviour and supersedes conflicting older guidance above
 (see `UI_UX_REFINEMENT_PLAN_2026-10-05.md` and `docs/UI_UX_REFINEMENT_RESULTS_2026-10-05.md`).
 

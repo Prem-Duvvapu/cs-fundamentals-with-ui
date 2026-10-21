@@ -10,6 +10,7 @@ import { launchChromium, repoRoot, routeFixtureApi, startStaticServer } from './
 const ROUTES = [
   { name: 'home', path: '/' },
   { name: 'category', path: '/category/java-spring' },
+  { name: 'java-revision', path: '/category/java-spring', open: '.course-revision > summary' },
   { name: 'reader', path: '/topic/java-execution-pipeline', reader: true },
   { name: 'practice', path: '/topic/java-execution-pipeline?view=practice', ready: '.practice-question' },
   { name: 'reader-long-title', path: '/topic/spring-mvc-lifecycle', reader: true },
@@ -43,6 +44,7 @@ try {
         await page.locator('h1').first().waitFor({ timeout: 15_000 })
         if (route.reader) await page.locator('.topic-content h2').first().waitFor({ timeout: 15_000 })
         if (route.ready) await page.locator(route.ready).first().waitFor({ timeout: 15_000 })
+        if (route.open) await page.locator(route.open).click()
         await page.evaluate(() => document.fonts.ready)
         await page.waitForTimeout(150)
         const measured = await page.evaluate(() => {

@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR80 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR81 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -47,13 +47,13 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT and signed-webhook replay/rotation/compatibility; registered-partner SSRF lab locally verified, release pending | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuth/JWT, signed webhooks and PR81 registered-partner SSRF; production gateway/egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | Inventory plus execution/OOP/primitive source reviews verified; other notes/navigation/learner pilot open | Java course familiarity |
+| CLOSE-02 | Inventory and execution/OOP/primitive/reference reviews verified; two-entry familiar revision view locally implemented; remaining notes and real learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -459,3 +459,55 @@ and no prompt, dataset, model or recorded quality result changed. Final-head CI 
 Integrated final-byte local checks: sixteen SSRF tests/26 actual HTTP requests, fifteen engineering
 tests and thirteen comparison tests pass; all 68 lessons/83 manifest entries validate. The SSRF
 source-bound receipt matches all six implementation/test files. This is not remote release evidence.
+
+## PR81 merged release evidence — October 21
+
+PR [81](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/81) merged at
+2026-10-21T19:47:09Z as 20285fa5cb8937bd0e9f911e197c2a9f3b5eb324. Exact head
+03a8344eeed8a7725708e9075a0206de165b059f passed all twelve checks: dedicated actual-http-tls,
+actual-pdf-and-ocr and pgvector; Verify frontend/backend/practical-ai/labs/containers/
+real-backend-journey; GitGuardian and both Vercel checks. The no-skip SSRF gate requires sixteen
+tests/26 actual HTTP requests, exact source/cleanup observations, typed huge-header recovery,
+startup TERM/INT and interrupted handler-installation restoration. This supersedes that module's
+preceding release-pending statements. It adds no Spring outbound adapter or production egress proof.
+
+## Two-entry familiar Java revision view — unreleased
+
+The existing Java category route now offers **Revisit Java-by-Shrayansh**, closed initially,
+with the first two reviewed entries in course order: OOP then JDK/runtime/JVM. It resolves actual
+catalog topics and reuses LessonRow, bookmark/completion and learning state. Three section links
+per entry, existing Practice, optional saved-reading links, original clarifications and native
+source-credit links introduce no new catalog, route, preference or saved-data identity.
+
+Four focused component tests pass, including every hash through the actual Markdown outline
+pipeline, absent-catalog suppression, Java-only rendering and shared state. All830 frontend tests
+and the production build pass. CSS changes regenerate all295 diagram
+fingerprints; all590 existing SVG bytes are unchanged. Browser keyboard/history/target/containment,
+open-content axe and the real-backend section journey are required release checks. These tests do
+not establish that a real learner recognizes the course or understands either lesson; CLOSE-02
+remains open until the participant task, revisions and retest are actually recorded.
+
+The focused real-browser journey passes all six theme/width combinations, native Enter/Space and
+closed-content focus, shared bookmarks/completion/drafts, exact section navigation and Back/Forward;
+four open-content axe scans pass. The first broad local run found only an incorrect desktop
+44px bookmark expectation in the new harness (mobile retains44px; existing desktop controls40px);
+the assertion now matches the documented breakpoint contract. Final presentation wraps desktop
+section links compactly and keeps the chevron beside a wrapped mobile title/count. Final-head CI
+must rerun the full responsive and real-backend journeys before merge.
+
+The separate S04 source review 3477425 (integrated a87cd58) covers all six actual PDF pages/images
+and corrects wrapper mutability/pass-by-reference claims with executed Java 17 counterexamples.
+The one-file teaching unit 04d0f0f (integrated 9c49d9c) adds boxing, immutable Integer alias
+reassignment and null unboxing at600 reported lines. All22 headings, four diagram bodies,
+eleven prior fenced examples and the whole misconception/interview/rubric/Further Reading tail
+are unchanged. The new excerpt actually prints301 /300 then throws NullPointerException;
+the existing marked ReferenceDemo still compiles/runs with its expected output. Broader source
+review and real learner recognition remain open. RCA14 records and resolves a local documentation
+merge error before publication; complete instructions and architecture tails are preserved.
+
+The first PR82 CI run completed the real-backend journey but exposed a missing literal migration
+citation in the compressed reference prose. Source c0a424a (integrated7ea7a72) restores the exact
+explanation at600 lines; the unchanged migration gate passes109/109. RCA15 records the omitted
+local gate and requires it for future paraphrases as well as deletions. No migration ledger or
+test is weakened; final-head CI remains required. The final integrated reader/component run passes
+269 tests and the full content gate passes68/68 with83 mappings.
