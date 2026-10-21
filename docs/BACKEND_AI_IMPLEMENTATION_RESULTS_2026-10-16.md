@@ -28,7 +28,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry open | Operations and debugging |
 | AI-12 | Partial: actual token usage and failure-inclusive scenario costs; model comparison open | Cost, capacity and model choice |
 | AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
-| AI-14 | Pending | AI-assisted engineering |
+| AI-14 | Local verified: reviewed AI-authored patches, actual Java/Git/Maven and independent regression tests | AI-assisted engineering |
 | AI-15 | Partial: digital PDF and actual OCR CI verified; richer modalities open | Multimodal inputs |
 | AI-16 | Partial: actual small-model training | Classical ML lifecycle |
 | AI-17 | Local verified: runnable authored ranking and lesson | Recommendation systems |
@@ -53,7 +53,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | Inventory plus execution/OOP source reviews verified; other notes/navigation/learner pilot open | Java course familiarity |
+| CLOSE-02 | Inventory plus execution/OOP/primitive source reviews verified; other notes/navigation/learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -381,3 +381,42 @@ joint explanation/code/answer/rubric corrections, protected learner state, relea
 handoff. Its dependency/workflow snapshot and 41 local links were checked against repository
 sources. It does not constitute a new runtime compatibility test, future scheduled execution,
 assigned human editor, learner study or completion of other closure requirements.
+
+
+## Familiar primitive-values source review
+
+The [S03 review](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md) covers all ten PDF pages for course
+entries 4/5, not merely the public viewer. It records the 2,507,604-byte source hash, Java 17
+primary sections, one executed original program and five expected compilation failures. Important
+source corrections cover boolean defaults, operand-driven promotion, UTF-16, widening precision
+and the exact binary32 value of 0.7f. No overlapping canonical factual error was found; the
+existing 13.25 worked example stays intact. Missing beginner details are a separate content unit.
+No source pages or transcripts are republished; remaining notes/navigation/real pilot stay open.
+
+
+## AI-assisted engineering and primitive teaching integration
+
+The [AI-assisted review exercise](../examples/engineering-workflow/AI_ASSISTED_REVIEW.md) uses
+three identity-pinned original teaching patches in an owned temporary repository. A real Java 17
+compiler rejects the invented String API; a compiling alternative fails the independently written
+enterprise/urgency rule; the one-line Locale.ROOT repair passes all seventeen original cases and
+three separate Turkish-locale cases. Protected tests remain unchanged, actual jdeps reports only
+java.base, and the existing offline Maven probe loads codec 1.0 then 2.0 under dependency management.
+The [final-byte local CLI receipt](evidence/AI_ASSISTED_REVIEW_2026-10-21.json) comes from integrated
+b3af01c, after the patch fixture formatting/pins were finalized. No stale earlier report is used.
+The nine focused tests pass, covering changed fixture rejection, path/test boundaries, CRLF,
+owned cancellation, output bounds and preservation of another repository under hostile Git state.
+Existing Verify's engineering-workflow discovery includes the new tests; integrated CI/release is
+still required. These are reviewed fixtures, not live coding-provider or human comprehension results.
+An owned temporary directory and filename allowlist are explicitly not a sandbox for arbitrary Java.
+
+The separate content units c31dc62 and 22fd9bd connect sampling/agents to that exercise and fill
+the reviewed primitive gaps. Java memory now includes short, fixed local var, naming legality,
+constant assignment versus promotion, float precision loss and overflow-before-widening, with an
+actually compiled Java 17 excerpt. Its existing 13.25 example, headings, diagrams, questions and
+rubrics are unchanged. The source-review and learner-pilot boundaries remain separate.
+
+Integrated local checks pass: all thirteen engineering-workflow tests (new nine plus existing
+four), all 279 focused Markdown/parser tests, all 68 content files/83 manifest entries and all
+fifteen marked runnable Java programs. The new numeric excerpt is separately compiled as recorded
+in its content unit; it is explicitly an excerpt rather than a newly marked complete program.

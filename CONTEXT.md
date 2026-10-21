@@ -691,3 +691,10 @@ acceptance or human answer-support review. The [OOP source review](docs/JAVA_OOP
 records all eleven original PDF pages and Java 17 counterexamples without reproducing source notes.
 The operations lab now requires three resource Pods in addition to its five recovery cases;
 only actual cgroup/termination/CPU-counter observations and verified cleanup can close them.
+
+
+The [AI-assisted engineering exercise](examples/engineering-workflow/AI_ASSISTED_REVIEW.md)
+compares reviewed fixture patches using actual Java 17 compilation, independent routing/locale
+tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
+a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
+teaching corrections while preserving existing diagrams, questions and learner identities.

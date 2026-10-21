@@ -127,6 +127,12 @@ Keep answers in the form **direct answer → mechanism → example → limit →
 an authored rubric, then explain the scenario again without reading it. Self-rating is practice
 feedback; it is not automatic interview certification.
 
+Before asking an assistant to change code, run the [AI-assisted review exercise](../examples/engineering-workflow/AI_ASSISTED_REVIEW.md).
+Investigate the repository, state a regression independently, reject an invented API and a compiling
+wrong patch, then review the minimal successful diff. Start with its reviewed offline fixtures;
+do not run unreviewed model output. Compilation is different from behavioral correctness, and
+neither replaces a real learner explaining the result.
+
 ## 7. Learning checks
 
 Before moving on, be able to explain training versus inference, calculate a confusion-matrix metric,

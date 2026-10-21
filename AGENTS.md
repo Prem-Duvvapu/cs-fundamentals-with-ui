@@ -791,3 +791,10 @@ with task correctness, or call AI-authored synthetic labels human calibration. N
 after inspecting the public holdout requires a new separated evaluation. All actual kind resource
 cases run only in owned nonprivileged disposable Pods; never run resource stress on the host or
 weaken OOMKilled/exit137/cgroup-limit/throttling evidence into a generic process failure.
+
+
+The [AI-assisted engineering exercise](examples/engineering-workflow/AI_ASSISTED_REVIEW.md)
+compares reviewed fixture patches using actual Java 17 compilation, independent routing/locale
+tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
+a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
+teaching corrections while preserving existing diagrams, questions and learner identities.

@@ -198,3 +198,12 @@ remain separate. Compilation proves these language examples behave as reported;
 it does not prove novice comprehension, interview recall, permission to reproduce
 the notes or completion of CLOSE-02. No canonical lesson, source ledger, question,
 rubric, diagram, code or global project document was changed by this review unit.
+
+
+### Subsequent canonical integration
+
+Separate content-only commit 22fd9bd fills the identified beginner gaps with a short row,
+fixed local var/naming rules, constant assignment versus promotion and a compact conversion/
+overflow excerpt. The new excerpt was compiled on Java 17 and its printed values verified.
+The original 13.25 section, headings, diagram bodies and interview/rubric tail remain unchanged.
+This later integration does not change the source identity or the earlier review's evidence scope.

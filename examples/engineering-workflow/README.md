@@ -4,6 +4,11 @@ This BE-09 lab turns Git, Linux, Maven and Clean Code advice into observable wor
 
 Use the **LLD logging framework/workflow** and **DSA** entries in the [maintained learning-network links](../../BACKEND_ENGINEERING_COVERAGE_2026-10-17.md#5-ownership-across-the-learning-network) for their existing design/algorithm lessons. This exercise adds debugging and verification practice; it does not duplicate those lessons or share their progress.
 
+For using a coding assistant, continue with [independent AI patch review](AI_ASSISTED_REVIEW.md):
+compare an invented API, a compiling business regression and a one-line locale repair against
+protected tests. The assistant proposes a change; compiler, business tests and diff review
+provide distinct evidence. The exercise does not execute arbitrary generated code.
+
 ## 1. Run the owned experiment
 
 Requirements: Linux with accessible `/proc` (WSL works), Python 3.10+, Git, JDK 17 or later, and a standard Maven **3.x** installation containing its `lib/` JARs. Java sources are compiled with `--release 17`. No third-party Python package, Docker, internet, remote Git repository or downloaded Maven plugin is needed by these commands:
