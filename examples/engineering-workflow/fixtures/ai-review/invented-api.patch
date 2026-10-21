@@ -1,0 +1,7 @@
+--- a/TicketRouter.java
++++ b/TicketRouter.java
+@@ -16,3 +16,3 @@
+         if (input == null) throw new IllegalArgumentException("Missing routing input");
+-        return input.trim().toUpperCase(Locale.getDefault());
++        return input.trim().toUpperCaseInvariant();
+     }

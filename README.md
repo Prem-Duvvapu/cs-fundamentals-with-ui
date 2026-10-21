@@ -1,5 +1,13 @@
 # Backend Engineering
 
+Current scope: the core curriculum and UI refinement are delivered; the expanded practical
+backend/AI roadmap is still in progress. [PR79](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/79)
+ships the frozen prompt comparison, actual Kubernetes resource incidents and Java OOP source review.
+Use the [current capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
+for what remains. Dated milestones below retain their original evidence; they are not blanket
+completion claims. The [editorial maintenance guide](docs/EDITORIAL_MAINTENANCE.md) defines how to
+keep explanations, examples, dependencies and sources current.
+
 Part of the [Learning Hub](https://learning-hub-with-ui.vercel.app/).
 The shared **Learning network** navigation offers Learning Home and same-tab
 links between DSA, LLD, HLD, and CS fundamentals on every route. These remain
@@ -514,3 +522,10 @@ acceptance or human answer-support review. The [OOP source review](docs/JAVA_OOP
 records all eleven original PDF pages and Java 17 counterexamples without reproducing source notes.
 The operations lab now requires three resource Pods in addition to its five recovery cases;
 only actual cgroup/termination/CPU-counter observations and verified cleanup can close them.
+
+
+The [AI-assisted engineering exercise](examples/engineering-workflow/AI_ASSISTED_REVIEW.md)
+compares reviewed fixture patches using actual Java 17 compilation, independent routing/locale
+tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
+a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
+teaching corrections while preserving existing diagrams, questions and learner identities.

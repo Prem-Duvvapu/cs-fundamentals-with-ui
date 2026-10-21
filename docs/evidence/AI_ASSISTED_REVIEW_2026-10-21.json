@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-21",
+  "recordedAt": "2026-10-21T19:03:13.866956+00:00",
+  "sourceCommit": "b3af01ce1c937c98e91274f74a52ba203ea5b25c",
+  "sourceReportSha256": "bb8dca69446c48dbbf7bb0561675ed96b299cedf31e9d3f4b1ab1c7c1112fb56",
+  "execution": {
+    "schemaVersion": 1,
+    "evidence": "reviewed-ai-authored-teaching-fixtures",
+    "compiler": "javac 17.0.20.1",
+    "javaRelease": 17,
+    "sourceLfSha256": {
+      "TicketRouter.java": "c2c9747cc57687f2a06bee1977cb39c221730321650cbabaa6e143ad985db8c1",
+      "RouterContract.java": "ed4cecfde5ca782f2bb84674d6d9bb8b68004a101a684754fe97ce0378fcae6f",
+      "routing-golden.tsv": "9b723b65bad3c686f33b58d05c7cec086ff5e1ff8d45a4999d3a89c861edbc31",
+      "LocaleRoutingRegression.java": "b69261f7fbb56ff78dc98d66a5786efe43e6957e9bea8dee4845b986c4481456"
+    },
+    "seededSourceLfSha256": "7562f2b15ecbc3b3be2f4fbc8da0ac2cd1513b69794eef5ad0f73cc63e384211",
+    "baseline": {
+      "compiled": true,
+      "compilerExit": 0,
+      "diagnosticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "goldenPassed": true,
+      "localePassed": false,
+      "goldenTraceSha256": "dcd512473122e33b42910953d0d5a191cf81cc63a2562dcd4970c611251adbab",
+      "localeTraceSha256": "d9a19a8b5614608f88d67f3f0ffc4de07fe9aad84661ee5fcaf98458b6e43721",
+      "goldenCases": 17,
+      "localeCases": 0,
+      "goldenFailureCase": null,
+      "localeFailureCase": "turkish-enterprise-normal"
+    },
+    "candidates": {
+      "invented-api": {
+        "compiled": false,
+        "compilerExit": 1,
+        "diagnosticSha256": "03421593e137e38b59c206f68a7f266f01ca9f6a44311235fa16d811e651084d",
+        "failureKind": "compile-error",
+        "inventedApiNamedInDiagnostic": true,
+        "review": {
+          "changedPaths": [
+            "TicketRouter.java"
+          ],
+          "linesAdded": 1,
+          "linesRemoved": 1,
+          "patchLfSha256": "5cbaeb13175d2575ad72f35391ad8f1725de9f017b877ddefea5327417232ab4",
+          "gitDiffLfSha256": "cafcbf63b8d0320e1486674a26251ff26c5f1df67a9682bb178b11ab4908ed3c",
+          "protectedTestsUnchanged": true,
+          "whitespaceCheckPassed": true
+        }
+      },
+      "wrong-precedence": {
+        "compiled": true,
+        "compilerExit": 0,
+        "diagnosticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "goldenPassed": false,
+        "localePassed": false,
+        "goldenTraceSha256": "4da5ae08810491bf4721abcf31c07fdc9f33d580e5613e2e97194aa407649335",
+        "localeTraceSha256": "20b37d4fe719162318306da2833281479ffa91b92fc2000dccbb4de86cd989d6",
+        "goldenCases": 0,
+        "localeCases": 0,
+        "goldenFailureCase": "enterprise-urgent",
+        "localeFailureCase": null,
+        "review": {
+          "changedPaths": [
+            "TicketRouter.java"
+          ],
+          "linesAdded": 2,
+          "linesRemoved": 2,
+          "patchLfSha256": "a10fdf0800e69651b862cdb049c2cef7e3ccb7f80d37d1df09be7f4ad0c5cf1f",
+          "gitDiffLfSha256": "6d816766f4b9256d237bcc19647b1d5cf99f596405ec29e6bfa5870bc6649f88",
+          "protectedTestsUnchanged": true,
+          "whitespaceCheckPassed": true
+        }
+      },
+      "locale-repair": {
+        "compiled": true,
+        "compilerExit": 0,
+        "diagnosticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "goldenPassed": true,
+        "localePassed": true,
+        "goldenTraceSha256": "dcd512473122e33b42910953d0d5a191cf81cc63a2562dcd4970c611251adbab",
+        "localeTraceSha256": "38109cd672df61cae4d035eacaeb2532ac5d3e3f229c2792bb65a95b7112fa4f",
+        "goldenCases": 17,
+        "localeCases": 3,
+        "goldenFailureCase": null,
+        "localeFailureCase": null,
+        "actualJdepsModules": [
+          "java.base"
+        ],
+        "review": {
+          "changedPaths": [
+            "TicketRouter.java"
+          ],
+          "linesAdded": 1,
+          "linesRemoved": 1,
+          "patchLfSha256": "178f4cee137f404e18c48d342beb350a0c382e14da4e66a0b0e5ff9f08c59d1b",
+          "gitDiffLfSha256": "ed30e3f3a08bc3f284fc487f6f200f2c03b1ad6681b8fc65a6f1afd314c96179",
+          "protectedTestsUnchanged": true,
+          "whitespaceCheckPassed": true
+        }
+      }
+    },
+    "investigation": {
+      "trackedPaths": [
+        "LocaleRoutingRegression.java",
+        "RouterContract.java",
+        "TicketRouter.java",
+        "routing-golden.tsv"
+      ],
+      "normalizationSymbolLocated": true,
+      "ownedHistoryUnchanged": true
+    },
+    "protectedTestsUnchanged": true,
+    "actualOfflineMaven": {
+      "runtime": "Apache Maven 3.8.7",
+      "offline": true,
+      "installed_plexus_utils": {
+        "version": "3.4.2",
+        "sha256": "f3fd6d3f93407eb610be2b409382517526bfccecad2b7fba22a05bc3a2d6cacc"
+      },
+      "nearest_equal_depth": {
+        "MODEL_VERSION": "1.0",
+        "SELECTED_CODEC": "1.0",
+        "LOADED_CODEC": "1.0"
+      },
+      "dependency_management": {
+        "MODEL_VERSION": "1.0",
+        "SELECTED_CODEC": "2.0",
+        "LOADED_CODEC": "2.0"
+      },
+      "maven_config": {
+        "MODEL_VERSION": "2.0",
+        "SELECTED_CODEC": "2.0",
+        "LOADED_CODEC": "2.0"
+      },
+      "explicit_cli": {
+        "MODEL_VERSION": "3.0",
+        "SELECTED_CODEC": "2.0",
+        "LOADED_CODEC": "2.0"
+      },
+      "scope": "Actual Maven dependency resolution and loaded synthetic JAR; no third-party vulnerability audit"
+    },
+    "selectedPatch": "locale-repair",
+    "modelCalls": 0,
+    "networkCalls": 0,
+    "callCountScope": "Known fixture execution intent; no model/network client invoked and Maven is offline. Not OS-level monitoring or binary attestation.",
+    "limits": {
+      "executionSeconds": 180,
+      "commandOutputBytes": 131072,
+      "commandCleanupSeconds": 1,
+      "acceptedPatchBytes": 16384,
+      "acceptedTargets": [
+        "TicketRouter.java"
+      ]
+    },
+    "scope": "Actual synthetic Git/JDK/Maven experiment, not a live coding-provider run, learner participation, OS sandbox, production incident, security audit or universal equivalence proof.",
+    "ownedWorkspaceRemoved": true
+  }
+}

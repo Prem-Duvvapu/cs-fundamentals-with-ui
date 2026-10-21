@@ -190,6 +190,9 @@ approval determine whether a refund can happen.
 
 A coding assistant can help explain unfamiliar code, draft a test, or compare design options. Give it the smallest relevant code and a clear acceptance criterion; avoid pasting production secrets or customer records. Review generated code as you would a human contribution: run tests, inspect authorization and failure paths, and verify dependency versions against primary documentation. The assistant's confident explanation is a hypothesis until the repository or a test supports it.
 
+The [review-and-debug exercise](../../examples/engineering-workflow/AI_ASSISTED_REVIEW.md) asks you to inspect a generated patch before executing it and preserve independently written business tests.
+A real compiler catches invented APIs, but compiling code can still violate business-rule precedence or locale contracts. An owned temporary folder is not a sandbox.
+
 For an AI feature in a product, begin with a measurable baseline and a fixed evaluation set. Record the task, model/API version, prompt template, schema, retrieval settings if any, and the expected output for representative and adversarial cases. Measure quality, invalid output rate, latency, token use, and cost per accepted result. Compare a cheaper or smaller model before adding a larger one; different tasks justify different choices. Pin changes and rerun the evaluation set before rollout.
 
 **Interview answer:** “I treat model output as untrusted data, use a constrained output shape, validate it server-side, bound time and cost, and keep authorization and side effects in application code. I compare against a simple baseline with a versioned evaluation set, then monitor real failures and feed corrected examples back into that set.”

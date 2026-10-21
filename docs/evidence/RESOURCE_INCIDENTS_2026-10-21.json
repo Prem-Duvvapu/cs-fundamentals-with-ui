@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "evidence": "actual-owned-kind-ci",
+  "observedDate": "2026-10-21",
+  "sourceCommit": "5c7d746bbd5b6083cf4e70a734f030315f090caf",
+  "mergedCommit": "1170bb4a232448cc54fc18e0b80cd5880723ff56",
+  "pullRequest": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/79",
+  "run": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39654843602",
+  "artifact": "operations-evidence",
+  "downloadedResultSha256": "1d9ee337dd2955559b8d59897a238f47ee1e8e1770209af1431cb09119bd714b",
+  "actualCasesExecuted": 8,
+  "actualResourceCasesExecuted": 3,
+  "skipped": 0,
+  "cleanupVerified": true,
+  "resources": {
+    "heap": {
+      "podUid": "c54d3f06-a5a2-4581-a3f3-f4936b565b0d",
+      "restartCount": 0,
+      "exitCode": 3,
+      "reason": "Error",
+      "diagnosticLogSha256": "aff8dafc746354b1c2bb01ef30a01aee2b8acdf70cf03688e2724e6dd6b85022",
+      "observedJavaHeapOome": "java.lang.OutOfMemoryError: Java heap space"
+    },
+    "native": {
+      "podUid": "4b550a76-6c8f-41d5-8c81-844f55fb9f2d",
+      "restartCount": 0,
+      "exitCode": 137,
+      "reason": "OOMKilled",
+      "diagnosticLogSha256": "70f600e4993b21b42054576517ada2a49bddd1d25c83e09e52742c26535b93c6",
+      "observedMemoryMaxBytes": 100663296
+    },
+    "cpu": {
+      "podUid": "79750692-7a94-473c-a5b4-cbc41cc7ca97",
+      "restartCount": 0,
+      "exitCode": 0,
+      "reason": "Completed",
+      "diagnosticLogSha256": "d196ae3aaadb2618eae2fbf7cabb3abff27694f042d872b15bf128850476408c",
+      "observation": {
+        "cgroupVersion": 2,
+        "cpuMax": "10000 100000",
+        "elapsedMillis": 8000,
+        "before": {
+          "usage_usec": 72922,
+          "nr_periods": 6,
+          "nr_throttled": 5,
+          "throttled_usec": 392412
+        },
+        "after": {
+          "usage_usec": 870960,
+          "nr_periods": 86,
+          "nr_throttled": 85,
+          "throttled_usec": 5673602
+        },
+        "delta": {
+          "usage_usec": 798038,
+          "nr_periods": 80,
+          "nr_throttled": 80,
+          "throttled_usec": 5281190
+        }
+      }
+    }
+  },
+  "scope": "Selected sanitized observations from a single actual CI run, revalidated with lab validators. Not host stress, production capacity, cloud IAM/network-policy evidence or a future guarantee."
+}

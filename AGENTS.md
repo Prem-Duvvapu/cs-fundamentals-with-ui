@@ -1,5 +1,16 @@
 # AI Agent Context — Backend Engineering
 
+## Current completion scope — October 21
+
+The core curriculum and UI refinement are delivered. The expanded practical plan remains active;
+use [the capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
+and its dated merged-release evidence, not earlier historical pending counts, for current scope.
+PR79 verified all eight actual kind recovery/resource cases with cleanup; cloud IAM/network cases
+remain open. Both frozen model prompts fail the held-out field gate and keep the original default.
+Follow [editorial maintenance](docs/EDITORIAL_MAINTENANCE.md) when correcting claims or dependencies;
+keep declared, resolved and executed compatibility distinct. No prepared protocol or AI-authored
+persona counts as a real learner, manual screen-reader or browser-zoom session.
+
 
 ## Visitor analytics
 
@@ -780,3 +791,10 @@ with task correctness, or call AI-authored synthetic labels human calibration. N
 after inspecting the public holdout requires a new separated evaluation. All actual kind resource
 cases run only in owned nonprivileged disposable Pods; never run resource stress on the host or
 weaken OOMKilled/exit137/cgroup-limit/throttling evidence into a generic process failure.
+
+
+The [AI-assisted engineering exercise](examples/engineering-workflow/AI_ASSISTED_REVIEW.md)
+compares reviewed fixture patches using actual Java 17 compilation, independent routing/locale
+tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
+a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
+teaching corrections while preserving existing diagrams, questions and learner identities.
