@@ -10,6 +10,16 @@ Real frames/events establish conditional checks, steps and a caught exception. B
 exact process-group cleanup, sanitized evidence and imported-source checks are mandatory; the module
 adds no platform endpoint, production debugger listener or arbitrary external attach command.
 
+`KafkaRebalanceBrokerTest` extends the existing messaging module without changing outbox/saga
+implementation. Two independent owner threads poll a fresh two-partition topic/group; broker Admin
+state and real rebalance callbacks establish disjoint ownership. One member commits a DurableStore
+effect but withholds its Kafka offset, then closes; the survivor replays the same partition/offset/
+event, suppresses a second local effect, accepts a fresh marker and commits recovery offsets.
+Owner-thread close disables pending wakeups before revocation; the actual test injects that boundary
+and requires successful final callback commits. The existing broker workflow refuses skipped cases
+and requires a sanitized JSON receipt plus exact topic/group/thread/container cleanup. This does
+not establish process crash, broker failover, multiple broker durability or global exactly-once work.
+
 The isolated [SSRF module](examples/backend-ssrf/README.md) implements operator-registered partner
 document requests, bounded subprocess resolution, all-address policy, numeric-peer HTTP/TLS with
 original-host certificate verification, no redirects and byte/deadline/admission limits. It adds
