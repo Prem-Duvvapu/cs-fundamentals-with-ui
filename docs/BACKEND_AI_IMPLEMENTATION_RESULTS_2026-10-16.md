@@ -580,3 +580,20 @@ skipped because Docker is unavailable locally. Final source compilation passes a
 review finds no remaining concrete blocker. The dedicated actual-brokers workflow requires all
 three broker test classes without skips plus the complete rebalance receipt. Actual execution and
 release remain pending until that job succeeds; no native observation is promoted to broker evidence.
+
+## Authenticated session/WebSocket continuation — unreleased
+
+Source6d5c389 plus the admission correctionb93a49d (integrated337d267/68ab14c) add a narrowly
+scoped session-login/socket exercise using unchanged Task Tracker production source. All22 actual
+HTTP/session/WebSocket cases,9 policy tests and5 Python harness tests pass without skips. Actual
+Java17, Boot4.1.1, Framework7.0.9 and Tomcat11.0.24 are observed. The
+[local final-source receipt](evidence/WEBSOCKET_SESSIONS_2026-10-21.json) binds the checked source,
+JAR and sanitized transport observations. Remote integrated release remains required.
+
+RCA17 records the reproduced invalidation-before-admission defect and live-session membership fix.
+A test-only filter holds a real authenticated upgrade across actual reauthentication; the old
+principal is refused and the fresh session succeeds. Other cases cover fixation/CSRF, exact Origin,
+roles, whole/fragmented message bounds, ACK pressure, command/idle limits, logout, independent
+servlet expiry, unchanged REST checks and shutdown. This is local JSON echo with bounded state,
+not distributed revocation, TCP receive-window saturation, TLS, production capacity or a human
+browser/learner session. BEC12/56 and BE06 advance; broader service/gateway work remains separate.

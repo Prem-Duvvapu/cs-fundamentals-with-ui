@@ -184,3 +184,9 @@ before running it against the owned broker: two group members each own a partiti
 can succeed before its offset commit. Follow the exact record after member departure and explain
 why the durable inbox suppresses a second effect. Compare that controlled close with the separate
 actual process-crash saga cases; neither implies global exactly-once processing.
+
+For session lifetime and long-lived connections, use [the authenticated WebSocket exercise](../examples/backend-websocket/README.md).
+Predict login-CSRF and fixation behavior, inspect the real cookie upgrade, then compare an
+established socket's logout with an upgrade paused across reauthentication. Explain why current
+HTTP authentication alone does not preserve a long-lived connection's authorization. Diagnose
+ACK pressure, idle expiry and message bounds separately; the exercise does not simulate a TCP stall.

@@ -740,3 +740,33 @@ compression and paraphrase, not just simulator deletion; a semantic equivalent d
 an intentionally literal evidence contract. Final-head CI must rerun before merge.
 
 **Resolving commit:** 7ea7a72 (source c0a424a500db4ab0b6cfcfd26195d075d6234ab4).
+
+## RCA-2026-10-21-17 — late WebSocket admission revived a revoked session
+
+**Observed:** prerelease review identified invalidate-before-reserve ordering in source6d5c389.
+A focused actual registry regression failed: after invalidate(oldId) returned with no reservations,
+reserve(alice,oldId) still returned a new reservation. The old test covered only invalidation
+following admission. No released platform endpoint or external session was affected.
+
+**Cause:** invalidation closed existing reservations but recorded no live authentication state;
+reserve accepted any retained request's principal and session ID. A request authenticated before
+reauthentication can reach the endpoint later. Tomcat getId alone does not establish validity.
+
+**Resolution:** successful form login registers the live session ID and principal in a bounded
+map; destruction/rotation removes membership under the admission lock. Admission never creates
+authentication membership, checks the exact principal and rejects stale requests with401.
+Registration validates servlet session liveness under the same lock; bind also rechecks membership.
+The map has at most32 entries, removes destroyed IDs and clears at shutdown, avoiding unbounded
+revocation tombstones. Existing connection/capacity release remains idempotent.
+
+**Verification/prevention:**9 policy tests pass, including late admission after invalidation,
+a retained Alice principal against Bob's rotated session, and registration after destruction.
+The real transport test pauses an actual authenticated Alice upgrade after the security chain,
+performs Bob form login/ID rotation over HTTP, then releases the request:401 is mandatory and a
+fresh Bob socket must echo successfully. All22 actual transport cases and5 Python harness guards
+pass, preserving established-socket logout, independent actual expiry, original REST owner/CSRF,
+ACK/message limits and cleanup. The sanitized source-bound receipt records actual Java17,
+Boot4.1.1,Framework7.0.9 and Tomcat11.0.24; dedicated final-head CI remains required. Cover both
+orders around revocation, not just closing already-admitted sockets.
+
+**Resolving commit:**68ab14c (source b93a49d; original module6d5c389).

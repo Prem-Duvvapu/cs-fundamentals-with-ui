@@ -2,6 +2,14 @@
 
 ## Current completion scope — October 21
 
+The [session/WebSocket lab](examples/backend-websocket/README.md) imports unchanged Task Tracker
+source and adds only its explicit lab routes and ordered session-login chain. Keep real form
+login/CSRF/ID rotation, exact bound Origin, cookie-only identity and service authorization. Upgrade
+admission requires a live session-ID/principal registration; invalidation and admission share a
+lock, and stale requests cannot register themselves. Preserve the positioned actual reauthentication
+regression,22 HTTP/session/socket cases,9 policy tests, bounded ACK/queue/native timeouts, actual
+expiry and exact cleanup. No TCP-stall, distributed-session or GUI/browser evidence is implied.
+
 When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
 evidence in the affected lesson and run `node scripts/audit-simulation-questions.mjs --check`.
 Preserving question IDs, code blocks and diagrams alone does not preserve these prose citations;
