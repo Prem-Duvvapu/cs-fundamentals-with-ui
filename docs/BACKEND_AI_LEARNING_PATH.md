@@ -172,3 +172,9 @@ an allowed hostname alone is insufficient, then observe all-answer checks, pinne
 original-host TLS identity and redirect refusal. Distinguish a policy rejection before HTTP from
 a transport failure. Keep application destination authorization separate from production egress
 enforcement; the Python laboratory does not add a Spring controller or arbitrary-URL crawler.
+
+To debug configuration and execution, use [actual Spring and JDI](../examples/backend-debugging/README.md).
+Predict which value wins across the resource file, profile, environment and CLI; inspect the running
+application's property origins and actual HTTP exposure. Reproduce and repair the bad override.
+Then inspect a conditional breakpoint, step into the existing service/repository and observe a
+caught exception. Explain the evidence before translating those steps into your own IDE workflow.

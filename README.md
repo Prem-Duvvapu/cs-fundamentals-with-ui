@@ -547,3 +547,10 @@ The [six-page reference-notes review](docs/JAVA_REFERENCES_SOURCE_REVIEW_2026-10
 the source's wrapper/pass-by-reference explanation. The memory lesson now traces boxing,
 immutable Integer alias reassignment and null unboxing in Java 17, retaining existing examples,
 diagrams, question identities and saved answers.
+
+The [configuration and debugger exercise](examples/backend-debugging/README.md) runs the unchanged
+Task Tracker to show which Spring property source wins, which profile-selected beans are active,
+and what HTTP endpoints are actually exposed. It reproduces an invalid-port startup and its repair,
+then uses real JDI breakpoints, stepping and a caught exception on owned Java processes. Run
+`python3 examples/backend-debugging/verify.py` with the documented cached dependencies and JDK.
+This provides executable debugging evidence; a real learner's IDE session remains separate.

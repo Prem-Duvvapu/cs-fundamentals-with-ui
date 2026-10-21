@@ -7,6 +7,14 @@ evidence in the affected lesson and run `node scripts/audit-simulation-questions
 Preserving question IDs, code blocks and diagrams alone does not preserve these prose citations;
 run this gate for compression/paraphrase as well as simulator deletion. See RCA15.
 
+The [Spring configuration/JDI lab](examples/backend-debugging/README.md) must keep imported Task
+Tracker source/resources unchanged. Preserve actual Environment origins, bound exposure, HTTP and
+profile-selected bean checks; never replace them with a hand-built precedence resolver. Bad-port
+failure occurs during real configuration-condition conversion before ordinary binding finishes.
+JDI may listen only on its ephemeral loopback endpoint for its fixed owned target; keep event/thread/
+frame identity, finite waits, cleanup and source checks. Preserve sanitized reports, cancellation
+ownership guards and dedicated actual-service CI. A JDI fixture is not a GUI or participant session.
+
 The [registered-partner SSRF lab](examples/backend-ssrf/README.md) is independent of the platform
 runtime. Keep exact operator origins/operations, all-answer address validation, pinned numeric
 connection and original-host TLS identity coupled. No redirect, caller credential/proxy forwarding,
