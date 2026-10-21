@@ -42,7 +42,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-08 | Partial: actual frozen prompt regression with paired cases; model/context upgrades open | Quality drops after an upgrade |
 | D-09 | Partial: failure-inclusive cost arithmetic and unknown-usage diagnosis; comparative budget report open | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
-| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR labs; IDE/config open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
+| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; configuration and JDI locally verified, release pending; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
@@ -511,3 +511,28 @@ explanation at600 lines; the unchanged migration gate passes109/109. RCA15 recor
 local gate and requires it for future paraphrases as well as deletions. No migration ledger or
 test is weakened; final-head CI remains required. The final integrated reader/component run passes
 269 tests and the full content gate passes68/68 with83 mappings.
+
+## Configuration and JDI continuation — unreleased
+
+Source c8e92fc0930c298b16eb90c40a1a0fda081d73df (integrated 1148cf4) supplies
+`examples/backend-debugging`. Six actual launches demonstrate resource/profile/environment/CLI
+precedence with safe origins, real bound exposure and health/metrics HTTP, plus typed bad-port
+configuration-condition conversion and repaired startup. Unchanged TaskTracker source/resources
+provide real default/production beans; no test-property precedence or actuator/env endpoint is used.
+
+The actual JDI exercise compiles unchanged domain source with debug symbols, launches its own
+synthetic target behind an ephemeral loopback listener, evaluates three observed breakpoint states
+with one match, steps into service/repository and observes the caught IllegalArgumentException.
+All six native tests pass, including real cancellation ownership, bounded execution/output, report
+privacy, source preservation and cleanup. Dedicated final-head CI must prove the actual integration
+cases; compilation or the four guard tests alone cannot close them. No GUI/human IDE, unfamiliar
+repository, private configuration inspection or production debugger session is claimed.
+
+Follow-up ef46260a570a582b160332ea767be7e7ccf4c564 (integrated 9fa4862) records the actual
+runtime of every Spring child, including failed startup, the debugger and its attached debuggee.
+Compiler target17 is separate metadata; all actual child feature gates require17. Protocol-reported
+debuggee version may omit a build suffix and is not substituted for Runtime.version(). The final
+six-test run and exact workflow evidence checks pass with imported sources and cleanup verified.
+The [persistent local receipt](evidence/BACKEND_DEBUGGING_2026-10-21.json) retains actual safe
+origins, runtime/event observations and source/report hashes. No other-major runtime was executed;
+negative receipt tests are not a cross-JDK experiment. Remote release CI remains required.

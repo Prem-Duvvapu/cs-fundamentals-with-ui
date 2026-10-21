@@ -1,5 +1,15 @@
 # Backend Engineering — System Architecture & Development Context
 
+`examples/backend-debugging` imports Task Tracker source/resources unchanged through an isolated
+Boot 4.1.1/Java-17-targeted Maven module. Its normal SpringApplication observer reads one nonsecret
+property, ordered source origins, actual bound actuator exposure and profile-selected beans. Owned
+HTTP launches compare resource defaults, production profile, environment and CLI, followed by a real
+bad-port conversion failure and repaired startup. The separate JDI fixture compiles unchanged domain
+sources with debug symbols, binds an ephemeral loopback listener and launches only its known target.
+Real frames/events establish conditional checks, steps and a caught exception. Bounded execution,
+exact process-group cleanup, sanitized evidence and imported-source checks are mandatory; the module
+adds no platform endpoint, production debugger listener or arbitrary external attach command.
+
 The isolated [SSRF module](examples/backend-ssrf/README.md) implements operator-registered partner
 document requests, bounded subprocess resolution, all-address policy, numeric-peer HTTP/TLS with
 original-host certificate verification, no redirects and byte/deadline/admission limits. It adds
