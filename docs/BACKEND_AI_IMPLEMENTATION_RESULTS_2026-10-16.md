@@ -10,6 +10,9 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
+This table is the current scoped status through PR79 (October 21). The dated checkpoints below
+are history; later release evidence supersedes earlier CI-pending statements only for that scope.
+
 | Requirement | Status | Intended outcome / evidence |
 |---|---|---|
 | AI-01 | Partial: beginner guide and actual classifier | AI/ML from zero |
@@ -46,14 +49,14 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT plus signed-webhook replay/rotation/compatibility; generic SSRF open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
-| BE-08 / P1 | Partial: actual kind probe/routing/rollback CI verified; OOM/throttling/cloud cases open | Operations: Docker/Kubernetes/cloud |
+| BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
 | CLOSE-02 | Inventory plus execution/OOP source reviews verified; other notes/navigation/learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
-| CLOSE-05 | Pending | Editorial maintenance |
+| CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
 | CLOSE-06 | Partial: seven AI lessons with three rubrics each | Practice consistency |
 
 ## Integration checkpoints
@@ -347,3 +350,34 @@ final-head remote CI. No Testcontainers/cluster result is inferred from local co
 The integrated content validator passes all 68 lessons/83 manifest entries; all 295 diagram bodies
 and 953 question identities are preserved. The focused Markdown/parser suites pass 279 tests,
 and all 227 local links inspected in the touched learning/source/evidence documents resolve.
+
+
+## PR79 merged release evidence — October 21
+
+[PR79](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/79) merged at 18:46:07 UTC as
+1170bb4a232448cc54fc18e0b80cd5880723ff56. All twelve checks passed at exact head
+5c7d746bbd5b6083cf4e70a734f030315f090caf, including frontend browser/accessibility/diagram checks,
+platform and practical AI tests, real-backend journey, pgvector, actual OCR, containers, labs,
+security and preview. Dedicated unchanged identity/messaging/testing workflows were not triggered;
+their earlier release evidence remains separate. The original main worktree was fast-forwarded cleanly.
+
+The [actual kind resource job](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39654843602)
+executes all eight cases with zero skips and verified cleanup. Heap allocation produces Java heap
+OOME and exit 3/Error. Native allocation records memory.max=100663296 and actual 137/OOMKilled.
+The CPU Pod records cpu.max=10000 100000, 8,000ms elapsed, 798,038 additional usage microseconds,
+80 additional throttled periods and 5,281,190 additional throttled microseconds. These are bounded
+single-run observations, not saturation or capacity measurements. A [sanitized persistent receipt](evidence/RESOURCE_INCIDENTS_2026-10-21.json)
+retains selected values and source-log/result hashes; the original CI artifact remains separate.
+
+This release supersedes the preceding resource-CI-pending statements. Neither live prompt meets
+the held-out field-quality target; learned semantic relevance, human answer support, remaining
+Java source/navigation/pilot work and real learner/manual accessibility checks remain open.
+
+## Editorial maintenance artifact
+
+The [maintenance guide](EDITORIAL_MAINTENANCE.md) supplies CLOSE-05's missing repeatable process:
+dated source/evidence receipts, declared/locked/tested compatibility, six-path risk-based review,
+joint explanation/code/answer/rubric corrections, protected learner state, release checks and
+handoff. Its dependency/workflow snapshot and 41 local links were checked against repository
+sources. It does not constitute a new runtime compatibility test, future scheduled execution,
+assigned human editor, learner study or completion of other closure requirements.

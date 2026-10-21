@@ -1,5 +1,13 @@
 # Backend Engineering
 
+Current scope: the core curriculum and UI refinement are delivered; the expanded practical
+backend/AI roadmap is still in progress. [PR79](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/79)
+ships the frozen prompt comparison, actual Kubernetes resource incidents and Java OOP source review.
+Use the [current capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
+for what remains. Dated milestones below retain their original evidence; they are not blanket
+completion claims. The [editorial maintenance guide](docs/EDITORIAL_MAINTENANCE.md) defines how to
+keep explanations, examples, dependencies and sources current.
+
 Part of the [Learning Hub](https://learning-hub-with-ui.vercel.app/).
 The shared **Learning network** navigation offers Learning Home and same-tab
 links between DSA, LLD, HLD, and CS fundamentals on every route. These remain

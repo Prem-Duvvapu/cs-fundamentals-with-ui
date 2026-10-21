@@ -1,5 +1,12 @@
 # Backend Engineering — System Architecture & Development Context
 
+Current delivery and remaining capability scope are recorded in the
+[implementation ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger).
+PR79's actual resource cases and frozen comparison are shipped; human learning/accessibility,
+remaining source alignment and broader practical gates stay explicit. Follow the
+[editorial maintenance process](docs/EDITORIAL_MAINTENANCE.md) for source/runtime receipts,
+compatibility claims and coordinated curriculum/example corrections.
+
 
 ## Visitor analytics
 

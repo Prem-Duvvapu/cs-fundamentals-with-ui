@@ -1,5 +1,16 @@
 # AI Agent Context — Backend Engineering
 
+## Current completion scope — October 21
+
+The core curriculum and UI refinement are delivered. The expanded practical plan remains active;
+use [the capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
+and its dated merged-release evidence, not earlier historical pending counts, for current scope.
+PR79 verified all eight actual kind recovery/resource cases with cleanup; cloud IAM/network cases
+remain open. Both frozen model prompts fail the held-out field gate and keep the original default.
+Follow [editorial maintenance](docs/EDITORIAL_MAINTENANCE.md) when correcting claims or dependencies;
+keep declared, resolved and executed compatibility distinct. No prepared protocol or AI-authored
+persona counts as a real learner, manual screen-reader or browser-zoom session.
+
 
 ## Visitor analytics
 

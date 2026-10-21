@@ -83,3 +83,15 @@ The audit now reports that explicit error as **confirmed `render-contract-incomp
 The deterministic test suite passes all eleven tests with actual loopback HTTP and Chromium. Passing fixtures prove the detection behavior, not deployed availability. Activation of PR/scheduled monitoring still requires merging this workflow; its first scheduled execution is separate release evidence.
 
 Primary behavior references: [Playwright page navigation and waits](https://playwright.dev/docs/api/class-page), [Playwright browser contexts](https://playwright.dev/docs/api/class-browsercontext), [GitHub scheduled workflow events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule), and [Node.js built-in fetch and AbortSignal](https://nodejs.org/api/globals.html), and [Chromium Fetch request interception](https://chromedevtools.github.io/devtools-protocol/tot/Fetch/). The workflow uses the Playwright version in `frontend/package-lock.json`; it does not install a second moving browser-tool version.
+
+
+## October 21 bounded follow-up
+
+A read-only follow-up attempted the public cache-aside topic and simulation descriptor endpoints
+with separate five-second connection/fifteen-second total curl budgets and a 4 MiB body cap.
+Both requests reached the total deadline (curl 28, about 15 seconds each); no JSON descriptor,
+model version or rendered lesson was verified. This is current unavailability evidence, not
+proof of removal or proof that the October 18 compatibility defect persists unchanged. The
+original finding remains unresolved until a successful descriptor/preset/run and learner-page
+check establishes the repaired state. No sibling source, deployment or destination was changed.
+The monitoring workflow is now merged; actual future schedule execution still needs its own receipt.
