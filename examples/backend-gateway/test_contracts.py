@@ -125,6 +125,72 @@ class GatewayContracts(unittest.TestCase):
             with self.assertRaises(ValueError):
                 commands.run(['never'],lab.ROOT,commands.Budget.start(),timeout=timeout)
 
+    def test_actual_leader_exit_descendant_stdout_timeout_and_cancellation_cleanup(self):
+        actual_popen, actual_killpg = subprocess.Popen, os.killpg
+        unrelated = actual_popen([sys.executable, '-c', 'import time;time.sleep(30)'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        def not_running(pid):
+            try:
+                state = Path('/proc/'+str(pid)+'/stat').read_text().rsplit(')', 1)[1].split()[0]
+                return state in ('Z', 'X')
+            except FileNotFoundError:
+                return True
+        try:
+            for cancellation in (None, signal.SIGTERM, signal.SIGINT):
+                with self.subTest(cancellation=cancellation), tempfile.TemporaryDirectory(prefix='owned-gateway-descendant-') as directory:
+                    pidfile = Path(directory)/'descendant.pid'
+                    source = ('import subprocess,sys;from pathlib import Path;'
+                        'child=subprocess.Popen([sys.executable,"-c","import time;time.sleep(30)"]);'
+                        'Path(sys.argv[1]).write_text(str(child.pid))')
+                    created, observed = [], []
+                    ready, finish = threading.Event(), threading.Event()
+                    before = {number:signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
+                    def spawn(*args, **kwargs):
+                        process = actual_popen(*args, **kwargs); created.append(process); return process
+                    def interrupt_after_exit():
+                        deadline = time.monotonic()+3
+                        while time.monotonic()<deadline and not finish.is_set():
+                            if created and pidfile.exists() and created[0].poll()==0:
+                                observed.append(True); ready.set()
+                                if cancellation is not None: os.kill(os.getpid(), cancellation)
+                                return
+                            time.sleep(.001)
+                    observer = threading.Thread(target=interrupt_after_exit)
+                    observer.start()
+                    try:
+                        with patch.object(commands.subprocess, 'Popen', side_effect=spawn), patch.object(commands.os, 'killpg', wraps=actual_killpg) as killed:
+                            with commands.cancellation_guard(), self.assertRaises(commands.LabFailure):
+                                commands.run([sys.executable, '-c', source, str(pidfile)], directory,
+                                    commands.Budget.start(5), timeout=1 if cancellation is None else 4)
+                        self.assertTrue(ready.wait(1), 'Positioned observation must see actual leader exit before cleanup')
+                        self.assertEqual([True], observed)
+                        descendant = int(pidfile.read_text())
+                        deadline = time.monotonic()+1
+                        while not not_running(descendant) and time.monotonic()<deadline: time.sleep(.005)
+                        self.assertTrue(not_running(descendant), 'Owned descendant must be absent or not running; no grandchild reap claim')
+                        self.assertEqual(0, created[0].returncode)
+                        self.assertTrue(created[0].stdout.closed)
+                        self.assertTrue(killed.call_args_list)
+                        self.assertTrue(all(call.args==(created[0].pid, signal.SIGKILL) for call in killed.call_args_list))
+                        self.assertIsNone(unrelated.poll(), 'Unrelated new-session group must remain running')
+                        for number, handler in before.items(): self.assertIs(handler, signal.getsignal(number))
+                    finally:
+                        finish.set(); observer.join(timeout=1)
+                        for process in created:
+                            try: actual_killpg(process.pid, signal.SIGKILL)
+                            except ProcessLookupError: pass
+                            process.wait(timeout=1); process.stdout.close()
+                    self.assertFalse(observer.is_alive())
+        finally:
+            actual_killpg(unrelated.pid, signal.SIGKILL); unrelated.wait(timeout=1)
+
+    def test_actual_non_group_timeout_never_signals_process_group(self):
+        with patch.object(commands.os, 'killpg') as kill_group:
+            with self.assertRaises(commands.LabFailure):
+                commands.run([sys.executable, '-c', 'import time;time.sleep(5)'], lab.ROOT,
+                    commands.Budget.start(5), timeout=.1, new_session=False)
+            kill_group.assert_not_called()
+
     def test_actual_term_int_popen_startup_owned_child_reaped_handlers_and_masks_preserved(self):
         real=commands.subprocess.Popen
         for number in [signal.SIGTERM,signal.SIGINT]:

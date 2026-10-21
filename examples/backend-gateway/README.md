@@ -198,7 +198,12 @@ this lab does not claim long-lived-connection or failed-reload coverage.
 ## 7. Verify cleanup and limits honestly
 
 The executable restores its prior TERM/INT handlers, defers cancellation until child ownership
-is assigned, and reaps owned command children. Native regressions deliver actual TERM/INT at
+is assigned, and reaps the directly owned command child. Cleanup signals its owned new-session
+process group even when the launcher has already exited: a descendant can still hold stdout
+open. Positioned regressions exercise both deadline and TERM/INT after actual leader exit,
+verify the descendant is absent or no longer running, close the captured pipe, and keep an
+independent process group alive. An orphaned grandchild is reaped by its OS parent, not by this
+runner. Non-group commands retain individual-child termination. Native regressions deliver actual TERM/INT at
 startup, including delivery via another live thread, and during handler installation. It never
 changes caller signal masks. Library helpers do not install handlers on their own.
 

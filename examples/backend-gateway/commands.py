@@ -87,18 +87,20 @@ def environment():
 
 
 def stop(process, group=True):
-    if process.poll() is None:
-        try:
-            if group:
-                os.killpg(process.pid, signal.SIGKILL)
-            else:
-                process.kill()
-        except ProcessLookupError:
-            pass
+    # A completed session leader can leave descendants holding its stdout pipe.
+    # The new-session group remains owned even after that leader has exited.
+    try:
+        if group:
+            os.killpg(process.pid, signal.SIGKILL)
+        elif process.poll() is None:
+            process.kill()
+    except ProcessLookupError:
+        pass
     try:
         process.wait(timeout=1)
     except subprocess.TimeoutExpired:
         process.kill()
+        process.wait(timeout=1)
 
 
 def run(args, cwd, budget, *, timeout=15, check=True, new_session=True, output_limit=128 * 1024):
