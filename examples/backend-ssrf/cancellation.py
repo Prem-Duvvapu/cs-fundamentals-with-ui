@@ -37,9 +37,15 @@ class CancellationScope:
             if not self.state['depth']:
                 self.state['delivered'] = True
                 raise Cancelled('termination_requested')
-        _cancellation.state = self.state
-        for number in self.previous:
-            signal.signal(number, stop)
+        try:
+            _cancellation.state = self.state
+            for number in self.previous:
+                signal.signal(number, stop)
+        except BaseException:
+            for number, handler in self.previous.items():
+                signal.signal(number, handler)
+            _cancellation.state = self.outer
+            raise
         return self
 
     def __exit__(self, *args):

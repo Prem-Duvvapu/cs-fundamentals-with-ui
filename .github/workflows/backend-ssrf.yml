@@ -30,8 +30,8 @@ jobs:
           import json
           from pathlib import Path
           report=json.loads(Path('examples/backend-ssrf/build/evidence/result.json').read_text())
-          if report.get('schemaVersion')!=1 or report.get('testsRun')!=15 or any(report.get(key)!=0 for key in ['failures','errors','skipped']):
-              raise SystemExit('All 15 tests without failures/errors/skips required')
+          if report.get('schemaVersion')!=1 or report.get('testsRun')!=16 or any(report.get(key)!=0 for key in ['failures','errors','skipped']):
+              raise SystemExit('All 16 tests without failures/errors/skips required')
           observations=report['observations']
           if report.get('cleanupVerified') is not True or observations.get('httpRequests')!=26 or observations.get('resolverChildren')!=observations.get('resolverChildrenReaped') or observations.get('temporaryTLSMaterialRemoved') is not True:
               raise SystemExit('Actual HTTP and complete cleanup evidence missing')
@@ -41,6 +41,9 @@ jobs:
           huge=cases['actual_huge_decimal_length_typed_rejection_and_recovery']
           if huge.get('decimalDigits')!=5000 or huge.get('rejection')!='body_limit' or huge.get('recoveryAccepted') is not True:
               raise SystemExit('Actual huge decimal framing containment and capacity recovery required')
+          entry=cases['actual_scope_entry_term_int_rollback_and_normal_restoration']
+          if entry.get('signals')!=['TERM','INT'] or not all(entry.get(key) is True for key in ['previousHandlersRestored','outerStateRestored','signalMaskPreserved']):
+              raise SystemExit('Actual cancellation-scope entry rollback and normal restoration required')
           startup=cases['actual_spawn_ownership_term_int_and_threaded_delivery']['scenarios']
           if len(startup)!=4 or not all(item.get('reaped') is True and item.get('priorHandlersAndMaskPreserved') is True for item in startup):
               raise SystemExit('Actual TERM/INT spawn ownership and threaded-delivery cleanup required')

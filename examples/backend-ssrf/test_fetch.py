@@ -311,6 +311,38 @@ class SSRFTests(unittest.TestCase):
         self.assertEqual(0, server.count())
         self.record('actual_spawn_ownership_term_int_and_threaded_delivery', scenarios=outcomes, httpRequests=0)
 
+    def test_scope_entry_term_and_int_restore_handlers_and_outer_state_before_enter_returns(self):
+        import cancellation
+        real_signal = signal.signal
+        outer = getattr(cancellation._cancellation, 'state', None)
+        previous = {number:signal.getsignal(number) for number in [signal.SIGTERM, signal.SIGINT]}
+        mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        for number in [signal.SIGTERM, signal.SIGINT]:
+            injected = []
+            def installing(signum, handler):
+                value = real_signal(signum, handler)
+                if signum == number and not injected:
+                    injected.append(signum)
+                    os.kill(os.getpid(), signum)
+                return value
+            with self.subTest(signal=number):
+                with patch.object(signal, 'signal', side_effect=installing):
+                    with self.assertRaises(Cancelled):
+                        with CancellationScope():
+                            self.fail('entry cancellation must happen before the context body')
+                self.assertEqual([number], injected)
+                for item, handler in previous.items():
+                    self.assertEqual(handler, signal.getsignal(item))
+                self.assertIs(outer, getattr(cancellation._cancellation, 'state', None))
+                self.assertEqual(mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+                with CancellationScope():
+                    self.assertIsNot(outer, cancellation._cancellation.state)
+                for item, handler in previous.items():
+                    self.assertEqual(handler, signal.getsignal(item))
+                self.assertIs(outer, getattr(cancellation._cancellation, 'state', None))
+        self.record('actual_scope_entry_term_int_rollback_and_normal_restoration', signals=['TERM','INT'],
+                    previousHandlersRestored=True, outerStateRestored=True, signalMaskPreserved=True)
+
     def test_actual_sigterm_boundary_reaps_resolver_and_closes_fixture(self):
         report = run_regression()
         self.assertTrue(report['cancelled'])

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "execution": "actual-owned-loopback-http-and-tls",
-  "executedAt": "2026-10-21T19:33:50.513607+00:00",
+  "executedAt": "2026-10-21T19:36:34.653077+00:00",
   "addressPolicyVersion": "partner-address-v1-2026-10-21",
   "runtime": {
     "python": "3.13.3",
@@ -12,11 +12,11 @@
     "fetch.py": "638a41fa3680bfdaabd330455d756a32c1814688ed95edfaa52cf411635ffd87",
     "resolver_worker.py": "0ad23504c83cdfaf3004a92af779d2c98fca1520ff978849c22876efdd6d9ba5",
     "fixtures.py": "8c709d1a48f2f4d6befe8da752d3eac0069f69702f921b75f92f808f793c0dc4",
-    "test_fetch.py": "2de66f7953fce6dfdad74d3f88ffdf64011ef313ef28899d6e8e2d9db685235c",
-    "verify.py": "cae6b4f133e21cb57a6382c51246cfb9c3282c418ff1e009561b012508d097ba",
-    "cancellation.py": "f91174f8b5f5587e2166b6fe021427b8f251631c4f7d93e71bc37276922b4c74"
+    "test_fetch.py": "7650eb798f11f24430b0f192c7b1d20b4b5035e51f07d80365ba156a764daa2b",
+    "verify.py": "709aee9178ec7131f3a7b9f3b28b87d45eefe86db3b91bcdabc30ae5a2d29b0c",
+    "cancellation.py": "a4365aad5367ae166f144b0001879d2f135b624194396a69ec24d22149cb24a8"
   },
-  "testsRun": 15,
+  "testsRun": 16,
   "failures": 0,
   "errors": 0,
   "skipped": 0,
@@ -100,6 +100,16 @@
       "initialRequests": 8,
       "followedRequests": 0,
       "decoyRequests": 0
+    },
+    {
+      "case": "actual_scope_entry_term_int_rollback_and_normal_restoration",
+      "signals": [
+        "TERM",
+        "INT"
+      ],
+      "previousHandlersRestored": true,
+      "outerStateRestored": true,
+      "signalMaskPreserved": true
     },
     {
       "case": "actual_stalled_body_and_slow_drip_deadlines",

@@ -28,7 +28,7 @@ keys and short-lived resolver children. From the repository root:
 python3 examples/backend-ssrf/verify.py
 ```
 
-The executable accepts no URL or fetch destination. It runs **15 tests**, including
+The executable accepts no URL or fetch destination. It runs **16 tests**, including
 **26 actual HTTP requests**, real TLS handshakes, zero-follow redirect cases and an
 actual SIGTERM cancellation regression. Missing tools, skipped tests, failed
 assertions or incomplete cleanup fail the command. The dedicated
@@ -137,7 +137,10 @@ installs a restoring main-thread TERM/INT scope so cancellation raises through i
 owned-operation `finally` blocks, closes fixtures and removes temporary TLS files.
 The scope defers its own cancellation handler briefly across process creation,
 assignment and registration, inside an already-active cleanup `try/finally`. It
-preserves caller signal masks and restores both previous handlers; no `preexec_fn`
+preserves caller signal masks and restores both previous handlers. Entry is
+exception-safe: actual TERM/INT injection immediately after handler installation
+but before context entry completes rolls back both handlers and the outer scoped
+state. The same regression also checks normal restoration. No `preexec_fn`
 is used. Masking only the main thread would be insufficient when another unmasked
 thread receives the signal. A real-Popen startup regression delivers both TERM and
 INT before the caller receives its return value, including delivery through a

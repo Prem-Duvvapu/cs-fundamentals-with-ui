@@ -31,8 +31,8 @@ def main():
                 fixture.close()
             if hasattr(test_fetch.SSRFTests, 'directory'):
                 test_fetch.SSRFTests.directory.cleanup()
-    if not result.wasSuccessful() or result.skipped or result.testsRun != 15:
-        raise SystemExit('All 15 actual transport and policy tests must run without failures or skips')
+    if not result.wasSuccessful() or result.skipped or result.testsRun != 16:
+        raise SystemExit('All 16 actual transport and policy tests must run without failures or skips')
     counters = test_fetch.COUNTERS
     if counters['httpRequests'] != 26 or counters['resolverChildren'] != counters['resolverChildrenReaped'] or not counters['temporaryTLSMaterialRemoved']:
         raise SystemExit('Actual HTTP cases and complete owned resource cleanup are mandatory')
