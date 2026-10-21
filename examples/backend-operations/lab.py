@@ -21,6 +21,9 @@ BASE_DIGESTS = {
     'maven:3.9-eclipse-temurin-17':'sha256:1a352420f7aba21f5ad08df31bab55f74c013fb491f1ae8ab1dd7ff9ed698584',
     'eclipse-temurin:17-jre':'sha256:e04fa72be13b257a59fdec6dc14af78c8f80f035d3c1ed4e03e45552a231d4c8',
 }
+RESOURCE_CASES = {'heap': {'memory': '128Mi', 'cpu': '1'},
+                  'native': {'memory': '96Mi', 'cpu': '1'},
+                  'cpu': {'memory': '128Mi', 'cpu': '100m'}}
 NAME = re.compile(r'ops-[a-f0-9]{16}\Z')
 
 
@@ -112,6 +115,65 @@ def manifests(name, image, passwords):
             {'apiVersion':'v1','kind':'Service','metadata':meta('task'),'spec':{'selector':{'app':'task'},'ports':[{'port':9191,'targetPort':9191}]}},client]
 
 
+def resource_manifest(name, image, mode):
+    checked_name(name)
+    if image != f'cs-operations:{name}' or mode not in RESOURCE_CASES:
+        raise ValueError('Only this run image and fixed resource modes are allowed')
+    limits = dict(RESOURCE_CASES[mode])
+    return {'apiVersion': 'v1', 'kind': 'Pod', 'metadata': {
+        'name': 'resource-'+mode, 'namespace': name,
+        'labels': {'lab.csfundamentals/owner': name, 'lab.csfundamentals/resource': mode}},
+        'spec': {'automountServiceAccountToken': False, 'restartPolicy': 'Never',
+                 'activeDeadlineSeconds': 20, 'terminationGracePeriodSeconds': 1,
+                 'securityContext': {'runAsNonRoot': True, 'runAsUser': 10001, 'runAsGroup': 10001,
+                                     'seccompProfile': {'type': 'RuntimeDefault'}},
+                 'containers': [{'name': 'resource', 'image': image, 'imagePullPolicy': 'Never',
+                     'command': ['java', '-Xms16m', '-Xmx16m', '-Xss256k', '-XX:+UseSerialGC',
+                                 '-XX:ActiveProcessorCount=1', '-XX:MaxMetaspaceSize=32m',
+                                 '-XX:ReservedCodeCacheSize=16m', '-XX:MaxDirectMemorySize=160m',
+                                 '-XX:+ExitOnOutOfMemoryError', '-cp', '/probe', 'ResourceProbe', mode],
+                     'securityContext': {'allowPrivilegeEscalation': False,
+                                         'readOnlyRootFilesystem': True, 'capabilities': {'drop': ['ALL']}},
+                     'resources': {'requests': limits, 'limits': limits}}]}}
+
+
+def validate_resource_termination(mode, terminated, logs):
+    if mode not in RESOURCE_CASES:
+        raise ValueError('Unknown resource case')
+    if mode == 'heap':
+        if terminated.get('exitCode') in (0, 137) or terminated.get('reason') != 'Error':
+            raise RuntimeError('Heap OOME must be actual JVM failure, not kernel kill or successful exit')
+        if 'java.lang.OutOfMemoryError: Java heap space' not in logs or 'RESOURCE_PROBE heap' not in logs:
+            raise RuntimeError('Actual heap allocation/OOME diagnostic absent')
+    elif mode == 'native':
+        if terminated.get('exitCode') != 137 or terminated.get('reason') != 'OOMKilled':
+            raise RuntimeError('Actual cgroup OOMKilled exit 137 required; exit 137 alone is insufficient')
+        if 'RESOURCE_PROBE native memory.max=100663296' not in logs or 'OutOfMemoryError' in logs:
+            raise RuntimeError('Native allocation under observed 96MiB cgroup required, not Java OOME')
+    elif terminated.get('exitCode') != 0 or terminated.get('reason') != 'Completed':
+        raise RuntimeError('CPU workload must complete normally within its Pod deadline')
+
+
+def validate_cpu_observation(observation):
+    if observation.get('cgroupVersion') != 2:
+        raise RuntimeError('Actual cgroup-v2 CPU observation required')
+    try:
+        quota, period = map(int, observation['cpuMax'].split())
+    except (KeyError, TypeError, ValueError):
+        raise RuntimeError('Actual finite cpu.max quota/period required') from None
+    if quota <= 0 or period <= 0 or quota * 10 != period:
+        raise RuntimeError('Actual cpu.max must equal 100m')
+    if not 8000 <= observation.get('elapsedMillis', 0) <= 20000:
+        raise RuntimeError('Bounded actual CPU workload duration required')
+    for key in ['usage_usec', 'nr_periods', 'nr_throttled', 'throttled_usec']:
+        before = observation.get('before', {}).get(key)
+        after = observation.get('after', {}).get(key)
+        delta = observation.get('delta', {}).get(key)
+        if any(type(value) is not int for value in [before, after, delta]) or before < 0 or delta <= 0 or after-before != delta:
+            raise RuntimeError('Actual increasing CPU counter evidence required: '+key)
+    return observation
+
+
 class Lab:
     def __init__(self, name):
         self.name = checked_name(name)
@@ -121,7 +183,7 @@ class Lab:
         self.local_docker = False
         self.images_owned = False
         self.passwords = {key:secrets.token_urlsafe(24) for key in ['TASK_TRACKER_ALICE_PASSWORD','TASK_TRACKER_BOB_PASSWORD','TASK_TRACKER_VIEWER_PASSWORD','SPRING_DATASOURCE_PASSWORD']}
-        self.observations = {}
+        self.observations = {'schemaVersion': 2}
 
     def k(self, *args, timeout=20, data=None, check=True):
         return execute(['kubectl','--kubeconfig',str(BUILD/'kubeconfig'),'--context',f'kind-{self.name}',
@@ -168,7 +230,7 @@ class Lab:
             raise RuntimeError('Install pinned kubectl v1.37.0')
         if self.name in execute(['kind','get','clusters']).stdout.split():
             raise RuntimeError('Refusing existing kind cluster')
-        execute(['javac','--release','17','-d',str(BUILD),str(ROOT/'Probe.java')])
+        execute(['javac','--release','17','-d',str(BUILD),str(ROOT/'Probe.java'),str(ROOT/'ResourceProbe.java')])
         for image in [self.image,self.base_image]:
             if execute(['docker','image','inspect',image],check=False).returncode == 0:
                 raise RuntimeError('Refusing existing image tag collision')
@@ -183,7 +245,7 @@ class Lab:
         pinned.write_text(pinned_application_dockerfile((application/'Dockerfile').read_text()))
         build = execute(['docker','build','-f',str(pinned),'-t',self.base_image,str(application)],timeout=600)
         self.save('app-build.log',build.stdout+build.stderr)
-        (BUILD/'Dockerfile').write_text(f'FROM {self.base_image}\nCOPY Probe.class /probe/Probe.class\n')
+        (BUILD/'Dockerfile').write_text(f'FROM {self.base_image}\nCOPY Probe.class ResourceProbe.class /probe/\n')
         execute(['docker','build','-t',self.image,str(BUILD)],timeout=60)
         self.observations['applicationImageId'] = execute(['docker','image','inspect','--format','{{.Id}}',self.image]).stdout.strip()
         (BUILD/'kind.json').write_text(json.dumps({'kind':'Cluster','apiVersion':'kind.x-k8s.io/v1alpha4',
@@ -269,6 +331,39 @@ class Lab:
         self.observations['actualCasesExecuted'] = 5
         self.observations['skipped'] = 0
 
+
+    def resources(self):
+        results = {}
+        self.observations['resources'] = results
+        for mode in RESOURCE_CASES:
+            manifest = resource_manifest(self.name, self.image, mode)
+            self.k('create', '-f', '-', data=json.dumps(manifest))
+            def terminated_pod():
+                pod = self.obj('pod', 'resource-'+mode)
+                for status in pod.get('status', {}).get('containerStatuses', []):
+                    if status.get('state', {}).get('terminated'):
+                        return pod
+                return None
+            pod = self.until(mode+' resource Pod termination', terminated_pod, 45)
+            if pod['metadata']['labels'].get('lab.csfundamentals/owner') != self.name:
+                raise RuntimeError('Resource Pod ownership changed')
+            statuses = pod['status']['containerStatuses']
+            if len(statuses) != 1 or statuses[0].get('restartCount') != 0:
+                raise RuntimeError('Resource cases require one observed process without restart')
+            terminated = statuses[0]['state']['terminated']
+            logs = self.k('logs', 'resource-'+mode, '--tail=40').stdout.strip()
+            result = {'podUid': pod['metadata']['uid'], 'restartCount': 0,
+                      'termination': terminated, 'limits': manifest['spec']['containers'][0]['resources']['limits']}
+            results[mode] = result
+            self.save('resource-'+mode+'-pod.json', pod)
+            self.save('resource-'+mode+'.log', logs)
+            validate_resource_termination(mode, terminated, logs)
+            if mode == 'cpu':
+                result['observation'] = validate_cpu_observation(json.loads(logs))
+        self.observations['resources'] = results
+        self.observations['actualResourceCasesExecuted'] = 3
+        self.observations['actualCasesExecuted'] += 3
+
     def cleanup(self):
         if self.created:
             cleanup()
@@ -314,6 +409,7 @@ def main():
     try:
         lab.prepare()
         lab.journey()
+        lab.resources()
     finally:
         try:
             lab.cleanup()

@@ -37,14 +37,14 @@ jobs:
           echo "$RUNNER_TEMP/operations-bin" >> "$GITHUB_PATH"
       - name: Actual fresh kind cluster recovery cases (no skips)
         run: python3 examples/backend-operations/lab.py --run-cluster
-      - name: Require actual namespace, five completed cases and cleanup
+      - name: Require actual namespace, eight completed cases, resource signals and cleanup
         run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
           result=json.loads(Path('examples/backend-operations/build/evidence/result.json').read_text())
-          if not result.get('namespaceUid') or result.get('actualCasesExecuted')!=5 or result.get('skipped')!=0 or result.get('cleanupVerified') is not True:
-              raise SystemExit('Actual owned namespace/five recovery cases/cleanup required; contracts or skips are insufficient')
+          if not result.get('namespaceUid') or result.get('schemaVersion')!=2 or result.get('actualCasesExecuted')!=8 or result.get('actualResourceCasesExecuted')!=3 or result.get('skipped')!=0 or result.get('cleanupVerified') is not True:
+              raise SystemExit('Actual owned namespace/eight recovery and resource cases/cleanup required; contracts or skips are insufficient')
           for key in ['dnsAndAuthenticatedService','readinessRecovery','badRolloutOldReplicaAvailable','rollbackRecovery']:
               if result[key].get('authenticatedStatus')!=200 or result[key].get('dnsResolved') is not True:
                   raise SystemExit('Actual authenticated Service/DNS observation missing: '+key)
@@ -52,7 +52,20 @@ jobs:
               raise SystemExit('Actual Service withdrawal observation missing')
           if result.get('withdrawnReadyEndpointCount')!=0 or result.get('readinessSamePodNoRestart') is not True:
               raise SystemExit('Actual endpoint withdrawal/same-Pod recovery evidence missing')
-          print('Five actual cluster cases executed without skips; owned cluster cleanup verified.')
+          import sys
+          sys.path.insert(0, 'examples/backend-operations')
+          import lab
+          resources = result.get('resources', {})
+          if set(resources) != {'heap', 'native', 'cpu'}:
+              raise SystemExit('All three actual resource Pods are mandatory')
+          evidence = Path('examples/backend-operations/build/evidence')
+          for mode in resources:
+              item = resources[mode]
+              if not item.get('podUid') or item.get('restartCount') != 0:
+                  raise SystemExit('Actual no-restart resource Pod UID required: '+mode)
+              lab.validate_resource_termination(mode, item['termination'], (evidence/('resource-'+mode+'.log')).read_text())
+          lab.validate_cpu_observation(resources['cpu']['observation'])
+          print('Eight actual cluster cases executed without skips; heap OOME, cgroup OOMKill and CPU throttling observed; owned cluster cleanup verified.')
           PY
       - name: Retry only owned cluster cleanup on failure/cancellation
         if: always()

@@ -3,7 +3,8 @@
 This focused **BE-08** milestone takes the existing Java 17
 [Task Tracker](../java-spring/task-tracker/README.md) into an owned, single-node
 kind cluster. It observes actual cluster DNS, authenticated Service requests,
-readiness withdrawal/recovery and a failed rollout followed by rollback.
+readiness withdrawal/recovery, a failed rollout followed by rollback, and three
+separate JVM/container resource incidents.
 
 Read [Docker fundamentals](../../content/devops/01-docker-fundamentals.md),
 [Kubernetes fundamentals](../../content/devops/02-kubernetes-fundamentals.md) and
@@ -52,7 +53,9 @@ versions, checksums, node digest and Docker Official Image base-index digests.
 No `latest` image is used. The app's existing Dockerfile and source are consumed
 read-only: a private generated Dockerfile adds reviewed FROM digests and retains
 all its other instructions. If its two stages change, the lab fails for review.
-The derived lab image adds only the compiled diagnostic client class.
+The derived lab image adds only the compiled HTTP/DNS client and fixed resource
+workload classes. Neither class changes Task Tracker source or its runtime image
+base; resource probes run as separate short-lived Pods.
 
 From the repository root, first run the native contracts:
 
@@ -60,9 +63,12 @@ From the repository root, first run the native contracts:
 python3 -m unittest discover -s examples/backend-operations -p test_contracts.py -v
 ```
 
-These **nine** tests validate ownership, context selection, credential redaction,
+These **13** tests validate ownership, context selection, credential redaction,
 resource/probe manifests, reviewed base pins, cleanup decisions and an actual
-owned subprocess deadline. Mocked command results in guard tests are not API
+owned subprocess deadline. They compile `ResourceProbe.java` for Java 17 and reject
+unknown modes before work. Resource guards reject an ordinary exit 137 masquerading
+as OOMKilled, incorrect quotas, counter resets and missing throttle observations.
+They do not execute memory/CPU workloads on the host. Mocked command results in guard tests are not API
 responses or proof of cluster behavior.
 
 Then explicitly authorize the actual local, throwaway cluster journey:
@@ -72,7 +78,7 @@ python3 examples/backend-operations/lab.py --run-cluster
 ```
 
 This builds Task Tracker, creates a fresh random `ops-<16 hex characters>` cluster
-and matching namespace, loads the local image, runs the five observations, and
+and matching namespace, loads the local image, runs all eight observations, and
 cleans up. There is no option to attach to an existing cluster, supply a production
 context, target a public endpoint or provide an arbitrary namespace. The cluster
 API binds to `127.0.0.1`; the Service stays inside the cluster. No public host port
@@ -95,12 +101,14 @@ For a successful CI run, inspect `build/evidence/result.json`:
 
 ```json
 {
+  "schemaVersion": 2,
   "namespaceUid": "actual API-assigned UID",
   "dnsAndAuthenticatedService": {"dnsResolved": true, "authenticatedStatus": 200},
   "withdrawnReadyEndpointCount": 0,
   "readinessWithdrawal": {"dnsResolved": true, "connectionUnavailable": true},
   "readinessSamePodNoRestart": true,
-  "actualCasesExecuted": 5,
+  "actualCasesExecuted": 8,
+  "actualResourceCasesExecuted": 3,
   "skipped": 0,
   "cleanupVerified": true
 }
@@ -198,14 +206,113 @@ Only sanitized `build/evidence/` is uploaded. `build/kubeconfig`, `owner.json` a
 runtime Secrets are excluded. Cached upstream Docker layers/node images are left
 alone; reclaiming shared Docker storage is outside the lab's scope.
 
+## 6. Distinguish heap exhaustion, container memory and CPU throttling
+
+**Resource extension evidence status:** implementation/native guards are verified
+locally; actual resource observations require the dedicated CI job. A successful
+older five-case recovery run does not prove these three new cases. CI accepts
+only all eight actual cases, version 2 evidence, all required signals and cleanup.
+
+A Java application uses memory outside its Java heap: direct buffers, class
+metadata, thread stacks, code and JVM/runtime allocations. The `-Xmx` heap limit
+and the container's total memory limit therefore answer different questions.
+An `OutOfMemoryError` can have several causes; this exercise deliberately targets
+the specific **Java heap space** variant before comparing a kernel container kill.
+See [Oracle's memory troubleshooting guide](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshooting-memory-leaks.html).
+
+Predict these outcomes before running the same `--run-cluster` command:
+
+| Fixed workload | Boundaries | Required observation |
+|---|---|---|
+| Retain Java byte arrays | 16Mi heap, 128Mi container, at most 128Mi attempted allocation | Actual Java heap-space OOME log; nonzero exit distinct from 137; termination reason `Error` |
+| Retain and touch direct byte buffers | 16Mi heap, 96Mi container, 160Mi JVM direct-buffer cap, at most 128Mi attempted allocation | Actual `memory.max=100663296` read from inside the Pod, followed by termination reason `OOMKilled` **and** exit 137 |
+| One busy Java worker | 100m CPU quota, 128Mi memory, eight-second work window | Actual finite `cpu.max` ratio 0.1, increasing activity and throttling counters, normal completion |
+
+These are separate `resource-heap`, `resource-native` and `resource-cpu` Pods,
+created serially after rollback. They use the same owned image, nonroot identity,
+read-only root filesystem, no Secret, no service-account token, no extra capability,
+`restartPolicy: Never` and a 20-second Pod active deadline. The memory loops have
+an independent 12-second work bound; each retains at most 128 one-MiB allocations.
+Each allocation touches its pages. The native workload intentionally allows direct
+allocation beyond the container's remaining memory; changing the JVM direct-buffer
+limit to a smaller value would test a different failure.
+
+The probe never writes cgroup files, modifies the host, forks workers or accesses
+another Pod. Java uses Serial GC, one active processor, a 16Mi heap and bounded
+metadata/code-cache/direct memory settings. The cluster/control-plane/build still
+consume resources separately. A 20-second active deadline is a Kubernetes cleanup
+bound, not a precise real-time scheduling guarantee; kubelet observation/termination
+can lag. The runner waits up to 45 seconds for the actual terminal state and fails
+if the intended observation did not occur.
+
+### Read the evidence before choosing a fix
+
+The generated **version 2** `build/evidence/result.json` contains the actual
+`resources.heap`, `resources.native` and `resources.cpu` observations, each with
+an API-assigned Pod UID, zero restarts, requested limits and actual container
+termination fields (`reason`, `exitCode`, start/finish timestamps). The native log
+also proves that its process read a 96Mi cgroup-v2 memory boundary. Per-Pod JSON and
+logs are retained beside the result. None of the README examples are recorded runs.
+
+`resources.cpu.observation` contains these fields from inside the workload's own
+cgroup, sampled before and after the busy loop:
+
+- `cpuMax`: quota and period in microseconds, such as `10000 100000` for 100m.
+- `before` and `after`: actual `usage_usec`, `nr_periods`, `nr_throttled` and
+  `throttled_usec` counters.
+- `delta`: exact after-minus-before values, all required to be positive.
+- `elapsedMillis`: actual monotonic elapsed workload duration, at least eight
+  seconds and at most 20 seconds; `cgroupVersion` must be 2.
+
+The controller reads logs after each observed terminal state and requires zero
+restarts. An arbitrary `SIGKILL` can also yield exit 137; that number alone is
+insufficient. The native case additionally requires Kubernetes' actual
+`OOMKilled` reason and its measured memory boundary. The heap case must include
+the actual JVM heap-space error, not a fabricated exception or OOMKilled status.
+The CPU case must exit normally; a CPU limit is not demonstrated by simply
+setting a manifest field or observing high wall time.
+
+The [Linux cgroup-v2 interface reference](https://docs.kernel.org/admin-guide/cgroup-v2.html)
+defines the counters and quota fields. These files must be visible at
+`/sys/fs/cgroup` inside the workload container. Missing cgroup-v2 files, an
+unlimited/wrong quota, absent controller counters or no observed throttling make
+the exercise **fail**, with retained diagnostics. There is no cgroup-v1 emulation
+or silent skip. CI uses the pinned Linux/kind combination; this is not a universal
+claim about every container runtime, scheduler or host configuration.
+
+**Debug in this order:** identify the failed Pod/revision and inspect its actual
+termination reason, exit code, restart count and logs. For heap-space OOME, inspect
+allocation/retention and GC evidence before choosing a heap change. For a container
+kill, compare the total memory budget with heap plus other memory categories;
+blindly increasing `-Xmx` can reduce the remaining native headroom. For latency
+with no exit, compare request/work timing with quota and **counter deltas**; a
+throttled busy worker is different evidence from a blocked database call.
+
+**Change one thing:** on a disposable lab branch, lower `MaxDirectMemorySize`
+below the remaining container memory and predict why a direct-buffer Java OOME
+could replace OOMKilled. Or change the CPU quota and predict the different
+`cpu.max` ratio and observed throttle deltas. The fixed verifier intentionally
+fails altered experiments: first record the expected outcome, then update the
+experiment and its evidence checks together. These experiments do not prescribe
+production sizing or justify removing limits.
+
+**Interview answer:** “I distinguish JVM allocation failure from container-level
+termination using actual logs and Pod termination state. This heap failure emits
+`Java heap space` while a separate direct-buffer workload crosses its measured
+container memory boundary and is OOMKilled with exit 137. CPU throttling is a third
+case: the process completes, but a finite quota and increasing throttle counters
+show lost runnable time. I identify the constraint and allocation/latency cause
+before changing heap, container limits or workload concurrency.”
+
 ## Limits and next work
 
 This single-node local cluster does not prove multi-node/zone availability, cloud
 IAM, NetworkPolicy enforcement, persistent volume durability, autoscaling, TLS,
 image-signing, node pressure or a managed control plane's behavior. It does not
-produce latency/throughput or cost claims. Controlled cgroup OOMKilled versus Java
-OutOfMemoryError, application shutdown with in-flight requests and external
-secret-store integration remain separate exercises.
+produce latency/throughput or cost claims. Resource cases observe fixed, bounded
+heap/kernel/CPU incidents; they do not prove production memory sizing, all OOME
+variants, node-wide pressure or cross-node behavior. Application shutdown with
+in-flight requests and external secret-store integration remain separate exercises.
 
 ## Primary references
 
@@ -215,3 +322,6 @@ secret-store integration remain separate exercises.
 - [EndpointSlices](https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/) and [Service DNS](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/): ready endpoint conditions and Service resolution.
 - [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/): rolling update strategy, status and undo.
 - [Install kubectl on Linux](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/): primary binary/checksum distribution.
+
+- [Kubernetes memory resources](https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/): actual memory limits and OOMKilled status.
+- [Kubernetes CPU resources](https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/): CPU quota and request/limit distinctions.
