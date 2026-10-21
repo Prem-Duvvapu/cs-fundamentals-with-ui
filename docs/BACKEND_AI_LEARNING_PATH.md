@@ -184,3 +184,9 @@ before running it against the owned broker: two group members each own a partiti
 can succeed before its offset commit. Follow the exact record after member departure and explain
 why the durable inbox suppresses a second effect. Compare that controlled close with the separate
 actual process-crash saga cases; neither implies global exactly-once processing.
+
+For the gateway boundary, use [Nginx to Task Tracker](../examples/backend-gateway/README.md).
+Predict whether forged identity metadata or gateway authentication can bypass service ownership
+or CSRF. Explain429/503/504 using the actual main-upstream log evidence, not status alone.
+Compare a valid reload with unchanged service work after a client timeout. Native guards and
+actual Docker/Nginx observations are separate; follow the exact owned cleanup procedure.

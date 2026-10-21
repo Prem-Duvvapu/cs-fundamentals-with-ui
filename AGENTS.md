@@ -2,6 +2,14 @@
 
 ## Current completion scope — October 21
 
+The [gateway lab](examples/backend-gateway/README.md) puts digest-pinned actual Nginx in front
+of unchanged Task Tracker source. Keep the fixed auth subrequest, service CSRF/role/owner checks,
+actual-peer metadata, finite body/time/rate limits and exact labelled-resource cleanup. Native
+fourteen-test success is not Nginx execution: dedicated CI requires all20 actual HTTP assertions,
+source-bound receipt, status/log distinctions and reload-worker replacement with no skips. Owned
+command groups must be stopped even after their launcher exits; preserve caller signal policy,
+non-group semantics and unrelated processes. No production TLS/global-quota/egress claim is made.
+
 When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
 evidence in the affected lesson and run `node scripts/audit-simulation-questions.mjs --check`.
 Preserving question IDs, code blocks and diagrams alone does not preserve these prose citations;

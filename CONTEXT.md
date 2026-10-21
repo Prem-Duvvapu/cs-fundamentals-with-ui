@@ -1,5 +1,14 @@
 # Backend Engineering — System Architecture & Development Context
 
+`examples/backend-gateway` is an isolated Docker learning journey using actual digest-pinned
+Nginx, unchanged Task Tracker build input and a metadata-only Java fixture on a private network.
+Only the gateway publishes an ephemeral loopback port. The service retains authentication,
+CSRF, role and owner decisions; the fixed GET auth subrequest also consumes service work.
+Actual HTTP/log evidence distinguishes gateway429, service503 and upstream-timeout504, checks
+framing/forwarding, and observes valid reload recovery. Bounded clients/processes, no-skip CI,
+source hashes and exact container/network/tag cleanup are mandatory. The native guards are
+separate from actual Nginx evidence; no platform routes or shared learner telemetry are added.
+
 `examples/backend-debugging` imports Task Tracker source/resources unchanged through an isolated
 Boot 4.1.1/Java-17-targeted Maven module. Its normal SpringApplication observer reads one nonsecret
 property, ordered source origins, actual bound actuator exposure and profile-selected beans. Owned

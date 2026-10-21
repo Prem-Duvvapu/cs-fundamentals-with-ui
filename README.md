@@ -561,3 +561,10 @@ and what HTTP endpoints are actually exposed. It reproduces an invalid-port star
 then uses real JDI breakpoints, stepping and a caught exception on owned Java processes. Run
 `python3 examples/backend-debugging/verify.py` with the documented cached dependencies and JDK.
 This provides executable debugging evidence; a real learner's IDE session remains separate.
+
+The [gateway exercise](examples/backend-gateway/README.md) connects actual Nginx to the unchanged
+Task Tracker. Predict forwarded-header trust, service authorization/CSRF,429 versus503/504,
+body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its fourteen
+native guards first; actual execution requires the documented local Docker prerequisites and
+all20 assertions with cleanup. Plain loopback HTTP, per-instance limiting and controlled fixtures
+are teaching boundaries rather than a production deployment claim.

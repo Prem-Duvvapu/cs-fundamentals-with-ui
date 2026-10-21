@@ -740,3 +740,29 @@ compression and paraphrase, not just simulator deletion; a semantic equivalent d
 an intentionally literal evidence contract. Final-head CI must rerun before merge.
 
 **Resolving commit:** 7ea7a72 (source c0a424a500db4ab0b6cfcfd26195d075d6234ab4).
+
+## RCA-2026-10-21-16 — gateway launcher exit left an owned descendant running
+
+**Observed:** independent prerelease review of gateway source33f15ce launched a disposable
+new-session command whose leader exited0 while a live descendant retained stdout. The actual
+deadline returned with the captured pipe closed but the owned descendant still running. The
+reviewer removed only that newly created group afterward. No Docker service or foreign process
+was used in this reproduction.
+
+**Cause:** commands.stop() gated process-group signalling on the direct child's poll() result.
+An exited launcher does not establish that its owned group or inherited pipe writers stopped.
+The existing startup tests covered an executing leader and missed this later lifetime boundary.
+
+**Resolution:** signal the owned new-session group even after its leader exits, bounded-wait the
+direct child and close the pipe. Keep non-group mode limited to its individual child and leave
+unrelated groups alone. A grandchild reaped by its OS parent is not falsely reported as reaped
+by this runner; the regression requires it absent or no longer running.
+
+**Verification/prevention:** the positioned regression waits for actual leader exit before
+exercising deadline and TERM/INT paths. It requires the direct launcher reaped, captured stdout
+closed, descendant absent/nonrunning, original handlers restored and a separate real group still
+alive. A second actual non-group timeout forbids killpg. All14 native guards pass, including
+prior startup/scope-entry cancellation and actual Java17 fixture compilation. Dedicated actual
+Nginx/container CI is still required and is not implied by this process-only observation.
+
+**Resolving commit:**5406ce0 (source a5b685edce3a2ca7f3ddf5f65d1eb0d104ed7254).

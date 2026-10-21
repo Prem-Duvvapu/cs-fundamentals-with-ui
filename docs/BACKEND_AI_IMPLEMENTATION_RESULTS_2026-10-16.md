@@ -580,3 +580,17 @@ skipped because Docker is unavailable locally. Final source compilation passes a
 review finds no remaining concrete blocker. The dedicated actual-brokers workflow requires all
 three broker test classes without skips plus the complete rebalance receipt. Actual execution and
 release remain pending until that job succeeds; no native observation is promoted to broker evidence.
+
+## Nginx gateway continuation — unreleased
+
+Sources132f5b3/33f15ce/a5b685e (integrated64becd5/db68fe8/5406ce0) add the isolated
+[gateway learning journey](../examples/backend-gateway/README.md). The unchanged service retains
+Basic authentication, role/owner checks and CSRF while actual Nginx controls routing, forwarding,
+request bounds and a per-peer limiter. The auth subrequest is a fixed one-row read, not a new
+stateless authentication service. Native14/14 guards pass independently, including Java17 fixture
+compilation and the leader-exit descendant cleanup regression recorded in RCA16.
+
+The dedicated actual-nginx-http job must execute all20 HTTP assertions without skips and verify
+source hashes, actual Nginx1.30.6, worker replacement, response/log distinctions, and exact labelled
+resource cleanup. No local Docker/Nginx execution is claimed. TLS, multi-node fairness, production
+proxy trust/egress, capacity and cloud policy remain separate work. Final-head CI/release is pending.
