@@ -31,8 +31,8 @@ The subsequent actual verification always uses Maven **offline**. Later runs:
 python3 verify.py
 ```
 
-The successful receipt is `target/evidence/verification.json`, containing 21
-named transport cases, the six required policy tests, actual child JVM feature
+The successful receipt is `target/evidence/verification.json`, containing 22
+named transport cases, the nine required policy tests, actual child JVM feature
 and full runtime version, executed framework versions, source/JAR hashes and
 cleanup outcomes. Compiler release 17 and emitted class major 61 are checked
 separately; a newer JVM targeting 17 does not satisfy the actual Java 17 gate.
@@ -164,7 +164,18 @@ interrupt a lone blocked write. The owned process deadline is the outer bound.
 Logout without CSRF is forbidden. A valid logout invalidates the real session,
 closes its sockets and denies reuse of the old cookie. Reauthentication rotates
 the session ID; a session-ID listener closes sockets associated with the previous
-identity before a new socket can claim the new principal.
+identity before a new socket can claim the new principal. Admission also requires a live
+session-ID/principal registration made only by successful form login. Destruction/rotation
+removes it under the same lock as admission; a late request cannot recreate it. The map
+is capped at32 entries and cleared at shutdown, rather than accumulating revoked-ID tombstones.
+A validity-guarded servlet method prevents registration after destruction; `getId()` alone
+remains usable on an invalidated Tomcat session.
+
+The actual transport regression pauses an already authenticated Alice upgrade after the
+security chain, completes a real Bob reauthentication/ID rotation, and then releases the
+old request. It must receive401; a fresh Bob connection must still echo normally. Separate
+policy cases cover invalidation before late admission and registration after destruction.
+This positioned ordering complements the established-socket logout/expiry cases.
 
 The ordinary matrix uses 120-second HTTP session idle expiry. A **separate**
 application instance uses a 2-second operator-configured interval and a 10-second
@@ -237,3 +248,5 @@ imports; the verifier rejects drift and hashes imported files before/after.
 
 Read the resolved POM and compile against the actual managed version; do not mix
 cached Spring 6.2 or Boot 3.x WebSocket libraries into this Spring 7 application.
+
+The invalid-session validity check follows the [Servlet6.1 HttpSession contract](https://jakarta.ee/specifications/servlet/6.1/apidocs/jakarta.servlet/jakarta/servlet/http/HttpSession.html#getCreationTime()).

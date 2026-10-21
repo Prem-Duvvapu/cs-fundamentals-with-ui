@@ -41,7 +41,7 @@ jobs:
           assert report['status'] == 'passed'
           assert report['importedTaskTrackerSourceUnchanged'] is True
           validate(report['transport'])
-          assert len(report['transport']['passedCases']) == 21 == len(CASES)
+          assert len(report['transport']['passedCases']) == 22 == len(CASES)
           assert report['transport']['ordinaryLimits']['active'] == 0
           print('Actual Java17 HTTP/session/WebSocket cases, capacity and cleanup verified; no skips.')
           PY

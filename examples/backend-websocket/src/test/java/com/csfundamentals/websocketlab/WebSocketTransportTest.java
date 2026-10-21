@@ -11,9 +11,15 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.boot.web.server.context.WebServerApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.MapPropertySource;
@@ -154,6 +160,27 @@ class WebSocketTransportTest {
                 awaitEmpty();
                 assertEquals(204, alice.login("alice", passwords.get("alice"), alice.csrf()).statusCode(), "Restore fixture identity");
                 record("reauthentication_rotation_closes_old_identity_socket");
+                var gate = context.getBean(AdmissionGate.class);
+                var pause = new PausedRequest();
+                assertTrue(gate.next.compareAndSet(null, pause));
+                var pending = alice.client.newWebSocketBuilder().connectTimeout(Duration.ofSeconds(2))
+                    .header("Origin", origin).header("Cookie", alice.cookie)
+                    .buildAsync(URI.create(base.replace("http:", "ws:")+"/lab/ws/echo"), new Peer());
+                try {
+                    assertEquals("alice", pause.entered.get(2, TimeUnit.SECONDS), "Actual request authenticated before pause");
+                    assertEquals(204, alice.login("bob", passwords.get("bob"), alice.csrf()).statusCode(), "Rotate identity during held upgrade");
+                } finally { pause.release.countDown(); }
+                ExecutionException rejected = assertThrows(ExecutionException.class, () -> pending.get(3, TimeUnit.SECONDS));
+                assertTrue(rejected.getCause() instanceof WebSocketHandshakeException);
+                assertEquals(401, ((WebSocketHandshakeException)rejected.getCause()).getResponse().statusCode(), "Captured old principal must not enter new identity's session");
+                awaitEmpty();
+                try (Peer current = connect(alice)) {
+                    current.send(echo("after-race", "current session"));
+                    assertEcho(current.next(), "after-race", "bob", "current session"); current.ack("after-race");
+                }
+                awaitEmpty();
+                assertEquals(204, alice.login("alice", passwords.get("alice"), alice.csrf()).statusCode(), "Restore fixture after positioned race");
+                record("held_authenticated_upgrade_rejected_after_concurrent_reauthentication");
                 Peer loggingOut = connect(alice);
                 assertEquals(403, alice.form("/lab/session/logout", Map.of()).statusCode(), "Logout CSRF");
                 JsonNode logoutCsrf = alice.csrf();
@@ -203,7 +230,7 @@ class WebSocketTransportTest {
         }
     }
     private ConfigurableApplicationContext start(String name, int sessionIdle, int socketIdle) {
-        var app = new SpringApplication(TaskTrackerApplication.class, WebSocketLab.class);
+        var app = new SpringApplication(TaskTrackerApplication.class, WebSocketLab.class, PositionedAdmission.class);
         app.addInitializers(context -> context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("owned-test-runtime", Map.of(
             "TASK_TRACKER_ALICE_PASSWORD", passwords.get("alice"), "TASK_TRACKER_BOB_PASSWORD", passwords.get("bob"),
             "TASK_TRACKER_VIEWER_PASSWORD", passwords.get("viewer"), "spring.datasource.password", secret(),
@@ -223,6 +250,34 @@ class WebSocketTransportTest {
         return context;
     }
     private static String secret() { byte[] bytes = new byte[24]; new SecureRandom().nextBytes(bytes); return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes); }
+    static final class PausedRequest {
+        final CompletableFuture<String> entered = new CompletableFuture<>();
+        final CountDownLatch release = new CountDownLatch(1);
+    }
+    static final class AdmissionGate implements Filter {
+        final AtomicReference<PausedRequest> next = new AtomicReference<>();
+        @Override public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+            if (request instanceof HttpServletRequest http && http.getRequestURI().equals("/lab/ws/echo")) {
+                PausedRequest pause = next.getAndSet(null);
+                if (pause != null) {
+                    pause.entered.complete(http.getUserPrincipal() == null ? "anonymous" : http.getUserPrincipal().getName());
+                    try {
+                        if (!pause.release.await(5, TimeUnit.SECONDS)) throw new ServletException("Owned positioned request deadline");
+                    } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new ServletException("Owned request interrupted"); }
+                }
+            }
+            chain.doFilter(request, response);
+        }
+    }
+    @TestConfiguration(proxyBeanMethods = false)
+    static class PositionedAdmission {
+        @Bean AdmissionGate admissionGate() { return new AdmissionGate(); }
+        @Bean FilterRegistrationBean<AdmissionGate> positionedFilter(AdmissionGate gate) {
+            var registration = new FilterRegistrationBean<>(gate);
+            registration.setOrder(-90); // After the security proxy (-100), before the endpoint interceptor.
+            return registration;
+        }
+    }
     private void record(String name) { passed.add(name); }
     private Browser authenticated(String user) throws Exception {
         Browser browser = new Browser(); assertEquals(204, browser.login(user, passwords.get(user), browser.csrf()).statusCode(), "Authenticated fixture session"); return browser;

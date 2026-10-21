@@ -9,6 +9,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.adapter.standard.StandardWebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import jakarta.servlet.http.HttpSession;
 
 final class EchoRegistry extends TextWebSocketHandler implements AutoCloseable, ApplicationListener<ContextClosedEvent> {
     static final int GLOBAL_LIMIT = 3, PRINCIPAL_LIMIT = 2, ACK_LIMIT = 4, QUEUE_BYTES = 4096;
@@ -16,6 +17,7 @@ final class EchoRegistry extends TextWebSocketHandler implements AutoCloseable, 
     static final String SEND_TIMEOUT = "org.apache.tomcat.websocket.BLOCKING_SEND_TIMEOUT";
     static final String CLOSE_TIMEOUT = "org.apache.tomcat.websocket.SESSION_CLOSE_TIMEOUT";
     private final Set<Reservation> reservations = new HashSet<>();
+    private final Map<String, String> authenticatedSessions = new HashMap<>();
     private final ScheduledExecutorService timer;
     private final int sessionIdle;
     private final long socketIdle;
@@ -39,8 +41,28 @@ final class EchoRegistry extends TextWebSocketHandler implements AutoCloseable, 
         timer.scheduleAtFixedRate(this::expire, 100, 100, TimeUnit.MILLISECONDS);
     }
     int sessionIdleSeconds() { return sessionIdle; }
+    static final class RevokedSession extends RuntimeException { }
+    boolean authenticated(HttpSession session, String principal) {
+        List<Reservation> previous;
+        synchronized (this) {
+            if (closed) return false;
+            String id;
+            try {
+                // getId alone remains available after Tomcat invalidation; check a validity-guarded method.
+                session.getCreationTime();
+                id = session.getId();
+            } catch (IllegalStateException invalid) { return false; }
+            if (!authenticatedSessions.containsKey(id) && authenticatedSessions.size() >= 32) return false;
+            authenticatedSessions.put(id, principal);
+            previous = reservations.stream().filter(item -> item.session.equals(id)).toList();
+        }
+        for (Reservation reservation : previous) reject(reservation);
+        return true;
+    }
     synchronized Reservation reserve(String principal, String session) {
-        if (closed || reservations.size() >= GLOBAL_LIMIT
+        if (closed) return null;
+        if (!Objects.equals(authenticatedSessions.get(session), principal)) throw new RevokedSession();
+        if (reservations.size() >= GLOBAL_LIMIT
                 || reservations.stream().filter(item -> item.principal.equals(principal)).count() >= PRINCIPAL_LIMIT) return null;
         Reservation reservation = new Reservation(principal, session);
         reservations.add(reservation); highWater = Math.max(highWater, reservations.size());
@@ -69,9 +91,12 @@ final class EchoRegistry extends TextWebSocketHandler implements AutoCloseable, 
     }
     private synchronized List<Reservation> snapshot() { return List.copyOf(reservations); }
     void invalidate(String session) {
-        for (Reservation reservation : snapshot()) if (reservation.session.equals(session)) {
-            reject(reservation);
+        List<Reservation> revoked;
+        synchronized (this) {
+            authenticatedSessions.remove(session);
+            revoked = reservations.stream().filter(item -> item.session.equals(session)).toList();
         }
+        for (Reservation reservation : revoked) reject(reservation);
     }
     private void expire() {
         long now = System.nanoTime();
@@ -102,7 +127,10 @@ final class EchoRegistry extends TextWebSocketHandler implements AutoCloseable, 
             session.setTextMessageSizeLimit(1024); session.setBinaryMessageSizeLimit(1024);
             Connection connection = new Connection(session, nativeSession, reservation);
             synchronized (this) {
-                if (reservation.released.get() || closed) { session.close(new CloseStatus(1008, "policy")); return; }
+                if (reservation.released.get() || closed
+                        || !Objects.equals(authenticatedSessions.get(reservation.session), reservation.principal)) {
+                    release(reservation); session.close(new CloseStatus(1008, "policy")); return;
+                }
                 reservation.connection = connection;
                 nativeConfigured++;
             }
@@ -127,7 +155,7 @@ final class EchoRegistry extends TextWebSocketHandler implements AutoCloseable, 
     }
     @Override public void onApplicationEvent(ContextClosedEvent event) { close(); }
     @Override public void close() {
-        synchronized (this) { closed = true; }
+        synchronized (this) { closed = true; authenticatedSessions.clear(); }
         timer.shutdownNow();
         for (Reservation reservation : snapshot()) {
             if (reservation.connection != null) reservation.connection.stop(1001); else release(reservation);

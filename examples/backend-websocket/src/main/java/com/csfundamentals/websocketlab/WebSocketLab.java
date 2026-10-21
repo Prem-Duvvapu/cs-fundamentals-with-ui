@@ -79,7 +79,10 @@ public class WebSocketLab implements WebSocketConfigurer {
                 .authenticationEntryPoint((request, response, failure) -> response.setStatus(401))
                 .accessDeniedHandler((request, response, failure) -> response.setStatus(403)))
             .formLogin(login -> login.loginPage("/lab/session/login").loginProcessingUrl("/lab/session/login")
-                .successHandler((request, response, authentication) -> response.setStatus(204))
+                .successHandler((request, response, authentication) -> {
+                    var session = request.getSession(false);
+                    response.setStatus(session != null && registry.authenticated(session, authentication.getName()) ? 204 : 401);
+                })
                 .failureHandler((request, response, failure) -> response.setStatus(401)))
             .logout(logout -> logout.logoutUrl("/lab/session/logout").invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID").logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)))

@@ -22,7 +22,9 @@ final class HandshakePolicy implements HandshakeInterceptor {
             return deny(response, HttpStatus.FORBIDDEN);
         var session = http.getSession(false);
         if (session == null || http.getUserPrincipal() == null) return deny(response, HttpStatus.UNAUTHORIZED);
-        EchoRegistry.Reservation reservation = registry.reserve(http.getUserPrincipal().getName(), session.getId());
+        EchoRegistry.Reservation reservation;
+        try { reservation = registry.reserve(http.getUserPrincipal().getName(), session.getId()); }
+        catch (EchoRegistry.RevokedSession | IllegalStateException revoked) { return deny(response, HttpStatus.UNAUTHORIZED); }
         if (reservation == null) return deny(response, HttpStatus.TOO_MANY_REQUESTS);
         attributes.put(RESERVATION, reservation);
         http.setAttribute(RESERVATION, reservation);

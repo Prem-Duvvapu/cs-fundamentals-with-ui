@@ -23,6 +23,7 @@ CASES = {
     'actual_unacknowledged_application_pressure', 'actual_ack_deadline', 'actual_socket_idle_deadline',
     'finite_per_connection_command_count', 'csrf_logout_invalidates_cookie_closes_socket_releases_capacity',
     'reauthentication_rotation_closes_old_identity_socket',
+    'held_authenticated_upgrade_rejected_after_concurrent_reauthentication',
     'unchanged_task_tracker_basic_csrf_and_owner_contract', 'application_shutdown_socket_and_registry_cleanup',
     'independent_actual_servlet_idle_expiry_and_socket_consequence',
 }
@@ -103,7 +104,7 @@ def validate(receipt):
     for name in ('PolicyTest', 'WebSocketTransportTest'):
         path = HERE / ('target/surefire-reports/TEST-com.csfundamentals.websocketlab.'+name+'.xml')
         suite = ET.parse(path).getroot()
-        expected = '6' if name == 'PolicyTest' else '1'
+        expected = '9' if name == 'PolicyTest' else '1'
         if suite.get('tests') != expected or any(int(suite.get(field, '0')) for field in ('failures', 'errors', 'skipped')):
             raise LabFailure('Required real test suite failed or skipped')
 
@@ -153,7 +154,7 @@ def main():
         with cancellation_guard():
             report = verify(prepare=args.prepare)
         publish(destination, report)
-        print('Passed: 21 actual WebSocket/session cases, 6 policy tests; sanitized evidence in target/evidence/verification.json')
+        print(f'Passed: {len(CASES)} actual WebSocket/session cases, 9 policy tests; sanitized evidence in target/evidence/verification.json')
     except (LabFailure, OSError, ValueError, KeyError, ET.ParseError) as failure:
         report = dict(schemaVersion=1, status='interrupted' if isinstance(failure, LabFailure) and 'cancelled' in str(failure).lower() else 'failed', failureType=type(failure).__name__)
         publish(destination, report)
