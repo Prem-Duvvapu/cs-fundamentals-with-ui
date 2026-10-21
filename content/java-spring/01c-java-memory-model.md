@@ -167,7 +167,7 @@ adjust(original, bonus);
 // original.id == 42, original.points == 15, bonus == 5
 ```
 
-The callee can mutate a shared object, but reassigning its parameter cannot redirect the caller's separate variable.
+The callee can mutate a shared object through its copied reference. Reassigning that parameter cannot redirect the caller's variable because the two variables are different storage locations.
 Java is neither pass-by-reference nor “pass-by-reference for objects.”
 
 **Boxing** converts a primitive to a wrapper; **unboxing** retrieves its primitive value.
