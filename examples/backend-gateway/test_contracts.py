@@ -17,6 +17,14 @@ import lab
 
 
 class GatewayContracts(unittest.TestCase):
+    def test_only_actual_exact_loopback_binding_is_accepted(self):
+        for published in (None,[],[{'HostIp':'0.0.0.0','HostPort':'12345'}],
+                          [{'HostIp':'127.0.0.1','HostPort':'0'}],
+                          [{'HostIp':'127.0.0.1','HostPort':'65536'}],
+                          [{'HostIp':'127.0.0.1','HostPort':'12345'}]*2):
+            with self.subTest(published=published),self.assertRaises(commands.LabFailure):
+                lab.published_gateway_port({'NetworkSettings':{'Ports':{'8080/tcp':published}}})
+        self.assertEqual(12345,lab.published_gateway_port({'NetworkSettings':{'Ports':{'8080/tcp':[{'HostIp':'127.0.0.1','HostPort':'12345'}]}}}))
     def test_names_refuse_foreign_or_shell_like_resource(self):
         for value in ['production','gw-123','gw-0123456789abcdef;rm','../gw-0123456789abcdef']:
             with self.assertRaises(ValueError):
@@ -65,7 +73,7 @@ class GatewayContracts(unittest.TestCase):
 
     def test_cleanup_uses_matched_ids_and_checks_absence(self):
         name='gw-0123456789abcdef'
-        present={name+'-edge':'a'*64,name+'-probe':'b'*64,name+'-task':'c'*64,name:'d'*64,'gateway-lab:'+name:'e'*64,'gateway-base:'+name:'f'*64}
+        present={name+'-edge':'a'*64,name+'-probe':'b'*64,name+'-task':'c'*64,name:'d'*64,'gateway-lab:'+name:'e'*64,'gateway-base:'+name:'f'*64,name+'-ingress':'g'*64}
         removed=[]
         def execute(args,*unused,**kwargs):
             if 'inspect' in args:
@@ -85,7 +93,7 @@ class GatewayContracts(unittest.TestCase):
             with patch.object(lab,'STATE',state),patch.object(lab,'BUILD',Path(directory)),patch.object(lab,'local_docker'),patch.object(lab,'run',side_effect=execute):
                 lab.cleanup()
             self.assertFalse(present)
-            self.assertEqual(6,len(removed))
+            self.assertEqual(7,len(removed))
             self.assertEqual('a'*64,removed[0])
             self.assertFalse(state.exists())
             self.assertFalse(private.exists())

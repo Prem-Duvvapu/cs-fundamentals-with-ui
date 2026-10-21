@@ -63,9 +63,14 @@ python3 examples/backend-gateway/lab.py --run-docker
 ```
 
 The executable creates three randomly named, labelled containers on one private internal Docker
-network. Only Nginx publishes a random **127.0.0.1** port. Task Tracker and the fixture have no
+backend network. Nginx alone also joins a second owned publishing bridge and publishes a random **127.0.0.1** port. Task Tracker and the fixture have no
 published ports. The test client uses that exact loopback port and the fixed operator-controlled
 `Host: gateway.example.test`. Unknown Host values return 400. No arbitrary target URL is accepted.
+The service and fixture remain attached only to the internal backend network. The gateway's
+publishing bridge can provide ordinary outbound routing; it is not production egress enforcement.
+Docker may accept a publish request on an internal-only network but report a null actual mapping.
+The runner inspects actual network membership/internal flags and the exact127.0.0.1 binding after
+the gateway joins its publishing bridge; requested HostConfig alone is insufficient.
 Containers have memory/CPU/PID limits, dropped capabilities, read-only root filesystems and bounded
 temporary filesystems. Credentials are generated for this run and never printed into evidence.
 
@@ -230,3 +235,5 @@ Sources: [Nginx auth_request](https://nginx.org/en/docs/http/ngx_http_auth_reque
 [Nginx request limiting](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html),
 [Nginx proxy behavior and timeout semantics](https://nginx.org/en/docs/http/ngx_http_proxy_module.html).
 Pinned-image verification is recorded in [PROVENANCE.json](PROVENANCE.json).
+
+Docker network references: [port publication](https://docs.docker.com/engine/network/port-publishing/) and the [upstream internal-only publication report](https://github.com/moby/moby/discussions/53256). The report supports diagnosis, not runtime verification of this lab.

@@ -62,6 +62,16 @@ def inspect_for_cleanup(kind,resource,budget):
     return values[0]
 
 
+def published_gateway_port(edge):
+    published=edge.get('NetworkSettings',{}).get('Ports',{}).get('8080/tcp')
+    if not isinstance(published,list) or len(published)!=1 or published[0].get('HostIp')!='127.0.0.1':
+        raise LabFailure('only_exact_loopback_gateway_publish_allowed')
+    raw=published[0].get('HostPort','')
+    if not isinstance(raw,str) or not re.fullmatch('[0-9]{1,5}',raw) or not 1<=int(raw)<=65535:
+        raise LabFailure('valid_gateway_host_port_required')
+    return int(raw)
+
+
 def cleanup():
     if not STATE.exists():
         return
@@ -71,7 +81,7 @@ def cleanup():
         raise ValueError('unknown_gateway_owner_state')
     budget=Budget.start(120)
     local_docker(budget)
-    for kind,names in [('container',[name+'-edge',name+'-probe',name+'-task']),('network',[name])]:
+    for kind,names in [('container',[name+'-edge',name+'-probe',name+'-task']),('network',[name+'-ingress',name])]:
         for resource in names:
             item=inspect_for_cleanup(kind,resource,budget)
             if item is None:
@@ -133,7 +143,7 @@ class Lab:
         if STATE.exists():
             raise LabFailure('previous_owned_state_requires_cleanup_first')
         local_docker(self.budget)
-        for kind,names in [('container',[self.name+'-edge',self.name+'-probe',self.name+'-task']),('network',[self.name]),('image',[self.base,self.image])]:
+        for kind,names in [('container',[self.name+'-edge',self.name+'-probe',self.name+'-task']),('network',[self.name,self.name+'-ingress']),('image',[self.base,self.image])]:
             for name in names:
                 if self.command(['docker',kind,'inspect',name],check=False)[0]==0:
                     raise LabFailure('refusing_existing_resource_collision')
@@ -154,6 +164,7 @@ class Lab:
         (context/'Dockerfile').write_text('FROM '+self.base+'\nCOPY GatewayProbe.class /probe/GatewayProbe.class\n')
         self.command(['docker','build','--label',OWNER_LABEL+'='+self.name,'-t',self.image,str(context)],timeout=60)
         self.command(['docker','network','create','--internal','--label',OWNER_LABEL+'='+self.name,self.name])
+        self.command(['docker','network','create','--driver','bridge','--label',OWNER_LABEL+'='+self.name,self.name+'-ingress'])
         common=['--detach','--network',self.name,'--label',OWNER_LABEL+'='+self.name,'--cap-drop','ALL','--security-opt','no-new-privileges','--read-only']
         self.command(['docker','run',*common,'--name',self.name+'-task','--network-alias','task','--memory','512m','--cpus','1','--pids-limit','128',
                       '--tmpfs','/tmp:rw,size=32m','--tmpfs','/app/data:rw,size=64m,uid=10001,gid=10001','--env-file',str(env),
@@ -168,17 +179,29 @@ class Lab:
                       '--entrypoint','nginx',NGINX,'-c','/etc/nginx/lab.conf','-g','daemon off;'],timeout=90)
         _,raw=self.command(['docker','container','inspect',self.name+'-edge'])
         edge=json.loads(raw)[0]
-        published=edge['NetworkSettings']['Ports']['8080/tcp']
-        if len(published)!=1 or published[0]['HostIp']!='127.0.0.1':
-            raise LabFailure('only_exact_loopback_gateway_publish_allowed')
-        self.port=int(published[0]['HostPort'])
+        self.observations['beforeIngressPublished']=edge.get('NetworkSettings',{}).get('Ports',{}).get('8080/tcp')
+        self.observations['gatewayRunningBeforeIngress']=edge.get('State',{}).get('Running')
+        # Internal-only bridges may retain the request but omit the actual host mapping.
+        # Give only the gateway an owned publishing network; backends retain internal isolation.
+        self.command(['docker','network','connect',self.name+'-ingress',self.name+'-edge'])
+        edge=json.loads(self.command(['docker','container','inspect',self.name+'-edge'])[1])[0]
+        self.port=published_gateway_port(edge)
+        if set(edge['NetworkSettings']['Networks'])!={self.name,self.name+'-ingress'}:
+            raise LabFailure('gateway_requires_exact_private_and_ingress_networks')
+        internal=json.loads(self.command(['docker','network','inspect',self.name])[1])[0]
+        ingress=json.loads(self.command(['docker','network','inspect',self.name+'-ingress'])[1])[0]
+        if internal.get('Internal') is not True or ingress.get('Internal') is not False:
+            raise LabFailure('actual_private_backend_and_publishing_ingress_required')
+        self.observations['networkIsolation']={'backendInternal':True,'ingressInternal':False,
+            'gatewayNetworkCount':2,'backendNetworkCount':1,'actualPublishedHostIp':'127.0.0.1'}
+        self.observations['dockerServerVersion']=self.command(['docker','version','--format','{{.Server.Version}}'])[1].strip()
         if edge['Config']['Image']!=NGINX or not re.fullmatch(r'sha256:[a-f0-9]{64}',edge['Image']):
             raise LabFailure('actual_digest_pinned_gateway_container_required')
         self.observations['gatewayContainerId']=edge['Id']
         self.observations['gatewayResolvedImageId']=edge['Image']
         for role in ['task','probe']:
             item=json.loads(self.command(['docker','container','inspect',self.name+'-'+role])[1])[0]
-            if any(item['NetworkSettings'].get('Ports',{}).values()):
+            if any(item['NetworkSettings'].get('Ports',{}).values()) or set(item['NetworkSettings']['Networks'])!={self.name}:
                 raise LabFailure('application_and_fixture_ports_must_not_be_published')
         _,version=self.command(['docker','exec',self.name+'-edge','nginx','-V'])
         if 'nginx/1.30.6' not in version or '--with-http_auth_request_module' not in version:
