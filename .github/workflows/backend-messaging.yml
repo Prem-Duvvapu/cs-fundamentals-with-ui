@@ -77,6 +77,8 @@ jobs:
               raise SystemExit('Actual broker rebalance receipt required; native compile/skips are insufficient')
           if evidence.get('ownerThreadsDistinct') is not True or evidence.get('ownerThreadsStopped') is not True or evidence.get('ownedBrokerResourcesDeleted') is not True or evidence.get('autoCommit') is not False:
               raise SystemExit('Concurrent owners, manual commits and exact owned cleanup required')
+          if evidence.get('pendingWakeupCloseBoundaryExecuted') is not True:
+              raise SystemExit('Actual pending-wakeup close/revocation regression required')
           joined=evidence['twoMemberGroup']['members']
           if len(joined)!=2 or sorted(partition for member in joined for partition in member['partitions'])!=[0,1] or any(len(member['partitions'])!=1 for member in joined):
               raise SystemExit('Actual two-member disjoint broker assignment required')
@@ -96,6 +98,8 @@ jobs:
           final={item['partition']:item['nextOffset'] for item in evidence['afterRecoveryOffsets']}
           if final[withheld['partition']]!=withheld['offset']+2 or len(final)!=2:
               raise SystemExit('Actual final broker commits must include fresh marker and other partition')
+          if not any(item['phase']=='revoked' and any(offset['partition']==withheld['partition'] and offset['nextOffset']==final[withheld['partition']] for offset in item['completedOffsets']) for item in evidence['callbacks']['a']):
+              raise SystemExit('Pending-wakeup close must actually complete final revocation offset commit')
           print('Concurrent group assignment, revocation, exact replay/deduplication, fresh work and cleanup verified.')
           PYTHON
       - name: Upload evidence and test failures

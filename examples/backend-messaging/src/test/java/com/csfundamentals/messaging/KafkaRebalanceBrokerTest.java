@@ -92,9 +92,9 @@ class KafkaRebalanceBrokerTest {
                     evidence.put("beforeDepartureOffsets", offsetSnapshot(before));
                     evidence.put("withheldRecord", Map.of("partition", replayPartition, "offset", withheldSend.offset(),
                             "eventId", withheld.id(), "localEffect", 1, "brokerOffsetCommitted", false));
-                    // Only the owning thread unsubscribes/closes. Deliberately no offset for its held effect.
+                    // Only the owning thread closes. Deliberately no offset for its held effect.
                     second.stopAndJoin();
-                    assertTrue(second.hasCallback("revoked"), "Owned unsubscribe must report actual revocation");
+                    assertTrue(second.hasCallback("revoked"), "Owned close must report actual revocation");
                     await("survivor recovers both partitions and exact uncommitted record", first, second,
                             () -> first.assignment().size() == 2 && first.hasDelivery(withheld.id()));
                     Delivery replay = first.delivery(withheld.id());
@@ -117,6 +117,12 @@ class KafkaRebalanceBrokerTest {
                     assertTrue(first.delivery(marker.id()).applied());
                 } finally { producer.close(Duration.ofSeconds(5)); }
                 first.stopAndJoin();
+                assertTrue(first.closeWakeupInjected, "Actual pending-wakeup close boundary must execute");
+                assertTrue(first.callbackSnapshot().stream().anyMatch(callback -> callback.phase().equals("revoked")
+                        && callback.completedOffsets().stream().anyMatch(offset -> offset.get("partition").equals(replayPartition)
+                            && offset.get("nextOffset").equals(first.delivery("rebalance-after").offset() + 1))),
+                        "Final revocation must successfully commit completed work despite a deliberately pending wakeup");
+                evidence.put("pendingWakeupCloseBoundaryExecuted", first.closeWakeupInjected);
                 evidence.put("callbacks", Map.of("a", first.callbackSnapshot(), "b", second.callbackSnapshot()));
                 evidence.put("deliveries", Map.of("a", first.deliverySnapshot(), "b", second.deliverySnapshot()));
                 evidence.put("ownerThreadsDistinct", !first.ownerThread.equals(second.ownerThread));
@@ -244,6 +250,7 @@ class KafkaRebalanceBrokerTest {
         private final List<Callback> callbacks = new ArrayList<>();
         private volatile String ownerThread = "not-started";
         private Future<?> future;
+        private volatile boolean closeWakeupInjected;
 
         Worker(String name, String topic, String group, DurableStore store, boolean withhold) {
             this.name = name; this.topic = topic; this.group = group; this.store = store; this.withhold = withhold;
@@ -330,8 +337,11 @@ class KafkaRebalanceBrokerTest {
                 failure.compareAndSet(null, error);
             } finally {
                 if (consumer != null) {
-                    try { consumer.unsubscribe(); }
-                    catch (Throwable error) { failure.compareAndSet(null, error); }
+                    // Force the formerly racy state: no poll may consume this wakeup before close.
+                    if (!withhold) {
+                        consumer.wakeup();
+                        closeWakeupInjected = true;
+                    }
                     try { consumer.close(CloseOptions.timeout(Duration.ofSeconds(5))); }
                     catch (Throwable error) { failure.compareAndSet(null, error); }
                 }

@@ -315,7 +315,7 @@ does not commit either your database transaction or Kafka's recovery position.
 | Start A alone | A owns both partitions | Actual assigned callback and Admin description with one member/two partitions |
 | Start B while A keeps polling | A and B each own one | Actual nonempty A revocation, distinct owner threads, stable two-member broker description and disjoint assignments |
 | Send one event per actual owner | Both consume and commit their local effects | Actual deliveries on each thread; A commits its next offset, B deliberately does not |
-| Unsubscribe/close B | A eventually owns both | Actual B revocation, A reassignment, stable one-member broker description |
+| Close B | A eventually owns both | Actual B revocation, A reassignment, stable one-member broker description |
 | A reads B's uncommitted record | Replay has original partition, offset and event ID | Independent B/A delivery observations, inbox reports no second business effect, A commits the next offset |
 | Send a new marker | A can continue useful work | New effect accepted; final broker offsets and projection totals match |
 
@@ -325,7 +325,7 @@ particular partition. Events use explicit observed partitions for this experimen
 key-based routing/order is demonstrated separately by the existing Kafka test.
 
 Both consumers have separate live polling loops on two executor threads. Each
-`KafkaConsumer` is constructed, subscribed, polled, committed, unsubscribed and
+`KafkaConsumer` is constructed, subscribed, polled, committed and
 closed only by its owner thread. The sole cross-thread client operation is
 `wakeup()` for bounded shutdown. Admin calls independently inspect actual group
 membership and committed offsets; local assignment fields alone are insufficient.
@@ -342,7 +342,7 @@ position and **no committed entry for B's partition**. The test also checks B's
 observed delivery against the producer's returned partition/offset, verifies the
 local effect is 1, and records that evidence independently from A's later replay.
 
-B then unsubscribes and closes gracefully **without committing the held offset**.
+B then closes gracefully **without committing the held offset**.
 A receives the partition and the exact original record. `DurableStore.consume`
 returns `false` because that event's inbox row already committed, and reopening
 the H2 file still gives projection 1. A then commits its offset and accepts a fresh
@@ -361,6 +361,15 @@ The listener keeps a per-partition map of offsets whose local effect finished.
 then clears ownership state. It never commits a fetched-but-unfinished position.
 B has no completed offset entry for its deliberately held event, so its listener
 cannot accidentally acknowledge that effect-before-offset gap during departure.
+
+Shutdown uses owner-thread **close only**, not an explicit `unsubscribe()` followed
+by close. In the selected 4.3.1 classic client, close disables wakeups before its
+leave/revocation preparation. A shutdown wakeup can otherwise remain pending if
+the loop sees its stop flag before another poll; invoking unsubscribe first can
+then interrupt a genuine revocation offset commit. The actual broker scenario
+forces a pending wakeup immediately before A closes and requires its final
+revocation to finish the completed-offset commit. Commit/close failures remain
+fatal; this is not a catch-and-ignore workaround.
 
 `onPartitionsLost` deliberately does not commit; ownership may already have moved.
 That defensive branch is present, but this graceful departure scenario does not
