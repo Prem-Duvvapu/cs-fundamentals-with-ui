@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table is the current scoped status through PR79 (October 21). The dated checkpoints below
+This table includes merged PR80 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -28,7 +28,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry open | Operations and debugging |
 | AI-12 | Partial: actual token usage and failure-inclusive scenario costs; model comparison open | Cost, capacity and model choice |
 | AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
-| AI-14 | Local verified: reviewed AI-authored patches, actual Java/Git/Maven and independent regression tests | AI-assisted engineering |
+| AI-14 | PR80 verified: reviewed AI-authored patches, actual Java/Git/Maven and independent regression tests | AI-assisted engineering |
 | AI-15 | Partial: digital PDF and actual OCR CI verified; richer modalities open | Multimodal inputs |
 | AI-16 | Partial: actual small-model training | Classical ML lifecycle |
 | AI-17 | Local verified: runnable authored ranking and lesson | Recommendation systems |
@@ -47,7 +47,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT plus signed-webhook replay/rotation/compatibility; generic SSRF open | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuth/JWT and signed-webhook replay/rotation/compatibility; registered-partner SSRF lab locally verified, release pending | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
@@ -420,3 +420,42 @@ Integrated local checks pass: all thirteen engineering-workflow tests (new nine 
 four), all 279 focused Markdown/parser tests, all 68 content files/83 manifest entries and all
 fifteen marked runnable Java programs. The new numeric excerpt is separately compiled as recorded
 in its content unit; it is explicitly an excerpt rather than a newly marked complete program.
+
+## PR80 merged release evidence — October 21
+
+PR [80](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/80) merged at
+2026-10-21T19:20:08Z as b9dfe35a199e6ad73e4bad012f40360c56e4408a. Exact head
+1d6811700e5bd16af40c7a1fcd1b5bf0ac60f909 passed ten checks: Verify frontend, backend,
+practical-ai, real-backend-journey, containers and labs, link contracts, GitGuardian and both
+Vercel checks. The separate live-destinations job was intentionally skipped by PR policy;
+it is not evidence that the HLD deployed mismatch was repaired. This supersedes PR80's preceding
+CI-pending statements only. No human learning or model-quality gate is closed.
+
+## Registered-partner SSRF and cancellation continuation — unreleased
+
+The [outbound-request exercise](../examples/backend-ssrf/README.md) supplies an actual HTTP/TLS
+BE-06 milestone with an operator registry, operation-specific paths, all-address validation,
+numeric-peer connection preserving Host/SNI/certificate checks, redirect refusal and separate
+resolver/wire/body/deadline/admission caps. Controlled child-resolver changes are not a public DNS
+experiment; pure IPv6 policy checks are not IPv6 transport evidence. The isolated Python module
+adds no Spring adapter or production egress enforcement. Its dedicated no-skip CI is required.
+
+Source units 9293497/9cdf4c3/30b6af4 (integrated 58ceb69/6838623/b2e3d00) and the independent Spring Security
+content unit 04159fb (integrated 3b87a11) preserve registered lesson/question/rubric/diagram identities.
+The numeric-header fix proves a 5,000-digit Content-Length yields a typed body-limit result and
+the next admitted request succeeds. RCA12 records cancellation ownership/setup regressions;
+RCA13 records framing containment. The final sixteen-test/26-HTTP suite passes without skips,
+with exact source hashes and owned cleanup; independent review confirms startup/header and
+interrupted-scope-entry regressions. Exact-head CI remains required.
+
+The released comparison and engineering helpers had the same Popen-assignment cancellation gap.
+Source fix be2f439 (integrated ec7dff5) passes fifteen engineering tests, thirteen comparison tests
+and the packaged eight-call fixture comparison with unchanged 3/2/4 counts. Positioned actual
+TERM/INT through either process delivery or another unmasked live thread reproduces all eight
+failures on the old modules and proves exact child reaping with the fix. Executable guards restore
+caller handlers/masks; unguarded library calls retain host signal policy. No live model was rerun
+and no prompt, dataset, model or recorded quality result changed. Final-head CI remains required.
+
+Integrated final-byte local checks: sixteen SSRF tests/26 actual HTTP requests, fifteen engineering
+tests and thirteen comparison tests pass; all 68 lessons/83 manifest entries validate. The SSRF
+source-bound receipt matches all six implementation/test files. This is not remote release evidence.

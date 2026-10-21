@@ -2,6 +2,15 @@
 
 ## Current completion scope — October 21
 
+The [registered-partner SSRF lab](examples/backend-ssrf/README.md) is independent of the platform
+runtime. Keep exact operator origins/operations, all-answer address validation, pinned numeric
+connection and original-host TLS identity coupled. No redirect, caller credential/proxy forwarding,
+raw-URL CLI or fixture exception from request data is allowed. Require actual owned HTTP/TLS and
+cleanup evidence; pure address tests are not Internet/IPv6 transport or production egress proof.
+Preserve typed oversized framing rejection and recovery. Executable TERM/INT policy must defer
+delivery across Popen assignment/ownership and restore prior state even when handler setup fails;
+keep library callers' signal policy and masks unchanged. No SIGKILL cleanup guarantee is made.
+
 The core curriculum and UI refinement are delivered. The expanded practical plan remains active;
 use [the capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
 and its dated merged-release evidence, not earlier historical pending counts, for current scope.
