@@ -1,5 +1,14 @@
 # Backend Engineering — System Architecture & Development Context
 
+The isolated [SSRF module](examples/backend-ssrf/README.md) implements operator-registered partner
+document requests, bounded subprocess resolution, all-address policy, numeric-peer HTTP/TLS with
+original-host certificate verification, no redirects and byte/deadline/admission limits. It adds
+no platform endpoint, dependency or URL-taking command. Actual owned fixture tests and its dedicated
+workflow require transport, rejection/recovery and cleanup evidence. The Spring Security lesson
+links the exercise; Java adapter, real production DNS/egress and broader security assurance remain
+outside this module. Executable cancellation defers TERM/INT until owned children are registered;
+the library does not install caller signal policy or change caller signal masks. See RCA12/13.
+
 Current delivery and remaining capability scope are recorded in the
 [implementation ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger).
 PR79's actual resource cases and frozen comparison are shipped; human learning/accessibility,

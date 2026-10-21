@@ -1,14 +1,65 @@
 """Bounded commands operating on synthetic inputs and explicitly owned children."""
+from contextlib import contextmanager
 import os
 import selectors
 import signal
 import subprocess
+import threading
 import time
 from dataclasses import dataclass
 
 
 class LabFailure(RuntimeError):
     pass
+
+
+_cancellation = threading.local()
+
+
+@contextmanager
+def cancellation_guard(error=LabFailure, message='Owned command cancelled'):
+    """Opt-in executable policy; library calls alone leave host signals unchanged."""
+    if threading.current_thread() is not threading.main_thread():
+        yield
+        return
+    previous = {number: signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
+    outer = getattr(_cancellation, 'state', None)
+    state = dict(depth=0, requested=False, delivered=False, error=error, message=message)
+
+    def cancel(_number, _frame):
+        if state['requested']:
+            return  # Repeated cancellation must not interrupt finite owned-child cleanup.
+        state['requested'] = True
+        if not state['depth']:
+            state['delivered'] = True
+            raise error(message)
+
+    _cancellation.state = state
+    try:
+        for number in previous:
+            signal.signal(number, cancel)
+        yield
+    finally:
+        for number, handler in previous.items():
+            signal.signal(number, handler)
+        _cancellation.state = outer
+
+
+@contextmanager
+def defer_cancellation():
+    # A thread mask alone cannot defer Python's handler when another thread receives TERM/INT.
+    state = getattr(_cancellation, 'state', None)
+    if state is None:
+        yield
+        return
+    state['depth'] += 1
+    try:
+        yield
+    finally:
+        state['depth'] -= 1
+        if not state['depth'] and state['requested'] and not state['delivered']:
+            state['delivered'] = True
+            raise state['error'](state['message'])
 
 
 @dataclass
@@ -53,11 +104,13 @@ def stop(process, group=True):
 
 def run(args, cwd, budget, *, timeout=15, check=True, new_session=True, output_limit=128 * 1024):
     duration = min(timeout, budget.remaining())
-    process = subprocess.Popen([str(x) for x in args], cwd=cwd, env=environment(), stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, start_new_session=new_session)
+    process = None
     deadline = time.monotonic() + duration
     output = bytearray()
     try:
+        with defer_cancellation():
+            process = subprocess.Popen([str(x) for x in args], cwd=cwd, env=environment(), stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, start_new_session=new_session)
         with selectors.DefaultSelector() as selector:
             selector.register(process.stdout, selectors.EVENT_READ)
             while selector.get_map():
@@ -81,5 +134,6 @@ def run(args, cwd, budget, *, timeout=15, check=True, new_session=True, output_l
             raise LabFailure(f"Owned {os.path.basename(str(args[0]))} failed ({code}): {text[-1500:]}")
         return code, text
     finally:
-        stop(process, new_session)
-        process.stdout.close()
+        if process is not None:
+            stop(process, new_session)
+            process.stdout.close()

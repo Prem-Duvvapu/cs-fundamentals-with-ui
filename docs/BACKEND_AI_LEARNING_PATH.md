@@ -166,3 +166,9 @@ to predict duplicate, changed-body, stale-signature and key-retirement behavior 
 actual crash/replay recovery. Then use [the testing/load exercise](../examples/backend-testing/README.md)
 to distinguish stub contracts from real PostgreSQL evidence, reproduce an async test race, and
 explain errors and tail latency without claiming a small closed-loop run measures production capacity.
+
+For outbound integrations, use the [SSRF exercise](../examples/backend-ssrf/README.md). Predict why
+an allowed hostname alone is insufficient, then observe all-answer checks, pinned numeric peers,
+original-host TLS identity and redirect refusal. Distinguish a policy rejection before HTTP from
+a transport failure. Keep application destination authorization separate from production egress
+enforcement; the Python laboratory does not add a Spring controller or arbitrary-URL crawler.

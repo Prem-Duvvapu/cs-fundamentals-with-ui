@@ -46,24 +46,54 @@ class ChildFailure(RuntimeError):
         self.output = output
 
 
+_cancellation = threading.local()
+
+
 @contextmanager
 def cancellation_signals():
-    """Unwind owned children on CLI/main-thread termination and restore the caller."""
+    """Opt-in executable policy; library calls alone leave host signals unchanged."""
     if threading.current_thread() is not threading.main_thread():
         yield
         return
-    previous = signal.getsignal(signal.SIGTERM)
+    error, message = ComparisonCancelled, 'comparison_cancelled'
+    previous = {number: signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
+    outer = getattr(_cancellation, 'state', None)
+    state = dict(depth=0, requested=False, delivered=False, error=error, message=message)
 
     def cancel(_number, _frame):
-        # A second TERM must not interrupt finite child cleanup or report publication.
-        signal.signal(signal.SIGTERM, signal.SIG_IGN)
-        raise ComparisonCancelled('comparison_cancelled')
+        if state['requested']:
+            return  # Repeated cancellation must not interrupt finite owned-child cleanup.
+        state['requested'] = True
+        if not state['depth']:
+            state['delivered'] = True
+            raise error(message)
 
-    signal.signal(signal.SIGTERM, cancel)
+    _cancellation.state = state
+    try:
+        for number in previous:
+            signal.signal(number, cancel)
+        yield
+    finally:
+        for number, handler in previous.items():
+            signal.signal(number, handler)
+        _cancellation.state = outer
+
+
+@contextmanager
+def defer_cancellation():
+    # A thread mask alone cannot defer Python's handler when another thread receives TERM/INT.
+    state = getattr(_cancellation, 'state', None)
+    if state is None:
+        yield
+        return
+    state['depth'] += 1
     try:
         yield
     finally:
-        signal.signal(signal.SIGTERM, previous)
+        state['depth'] -= 1
+        if not state['depth'] and state['requested'] and not state['delivered']:
+            state['delivered'] = True
+            raise state['error'](state['message'])
 
 
 def digest(data):
@@ -208,9 +238,10 @@ def bounded_child(command, environment, timeout, *, input_bytes=None, output_lim
     selector = selectors.DefaultSelector()
     deadline, output = time.monotonic() + timeout, bytearray()
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                   stdin=subprocess.PIPE if input_bytes is not None else subprocess.DEVNULL,
-                                   env=environment, start_new_session=True)
+        with defer_cancellation():
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       stdin=subprocess.PIPE if input_bytes is not None else subprocess.DEVNULL,
+                                       env=environment, start_new_session=True)
         if input_bytes is not None:
             if len(input_bytes) > 2048:
                 raise ValueError('comparison_child_input_limit')

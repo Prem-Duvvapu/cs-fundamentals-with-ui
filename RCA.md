@@ -634,3 +634,59 @@ exercise passes eight calls with exact counts 3/4, 2/4 and 4/4 and preserves its
 and paired regression. Both gates now run in Verify. The already-completed development report is
 retained byte-for-byte, with a separate dated validation record; no observations are fabricated
 or silently backfilled. Actual held-out execution uses the hardened wrapper.
+
+## RCA-2026-10-21-12 — cancellation interrupted subprocess ownership and scope entry
+
+**Observed:** positioned actual TERM immediately after real Popen returned, before its caller
+assigned the handle, left an owned child alive in both released comparison and engineering
+helpers. All eight new boundary subcases fail against b9dfe35: TERM loses the ownership marker;
+INT reaches the original caller handler. The test fallback killed and waited for each exact
+owned child. The unpublished SSRF module had the same assignment/registration window. A second
+independent SSRF probe delivered TERM during signal-handler installation, before context entry
+returned, and proved its TERM handler remained installed because __exit__ never ran.
+
+**Cause:** finally-based cleanup assumed a child handle had already reached its owner. A main-thread
+signal mask alone cannot prevent Python's main-thread handler running when another live thread
+receives the signal. The SSRF class context manager also relied on exit for setup rollback.
+
+**Resolution:** executable opt-in TERM/INT guards defer cancellation briefly across Popen assignment
+and active registration inside an already-active finally. Once ownership exists, pending delivery
+unwinds the existing finite cleanup. Caller signal masks are unchanged, prior handlers/state are
+restored, and repeated cancellation does not interrupt owned cleanup. SSRF context entry rolls back
+both handlers and outer state if setup is interrupted. Library calls alone do not install this
+process-wide policy. No preexec_fn, foreign-process scan or SIGKILL cleanup guarantee is introduced.
+
+**Verification/prevention:** engineering's fifteen tests and comparison's thirteen include actual
+TERM/INT before the Popen wrapper returns, delivered directly or to an unmasked live thread while
+the main thread masks that signal. An observer proves handler execution before return; tests require
+the child already waited, /proc absent and pipes closed before their fallback. Restoration is tested
+on success, spawn failure and cancellation. Packaged comparison still observes eight calls and exact
+3/2/4 counts with the original default. SSRF adds the analogous four-case matrix and actual TERM/INT
+scope-entry interruption/restoration; its final sixteen-test/26-HTTP suite and source-bound receipt
+are verified independently. Future owned-child harnesses must test the assignment boundary and
+setup failure, not only cancellation after work starts.
+
+**Resolving commits:** ec7dff5 (source be2f4395c7e5e6bd001bbc22b0baad0f63e188c9),
+6838623 (source 9cdf4c3) and b2e3d00 (source 30b6af45e1fd6e64513c17a5901cd1a3c0f36b26).
+
+## RCA-2026-10-21-13 — huge decimal framing escaped the typed fetch result
+
+**Observed:** an actual HTTP response contained a 5,000-digit Content-Length that fit the lab's
+16KiB wire cap. Python's integer-conversion digit limit raised ValueError outside the typed
+fetch rejection boundary. This was found in the unpublished SSRF module; no foreign service was
+contacted and no released platform endpoint was affected.
+
+**Cause:** decimal syntax and wire size were checked, but unbounded conversion preceded the
+application body-cap comparison. Syntactically decimal input need not be safely convertible.
+
+**Resolution:** compare canonical decimal length/text against the finite body cap before converting
+the now-bounded value. Leading zeros are normalized for comparison; malformed, duplicate and
+over-limit framing retain explicit rejection. The real 5,000-digit regression requires body_limit
+and a successful next request through the same one-slot fetcher, proving capacity recovery.
+
+**Verification/prevention:** actual transport and recovery pass in the final sixteen-test/26-request
+suite, with no skips and complete owned-resource cleanup. The dedicated CI requires this exact
+case and rejections in its sanitized report. Check target numeric representation and conversion
+limits wherever untrusted decimal headers cross a typed boundary.
+
+**Resolving commit:** 6838623 (source 9cdf4c3).

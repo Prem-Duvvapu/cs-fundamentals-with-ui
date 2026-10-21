@@ -529,3 +529,10 @@ compares reviewed fixture patches using actual Java 17 compilation, independent 
 tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
+
+The [SSRF exercise](examples/backend-ssrf/README.md) teaches registered-partner outbound requests:
+strict operation/origin policy, all-address validation, numeric-peer connection with original-host
+TLS verification, redirect refusal and bounded resolver/response work. Actual owned loopback HTTP
+and TLS checks distinguish policy rejection from network failure and verify cancellation cleanup.
+It is an isolated Python transport lab; a Java/Spring adapter and production egress policy remain
+separate work. Run `python3 examples/backend-ssrf/verify.py`; no URL argument or download is needed.

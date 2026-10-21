@@ -375,6 +375,29 @@ Key rotation changes which signatures are accepted; it does not erase durable re
 
 **Overbroad CORS** exposes authenticated responses to hostile origins when credentials and reflected origins are combined. Validate an exact origin list and include CORS configuration in automated security tests.
 
+### Outbound fetches and server-side request forgery (SSRF)
+
+Suppose a logged-in user submits a URL for importing a partner document. If your backend fetches an internal admin service instead, the user has redirected the server's network access: **server-side request forgery (SSRF)**.
+CSRF induces a victim browser to send a request with its credentials; SSRF misuses the backend's outbound request. Spring's inbound authentication and CSRF protection do not authorize arbitrary destination URLs.
+
+For a registered-partner document feature, use a narrow service policy:
+
+- Keep the exact allowed scheme, hostname, port and operation server-owned; constrain paths and query fields as well as the host.
+- Resolve the hostname to IP addresses, then validate every IPv4/IPv6 answer against the permitted address policy before connecting.
+- Connect to a validated **numeric IP**, while retaining the registered hostname in HTTP Host and TLS server-name indication (SNI); verify both certificate chain and hostname.
+- Refuse redirects, including same-host redirects, so a second destination or operation cannot bypass the policy.
+- Bound DNS resolution, connection/read waits, response bytes, concurrency and total time; cancel and clean up owned work when those budgets expire.
+
+**The DNS check/use gap:** checking one DNS answer and then giving the hostname to an ordinary HTTP client can trigger a second lookup with a different result.
+The checked address might be public while the address actually used is internal. The connection must use the validated address, not repeat an unchecked hostname lookup.
+
+Destination checks do not validate the returned document. Parse its schema, enforce business rules and treat its contents as untrusted data; an `application/json` header is not proof of safe meaning.
+Restrictive network egress rules add another layer; application URL validation alone does not control every routing or proxy arrangement.
+
+The [registered-partner SSRF lab](../../examples/backend-ssrf/README.md) demonstrates Python transport controls with owned HTTP/TLS fixtures and controlled DNS replies.
+It is not an implemented Spring adapter, public-DNS experiment or universal URL validator. A Spring integration must preserve these boundaries in its chosen transport.
+**Predict:** can an authenticated caller add a new partner hostname in request JSON? No; the operator's registration and the caller's permission to use that operation are separate checks.
+
 ### Choosing sessions, JWT, or opaque OAuth tokens
 
 The choice is an operational trade-off, not a maturity ladder.
@@ -505,3 +528,4 @@ The API is probably checking signature and expiration but not the `aud` audience
 - [Spring Security reference: OAuth 2.0 resource server JWT](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html) documents validation, key discovery, and authority mapping.
 - [OAuth 2.0 Security Best Current Practice, RFC 9700](https://www.rfc-editor.org/rfc/rfc9700.html) consolidates current deployment guidance and deprecates unsafe patterns.
 - [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) provides maintained guidance on adaptive hashing and work-factor upgrades.
+- [OWASP SSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html) explains known-destination allowlists, DNS validation/connection binding, redirect refusal and network defenses.

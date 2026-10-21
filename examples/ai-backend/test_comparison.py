@@ -51,6 +51,107 @@ class ComparisonTests(unittest.TestCase):
         finally:
             signal.signal(signal.SIGTERM, previous)
 
+    @unittest.skipUnless(hasattr(signal, 'pthread_sigmask') and hasattr(signal, 'pthread_kill'), 'POSIX thread signals required')
+    def test_real_popen_boundary_defers_term_and_int_including_delivery_to_another_thread(self):
+        signals = (signal.SIGTERM, signal.SIGINT)
+        previous = {number: signal.getsignal(number) for number in signals}
+        previous_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        actual_popen = subprocess.Popen
+        def caller_handler(_number, _frame):
+            raise AssertionError('Caller handler must be restored, not invoked inside the owned guard.')
+        try:
+            for number in signals:
+                signal.signal(number, caller_handler)
+            for number in signals:
+                for other_thread in (False, True):
+                    with self.subTest(signal=number.name, other_thread=other_thread):
+                        owned, returned = [], []
+                        ready, finish = threading.Event(), threading.Event()
+                        def live_thread():
+                            signal.pthread_sigmask(signal.SIG_UNBLOCK, set(signals))
+                            ready.set()
+                            finish.wait(8)
+                        caller_mask = (previous_mask | {signal.SIGUSR1}) - set(signals)
+                        if other_thread:
+                            caller_mask.add(number)  # Main-thread masking alone cannot solve this case.
+                        signal.pthread_sigmask(signal.SIG_SETMASK, caller_mask)
+                        thread = threading.Thread(target=live_thread, daemon=True)
+                        thread.start()
+                        self.assertTrue(ready.wait(1))
+                        def cancel_before_return(*args, **kwargs):
+                            process = actual_popen(*args, **kwargs)
+                            owned.append(process)
+                            delivered = []
+                            installed_handler = signal.getsignal(number)
+                            def observe_delivery(signum, frame):
+                                delivered.append(signum)
+                                installed_handler(signum, frame)
+                            signal.signal(number, observe_delivery)
+                            if other_thread:
+                                signal.pthread_kill(thread.ident, number)
+                                time.sleep(.03)  # Execute the Python handler before returning Popen's result.
+                            else:
+                                os.kill(os.getpid(), number)
+                            self.assertEqual([number], delivered, 'Handler must run inside the real Popen boundary.')
+                            returned.append(True)
+                            return process
+                        try:
+                            with self.assertRaises(comparison.ComparisonCancelled):
+                                with comparison.cancellation_signals(), patch.object(subprocess, 'Popen', cancel_before_return):
+                                    comparison.bounded_child([sys.executable, '-c', 'import threading; threading.Event().wait()'], os.environ.copy(), 5)
+                            self.assertEqual([True], returned, 'Cancellation must wait until process ownership is assigned.')
+                            self.assertEqual(1, len(owned))
+                            self.assertIsNotNone(owned[0].returncode, 'Owned process must already be waited/reaped.')
+                            self.assertIsNotNone(owned[0].poll())
+                            with self.assertRaises(ProcessLookupError):
+                                os.kill(owned[0].pid, 0)
+                            self.assertTrue(owned[0].stdout.closed)
+                            self.assertEqual(caller_mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+                            for value in signals:
+                                self.assertIs(caller_handler, signal.getsignal(value))
+                        finally:
+                            finish.set(); thread.join(timeout=1)
+                            self.assertFalse(thread.is_alive())
+                            for process in owned:
+                                if process.poll() is None:
+                                    os.killpg(process.pid, signal.SIGKILL)
+                                process.wait(timeout=2)
+                                process.stdout.close()
+        finally:
+            for number, handler in previous.items():
+                signal.signal(number, handler)
+            signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+
+    @unittest.skipUnless(hasattr(signal, 'pthread_sigmask'), 'POSIX thread signals required')
+    def test_guard_restores_both_handlers_and_mask_on_success_and_spawn_failure(self):
+        signals = (signal.SIGTERM, signal.SIGINT)
+        previous = {number: signal.getsignal(number) for number in signals}
+        previous_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        def caller_handler(_number, _frame):
+            pass
+        try:
+            expected_mask = previous_mask | {signal.SIGUSR1}
+            signal.pthread_sigmask(signal.SIG_SETMASK, expected_mask)
+            for number in signals:
+                signal.signal(number, caller_handler)
+            with comparison.cancellation_signals():
+                self.assertEqual(expected_mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+            with self.assertRaises(FileNotFoundError):
+                with comparison.cancellation_signals(), patch.object(subprocess, 'Popen', side_effect=FileNotFoundError('owned-spawn-failure')):
+                    comparison.bounded_child([sys.executable, '-c', 'import threading; threading.Event().wait()'], os.environ.copy(), 5)
+            for number in signals:
+                self.assertIs(caller_handler, signal.getsignal(number))
+            self.assertEqual(expected_mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+            # A library call without an opt-in guard must preserve the caller's signal policy too.
+            self.assertEqual(b'owned-success\n', comparison.bounded_child([sys.executable, '-c', "print('owned-success')"], os.environ.copy(), 5))
+            for number in signals:
+                self.assertIs(caller_handler, signal.getsignal(number))
+            self.assertEqual(expected_mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+        finally:
+            for number, handler in previous.items():
+                signal.signal(number, handler)
+            signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+
     def test_actual_cli_sigterm_reaps_owned_jvm_and_publishes_interruption(self):
         with tempfile.TemporaryDirectory(prefix='owned-comparison-term-') as temporary:
             directory = Path(temporary)
