@@ -504,3 +504,10 @@ are unchanged. The new excerpt actually prints301 /300 then throws NullPointerEx
 the existing marked ReferenceDemo still compiles/runs with its expected output. Broader source
 review and real learner recognition remain open. RCA14 records and resolves a local documentation
 merge error before publication; complete instructions and architecture tails are preserved.
+
+The first PR82 CI run completed the real-backend journey but exposed a missing literal migration
+citation in the compressed reference prose. Source c0a424a (integrated7ea7a72) restores the exact
+explanation at600 lines; the unchanged migration gate passes109/109. RCA15 records the omitted
+local gate and requires it for future paraphrases as well as deletions. No migration ledger or
+test is weakened; final-head CI remains required. The final integrated reader/component run passes
+269 tests and the full content gate passes68/68 with83 mappings.

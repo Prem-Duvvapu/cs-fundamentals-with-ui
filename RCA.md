@@ -715,3 +715,28 @@ whole diff and document beginning/end after conflict resolution, including files
 conflicts. A successful rebase exit alone does not establish preservation.
 
 **Resolving commit:** bf55826.
+
+## RCA-2026-10-21-15 — reference prose compression invalidated migrated-question evidence
+
+**Observed:** PR82 frontend job119453693487 in run39666746310 failed the existing migration gate
+for legacy-json:java-fundamentals-memory:javamemory:quiz:0deb0d64ed30. All109 entries were resolved,
+but the exact cited sentence was absent from the memory lesson. Earlier local lesson/render checks
+passed; they do not verify the separate simulator-question migration ledger.
+
+**Cause:** the S04 boxing addition compressed related reference prose to retain the600-line contract.
+It preserved the mechanism, all question IDs, eleven prior code blocks, headings, diagrams and
+interview tail, but paraphrased an existing literal citation outside those protected regions.
+The full migration gate was omitted from that content unit's local verification.
+
+**Resolution:** restore the exact sentence about copied parameters and independent variable storage
+within the existing two-line explanation. Keep copied-reference mutation and both pass-by-reference
+misconceptions explicit. The lesson remains600 reported lines; no ledger entry, disposition,
+expected quote, question, diagram or test gate is weakened.
+
+**Verification/prevention:** the unchanged real migration gate passes109/109 resolved with zero
+pending; the exact topic contract passes600 lines/four diagrams/fourteen questions/three mappings.
+All protected blocks/headings/tail remain unchanged. Require the migration gate after prose
+compression and paraphrase, not just simulator deletion; a semantic equivalent does not satisfy
+an intentionally literal evidence contract. Final-head CI must rerun before merge.
+
+**Resolving commit:** 7ea7a72 (source c0a424a500db4ab0b6cfcfd26195d075d6234ab4).

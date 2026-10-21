@@ -2,6 +2,11 @@
 
 ## Current completion scope — October 21
 
+When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
+evidence in the affected lesson and run `node scripts/audit-simulation-questions.mjs --check`.
+Preserving question IDs, code blocks and diagrams alone does not preserve these prose citations;
+run this gate for compression/paraphrase as well as simulator deletion. See RCA15.
+
 The [registered-partner SSRF lab](examples/backend-ssrf/README.md) is independent of the platform
 runtime. Keep exact operator origins/operations, all-answer address validation, pinned numeric
 connection and original-host TLS identity coupled. No redirect, caller credential/proxy forwarding,
