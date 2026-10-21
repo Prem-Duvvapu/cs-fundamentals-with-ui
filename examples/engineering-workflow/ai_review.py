@@ -8,10 +8,8 @@ import os
 from pathlib import Path
 import re
 import shutil
-import signal
 import tempfile
-import threading
-from commands import Budget, LabFailure, run
+from commands import Budget, LabFailure, run, cancellation_guard as command_cancellation
 from maven_probe import exercise as maven_exercise
 
 HERE = Path(__file__).resolve().parent
@@ -162,17 +160,8 @@ class ReviewCancelled(LabFailure):
 
 @contextmanager
 def cancellation_guard():
-    if threading.current_thread() is not threading.main_thread():
-        yield; return
-    previous = signal.getsignal(signal.SIGTERM)
-    def cancel(_number, _frame):
-        signal.signal(signal.SIGTERM, signal.SIG_IGN)
-        raise ReviewCancelled('Owned review cancelled')
-    signal.signal(signal.SIGTERM, cancel)
-    try:
+    with command_cancellation(ReviewCancelled, 'Owned review cancelled'):
         yield
-    finally:
-        signal.signal(signal.SIGTERM, previous)
 
 
 def run_lab(*, observe=None, seconds=180):
