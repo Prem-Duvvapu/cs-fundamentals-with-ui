@@ -33,8 +33,10 @@ PDFs, screenshots or transcriptions without an applicable license/permission.
 ## Forty-entry mapping
 
 These are verified existing **destination files**, not verified equivalence to the source notes.
-A missing focused destination is explicit. A familiar navigation view and actual two-lesson learner
-pilot remain open; this Markdown inventory alone does not implement that UI or prove familiarity.
+A missing focused destination is explicit. The Java category's optional **Revisit Java-by-Shrayansh**
+disclosure implements two reviewed entries, OOP then JDK/runtime/JVM, with canonical lessons,
+section/Practice links and shared saved state. Remaining course navigation and the actual two-lesson
+learner pilot remain open; this inventory and automated UI checks do not prove familiarity.
 
 | Entry | Familiar concept | Existing destination / gap | Source | Review state |
 |---|---|---|---|---|
@@ -137,4 +139,4 @@ instead of duplicating opaque share-query strings. No original note contents are
    separate gaps. Recheck the source commit before the next wave and retain dated review evidence.
 
 This ledger closes source **inventory**, not CLOSE-02. The unreviewed notes, foundations/build-time
-coverage, familiar-navigation delivery, rights decisions and actual two-lesson pilot remain open.
+coverage, broader familiar navigation, rights decisions and actual two-lesson pilot remain open.

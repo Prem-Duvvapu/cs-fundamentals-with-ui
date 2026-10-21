@@ -2,6 +2,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { catalog, frontendRequire as require, launchChromium, repoRoot, routeFixtureApi, startStaticServer } from './lib/ui-fixtures.mjs'
+import { verifyJavaCourseRevision } from './lib/java-course-journey.mjs'
 
 const server = await startStaticServer()
 const origin = server.origin
@@ -138,6 +139,7 @@ try {
   if (await page.getByRole('tab', { name: 'Simulation' }).getAttribute('aria-selected') !== 'true') failures.push('Simulation selection did not follow browser history')
   if (!(await page.title()).includes('Process Management')) failures.push('Topic browser title is missing')
 
+  await verifyJavaCourseRevision(page, origin, failures)
   await page.goto(`${origin}/category/java-spring`)
   await page.getByRole('heading', { level: 1, name: 'Java & Spring' }).waitFor()
   await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Learning paths' }).click()
@@ -279,6 +281,7 @@ try {
       await page.goto(`${origin}${route}`)
       await page.locator('h1').first().waitFor()
       await page.locator(`html[data-theme="${theme}"]`).waitFor()
+      if (route === '/category/java-spring') await page.locator('.course-revision > summary').click()
       if (route.startsWith('/topic/') && !route.includes('view=simulation')) await page.locator('.topic-content h2').first().waitFor()
       if (route.includes('process-management?view=simulation')) await page.locator('.action-buttons-grid .btn-action').first().waitFor()
       if (route.includes('java-hashmap-internals?view=simulation')) await page.getByRole('textbox', { name: 'Map key' }).waitFor()
@@ -308,4 +311,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log(`Responsive layout smoke passed: 14 routes × 5 widths × 2 themes; reader density; rail search/collapse journey; ${simulatorCount} simulators × 2 themes (320px overflow + axe); 20 page axe scans; six-category navigation and exact-question spaced-review journeys.`)
+console.log(`Responsive layout smoke passed: 14 routes × 5 widths × 2 themes; reader density; rail search/collapse journey; familiar Java revision keyboard/history/shared-state journey; ${simulatorCount} simulators × 2 themes (320px overflow + axe); 20 page axe scans (Java revision open); six-category navigation and exact-question spaced-review journeys.`)

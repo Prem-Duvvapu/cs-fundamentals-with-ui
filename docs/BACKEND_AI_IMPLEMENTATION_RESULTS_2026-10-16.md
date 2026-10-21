@@ -53,7 +53,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | Inventory plus execution/OOP/primitive source reviews verified; other notes/navigation/learner pilot open | Java course familiarity |
+| CLOSE-02 | Inventory and execution/OOP/primitive reviews verified; two-entry familiar revision view locally implemented; remaining notes and real learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -459,3 +459,27 @@ and no prompt, dataset, model or recorded quality result changed. Final-head CI 
 Integrated final-byte local checks: sixteen SSRF tests/26 actual HTTP requests, fifteen engineering
 tests and thirteen comparison tests pass; all 68 lessons/83 manifest entries validate. The SSRF
 source-bound receipt matches all six implementation/test files. This is not remote release evidence.
+
+## Two-entry familiar Java revision view — unreleased
+
+The existing Java category route now offers **Revisit Java-by-Shrayansh**, closed initially,
+with the first two reviewed entries in course order: OOP then JDK/runtime/JVM. It resolves actual
+catalog topics and reuses LessonRow, bookmark/completion and learning state. Three section links
+per entry, existing Practice, optional saved-reading links, original clarifications and native
+source-credit links introduce no new catalog, route, preference or saved-data identity.
+
+Four focused component tests pass, including every hash through the actual Markdown outline
+pipeline, absent-catalog suppression, Java-only rendering and shared state. All830 frontend tests
+and the production build pass. CSS changes regenerate all295 diagram
+fingerprints; all590 existing SVG bytes are unchanged. Browser keyboard/history/target/containment,
+open-content axe and the real-backend section journey are required release checks. These tests do
+not establish that a real learner recognizes the course or understands either lesson; CLOSE-02
+remains open until the participant task, revisions and retest are actually recorded.
+
+The focused real-browser journey passes all six theme/width combinations, native Enter/Space and
+closed-content focus, shared bookmarks/completion/drafts, exact section navigation and Back/Forward;
+four open-content axe scans pass. The first broad local run found only an incorrect desktop
+44px bookmark expectation in the new harness (mobile retains44px; existing desktop controls40px);
+the assertion now matches the documented breakpoint contract. Final presentation wraps desktop
+section links compactly and keeps the chevron beside a wrapped mobile title/count. Final-head CI
+must rerun the full responsive and real-backend journeys before merge.

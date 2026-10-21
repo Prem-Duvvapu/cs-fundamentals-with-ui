@@ -536,3 +536,9 @@ TLS verification, redirect refusal and bounded resolver/response work. Actual ow
 and TLS checks distinguish policy rejection from network failure and verify cancellation cleanup.
 It is an isolated Python transport lab; a Java/Spring adapter and production egress policy remain
 separate work. Run `python3 examples/backend-ssrf/verify.py`; no URL argument or download is needed.
+
+On the Java category page, **Revisit Java-by-Shrayansh** opens two reviewed entries in familiar
+course order: OOP, then JDK/runtime/JVM. Each offers direct section links, a clarification, Practice
+and the credited original notes. They use the existing lessons and share bookmarks, completion,
+reading position and saved answers. The disclosure starts closed; the main study order stays
+available below it. Remaining course notes and the actual two-lesson learner pilot are still open.
