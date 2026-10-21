@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR81 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR82 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -53,7 +53,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | Inventory and execution/OOP/primitive/reference reviews verified; two-entry familiar revision view locally implemented; remaining notes and real learner pilot open | Java course familiarity |
+| CLOSE-02 | PR82 familiar two-entry revision and execution/OOP/primitive/reference reviews verified; remaining notes and real learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -511,6 +511,18 @@ explanation at600 lines; the unchanged migration gate passes109/109. RCA15 recor
 local gate and requires it for future paraphrases as well as deletions. No migration ledger or
 test is weakened; final-head CI remains required. The final integrated reader/component run passes
 269 tests and the full content gate passes68/68 with83 mappings.
+
+## PR82 merged release evidence — October 21
+
+PR [82](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/82) merged at
+2026-10-21T20:14:42Z as 0b934e5369b535bb788c228b74e6103635499dd1. Exact head
+ed9703fb551894e27ab44b031d874530f0f8f51c passed all nine checks: Verify frontend/backend/
+practical-ai/labs/containers/real-backend-journey, GitGuardian and both Vercel checks.
+Frontend includes the full familiar-revision keyboard/history/shared-state journey, open-content
+axe scans in both themes, all830 unit tests,590 diagram decodes,68/83 content checks and the
+unchanged109-entry migration gate. The real-backend check independently follows the new course
+link to actual rendered content and checks canonical titles/counts. This supersedes preceding
+PR82 release-pending statements; no learner recognition, screen-reader or zoom session is claimed.
 
 ## Configuration and JDI continuation — unreleased
 
