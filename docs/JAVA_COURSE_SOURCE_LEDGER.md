@@ -47,7 +47,7 @@ learner pilot remain open; this inventory and automated UI checks do not prove f
 | 3 | Public classes and source files | [Public classes and source files](../content/java-spring/01b-java-execution-pipeline.md) | None linked | No linked source; verify against JLS |
 | 4 | Primitive values | [Primitive values](../content/java-spring/01c-java-memory-model.md) | S03 | [All 10 pages reviewed](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md); beginner conversions integrated; learner pilot pending |
 | 5 | Floating-point representation | [Floating-point representation](../content/java-spring/01c-java-memory-model.md) | S03 | [All 10 pages reviewed](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md); beginner conversions integrated; learner pilot pending |
-| 6 | References and non-primitive values | [References and non-primitive values](../content/java-spring/01c-java-memory-model.md) | S04 | [All 6 pages reviewed](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md); beginner wrapper bridge and learner pilot pending |
+| 6 | References and non-primitive values | [References and non-primitive values](../content/java-spring/01c-java-memory-model.md) | S04 | [All 6 pages reviewed](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md); boxed-alias/null-unboxing bridge integrated; learner pilot pending |
 | 7 | Methods | [Methods](../content/java-spring/01d-java-oop-pillars.md) | S05 | Source text/images not reviewed |
 | 8 | Constructors | [Constructors](../content/java-spring/01d-java-oop-pillars.md) | S05 | Source text/images not reviewed |
 | 9 | Memory and garbage collection | [Memory and garbage collection](../content/java-spring/01-jvm-gc.md) | S06 | Source text/images not reviewed |

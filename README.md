@@ -542,3 +542,8 @@ course order: OOP, then JDK/runtime/JVM. Each offers direct section links, a cla
 and the credited original notes. They use the existing lessons and share bookmarks, completion,
 reading position and saved answers. The disclosure starts closed; the main study order stays
 available below it. Remaining course notes and the actual two-lesson learner pilot are still open.
+
+The [six-page reference-notes review](docs/JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md) corrects
+the source's wrapper/pass-by-reference explanation. The memory lesson now traces boxing,
+immutable Integer alias reassignment and null unboxing in Java 17, retaining existing examples,
+diagrams, question identities and saved answers.

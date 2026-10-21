@@ -690,3 +690,28 @@ case and rejections in its sanitized report. Check target numeric representation
 limits wherever untrusted decimal headers cross a typed boundary.
 
 **Resolving commit:** 6838623 (source 9cdf4c3).
+
+## RCA-2026-10-21-14 — documentation conflict resolution consumed unchanged tails
+
+**Observed:** the unpublished Java-pilot rebase reported 1,796 deleted lines. Inspection found
+AGENTS.md reduced to 19 lines and CONTEXT.md to 18. The intended edits were additive; no feature
+required deleting their remaining instructions or architecture. No truncated document was pushed.
+
+**Cause:** a local conflict-resolution expression enabled DOTALL for the conflict bodies but also
+used an unrestricted dot in its closing-marker match. That final match consumed the unchanged
+remainder of files whose conflict occurred near the top. The two end-of-file conflicts hid this
+mistake because they had no following tail.
+
+**Resolution:** reconstruct all four documents with git merge-file from the exact current main,
+original base and pilot commit; combine only the additive conflict bodies using newline-bounded
+marker matches. The complete unchanged tails are retained. Do not resolve whole-file Markdown
+conflicts using a greedy regular expression.
+
+**Verification/prevention:** restored AGENTS.md to 816 lines and CONTEXT.md to 717. Their final
+diffs against main contain only seven/eight additions and zero deletions; README has six additions
+and zero deletions before the separate source-review note. Every reconstructed file matched the
+complete three-way result; no conflict markers remain and whitespace checks pass. Inspect the
+whole diff and document beginning/end after conflict resolution, including files with early
+conflicts. A successful rebase exit alone does not establish preservation.
+
+**Resolving commit:** bf55826.
