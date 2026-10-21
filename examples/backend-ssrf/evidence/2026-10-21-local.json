@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "execution": "actual-owned-loopback-http-and-tls",
+  "executedAt": "2026-10-21T18:59:29.281399+00:00",
+  "addressPolicyVersion": "partner-address-v1-2026-10-21",
+  "runtime": {
+    "python": "3.13.3",
+    "openssl": "OpenSSL 3.6.2 7 Apr 2026",
+    "system": "Linux"
+  },
+  "sourceSha256LF": {
+    "fetch.py": "3678925a76de56ba3b5a93240687914013702c8ecb451192a9eafb11bfc9c13f",
+    "resolver_worker.py": "0ad23504c83cdfaf3004a92af779d2c98fca1520ff978849c22876efdd6d9ba5",
+    "fixtures.py": "36592e1c2523fa5480c11402be0e58ab47979b67f00117370779734df6fc917b",
+    "test_fetch.py": "89472239238f3cdcb6d630fa04b1b3910f077f18051a16311db37b61968d26eb",
+    "verify.py": "b00bba3ebd4eaa7ba23d99ab6ea33a74ef14c77549a202b5213be81562d4ff96",
+    "cancellation.py": "73afc290bd44d995229d220404a5cdd8154a9666ae6051d18488da9aa3a83fd7"
+  },
+  "testsRun": 13,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "foreignConnectionGuardEnabled": true,
+  "publicDNSExperiment": false,
+  "cleanupVerified": true,
+  "observations": {
+    "httpRequests": 24,
+    "resolverChildren": 38,
+    "resolverChildrenReaped": 38,
+    "fixtureServersClosed": 12,
+    "temporaryTLSMaterialRemoved": true
+  },
+  "cases": [
+    {
+      "case": "controlled_rebinding_model_not_public_dns",
+      "httpRequests": 1,
+      "resolverCalls": 2,
+      "nextRequestRejected": true
+    },
+    {
+      "case": "actual_sigterm_executable_boundary",
+      "cancelled": true,
+      "resolverReaped": true,
+      "resolverExitCode": -9,
+      "fixtureClosed": true,
+      "temporaryTLSMaterialRemoved": true
+    },
+    {
+      "case": "actual_tls_host_sni_pin_no_cookie_or_proxy",
+      "httpRequests": 2,
+      "resolverCalls": 2,
+      "verifiedTLS": true
+    },
+    {
+      "case": "actual_tls_hostname_and_trust_failures",
+      "rejectedBeforeHTTP": 2,
+      "httpRequests": 0
+    },
+    {
+      "case": "all_dns_answers_validated_synthetic_denied_ranges",
+      "cases": 10,
+      "httpRequests": 0
+    },
+    {
+      "case": "actual_concurrency_and_call_caps",
+      "httpRequests": 1,
+      "resolverCalls": 1,
+      "overloadRejected": true,
+      "callLimitRejected": true
+    },
+    {
+      "case": "actual_response_bounds_and_framing",
+      "requests": 10,
+      "accepted": 0
+    },
+    {
+      "case": "pure_address_policy_only",
+      "deniedInputs": 29,
+      "publicExampleInputs": 2,
+      "networkRequests": 0
+    },
+    {
+      "case": "actual_resolver_child_timeout_cleanup",
+      "childrenActive": 0,
+      "childExitCode": -9,
+      "childReaped": true,
+      "httpRequests": 0,
+      "elapsedMillis": 152
+    },
+    {
+      "case": "actual_redirects_same_authority_and_decoy",
+      "initialRequests": 8,
+      "followedRequests": 0,
+      "decoyRequests": 0
+    },
+    {
+      "case": "actual_stalled_body_and_slow_drip_deadlines",
+      "failedRequests": 2,
+      "overallBudgetMillis": 500,
+      "slowDripElapsedMillis": 501
+    },
+    {
+      "case": "url_authority_path_query_bypasses",
+      "deniedInputs": 29,
+      "dnsCalls": 0,
+      "httpRequests": 0
+    }
+  ],
+  "limitsOfEvidence": [
+    "Registered partner URL policy, not unrestricted Internet fetching",
+    "DNS replies are controlled child-process fixtures, not actual public DNS rebinding",
+    "No cloud metadata/private foreign service was contacted",
+    "Temporary loopback TLS trust is not production PKI or egress-firewall evidence"
+  ]
+}

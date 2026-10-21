@@ -1,0 +1,15 @@
+{
+  "authoredAt": "2026-10-21",
+  "ownership": "Original registered-partner URL-fetch implementation and original fictional fixture documents; no copied course or customer material.",
+  "implementation": "Python standard library only; existing OpenSSL executable creates ephemeral loopback TLS certificates. No package installation, remote fetch fixture, model, paid API or image download.",
+  "runtimeContract": "Linux with Python 3.12+ and installed OpenSSL; Linux process groups, resource limits and /proc are mandatory for actual resolver/cancellation evidence. No silent portability skip.",
+  "addressPolicyVersion": "partner-address-v1-2026-10-21",
+  "primaryReferences": [
+    "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+    "https://docs.python.org/3.12/library/http.client.html",
+    "https://docs.python.org/3.12/library/urllib.parse.html#url-parsing-security",
+    "https://docs.python.org/3.12/library/ssl.html",
+    "https://docs.python.org/3/library/ipaddress.html"
+  ],
+  "evidence": "Dated evidence JSON is an actual owned loopback HTTP/TLS run, with LF-normalized source hashes and explicit limits. It is not public DNS rebinding, production egress, arbitrary URL safety, real cloud metadata or Spring integration evidence. Dedicated CI must run the same cases without skips."
+}
