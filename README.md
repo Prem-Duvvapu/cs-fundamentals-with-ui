@@ -530,6 +530,13 @@ tests, Git diff checks and offline Maven resolution. It accepts no external patc
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
 
+The [Kafka rebalance exercise](examples/backend-messaging/README.md#9-watch-a-partition-move-between-concurrent-consumers)
+runs two consumer owner threads in one real broker group. It observes assignment/revocation, commits
+a local effect while withholding its broker offset, closes that member and verifies exact replay,
+durable deduplication and fresh work after recovery. Dedicated broker CI must execute the case;
+native compilation and skipped broker tests do not establish it. This is controlled member departure,
+separate from the existing process-crash saga exercises.
+
 The [SSRF exercise](examples/backend-ssrf/README.md) teaches registered-partner outbound requests:
 strict operation/origin policy, all-address validation, numeric-peer connection with original-host
 TLS verification, redirect refusal and bounded resolver/response work. Actual owned loopback HTTP

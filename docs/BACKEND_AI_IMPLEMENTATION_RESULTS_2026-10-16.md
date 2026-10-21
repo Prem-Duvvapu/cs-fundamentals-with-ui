@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR82 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR83 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -45,7 +45,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; configuration and JDI locally verified, release pending; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
-| BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
+| BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT, signed webhooks and PR81 registered-partner SSRF; production gateway/egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
@@ -548,3 +548,35 @@ six-test run and exact workflow evidence checks pass with imported sources and c
 The [persistent local receipt](evidence/BACKEND_DEBUGGING_2026-10-21.json) retains actual safe
 origins, runtime/event observations and source/report hashes. No other-major runtime was executed;
 negative receipt tests are not a cross-JDK experiment. Remote release CI remains required.
+
+## PR83 merged release evidence — October 21
+
+PR [83](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/83) merged at
+2026-10-21T20:31:47Z as fb2fd2d6cdfb4e2bb6eaa7f3036b6567a5435b4d. Exact head
+79b16209708f87843ed97513b7cc8a8cb71fa4a9 passed all ten checks: dedicated actual-spring-jdi;
+Verify frontend/backend/practical-ai/labs/containers/real-backend-journey; GitGuardian and both
+Vercel checks. The dedicated job requires six actual Spring configuration launches, observed
+Java17 runtimes, actual JDI breakpoint/step/exception events and owned cleanup with zero skips.
+This supersedes the configuration/JDI module's preceding release-pending statements. It does
+not establish GUI IDE proficiency, other-major compatibility or a real learner session.
+
+## Concurrent Kafka recovery continuation — unreleased
+
+Sources59ac491/2f8ebb0 (rebased integration; original local0aa6bb7/305da3b) add a real Kafka group scenario to the existing
+messaging lab. Two owner threads poll a fresh two-partition topic; broker membership/assignment and
+callbacks independently establish one→two→one ownership. The departing member commits a local
+effect without its offset. The survivor must observe the identical partition/offset/event, report
+durable deduplication, accept a fresh marker and demonstrate actual final broker commits. The
+owned topic/group, owner threads and job containers must all be removed before cleanup is claimed.
+
+Independent review identified pending-wakeup ordering around explicit unsubscribe. The final test
+uses owner-thread close, whose pinned Kafka client disables wakeups before revocation, and forces
+a wakeup immediately before close with completed offsets still present. A successful callback commit
+and matching final broker offset are mandatory; genuine errors are not swallowed. This is controlled
+member close, not process kill, session expiry, broker failover, throughput or global exactly-once proof.
+
+The initial native suite discovered22 tests, passing19 with the three actual broker cases explicitly
+skipped because Docker is unavailable locally. Final source compilation passes and independent
+review finds no remaining concrete blocker. The dedicated actual-brokers workflow requires all
+three broker test classes without skips plus the complete rebalance receipt. Actual execution and
+release remain pending until that job succeeds; no native observation is promoted to broker evidence.

@@ -15,6 +15,14 @@ JDI may listen only on its ephemeral loopback endpoint for its fixed owned targe
 frame identity, finite waits, cleanup and source checks. Preserve sanitized reports, cancellation
 ownership guards and dedicated actual-service CI. A JDI fixture is not a GUI or participant session.
 
+The actual messaging gate now includes `KafkaRebalanceBrokerTest`. Keep two concurrent consumer
+owner threads, broker-described disjoint assignments, real revocation callbacks, exact uncommitted
+partition/offset/event replay, durable inbox deduplication and fresh recovery commits. Only wakeup
+may cross consumer threads. Owner-thread close must handle a deliberately pending wakeup while
+still committing completed revoked offsets; do not swallow callback/commit errors. Require all
+three actual broker classes with zero skips, bounded joins and deletion of exact generated resources.
+Native compilation or nineteen tests with three broker skips is not rebalance execution evidence.
+
 The [registered-partner SSRF lab](examples/backend-ssrf/README.md) is independent of the platform
 runtime. Keep exact operator origins/operations, all-answer address validation, pinned numeric
 connection and original-host TLS identity coupled. No redirect, caller credential/proxy forwarding,

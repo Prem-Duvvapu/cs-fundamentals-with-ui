@@ -65,19 +65,51 @@ jobs:
           from pathlib import Path
           import xml.etree.ElementTree as ET
           reports = Path('examples/backend-messaging/target/surefire-reports')
-          for name in ('KafkaBrokerTest', 'RabbitBrokerTest'):
+          for name in ('KafkaBrokerTest', 'KafkaRebalanceBrokerTest', 'RabbitBrokerTest'):
               report = ET.parse(reports / f'TEST-com.csfundamentals.messaging.{name}.xml').getroot()
               assert int(report.attrib['tests']) >= 1, f'{name}: no tests'
               for result in ('skipped', 'failures', 'errors'):
                   assert int(report.attrib.get(result, '0')) == 0, f'{name}: {result}'
               print(f'{name}: actual broker test ran and passed')
+          import json
+          evidence=json.loads(Path('examples/backend-messaging/target/rebalance-evidence.json').read_text())
+          if evidence.get('schemaVersion')!=1 or evidence.get('actualCasesExecuted')!=1 or evidence.get('skipped')!=0 or not evidence.get('brokerClusterId'):
+              raise SystemExit('Actual broker rebalance receipt required; native compile/skips are insufficient')
+          if evidence.get('ownerThreadsDistinct') is not True or evidence.get('ownerThreadsStopped') is not True or evidence.get('ownedBrokerResourcesDeleted') is not True or evidence.get('autoCommit') is not False:
+              raise SystemExit('Concurrent owners, manual commits and exact owned cleanup required')
+          if evidence.get('pendingWakeupCloseBoundaryExecuted') is not True:
+              raise SystemExit('Actual pending-wakeup close/revocation regression required')
+          joined=evidence['twoMemberGroup']['members']
+          if len(joined)!=2 or sorted(partition for member in joined for partition in member['partitions'])!=[0,1] or any(len(member['partitions'])!=1 for member in joined):
+              raise SystemExit('Actual two-member disjoint broker assignment required')
+          withheld,replay=evidence['withheldRecord'],evidence['replay']
+          original=evidence['withheldDelivery']
+          if original.get('applied') is not True or original.get('offsetCommitted') is not False or any(original[key]!=replay[key] for key in ['partition','offset','eventId']):
+              raise SystemExit('Independently observed original and replay delivery identity required')
+          if any(item['partition']==withheld['partition'] for item in evidence['beforeDepartureOffsets']):
+              raise SystemExit('Withheld partition must actually lack a broker commit before departure')
+          if withheld['partition']!=replay['partition'] or withheld['offset']!=replay['offset'] or withheld['eventId']!=replay['eventId'] or replay['applied'] is not False or replay['offsetCommitted'] is not True:
+              raise SystemExit('Exact uncommitted record replay, local deduplication and offset recovery required')
+          if withheld['brokerOffsetCommitted'] is not False or evidence['freshMarkerAccepted'] is not True or evidence['finalProjection']!={'normal':1,'replayedIncludingFreshMarker':2}:
+              raise SystemExit('Effect-before-offset boundary and fresh post-recovery work required')
+          for name in ['a','b']:
+              if not any(item['phase']=='revoked' and item['partitions'] for item in evidence['callbacks'][name]):
+                  raise SystemExit('Actual nonempty revocation callback missing: '+name)
+          final={item['partition']:item['nextOffset'] for item in evidence['afterRecoveryOffsets']}
+          if final[withheld['partition']]!=withheld['offset']+2 or len(final)!=2:
+              raise SystemExit('Actual final broker commits must include fresh marker and other partition')
+          if not any(item['phase']=='revoked' and any(offset['partition']==withheld['partition'] and offset['nextOffset']==final[withheld['partition']] for offset in item['completedOffsets']) for item in evidence['callbacks']['a']):
+              raise SystemExit('Pending-wakeup close must actually complete final revocation offset commit')
+          print('Concurrent group assignment, revocation, exact replay/deduplication, fresh work and cleanup verified.')
           PYTHON
       - name: Upload evidence and test failures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: messaging-test-evidence
-          path: examples/backend-messaging/target/surefire-reports/
+          path: |
+            examples/backend-messaging/target/surefire-reports/
+            examples/backend-messaging/target/rebalance-evidence.json
       - name: Remove only this job's broker containers and anonymous volumes
         if: always()
         shell: bash

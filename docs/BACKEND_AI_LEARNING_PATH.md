@@ -178,3 +178,9 @@ Predict which value wins across the resource file, profile, environment and CLI;
 application's property origins and actual HTTP exposure. Reproduce and repair the bad override.
 Then inspect a conditional breakpoint, step into the existing service/repository and observe a
 caught exception. Explain the evidence before translating those steps into your own IDE workflow.
+
+For messaging recovery, predict the [concurrent Kafka handoff](../examples/backend-messaging/README.md#9-watch-a-partition-move-between-concurrent-consumers)
+before running it against the owned broker: two group members each own a partition; a local write
+can succeed before its offset commit. Follow the exact record after member departure and explain
+why the durable inbox suppresses a second effect. Compare that controlled close with the separate
+actual process-crash saga cases; neither implies global exactly-once processing.
