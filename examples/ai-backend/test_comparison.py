@@ -1,0 +1,249 @@
+import copy
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
+import os
+from pathlib import Path
+import subprocess
+import signal
+import sys
+import tempfile
+import threading
+import time
+import unittest
+from unittest.mock import patch
+import compare_tickets as comparison
+
+
+def variant(correct, errors=None):
+    return dict(summary=dict(exactFieldMatchRate=sum(correct)/len(correct), exactFieldMatches=sum(correct), errors=errors or {}),
+                cases=[dict(id='case-'+str(i), fieldsCorrect=match) for i, match in enumerate(correct)])
+
+
+class ComparisonTests(unittest.TestCase):
+    def test_frozen_identity_requires_exact_prompt_bytes_and_full_commit(self):
+        self.assertEqual('2d1247d7ab887cc0f4440d494a4d59528430144d', comparison.FROZEN_COMMIT)
+        identity = dict(sha256='b'*64, lfSha256='c'*64, ids=['identity-case'], cases=1)
+        provider = dict(model='teaching-fixture', modelDigest='fixture', runtimeVersion='fixture')
+        child = dict(state='complete', datasetSha256=identity['sha256'], datasetLfSha256=identity['lfSha256'],
+                     promptVersion='ticket-examples-v2', cases=[dict(id='identity-case')],
+                     systemPromptSha256=comparison.FROZEN_PROMPT_HASHES['ticket-examples-v2'],
+                     usesModel=True, evidence='fixture', model='teaching-fixture', modelDigest='fixture',
+                     runtimeVersion='fixture', summary=dict(cases=1))
+        comparison.validate_child(child, identity, 'ticket-examples-v2', 'fixture', provider)
+        for key, value in (('systemPromptSha256', 'a'*64), ('runtimeVersion', 'changed'), ('modelDigest', 'changed')):
+            changed = copy.deepcopy(child); changed[key] = value
+            with self.assertRaisesRegex(ValueError, 'comparison_child_identity_mismatch'):
+                comparison.validate_child(changed, identity, 'ticket-examples-v2', 'fixture', provider)
+
+    def test_signal_handler_restores_callers_handler_on_success_and_cancellation(self):
+        previous = signal.getsignal(signal.SIGTERM)
+        try:
+            def caller_handler(_number, _frame):
+                raise AssertionError('Caller handler must not run inside owned comparison.')
+            signal.signal(signal.SIGTERM, caller_handler)
+            with comparison.cancellation_signals():
+                self.assertIsNot(caller_handler, signal.getsignal(signal.SIGTERM))
+            self.assertIs(caller_handler, signal.getsignal(signal.SIGTERM))
+            with self.assertRaises(comparison.ComparisonCancelled):
+                with comparison.cancellation_signals():
+                    os.kill(os.getpid(), signal.SIGTERM)
+            self.assertIs(caller_handler, signal.getsignal(signal.SIGTERM))
+        finally:
+            signal.signal(signal.SIGTERM, previous)
+
+    def test_actual_cli_sigterm_reaps_owned_jvm_and_publishes_interruption(self):
+        with tempfile.TemporaryDirectory(prefix='owned-comparison-term-') as temporary:
+            directory = Path(temporary)
+            source = directory/'CancellationProbe.java'
+            source.write_text('''import java.nio.file.*;
+public class CancellationProbe {
+    public static void main(String[] args) throws Exception {
+        Path target = Path.of(System.getenv("OWNED_COMPARISON_PID_FILE"));
+        Path pending = Files.createTempFile(target.getParent(), "owned-java-probe-", ".pid");
+        Files.writeString(pending, Long.toString(ProcessHandle.current().pid()));
+        Files.move(pending, target, StandardCopyOption.ATOMIC_MOVE);
+        Thread.sleep(30000);
+    }
+}''')
+            subprocess.run(['javac', '--release', '17', '-d', str(directory), str(source)],
+                           check=True, capture_output=True, timeout=20)
+            jar = directory/'owned-probe.jar'
+            subprocess.run(['jar', '--create', '--file', str(jar), '--main-class', 'CancellationProbe',
+                            '-C', str(directory), 'CancellationProbe.class'], check=True, capture_output=True, timeout=10)
+            data = directory/'case.jsonl'
+            data.write_text(json.dumps(dict(id='cancel-case', slice='ordinary', text='An original synthetic probe.',
+                                            expected=dict(category='other', priority='normal', orderId=None)))+'\n')
+            output, pid_file = directory/'report.json', directory/'child.pid'
+            environment = comparison.isolated_environment()
+            environment.update(OWNED_COMPARISON_PID_FILE=str(pid_file), PYTHONDONTWRITEBYTECODE='1')
+            wrapper = subprocess.Popen([sys.executable, str(Path(comparison.__file__).resolve()),
+                                        '--dataset', str(data), '--output', str(output), '--jar', str(jar)],
+                                       env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
+            child_pid = None
+            try:
+                deadline = time.monotonic()+8
+                while not pid_file.exists() and wrapper.poll() is None and time.monotonic() < deadline:
+                    time.sleep(.02)
+                self.assertTrue(pid_file.exists(), 'Actual owned Java child must start before cancellation.')
+                child_pid = int(pid_file.read_text())
+                wrapper.send_signal(signal.SIGTERM)
+                message = wrapper.communicate(timeout=8)[0]
+                self.assertNotEqual(0, wrapper.returncode)
+                with self.assertRaises(ProcessLookupError):
+                    os.kill(child_pid, 0)
+                report = json.loads(output.read_text())
+                self.assertEqual('interrupted', report['state'])
+                self.assertEqual('comparison_cancelled', report['failure'])
+                self.assertEqual('not-evaluated-incomplete-run', report['decision']['status'])
+                self.assertEqual('pending', report['freezeBinding']['status'])
+                self.assertIn(b'ComparisonCancelled', message)
+                self.assertNotIn(b'An original synthetic probe.', message)
+            finally:
+                if wrapper.poll() is None:
+                    wrapper.send_signal(signal.SIGTERM)
+                    try:
+                        wrapper.wait(timeout=8)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(wrapper.pid, signal.SIGKILL)
+                        wrapper.wait(timeout=3)
+                if child_pid is None and pid_file.exists():
+                    value = pid_file.read_text().strip()
+                    if value.isdecimal():
+                        child_pid = int(value)
+                if child_pid is not None:
+                    try:
+                        os.killpg(child_pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                wrapper.stdout.close()
+
+    def test_actual_inventory_worker_filters_metadata_and_ignores_ambient_proxy(self):
+        calls = []
+        model, model_digest, runtime = 'owned-fixture:latest', 'a'*64, 'test-1'
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *_):
+                pass
+            def do_GET(self):
+                calls.append(self.path)
+                value = (dict(version=runtime, private='private-provider-marker') if self.path == '/api/version'
+                         else dict(models=[dict(name=model, digest=model_digest, size=12345, private='private-provider-marker')]))
+                self.respond(value)
+            def do_POST(self):
+                calls.append(self.path)
+                self.assert_show = json.loads(self.rfile.read(int(self.headers['Content-Length']))) == dict(model=model)
+                if self.path != '/api/show' or not self.assert_show:
+                    self.send_error(400); return
+                self.respond(dict(details=dict(format='gguf'), private='private-provider-marker'))
+            def respond(self, value):
+                body = json.dumps(value).encode()
+                self.send_response(200); self.send_header('Content-Length', str(len(body))); self.end_headers()
+                self.wfile.write(body)
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        server.daemon_threads = True
+        thread = threading.Thread(target=server.serve_forever, kwargs=dict(poll_interval=.02), daemon=True)
+        thread.start()
+        try:
+            with patch.dict(os.environ, HTTP_PROXY='http://127.0.0.1:1', http_proxy='http://127.0.0.1:1', NO_PROXY='', no_proxy=''):
+                result = comparison.provider_identity('live-local', f'http://127.0.0.1:{server.server_port}/api/chat',
+                                                      model, model_digest, runtime)
+            self.assertEqual(['/api/version', '/api/tags', '/api/show'], calls)
+            self.assertEqual(12345, result['artifactBytes'])
+            self.assertEqual({'model', 'modelDigest', 'runtimeVersion', 'inventoryRequests', 'artifactBytes', 'format', 'attestationLimit'}, set(result))
+            self.assertNotIn('private-provider-marker', json.dumps(result))
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=3)
+            self.assertFalse(thread.is_alive())
+
+    def test_actual_slow_inventory_is_stopped_by_whole_phase_deadline(self):
+        started, stop = threading.Event(), threading.Event()
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *_):
+                pass
+            def do_GET(self):
+                self.send_response(200); self.send_header('Content-Length', '65536'); self.end_headers()
+                started.set()
+                try:
+                    while not stop.wait(.02):
+                        self.wfile.write(b' '); self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        server.daemon_threads = True
+        thread = threading.Thread(target=server.serve_forever, kwargs=dict(poll_interval=.02), daemon=True)
+        thread.start()
+        try:
+            before = time.monotonic()
+            with patch.object(comparison, 'INVENTORY_TIMEOUT_SECONDS', 2):
+                with self.assertRaisesRegex(TimeoutError, 'inventory_child_deadline'):
+                    comparison.provider_identity('live-local', f'http://127.0.0.1:{server.server_port}/api/chat',
+                                                 'owned-fixture:latest', 'a'*64, 'test-1')
+            self.assertTrue(started.is_set(), 'The real inventory request must reach the slow server.')
+            self.assertLess(time.monotonic()-before, 5.5)
+        finally:
+            stop.set(); server.shutdown(); server.server_close(); thread.join(timeout=3)
+            self.assertFalse(thread.is_alive())
+
+    def test_paired_regression_prevents_a_candidate_with_only_easier_successes(self):
+        cases = {'ticket-v1': variant([True]*10), 'ticket-examples-v2': variant([True]*8+[False]*2),
+                 'ticket-rules-v1': variant([False]*10)}
+        result = comparison.decide(cases, True)
+        self.assertEqual('retain-original-prompt', result['status'])
+        self.assertEqual(-2, result['exactFieldDelta'])
+        self.assertEqual(2, result['pairedTransitions']['regressed'])
+        self.assertFalse(result['applicationDefaultChanged'])
+
+    def test_gate_handles_improvement_rules_tie_unknown_and_unassessed_summary(self):
+        cases = {'ticket-v1': variant([True]*8+[False]*2), 'ticket-examples-v2': variant([True]*9+[False]),
+                 'ticket-rules-v1': variant([False]*10)}
+        self.assertEqual('candidate-passes-narrow-field-gate', comparison.decide(cases, True)['status'])
+        cases['ticket-examples-v2']['summary']['errors'] = {'unsupported_order_id': 1}
+        self.assertEqual('no-model-prompt-meets-field-gate', comparison.decide(cases, True)['status'])
+        cases['ticket-rules-v1'] = variant([True]*10)
+        result = comparison.decide(cases, True)
+        self.assertEqual('prefer-no-model-reference-for-this-sample', result['status'])
+        self.assertEqual('not-assessed', result['summaryFaithfulness'])
+        self.assertEqual('not-evaluated-incomplete-run', comparison.decide({}, False)['status'])
+
+    def test_dataset_hashes_bind_raw_bytes_but_preserve_line_ending_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary)/'cases.jsonl'
+            data = b'{"id":"case-a"}\n{"id":"case-b"}\n'
+            path.write_bytes(data); lf = comparison.dataset_identity(path)
+            path.write_bytes(data.replace(b'\n', b'\r\n')); crlf = comparison.dataset_identity(path)
+            self.assertNotEqual(lf['sha256'], crlf['sha256'])
+            self.assertEqual(lf['lfSha256'], crlf['lfSha256'])
+            path.write_bytes(b'{"id":"same"}\n{"id":"same"}\n')
+            with self.assertRaises(ValueError): comparison.dataset_identity(path)
+            path.write_bytes(b'\xff')
+            with self.assertRaises(UnicodeError): comparison.dataset_identity(path)
+
+    def test_model_and_environment_guards_reject_cloud_and_injection(self):
+        for name in ('gpt-oss:120b-cloud', 'gemma:cloud'):
+            with self.assertRaises(ValueError):
+                comparison.provider_identity('live-local', 'http://127.0.0.1:11434/api/chat', name, 'a'*64, 'version')
+        with self.assertRaises(ValueError):
+            comparison.provider_identity('fixture', 'http://example.com/api/chat', 'teaching-fixture')
+        with patch.dict(os.environ, AI_MODEL='private', SPRING_CONFIG_LOCATION='/private', JAVA_TOOL_OPTIONS='private'):
+            environment = comparison.isolated_environment()
+            self.assertNotIn('AI_MODEL', environment)
+            self.assertNotIn('SPRING_CONFIG_LOCATION', environment)
+            self.assertNotIn('JAVA_TOOL_OPTIONS', environment)
+
+    def test_actual_child_output_cap_and_deadline_are_bounded(self):
+        with self.assertRaises(RuntimeError):
+            comparison.bounded_java([sys.executable, '-c', 'print("x"*40000)'], comparison.isolated_environment(), 3)
+        with self.assertRaises(TimeoutError):
+            comparison.bounded_java([sys.executable, '-c', 'import time; time.sleep(5)'], comparison.isolated_environment(), .1)
+
+    def test_atomic_report_rejects_symlinks_and_excessive_output(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary)/'report.json'
+            comparison.atomic_report(path, dict(state='running'))
+            self.assertEqual('running', json.loads(path.read_text())['state'])
+            link = Path(temporary)/'link'; link.symlink_to(path)
+            with self.assertRaises(ValueError): comparison.atomic_report(link, {})
+            with self.assertRaises(ValueError): comparison.atomic_report(path, dict(value='x'*524288))
+
+
+if __name__ == '__main__':
+    unittest.main()

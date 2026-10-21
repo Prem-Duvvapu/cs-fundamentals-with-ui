@@ -114,6 +114,74 @@ class OperationsContracts(unittest.TestCase):
             with self.assertRaises(ValueError):
                 lab.execute(['never-executed'],timeout=timeout)
 
+    def test_resource_pods_cannot_target_foreign_images_or_unbounded_modes(self):
+        instance = lab.Lab('ops-0123456789abcdef')
+        for mode in ['heap', 'native', 'cpu']:
+            resource = lab.resource_manifest(instance.name, instance.image, mode)
+            self.assertEqual(instance.name, resource['metadata']['namespace'])
+            self.assertEqual(instance.name, resource['metadata']['labels']['lab.csfundamentals/owner'])
+            spec = resource['spec']
+            self.assertEqual(20, spec['activeDeadlineSeconds'])
+            self.assertEqual('Never', spec['restartPolicy'])
+            self.assertFalse(spec['automountServiceAccountToken'])
+            self.assertTrue(spec['securityContext']['runAsNonRoot'])
+            app = spec['containers'][0]
+            self.assertNotIn('envFrom', app)
+            self.assertNotIn('env', app)
+            self.assertTrue(app['securityContext']['readOnlyRootFilesystem'])
+            self.assertFalse(app['securityContext']['allowPrivilegeEscalation'])
+            self.assertEqual(['ALL'], app['securityContext']['capabilities']['drop'])
+            self.assertEqual(app['resources']['limits'], app['resources']['requests'])
+            self.assertIn('-Xmx16m', app['command'])
+            self.assertEqual(mode, app['command'][-1])
+        native = lab.resource_manifest(instance.name, instance.image, 'native')
+        self.assertEqual('96Mi', native['spec']['containers'][0]['resources']['limits']['memory'])
+        for mode in ['forever', 'fork', '', '../native']:
+            with self.assertRaises(ValueError):
+                lab.resource_manifest(instance.name, instance.image, mode)
+        with self.assertRaises(ValueError):
+            lab.resource_manifest(instance.name, 'foreign:latest', 'heap')
+
+    def test_exit_137_alone_does_not_prove_oomkill_and_java_oome_is_distinct(self):
+        heap_log = 'RESOURCE_PROBE heap allocation cap=128MiB\nTerminating due to java.lang.OutOfMemoryError: Java heap space'
+        native_log = 'RESOURCE_PROBE native memory.max=100663296 allocation cap=128MiB'
+        lab.validate_resource_termination('heap', {'exitCode':3, 'reason':'Error'}, heap_log)
+        lab.validate_resource_termination('native', {'exitCode':137, 'reason':'OOMKilled'}, native_log)
+        lab.validate_resource_termination('cpu', {'exitCode':0, 'reason':'Completed'}, '{}')
+        for termination in [{'exitCode':137, 'reason':'Error'}, {'exitCode':1, 'reason':'OOMKilled'},
+                            {'exitCode':0, 'reason':'Completed'}, {'exitCode':137, 'reason':'DeadlineExceeded'}]:
+            with self.assertRaises(RuntimeError):
+                lab.validate_resource_termination('native', termination, native_log)
+        with self.assertRaises(RuntimeError):
+            lab.validate_resource_termination('native', {'exitCode':137, 'reason':'OOMKilled'}, native_log+' OutOfMemoryError')
+        with self.assertRaises(RuntimeError):
+            lab.validate_resource_termination('heap', {'exitCode':137, 'reason':'OOMKilled'}, heap_log)
+        with self.assertRaises(RuntimeError):
+            lab.validate_resource_termination('heap', {'exitCode':3, 'reason':'Error'}, 'exit code only')
+        with self.assertRaises(RuntimeError):
+            lab.validate_resource_termination('cpu', {'exitCode':137, 'reason':'OOMKilled'}, '{}')
+
+    def test_cpu_requires_observed_quota_activity_and_increasing_throttling(self):
+        before = dict(usage_usec=1000, nr_periods=5, nr_throttled=1, throttled_usec=100)
+        delta = dict(usage_usec=800000, nr_periods=80, nr_throttled=79, throttled_usec=7000000)
+        observation = {'cgroupVersion':2, 'cpuMax':'10000 100000', 'elapsedMillis':8050,
+                       'before':before, 'delta':delta, 'after':{key:before[key]+delta[key] for key in before}}
+        lab.validate_cpu_observation(observation)
+        for changes in [{'cgroupVersion':1}, {'cpuMax':'max 100000'}, {'cpuMax':'100000 100000'},
+                        {'cpuMax':'-10000 -100000'}, {'elapsedMillis':20}, {'delta':dict(delta, nr_throttled=0)},
+                        {'after':dict(observation['after'], usage_usec=0)}, {'before':{}}]:
+            with self.assertRaises(RuntimeError):
+                lab.validate_cpu_observation(dict(observation, **changes))
+
+    def test_java17_resource_probe_compiles_and_rejects_unknown_mode_before_work(self):
+        with tempfile.TemporaryDirectory() as directory:
+            compiled = lab.execute(['javac', '--release', '17', '-d', directory, str(lab.ROOT/'ResourceProbe.java')])
+            self.assertEqual(0, compiled.returncode)
+            result = lab.execute(['java', '-Xmx16m', '-cp', directory, 'ResourceProbe', 'unknown'], timeout=5, check=False)
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn('heap, native or cpu required', result.stderr)
+            self.assertNotIn('RESOURCE_PROBE', result.stdout)
+
     def test_credentials_are_redacted_from_evidence(self):
         instance = lab.Lab('ops-0123456789abcdef')
         with tempfile.TemporaryDirectory() as directory,patch.object(lab,'EVIDENCE',Path(directory)):

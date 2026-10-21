@@ -26,5 +26,17 @@
       "primaryManifest": "https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/17-jre"
     }
   ],
-  "verification": "Kind asset API digest matched its independently fetched vendor checksum. kubectl checksum was fetched from the official release host. Both Docker Official Image index response digests matched SHA256 of the fetched manifest bytes. No local Docker image execution or actual cluster execution is asserted by this provenance file."
+  "verification": "Kind asset API digest matched its independently fetched vendor checksum. kubectl checksum was fetched from the official release host. Both Docker Official Image index response digests matched SHA256 of the fetched manifest bytes. No local Docker image execution or actual cluster execution is asserted by this provenance file.",
+  "resourceExtension": {
+    "authoredAt": "2026-10-21",
+    "evidenceSchemaVersion": 2,
+    "expectedActualCases": 8,
+    "resourceCases": [
+      "heap Java OutOfMemoryError",
+      "cgroup OOMKilled exit 137",
+      "cgroup-v2 CPU quota and throttling deltas"
+    ],
+    "executionStatus": "Native guard contracts and Java 17 compilation are not actual resource evidence. Resource execution requires the dedicated actual-kind-recovery CI job and its version 2 result.json artifact.",
+    "imagePolicy": "Same reviewed pinned Task Tracker base; adds only compiled Probe and ResourceProbe classes. No new external stress image or privileged workload."
+  }
 }

@@ -1,0 +1,1648 @@
+{
+  "schemaVersion": 1,
+  "evidence": "live-local",
+  "state": "complete",
+  "dataset": {
+    "cases": 20,
+    "ids": [
+      "holdout-v2-01",
+      "holdout-v2-02",
+      "holdout-v2-03",
+      "holdout-v2-04",
+      "holdout-v2-05",
+      "holdout-v2-06",
+      "holdout-v2-07",
+      "holdout-v2-08",
+      "holdout-v2-09",
+      "holdout-v2-10",
+      "holdout-v2-11",
+      "holdout-v2-12",
+      "holdout-v2-13",
+      "holdout-v2-14",
+      "holdout-v2-15",
+      "holdout-v2-16",
+      "holdout-v2-17",
+      "holdout-v2-18",
+      "holdout-v2-19",
+      "holdout-v2-20"
+    ],
+    "sha256": "31ad0ea07bdae8e496b818ce695b1beba0a4336427fbb45c01491251d81aac2b",
+    "lfSha256": "feaa735baddfbc440c0788403445d72484972adb498feb4231ad4c65e4bb3709"
+  },
+  "provider": {
+    "model": "qwen2.5:0.5b",
+    "modelDigest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "runtimeVersion": "0.32.5",
+    "inventoryRequests": 3,
+    "artifactBytes": 397821319,
+    "format": "gguf",
+    "attestationLimit": "Inspected daemon inventory, not independent attestation of daemon code or network isolation."
+  },
+  "candidateFreezeCommit": "2d1247d7ab887cc0f4440d494a4d59528430144d",
+  "gateVersion": "ticket-field-gate-v1",
+  "runOrder": [
+    "ticket-v1",
+    "ticket-examples-v2",
+    "ticket-rules-v1"
+  ],
+  "freezeBinding": {
+    "status": "verified-frozen-system-prompts",
+    "expectedSystemPromptSha256": {
+      "ticket-v1": "d1cc84ac02cbc6dfb05f71ba188cc885da9c81bb3d09ece9727f4de580ab53fa",
+      "ticket-examples-v2": "ecd77ecd02aed1f2d7dba615ffb7b7ffd389bb4470d0d60919ce08ae107922ed",
+      "ticket-rules-v1": "not-applicable"
+    },
+    "scope": "Checks reported prompt hashes against frozen source; JAR hash records the artifact, not source/build attestation."
+  },
+  "orderLimit": "Sequential complete-dataset runs; caching/cold start can change latency. Not a speed benchmark.",
+  "variants": {
+    "ticket-v1": {
+      "evidence": "live-local",
+      "model": "qwen2.5:0.5b",
+      "modelDigest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "runtimeVersion": "0.32.5",
+      "promptVersion": "ticket-v1",
+      "systemPromptSha256": "d1cc84ac02cbc6dfb05f71ba188cc885da9c81bb3d09ece9727f4de580ab53fa",
+      "datasetSha256": "31ad0ea07bdae8e496b818ce695b1beba0a4336427fbb45c01491251d81aac2b",
+      "datasetLfSha256": "feaa735baddfbc440c0788403445d72484972adb498feb4231ad4c65e4bb3709",
+      "usesModel": true,
+      "at": "2026-10-21T18:35:19.295938316Z",
+      "cases": [
+        {
+          "id": "holdout-v2-01",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 5634,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-02",
+          "slice": "financial-synonym",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1646,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-03",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1773,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-04",
+          "slice": "negated-urgency",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1480,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-05",
+          "slice": "financial-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1699,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-06",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1745,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-07",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1742,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-08",
+          "slice": "parcel-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 2104,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-09",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1693,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-10",
+          "slice": "parcel-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1580,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-11",
+          "slice": "negated-urgency",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1594,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-12",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1835,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-13",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1893,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-14",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1765,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-15",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1732,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-16",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1673,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-17",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1784,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-18",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1793,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-19",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1652,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-20",
+          "slice": "negated-urgency",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1615,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        }
+      ],
+      "state": "complete",
+      "limits": "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+      "summary": {
+        "cases": 20,
+        "accepted": 20,
+        "exactFieldMatches": 2,
+        "acceptanceRate": 1.0,
+        "exactFieldMatchRate": 0.1,
+        "fields": {
+          "category": {
+            "correct": 12,
+            "rateOverAllCases": 0.6,
+            "rateOverAcceptedCases": 0.6
+          },
+          "priority": {
+            "correct": 6,
+            "rateOverAllCases": 0.3,
+            "rateOverAcceptedCases": 0.3
+          },
+          "orderId": {
+            "correct": 9,
+            "rateOverAllCases": 0.45,
+            "rateOverAcceptedCases": 0.45
+          }
+        },
+        "latencyMs": {
+          "samples": 20,
+          "p50": 1732,
+          "p95": 2104,
+          "total": 38432
+        },
+        "errors": {},
+        "slices": {
+          "financial-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 0.6666666666666666
+              },
+              "priority": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "orderId": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1773,
+              "p95": 5634,
+              "total": 9149
+            },
+            "errors": {}
+          },
+          "financial-synonym": {
+            "cases": 2,
+            "accepted": 2,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.5,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 0.5
+              }
+            },
+            "latencyMs": {
+              "samples": 2,
+              "p50": 1646,
+              "p95": 1699,
+              "total": 3345
+            },
+            "errors": {}
+          },
+          "negated-urgency": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 0.6666666666666666
+              },
+              "priority": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.3333333333333333
+              },
+              "orderId": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1594,
+              "p95": 1615,
+              "total": 4689
+            },
+            "errors": {}
+          },
+          "noncommerce-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.3333333333333333
+              },
+              "priority": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.3333333333333333
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.3333333333333333
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1732,
+              "p95": 1793,
+              "total": 5198
+            },
+            "errors": {}
+          },
+          "parcel-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.3333333333333333,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 0.6666666666666666
+              },
+              "priority": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.3333333333333333
+              },
+              "orderId": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 0.6666666666666666
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1835,
+              "p95": 1893,
+              "total": 5421
+            },
+            "errors": {}
+          },
+          "parcel-synonym": {
+            "cases": 2,
+            "accepted": 2,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 1,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 0.5
+              },
+              "priority": {
+                "correct": 1,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 0.5
+              },
+              "orderId": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              }
+            },
+            "latencyMs": {
+              "samples": 2,
+              "p50": 1580,
+              "p95": 2104,
+              "total": 3684
+            },
+            "errors": {}
+          },
+          "untrusted-instruction": {
+            "cases": 4,
+            "accepted": 4,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 0.5
+              },
+              "priority": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "orderId": {
+                "correct": 2,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 0.5
+              }
+            },
+            "latencyMs": {
+              "samples": 4,
+              "p50": 1745,
+              "p95": 1784,
+              "total": 6946
+            },
+            "errors": {}
+          }
+        }
+      },
+      "metricDefinition": "Field rates include rejected cases; accepted-only field rates are also shown. Latency uses nearest-rank observed milliseconds, including failures. Small synthetic slices are descriptive, not population guarantees.",
+      "accepted": 20,
+      "fieldsCorrect": 2,
+      "totalMs": 38432
+    },
+    "ticket-examples-v2": {
+      "evidence": "live-local",
+      "model": "qwen2.5:0.5b",
+      "modelDigest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "runtimeVersion": "0.32.5",
+      "promptVersion": "ticket-examples-v2",
+      "systemPromptSha256": "ecd77ecd02aed1f2d7dba615ffb7b7ffd389bb4470d0d60919ce08ae107922ed",
+      "datasetSha256": "31ad0ea07bdae8e496b818ce695b1beba0a4336427fbb45c01491251d81aac2b",
+      "datasetLfSha256": "feaa735baddfbc440c0788403445d72484972adb498feb4231ad4c65e4bb3709",
+      "usesModel": true,
+      "at": "2026-10-21T18:35:59.420532400Z",
+      "cases": [
+        {
+          "id": "holdout-v2-01",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 4563,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-02",
+          "slice": "financial-synonym",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1642,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-03",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1591,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-04",
+          "slice": "negated-urgency",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1329,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-05",
+          "slice": "financial-synonym",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1574,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-06",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1410,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-07",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1908,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-08",
+          "slice": "parcel-synonym",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1647,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-09",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1365,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-10",
+          "slice": "parcel-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1935,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-11",
+          "slice": "negated-urgency",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1358,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-12",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1398,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-13",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1599,
+          "fieldMatches": {
+            "category": true,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-14",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1732,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-15",
+          "slice": "noncommerce-detail",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "invalid_schema",
+          "totalMs": 1326,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-16",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1679,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-17",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1765,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-18",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1825,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-19",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 1841,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-20",
+          "slice": "negated-urgency",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 1410,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        }
+      ],
+      "state": "complete",
+      "limits": "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+      "summary": {
+        "cases": 20,
+        "accepted": 17,
+        "exactFieldMatches": 8,
+        "acceptanceRate": 0.85,
+        "exactFieldMatchRate": 0.4,
+        "fields": {
+          "category": {
+            "correct": 13,
+            "rateOverAllCases": 0.65,
+            "rateOverAcceptedCases": 0.7647058823529411
+          },
+          "priority": {
+            "correct": 13,
+            "rateOverAllCases": 0.65,
+            "rateOverAcceptedCases": 0.7647058823529411
+          },
+          "orderId": {
+            "correct": 13,
+            "rateOverAllCases": 0.65,
+            "rateOverAcceptedCases": 0.7647058823529411
+          }
+        },
+        "latencyMs": {
+          "samples": 20,
+          "p50": 1599,
+          "p95": 1935,
+          "total": 34897
+        },
+        "errors": {
+          "invalid_schema": 3
+        },
+        "slices": {
+          "financial-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.3333333333333333,
+            "fields": {
+              "category": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.3333333333333333
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1908,
+              "p95": 4563,
+              "total": 8062
+            },
+            "errors": {}
+          },
+          "financial-synonym": {
+            "cases": 2,
+            "accepted": 1,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 0.5,
+            "exactFieldMatchRate": 0.5,
+            "fields": {
+              "category": {
+                "correct": 1,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 1,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 2,
+              "p50": 1574,
+              "p95": 1642,
+              "total": 3216
+            },
+            "errors": {
+              "invalid_schema": 1
+            }
+          },
+          "negated-urgency": {
+            "cases": 3,
+            "accepted": 2,
+            "exactFieldMatches": 2,
+            "acceptanceRate": 0.6666666666666666,
+            "exactFieldMatchRate": 0.6666666666666666,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1358,
+              "p95": 1410,
+              "total": 4097
+            },
+            "errors": {
+              "invalid_schema": 1
+            }
+          },
+          "noncommerce-detail": {
+            "cases": 3,
+            "accepted": 2,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 0.6666666666666666,
+            "exactFieldMatchRate": 0.3333333333333333,
+            "fields": {
+              "category": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.5
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 0.5
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1679,
+              "p95": 1825,
+              "total": 4830
+            },
+            "errors": {
+              "invalid_schema": 1
+            }
+          },
+          "parcel-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.3333333333333333,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 0.6666666666666666
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 0.6666666666666666
+              },
+              "orderId": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 1398,
+              "p95": 1599,
+              "total": 4362
+            },
+            "errors": {}
+          },
+          "parcel-synonym": {
+            "cases": 2,
+            "accepted": 2,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.5,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 0.5
+              }
+            },
+            "latencyMs": {
+              "samples": 2,
+              "p50": 1647,
+              "p95": 1935,
+              "total": 3582
+            },
+            "errors": {}
+          },
+          "untrusted-instruction": {
+            "cases": 4,
+            "accepted": 4,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.25,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 0.5
+              },
+              "priority": {
+                "correct": 1,
+                "rateOverAllCases": 0.25,
+                "rateOverAcceptedCases": 0.25
+              },
+              "orderId": {
+                "correct": 4,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 4,
+              "p50": 1732,
+              "p95": 1841,
+              "total": 6748
+            },
+            "errors": {}
+          }
+        }
+      },
+      "metricDefinition": "Field rates include rejected cases; accepted-only field rates are also shown. Latency uses nearest-rank observed milliseconds, including failures. Small synthetic slices are descriptive, not population guarantees.",
+      "accepted": 17,
+      "fieldsCorrect": 8,
+      "totalMs": 34897
+    },
+    "ticket-rules-v1": {
+      "evidence": "rule",
+      "model": "ticket-rules-v1",
+      "modelDigest": "not-applicable",
+      "runtimeVersion": "17.0.20.1+1-1-24.04-Ubuntu",
+      "promptVersion": "ticket-rules-v1",
+      "systemPromptSha256": "not-applicable",
+      "datasetSha256": "31ad0ea07bdae8e496b818ce695b1beba0a4336427fbb45c01491251d81aac2b",
+      "datasetLfSha256": "feaa735baddfbc440c0788403445d72484972adb498feb4231ad4c65e4bb3709",
+      "usesModel": false,
+      "at": "2026-10-21T18:36:35.482612505Z",
+      "cases": [
+        {
+          "id": "holdout-v2-01",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 3,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-02",
+          "slice": "financial-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-03",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-04",
+          "slice": "negated-urgency",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "rule_needs_review",
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-05",
+          "slice": "financial-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-06",
+          "slice": "untrusted-instruction",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "rule_needs_review",
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-07",
+          "slice": "financial-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-08",
+          "slice": "parcel-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-09",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-10",
+          "slice": "parcel-synonym",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-11",
+          "slice": "negated-urgency",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-12",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-13",
+          "slice": "parcel-detail",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-14",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": false,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-15",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-16",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-17",
+          "slice": "untrusted-instruction",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-18",
+          "slice": "noncommerce-detail",
+          "accepted": true,
+          "fieldsCorrect": true,
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": true,
+            "priority": true,
+            "orderId": true
+          }
+        },
+        {
+          "id": "holdout-v2-19",
+          "slice": "untrusted-instruction",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "rule_needs_review",
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        },
+        {
+          "id": "holdout-v2-20",
+          "slice": "negated-urgency",
+          "accepted": false,
+          "fieldsCorrect": false,
+          "error": "rule_needs_review",
+          "totalMs": 0,
+          "fieldMatches": {
+            "category": false,
+            "priority": false,
+            "orderId": false
+          }
+        }
+      ],
+      "state": "complete",
+      "limits": "Synthetic teaching set; field match excludes summary factuality. No judge, calibration, production assurance or paid-provider cost measurement.",
+      "summary": {
+        "cases": 20,
+        "accepted": 16,
+        "exactFieldMatches": 6,
+        "acceptanceRate": 0.8,
+        "exactFieldMatchRate": 0.3,
+        "fields": {
+          "category": {
+            "correct": 6,
+            "rateOverAllCases": 0.3,
+            "rateOverAcceptedCases": 0.375
+          },
+          "priority": {
+            "correct": 15,
+            "rateOverAllCases": 0.75,
+            "rateOverAcceptedCases": 0.9375
+          },
+          "orderId": {
+            "correct": 16,
+            "rateOverAllCases": 0.8,
+            "rateOverAcceptedCases": 1.0
+          }
+        },
+        "latencyMs": {
+          "samples": 20,
+          "p50": 0,
+          "p95": 0,
+          "total": 3
+        },
+        "errors": {
+          "rule_needs_review": 4
+        },
+        "slices": {
+          "financial-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 2,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.6666666666666666,
+            "fields": {
+              "category": {
+                "correct": 2,
+                "rateOverAllCases": 0.6666666666666666,
+                "rateOverAcceptedCases": 0.6666666666666666
+              },
+              "priority": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 0,
+              "p95": 3,
+              "total": 3
+            },
+            "errors": {}
+          },
+          "financial-synonym": {
+            "cases": 2,
+            "accepted": 2,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 2,
+              "p50": 0,
+              "p95": 0,
+              "total": 0
+            },
+            "errors": {}
+          },
+          "negated-urgency": {
+            "cases": 3,
+            "accepted": 1,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 0.3333333333333333,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "priority": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "orderId": {
+                "correct": 1,
+                "rateOverAllCases": 0.3333333333333333,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 0,
+              "p95": 0,
+              "total": 0
+            },
+            "errors": {
+              "rule_needs_review": 2
+            }
+          },
+          "noncommerce-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 3,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 1.0,
+            "fields": {
+              "category": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "priority": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 0,
+              "p95": 0,
+              "total": 0
+            },
+            "errors": {}
+          },
+          "parcel-detail": {
+            "cases": 3,
+            "accepted": 3,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "priority": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 3,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 3,
+              "p50": 0,
+              "p95": 0,
+              "total": 0
+            },
+            "errors": {}
+          },
+          "parcel-synonym": {
+            "cases": 2,
+            "accepted": 2,
+            "exactFieldMatches": 0,
+            "acceptanceRate": 1.0,
+            "exactFieldMatchRate": 0.0,
+            "fields": {
+              "category": {
+                "correct": 0,
+                "rateOverAllCases": 0.0,
+                "rateOverAcceptedCases": 0.0
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 2,
+                "rateOverAllCases": 1.0,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 2,
+              "p50": 0,
+              "p95": 0,
+              "total": 0
+            },
+            "errors": {}
+          },
+          "untrusted-instruction": {
+            "cases": 4,
+            "accepted": 2,
+            "exactFieldMatches": 1,
+            "acceptanceRate": 0.5,
+            "exactFieldMatchRate": 0.25,
+            "fields": {
+              "category": {
+                "correct": 1,
+                "rateOverAllCases": 0.25,
+                "rateOverAcceptedCases": 0.5
+              },
+              "priority": {
+                "correct": 2,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 1.0
+              },
+              "orderId": {
+                "correct": 2,
+                "rateOverAllCases": 0.5,
+                "rateOverAcceptedCases": 1.0
+              }
+            },
+            "latencyMs": {
+              "samples": 4,
+              "p50": 0,
+              "p95": 0,
+              "total": 0
+            },
+            "errors": {
+              "rule_needs_review": 2
+            }
+          }
+        }
+      },
+      "metricDefinition": "Field rates include rejected cases; accepted-only field rates are also shown. Latency uses nearest-rank observed milliseconds, including failures. Small synthetic slices are descriptive, not population guarantees.",
+      "accepted": 16,
+      "fieldsCorrect": 6,
+      "totalMs": 3
+    }
+  },
+  "decision": {
+    "status": "no-model-prompt-meets-field-gate",
+    "gateVersion": "ticket-field-gate-v1",
+    "exactFieldTarget": 0.9,
+    "eligible": {
+      "ticket-v1": false,
+      "ticket-examples-v2": false,
+      "ticket-rules-v1": false
+    },
+    "exactFieldDelta": 6,
+    "pairedTransitions": {
+      "improved": 7,
+      "regressed": 1,
+      "bothCorrect": 1,
+      "bothWrong": 11
+    },
+    "applicationDefaultChanged": false,
+    "summaryFaithfulness": "not-assessed",
+    "humanReview": "not-performed"
+  },
+  "applicationDefault": "ticket-v1",
+  "usageAndPrice": {
+    "tokens": null,
+    "costPerAcceptedResult": null,
+    "reason": "This nonstreaming adapter does not expose metering. Unknown is not zero."
+  },
+  "limits": {
+    "cases": 50,
+    "modelCalls": 40,
+    "timeoutPerCallMs": 8000,
+    "overallSeconds": 300,
+    "inventoryExecutionSeconds": 10,
+    "childCleanupSeconds": 5
+  },
+  "scope": "Synthetic field-match experiment only; no summary entailment, human learning, real-world quality, paid execution or automatic deployment claim.",
+  "jarSha256": "32fec3adc1ae561c2347ec81f32cb43ed74fb4ef28b4a66d387a1f0d8323f747",
+  "ownedChildrenReaped": true
+}

@@ -82,6 +82,12 @@ Observe that valid JSON containing an invented order ID fails semantic validatio
 summary can still be wrong. Record field quality separately from availability and latency.
 Never execute generated text or grant access based on a model's suggested identity.
 
+Then run the [frozen prompt comparison](../examples/ai-backend/QUALITY_COMPARISON.md). Predict
+whether four examples help before reading results; compare exactly the same cases with the old
+prompt and a rule. Keep timeouts and rejected answers in the denominator and inspect cases that
+became worse. Neither a longer prompt nor valid JSON proves better answers. After inspecting the
+held-out set, treat it as regression data; the report never changes the application default.
+
 Before moving on, run the [streaming exercise](../examples/ai-backend/STREAMING.md): observe partial
 content, cancel a stalled request, distinguish incomplete output from a final answer, and calculate
 scenario cost with failed attempts retained. Missing usage is unknown; a finished stream still

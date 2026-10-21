@@ -335,10 +335,9 @@ cache, guardrail, and tool spans. Record stage timings, token counts, estimated 
 decisions, structured-output validity, policy outcomes, tool calls, cancellation, and model version
 without placing raw secrets or complete prompts in ordinary logs.
 
-Observability explains how the system behaved; **evaluation** determines whether the answer was
-useful. Maintain offline sets for task correctness, grounding, safety, schema compliance, and
-prompt-injection resistance, then watch sampled human feedback and canary metrics online. A
-deployment is not successful merely because latency and HTTP success rates stayed green.
+Observability explains how the system behaved; **evaluation** determines whether the answer was useful. Maintain offline tests for task correctness, grounding, safety, schema compliance and prompt-injection resistance.
+The [frozen paired comparison](../../examples/ai-backend/QUALITY_COMPARISON.md) runs the same cases for each prompt; separate exact-field correctness from JSON-schema acceptance and keep failures, rejections and timeouts in the all-case denominator.
+Inspect per-case regressions, sampled human feedback and canary metrics before deciding; a report does not automatically promote a prompt, and healthy latency or HTTP success does not prove answer quality.
 
 The server should define whether retries are safe for a generation request.
 

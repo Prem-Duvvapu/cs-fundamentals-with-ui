@@ -764,3 +764,19 @@ SQL and fault-delay budgets; asynchronous callback timeouts are not hard preempt
 The testing module must import the existing Task Tracker source, refuse skipped actual cases,
 retain failed attempts in latency/throughput calculations, and publish only sanitized evidence.
 Keep actual container execution separate from native guard/stub tests and production capacity.
+
+The [controlled prompt comparison](examples/ai-backend/COMPARISON_PROTOCOL.md) freezes the
+experimental ticket prompt before an independently authored synthetic holdout. The original
+application prompt remains the default; comparisons preserve schema/field/failure distinctions,
+prompt/dataset/model hashes and a no-model reference. A narrow field gate is not production
+acceptance or human answer-support review. The [OOP source review](docs/JAVA_OOP_SOURCE_REVIEW_2026-10-21.md)
+records all eleven original PDF pages and Java 17 counterexamples without reproducing source notes.
+The operations lab now requires three resource Pods in addition to its five recovery cases;
+only actual cgroup/termination/CPU-counter observations and verified cleanup can close them.
+
+For controlled ticket experiments, preserve the ticket-v1 default and frozen prompt hashes.
+Never pass expected labels to the model, turn unknown metering into zero, equate schema validity
+with task correctness, or call AI-authored synthetic labels human calibration. New prompt selection
+after inspecting the public holdout requires a new separated evaluation. All actual kind resource
+cases run only in owned nonprivileged disposable Pods; never run resource stress on the host or
+weaken OOMKilled/exit137/cgroup-limit/throttling evidence into a generic process failure.

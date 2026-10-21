@@ -106,8 +106,11 @@ multilingual ability, fairness, generalization or production readiness.
 input rejection without a call, response limits, refusal, truncation, 429, deadline and call cap.
 `ApiSecurityTests` checks authentication, CSRF and invalid input at the MVC boundary.
 
-The [lexical knowledge baseline](KNOWLEDGE.md) and [controlled workflow/MCP milestone](WORKFLOW.md) are implemented. Dense retrieval/ANN, broader streaming/cancellation journeys, multimodal parsing, stage telemetry,
-usage/cost reporting, safe retry policy and broader quality evaluation remain pending. Track
+The [lexical knowledge baseline](KNOWLEDGE.md), [optional pgvector retrieval](VECTOR_RETRIEVAL.md),
+[controlled workflow/MCP milestone](WORKFLOW.md), [document/OCR exercise](DOCUMENTS.md) and
+[bounded streaming/usage exercise](STREAMING.md) are implemented for their documented scope.
+Learned semantic relevance, human answer support, full stage telemetry, safe retry policy,
+richer multimodal work and broader production quality remain open. Track
 exact evidence in [the implementation ledger](../../docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md).
 
 Primary references: [Spring AI compatibility](https://docs.spring.io/spring-ai/reference/getting-started.html),
@@ -118,12 +121,17 @@ Primary references: [Spring AI compatibility](https://docs.spring.io/spring-ai/r
 ## Diagnose evaluation results
 
 The [evaluation guide](EVALUATION.md) explains dataset preflight, schema versus semantic success,
-per-field and per-slice reports, failure denominators and observed p50/p95. The current example
-suite has 39 tests before the separate vector-retrieval extension. Old saved reports without
+per-field and per-slice reports, failure denominators and observed p50/p95. Dated test and runtime
+counts live in the implementation ledger. Old saved reports without
 per-field data remain valid historical evidence and cannot be backfilled from exact-match totals.
 
 Use [RAG evaluation](RAG_EVALUATION.md) after the knowledge baseline: diagnose a retrieval miss, correct retrieval with wrong generation, and revoked sources as separate cases. Run `python3 examples/ai-backend/verify_rag.py` from the repository root after packaging to verify the actual30/20-case CLI.
 
 Before selecting a model, run the [rule baseline and adaptation exercise](ADAPTATION_DECISIONS.md). `--evaluate-rules` makes no model call and keeps ambiguous cases in its review/failure denominator.
+
+Next, use the [frozen prompt comparison](QUALITY_COMPARISON.md) to compare the original prompt,
+an example-based candidate and the rule on identical cases. Start with its actual HTTP fixture,
+then optionally use an already-installed local model. Reports retain failures and paired
+regressions; they cannot promote a prompt or establish summary faithfulness.
 
 The [bounded streaming exercise](STREAMING.md) adds native NDJSON, explicit cancellation, optional usage/timing, and failure-inclusive scenario cost arithmetic. Run `verify_streaming.py` after packaging; its owned HTTP fixture uses the normal teaching-JAR command and never calls a model. The authenticated extraction API remains nonstreaming.
