@@ -23,7 +23,9 @@ and [Java learning plan](../JAVA_LEARNING_PLAN.md) alongside this record.
   an [eleven-page text/image review](JAVA_OOP_SOURCE_REVIEW_2026-10-21.md), Java 17 primary-source
   checks and independent runnable/negative-compile examples. The shared primitive-values PDF
   now has a [ten-page review](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md) for entries 4/5.
-  Remaining notes still need review. Do not label a destination reviewed from its heading alone.
+  The references/nonprimitive-values PDF now has a [six-page review](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md)
+  for entry 6, including wrapper and reference-copy corrections. Remaining notes still need review.
+  Do not label a destination reviewed from its heading alone.
 
 No license or reproduction permission is inferred from a public link or the repository owner.
 The earlier review found no repository license; linked handwritten notes may have different rights
@@ -45,7 +47,7 @@ learner pilot remain open; this inventory and automated UI checks do not prove f
 | 3 | Public classes and source files | [Public classes and source files](../content/java-spring/01b-java-execution-pipeline.md) | None linked | No linked source; verify against JLS |
 | 4 | Primitive values | [Primitive values](../content/java-spring/01c-java-memory-model.md) | S03 | [All 10 pages reviewed](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md); beginner conversions integrated; learner pilot pending |
 | 5 | Floating-point representation | [Floating-point representation](../content/java-spring/01c-java-memory-model.md) | S03 | [All 10 pages reviewed](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md); beginner conversions integrated; learner pilot pending |
-| 6 | References and non-primitive values | [References and non-primitive values](../content/java-spring/01c-java-memory-model.md) | S04 | Source text/images not reviewed |
+| 6 | References and non-primitive values | [References and non-primitive values](../content/java-spring/01c-java-memory-model.md) | S04 | [All 6 pages reviewed](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md); beginner wrapper bridge and learner pilot pending |
 | 7 | Methods | [Methods](../content/java-spring/01d-java-oop-pillars.md) | S05 | Source text/images not reviewed |
 | 8 | Constructors | [Constructors](../content/java-spring/01d-java-oop-pillars.md) | S05 | Source text/images not reviewed |
 | 9 | Memory and garbage collection | [Memory and garbage collection](../content/java-spring/01-jvm-gc.md) | S06 | Source text/images not reviewed |
@@ -92,7 +94,7 @@ instead of duplicating opaque share-query strings. No original note contents are
 | S01 | 1 | [Source S01](https://drive.google.com/file/d/1eg_I2kdII2_KPtzGifky-YEvFcgaCX4H/view) | Public PDF downloaded October 21, 2,703,416 bytes | [11-page review and Java 17 checks](JAVA_OOP_SOURCE_REVIEW_2026-10-21.md) |
 | S02 | 2 | [Source S02](https://drive.google.com/file/d/1orNECv5ucicgyhcC58tsQ10lTqj0Xc0K/view) | 200 viewer/HTML; document content unverified | Earlier three-page PDF review only |
 | S03 | 4, 5 | [Source S03](https://drive.google.com/file/d/1vWVJ9nAIbih0vier0XD-jFaUCujWuYnU/view) | Public PDF downloaded October 21, 2,507,604 bytes | [10-page review and Java 17 checks](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md) |
-| S04 | 6 | [Source S04](https://drive.google.com/file/d/1y23GVqAKPxQ72ZAP1_uOsJW2XfnBDhX5/view) | 200 viewer/HTML; document content unverified | Pending |
+| S04 | 6 | [Source S04](https://drive.google.com/file/d/1y23GVqAKPxQ72ZAP1_uOsJW2XfnBDhX5/view) | Public PDF downloaded October 21, 1,796,305 bytes | [6-page review and Java 17 checks](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md) |
 | S05 | 7, 8 | [Source S05](https://drive.google.com/file/d/1KEMCFaA5phnL1qneiWPPsSeDGoRqFyWK/view) | 200 viewer/HTML; document content unverified | Pending |
 | S06 | 9 | [Source S06](https://drive.google.com/file/d/1VLbaVl69r9FlKw2q_nI4qS6mlGx1t9Js/view) | 200 viewer/HTML; document content unverified | Pending |
 | S07 | 10, 11 | [Source S07](https://drive.google.com/file/d/1eE5Pculcp0qem6tMPHDz9h-jhMclzGIt/view) | 200 viewer/HTML; document content unverified | Pending |
