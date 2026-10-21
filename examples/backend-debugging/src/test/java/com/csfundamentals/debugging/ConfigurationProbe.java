@@ -25,7 +25,14 @@ import tools.jackson.databind.ObjectMapper;
 public final class ConfigurationProbe {
     private static final String KEY = "management.endpoints.web.exposure.include";
     private static final Set<String> RESOURCES = Set.of("application.properties", "application-production.properties");
+    private static Map<String, Object> runtimeIdentity() {
+        var version = Runtime.version();
+        String full = version.toString();
+        if (!full.matches("[A-Za-z0-9.+_-]{1,128}")) throw new IllegalStateException("bounded_runtime_identity_required");
+        return Map.of("feature", version.feature(), "version", full);
+    }
     private static void publish(Map<String, Object> report, Path destination) throws Exception {
+        report.put("runtime", runtimeIdentity());
         byte[] bytes = new ObjectMapper().writeValueAsBytes(report);
         if (bytes.length > 16384) throw new IllegalStateException("probe_report_limit");
         Path pending = Files.createTempFile(destination.getParent(), ".configuration-", ".json");
@@ -37,6 +44,11 @@ public final class ConfigurationProbe {
     public static void main(String[] args) throws Exception {
         Path destination = Path.of(System.getenv("OWNED_CONFIGURATION_REPORT"));
         var report = new LinkedHashMap<String, Object>();
+        if (Runtime.version().feature() != 17) {
+            report.put("state", "unsupported-runtime");
+            publish(report, destination);
+            throw new IllegalStateException("owned_java17_runtime_required");
+        }
         var application = new SpringApplication(TaskTrackerApplication.class);
         var prepared = new java.util.concurrent.atomic.AtomicReference<ConfigurableEnvironment>();
         application.addListeners((ApplicationListener<ApplicationEnvironmentPreparedEvent>)event -> prepared.set(event.getEnvironment()));

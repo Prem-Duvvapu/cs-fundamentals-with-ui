@@ -17,6 +17,14 @@ No Docker, cloud service, paid provider, administrator access or private configu
 is required. The POM imports Task Tracker's Java/resources directly and preserves its
 Boot 4.1.1 parent, dependencies and Java 17 setting. The verifier checks that those
 contracts have not drifted. It compiles debugger sources with `-g --release 17`.
+`compilerTargetRelease: 17` records that compilation target, not an inferred running JVM.
+Each Spring observation, including failed startup, records `runtime.feature` and the
+actual child's full `Runtime.version()` string. The debugger records its own `runtime`
+and the attached target's `debuggeeRuntime` (feature, JDI-reported version and VM name).
+The target feature is parsed only from the bounded actual `VirtualMachine.version()`
+response; this JDI version need not include the full build suffix of `Runtime.version()`.
+All three runtime paths explicitly require feature 17. A different or missing observed
+runtime fails verification; a separate `java --version` process is not used as evidence.
 
 The usual declared Maven dependencies must already be cached. Runtime verification
 uses Maven offline with newly created user/global settings and does not download
@@ -164,7 +172,9 @@ Inherited Spring/server/management/Task Tracker/telemetry settings and Java opti
 injection are excluded before creating children. Configuration inspection is limited
 to the one allowlisted nonsecret key; profile names and known bean classes are public
 teaching metadata. Reports contain source/artifact hashes, fixed causes and outcomes,
-not raw logs, private configuration, payloads or secrets. Existing source bytes are
+not raw logs, private configuration, payloads or secrets. Runtime receipt strings are
+bounded to 128 public release/VM-name characters; no system-property dump or debugger
+expression evaluation is used. Existing source bytes are
 checked before/after the experiment.
 
 The owned workspace does not sandbox arbitrary Java. Only the reviewed checked-in

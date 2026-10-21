@@ -48,14 +48,22 @@ jobs:
         run: |
           python3 - <<'PY'
           import json
+          import sys
           from pathlib import Path
+          sys.path.insert(0, 'examples/backend-debugging')
+          from verify import require_java17_runtime
           root = Path('examples/backend-debugging/target/evidence')
           configuration = json.loads((root/'configuration.json').read_text())
           debugger = json.loads((root/'debugger.json').read_text())
+          assert configuration['compilerTargetRelease'] == debugger['compilerTargetRelease'] == 17
           assert len(configuration['configurations']) == 6
+          for case in configuration['configurations']:
+              require_java17_runtime(case['runtime'])
           assert all(case['childReaped'] for case in configuration['configurations'])
           assert configuration['importedSourcesUnchanged'] and configuration['ownedWorkspaceRemoved']
           actual = debugger['debugger']
+          require_java17_runtime(actual['runtime'])
+          require_java17_runtime(actual['debuggeeRuntime'], debuggee=True)
           assert actual['conditionalChecks'] == 3 and actual['conditionalMatches'] == 1
           assert actual['caughtExceptions'] == 1 and actual['ownedDebuggeeReaped']
           assert actual['guiOrHumanSession'] is False

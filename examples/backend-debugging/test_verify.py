@@ -10,7 +10,7 @@ import time
 import unittest
 from unittest.mock import patch
 from processes import Budget, LabFailure, OwnedProcess, cancellation_guard, environment, run
-from verify import HERE, publish, verify
+from verify import HERE, publish, verify, require_java17_runtime
 
 
 class DebuggingTests(unittest.TestCase):
@@ -19,6 +19,11 @@ class DebuggingTests(unittest.TestCase):
         result = verify(part='configuration', observe=observed.append)
         cases = {row['name']: row for row in result['configurations']}
         self.assertEqual(6, len(cases))
+        self.assertEqual(17, result['compilerTargetRelease'])
+        for case in cases.values():
+            require_java17_runtime(case['runtime'])
+            self.assertEqual(17, case['runtime']['feature'])
+            self.assertRegex(case['runtime']['version'], r'^17(?:[.+-]|$)')
         sources = ['application.properties', 'application-production.properties', 'environment-variable', 'command-line']
         for name, source in zip(['memory-default', 'production-profile', 'production-environment', 'production-cli'], sources):
             self.assertEqual(source, cases[name]['orderedCandidates'][0]['source'])
@@ -42,6 +47,12 @@ class DebuggingTests(unittest.TestCase):
         observed = []
         result = verify(part='debugger', observe=observed.append)
         actual = result['debugger']
+        self.assertEqual(17, result['compilerTargetRelease'])
+        require_java17_runtime(actual['runtime'])
+        require_java17_runtime(actual['debuggeeRuntime'], debuggee=True)
+        self.assertEqual(17, actual['runtime']['feature'])
+        self.assertEqual(17, actual['debuggeeRuntime']['feature'])
+        self.assertTrue(actual['debuggeeRuntime']['vmName'])
         self.assertEqual((3, 1, 1), (actual['conditionalChecks'], actual['conditionalMatches'], actual['caughtExceptions']))
         self.assertEqual('java.lang.IllegalArgumentException', actual['exceptionType'])
         self.assertEqual('com.csfundamentals.example.TaskService.create', actual['exceptionLocation'])
@@ -110,6 +121,14 @@ class DebuggingTests(unittest.TestCase):
             values = environment()
         for key in ('SPRING_CONFIG_LOCATION', 'TASK_TRACKER_DATABASE_URL', 'MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE', 'JAVA_TOOL_OPTIONS'):
             self.assertNotIn(key, values)
+        # A Java17 compilation target does not admit another or missing observed runtime.
+        for identity in (None, {'feature':21,'version':'21.0.1'}, {'feature':True,'version':'17'},
+                         {'feature':17,'version':'21.0.1'}, {'feature':17,'version':'17'+'x'*129},
+                         {'feature':17,'version':'17/private-configuration'}):
+            with self.subTest(runtime=type(identity).__name__), self.assertRaises(LabFailure):
+                require_java17_runtime(identity)
+        with self.assertRaises(LabFailure):
+            require_java17_runtime({'feature':17,'version':'17.0.1','vmName':'private\nvalue'}, debuggee=True)
 
     def test_report_symlink_and_size_are_rejected(self):
         with tempfile.TemporaryDirectory(prefix='owned-debug-report-') as temporary:

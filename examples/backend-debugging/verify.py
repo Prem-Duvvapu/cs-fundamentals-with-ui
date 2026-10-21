@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import re
 import shutil
 import tempfile
 import time
@@ -92,6 +93,18 @@ def http_status(port, path, password=None):
         return response.status
 
 
+def require_java17_runtime(value, *, debuggee=False):
+    fields = {'feature', 'version', 'vmName'} if debuggee else {'feature', 'version'}
+    if (not isinstance(value, dict) or set(value) != fields or type(value.get('feature')) is not int
+            or value['feature'] != 17 or not isinstance(value.get('version'), str)
+            or not re.fullmatch(r'17(?:[.+-][A-Za-z0-9.+_-]+)?', value['version'])
+            or len(value['version']) > 128):
+        raise LabFailure('Observed Java17 runtime identity required')
+    if debuggee and (not isinstance(value.get('vmName'), str)
+                    or not re.fullmatch(r'[A-Za-z0-9 ._()+-]{1,128}', value['vmName'])):
+        raise LabFailure('Observed bounded debuggee VM identity required')
+
+
 def configuration_case(owner, classpath, budget, name, *, production=False, env_override=False, cli_override=False, bad=False):
     root = owner/name; root.mkdir()
     report_path = root/'observation.json'
@@ -110,6 +123,7 @@ def configuration_case(owner, classpath, budget, name, *, production=False, env_
             if owned.pump() is not None:
                 raise LabFailure('Application stopped before its observation report')
         observation = read_report(report_path)
+        require_java17_runtime(observation.get('runtime'))
         if bad:
             code, _ = owned.finish()
             if (code == 0 or observation.get('state') != 'startup-failed'
@@ -118,7 +132,7 @@ def configuration_case(owner, classpath, budget, name, *, production=False, env_
                 raise LabFailure('Actual bad-port startup binding failure not observed')
             return dict(name=name, state='startup-failed', causeTypes=observation['causeTypes'], property='server.port',
                         failedOrigin=observation['failedOrigin'], observedProperty=observation['failedProperty'],
-                        invalidValue='invalid-port', repairedBy='memory-repaired', childReaped=True)
+                        invalidValue='invalid-port', repairedBy='memory-repaired', runtime=observation['runtime'], childReaped=True)
         port = observation.get('localPort')
         if observation.get('state') != 'ready' or observation.get('property') != KEY or observation.get('configuredPort') != 0:
             raise LabFailure('Unexpected application observation')
@@ -155,6 +169,8 @@ def debugger(owner, budget):
     run(['java', '-Xmx128m', '-XX:ActiveProcessorCount=2', '--add-modules', 'jdk.jdi', '-cp', classes,
          'TaskServiceDebugger', classes, report], root, budget, timeout=40)
     result = read_report(report)
+    require_java17_runtime(result.get('runtime'))
+    require_java17_runtime(result.get('debuggeeRuntime'), debuggee=True)
     if (result.get('conditionalChecks') != 3 or result.get('conditionalMatches') != 1 or result.get('caughtExceptions') != 1
             or result.get('stepLocations') != ['com.csfundamentals.example.TaskService.create', 'com.csfundamentals.example.MemoryTaskRepository.add']
             or result.get('debuggeeExited') is not True or result.get('guiOrHumanSession') is not False):
@@ -176,8 +192,8 @@ def verify(*, part='all', observe=None):
         raise ValueError('Known evidence part required')
     before = snapshot()
     budget = Budget.start(300)
-    report = dict(schemaVersion=1, evidence='actual-owned-spring-and-jdi', sourceSha256=before,
-                  configurations=[], debugger=None, scope='Synthetic Java17 TaskTracker execution; no GUI/human session, production deployment, arbitrary external attach or private configuration inspection.')
+    report = dict(schemaVersion=1, evidence='actual-owned-spring-and-jdi', compilerTargetRelease=17, sourceSha256=before,
+                  configurations=[], debugger=None, scope='Java17-targeted TaskTracker sources; actual child runtimes must be observed as Java17; no GUI/human session, production deployment, arbitrary external attach or private configuration inspection.')
     with cancellation_guard(), tempfile.TemporaryDirectory(prefix='owned-backend-debugging-') as directory:
         owner = Path(directory)
         if observe: observe(owner)

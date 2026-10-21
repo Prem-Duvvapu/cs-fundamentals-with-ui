@@ -8,8 +8,22 @@ import java.util.concurrent.TimeUnit;
 
 /** Fixed-target, fixed-predicate JDI exercise; never attaches to an external JVM. */
 public final class TaskServiceDebugger {
+    private static String boundedVersion(String version) {
+        if (!version.matches("[A-Za-z0-9.+_-]{1,128}")) throw new IllegalStateException("bounded_runtime_identity_required");
+        return version;
+    }
+    private static String runtimeJson(int feature, String version, String vmName) {
+        boundedVersion(version);
+        if (feature != 17 || Runtime.Version.parse(version).feature() != feature)
+            throw new IllegalStateException("owned_java17_runtime_required");
+        if (vmName != null && !vmName.matches("[A-Za-z0-9 ._()+-]{1,128}"))
+            throw new IllegalStateException("bounded_vm_identity_required");
+        return "{\"feature\":"+feature+",\"version\":\""+version+"\""
+            +(vmName == null ? "" : ",\"vmName\":\""+vmName+"\"")+"}";
+    }
     public static void main(String[] args) throws Exception {
         if (args.length != 2) throw new IllegalArgumentException("Owned classes and report required");
+        String runtime = runtimeJson(Runtime.version().feature(), Runtime.version().toString(), null);
         Path classes = Path.of(args[0]).toRealPath(), report = Path.of(args[1]);
         Path log = report.resolveSibling("owned-debuggee.log");
         ListeningConnector connector = Bootstrap.virtualMachineManager().listeningConnectors().stream()
@@ -33,6 +47,8 @@ public final class TaskServiceDebugger {
                 .directory(classes.getParent().toFile()).redirectErrorStream(true).redirectOutput(log.toFile()).start();
             vm = connector.accept(arguments);
             connector.stopListening(arguments);
+            String targetVersion = boundedVersion(vm.version());
+            String debuggeeRuntime = runtimeJson(Runtime.Version.parse(targetVersion).feature(), targetVersion, vm.name());
             var manager = vm.eventRequestManager();
             var prepare = manager.createClassPrepareRequest();
             prepare.addClassFilter("com.csfundamentals.example.TaskService");
@@ -95,7 +111,8 @@ public final class TaskServiceDebugger {
             String json = "{\"conditionalChecks\":3,\"conditionalMatches\":1,\"caughtExceptions\":1,\"exceptionType\":\"java.lang.IllegalArgumentException\","
                 +"\"exceptionLocation\":\""+exceptionLocation+"\",\"catchLocation\":\""+catchLocation+"\","
                 +"\"stepLocations\":[\""+String.join("\",\"", stepLocations)+"\"],\"debuggeePid\":"+target.pid()+",\"debuggeeExited\":true,"
-                +"\"transport\":\"owned-loopback-socket\",\"guiOrHumanSession\":false}";
+                +"\"transport\":\"owned-loopback-socket\",\"guiOrHumanSession\":false,"
+                +"\"runtime\":"+runtime+",\"debuggeeRuntime\":"+debuggeeRuntime+"}";
             Files.writeString(report, json);
         } finally {
             try { connector.stopListening(arguments); } catch (Exception ignored) { }
