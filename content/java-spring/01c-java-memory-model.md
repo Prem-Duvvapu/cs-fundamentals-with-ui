@@ -61,6 +61,10 @@ Java has eight primitive types: `byte`, `short`, `int`, `long`, `float`, `double
 `boolean`. A primitive variable contains its value directly; an `int` variable contains a signed
 32-bit integer, not an object and not a pointer to one.
 
+`var count = 3` infers a fixed `int` for this initialized local variable; assigning text later fails.
+In Java 17, `var` cannot replace field types or method/constructor parameter types. Names are case-sensitive: `count` and `Count` differ.
+`camelCase` and uppercase constant names are conventions, not legality rules; `_count` is legal, but `_` alone is a keyword.
+
 A variable of a class, interface, array, or enum type contains a **reference value**. The reference
 may identify an object, or it may be `null`; the Java Language Specification deliberately does not
 expose its physical address. A useful diagram may draw an arrow, but code must never depend on an
@@ -85,6 +89,7 @@ Primitive width and representation matter at boundaries:
 | Type | Width | Representative values | Important detail |
 |---|---:|---|---|
 | `byte` | 8 bits | -128 to 127 | Signed two's complement |
+| `short` | 16 bits | -32768 to 32767 | Signed two's complement |
 | `char` | 16 bits | UTF-16 code unit | Not necessarily a complete Unicode character |
 | `int` | 32 bits | $-2^{31}$ to $2^{31}-1$ | Integer overflow wraps in two's complement |
 | `long` | 64 bits | $-2^{63}$ to $2^{63}-1$ | Add `L` to large literals |
@@ -103,6 +108,24 @@ logical operators such as `&&`, and assignment operators such as `+=`. Numeric p
 `byte + byte` produces an `int`, and integer division truncates before assignment: `5 / 2` is `2`.
 Short-circuit `&&` and `||` evaluate the right operand only when required, which can safely guard a
 dereference: `user != null && user.isActive()`.
+
+`byte small = 1 + 2` is allowed because this compile-time constant fits in a byte; non-constant byte variables still add as int even when their sum fits.
+Promotion follows operand types, not the moment a value exceeds a range. Widening to float can also lose precision.
+
+**Excerpt — Java 17; place these statements inside `main`, with no imports:**
+
+```java
+int exact = 16_777_217;
+float rounded = exact;
+System.out.println((int) rounded); // 16777216
+int largest = Integer.MAX_VALUE;
+long wrapped = largest + 1;
+long widened = (long) largest + 1;
+System.out.println(wrapped + " / " + widened); // -2147483648 / 2147483648
+```
+
+The float cannot represent that exact integer. In `wrapped`, int addition overflows before assignment to long;
+casting an operand first makes `widened` use long addition, which can represent the result.
 
 Control flow chooses which operations execute. `if`, `switch`, loops, `break`, `continue`, and
 `return` do not create a new Java memory area, but each block creates a lexical scope for local
