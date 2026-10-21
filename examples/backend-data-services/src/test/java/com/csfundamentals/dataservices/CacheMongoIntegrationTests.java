@@ -34,6 +34,31 @@ class CacheMongoIntegrationTests {
             assertEquals("New",working.find("alice","one").orElseThrow().ticket().title());
         }
     }
+    @Test void coalescedColdReadsUseActualMongoAuthorityAndKeepVersionFreshness() throws Exception {
+        try(var source=MongoIntegrationTests.source();var cache=RedisIntegrationTests.cache();
+            var loads=new CoalescedLoads(2,8,java.time.Duration.ofSeconds(3))) {
+            source.create("alice","one","Original","high");
+            var fullReads=new java.util.concurrent.atomic.AtomicInteger();
+            var entered=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);
+            TicketSource counted=new TicketSource() {
+                public java.util.OptionalLong version(String principal,String id){return source.version(principal,id);}
+                public java.util.Optional<Ticket> find(String principal,String id){
+                    fullReads.incrementAndGet();entered.countDown();CacheRecoveryRedisTests.gate(release);return source.find(principal,id);
+                }
+                public Ticket rename(String principal,String id,long version,String title){return source.rename(principal,id,version,title);}
+            };
+            var service=new CacheAsideTickets(counted,cache,cache.namespace(),10000,loads);
+            var callers=java.util.concurrent.Executors.newFixedThreadPool(6);
+            try {
+                var futures=CacheRecoveryRedisTests.burst(callers,service,6);
+                assertTrue(entered.await(2,java.util.concurrent.TimeUnit.SECONDS));
+                CacheRecoveryRedisTests.await(()->loads.snapshot().joined()==5);release.countDown();
+                for(var future:futures)assertEquals("Original",future.get(3,java.util.concurrent.TimeUnit.SECONDS).orElseThrow().ticket().title());
+                assertEquals(1,fullReads.get());assertTrue(service.rename("alice","one",1,"New").invalidated());
+                assertEquals(2,service.find("alice","one").orElseThrow().ticket().version());assertEquals(2,fullReads.get());
+            } finally {release.countDown();CacheRecoveryRedisTests.stop(callers);}
+        }
+    }
     @Test void crossTenantPayloadUnderWrongKeyIsRejectedOnActualServices() {
         try(var source=MongoIntegrationTests.source();var cache=RedisIntegrationTests.cache()) {
             source.create("alice","one","Alice original","high"); var bob=source.create("bob","one","Bob private","high");

@@ -28,14 +28,14 @@ libraries. No Spring server or paid provider is started.
 mvn -B --no-transfer-progress -f examples/backend-data-services/pom.xml verify
 ```
 
-Without explicit integration flags, this runs **nine contract tests**, then reports
-**eleven skipped service tests**. The contract fakes are labelled `FakeSource` and
+Without explicit integration flags, this runs **thirteen contract tests**, then reports
+**seventeen skipped service tests**. The contract fakes are labelled `FakeSource` and
 `FakeCache`. They establish application logic and BSON codec behavior, not Redis
 or MongoDB behavior. Read the skip counts; a green default build alone is not
 actual service evidence.
 
 If a native `redis-server` is already installed, this command starts an owned
-throwaway process, authenticates it and executes exactly four real Redis cases:
+throwaway process, authenticates it and executes nine real Redis cases:
 
 ```sh
 python3 examples/backend-data-services/verify_redis.py
@@ -44,14 +44,14 @@ python3 examples/backend-data-services/verify_redis.py
 The runner uses a temporary private config, random password, loopback free port,
 readiness/process deadlines and finally cleanup of only that child and directory.
 It never reuses or reconfigures a global Redis service. It fails when the binary is
-missing; it does not install software. A local run on **Redis 8.6.2** passed all four
+missing; it does not install software. A local run on **Redis 8.6.2** passed all nine
 cases with zero skips. That local version is separate from CI's pinned Redis 8.4.7.
-MongoDB was not available locally, so the seven MongoDB/combined cases remain
+MongoDB was not available locally, so the eight MongoDB/combined cases remain
 unexecuted there.
 
 The dedicated [Backend data services workflow](../../.github/workflows/data-services.yml)
 starts authenticated Redis and MongoDB containers, binds their ports to loopback,
-runs all **20 tests with zero skips**, publishes Surefire/query-plan reports, and
+runs all **30 tests with zero skips**, publishes Surefire/query-plan reports, and
 removes only its containers and anonymous volumes. It explicitly rejects missing,
 skipped or failing integration reports. A successful actual workflow run is still
 required before claiming MongoDB execution evidence for this release.
@@ -207,6 +207,142 @@ cache. I preserve tenant scope on every key and validate the revision against th
 source. I combine the new counter and expiry on the server, but still account for
 unknown outcomes, eviction and failures rather than claiming exactly once.”
 
+## 6. Measure and limit a cold-key stampede
+
+Reuse the linked **HLD cache-aside** explanation for the pattern. The distinct work
+here is actual Redis concurrency, bounded waiting and correctness during recovery.
+A stampede happens when several callers all miss a cold key before any caller has
+finished fetching its source value. A faster cache does not remove that overlap.
+
+`CacheRecoveryRedisTests` uses **actual authenticated Redis** and an explicitly
+named `ControlledSource`, an original thread-safe source fixture with measured
+full-document/metadata counters. It is not a MongoDB test or a production benchmark.
+Six caller threads start together, and a bounded latch holds the origin so all
+intended overlapping calls actually reach the measured boundary:
+
+| Run | Concurrent callers | Actual full origin reads | Metadata reads |
+|---|---:|---:|---:|
+| Existing default cache-aside | 6 | 6 | 6 |
+| Optional shared `CoalescedLoads` | 6 | 1 | 6 |
+
+The baseline starts with an actually absent Redis key, waits for six origin calls,
+then releases them. The second run waits for one actual origin call and five
+actual joins before release. Every caller gets the validated original ticket and
+the real Redis key has a positive TTL. This establishes avoided duplicate full
+reads for this deliberately overlapped fixture; it does not establish a latency,
+throughput, hit-rate or cost target. The six metadata reads are intentionally
+retained: canonical version checks still buy freshness at a source-query cost.
+
+The old constructor keeps its original behavior. Opt into one coordinator shared
+by the relevant service instances and close it after their owned requests:
+
+```java
+try (var loads = new CoalescedLoads(2, 8, java.time.Duration.ofSeconds(2))) {
+    var service = new CacheAsideTickets(source, redis, redis.namespace(), 10000, loads);
+    // Call service.find(...) from the application's bounded request executor.
+}
+```
+
+The example assumes an already owned `source`/`redis` and is an excerpt, not another
+application. The coordinator owns at most two active versioned-key loads and eight
+waiting callers including leaders in this configuration. Limits are constructor
+parameters capped at eight loads / 64 callers / five seconds. A zero-capacity
+`SynchronousQueue` admits available worker capacity directly; it cannot accumulate
+an unbounded task queue. Excess caller or distinct-key work fails immediately with
+`cache_load_capacity`. There is no automatic retry or stampede of fallback origin
+calls after this rejection. A brief worker handoff can also reject capacity; it is
+not a promise that every available map slot guarantees instantaneous admission.
+
+Each flight key includes the existing **namespace + tenant + ID + observed canonical
+version**. The leader rechecks the exact Redis envelope before a full origin read,
+because an earlier flight may have filled it after the caller's first miss. All
+existing payload scope, positive TTL, source authority, version and after-commit
+invalidation checks remain. Coalesced callers receive the same validated result;
+errors are propagated, not stored as success or inserted into Redis.
+
+The shared load/wait deadline begins **after** the initial metadata/cache lookup.
+Those initial source/Redis operations retain their existing individual timeouts;
+this is not a hard deadline or admission gate around the entire `find` request.
+Followers inherit the original flight deadline instead of restarting its budget.
+An interrupted waiting caller retains its interrupt flag and stops waiting without
+cancelling peers' shared load. The worker checks its budget before work, after
+source return and before publication. A caller timeout does **not** remove a still
+running flight or free its worker slot. Otherwise a stuck origin could cause a
+succession of replacement loads and defeat the very bound being taught.
+
+Blocking source/Redis operations retain their own finite operation bounds. The
+coordinator cannot forcibly stop arbitrary non-cooperative code. A delayed source
+result arriving after the shared budget cannot populate Redis. An already-started
+Redis write can finish after a caller's wait expires; that valid, versioned write
+is not rolled back. Errors/expired source results are not cached, and every later
+read still checks canonical version. Closing rejects new loads, wakes waiters,
+interrupts owned workers and waits at most five seconds, failing if they do not
+stop. It never kills arbitrary application threads.
+
+### Predict, observe and recover
+
+1. **Origin fails:** six real concurrent callers share one failed source read;
+   every caller observes source unavailability, the Redis key remains absent,
+   and a later healthy source load succeeds and is cached. Failure is not a
+   permanent completed future retained under the key.
+2. **Origin misses its budget:** two callers time out while the original source
+   call is deliberately still blocked. The flight/slot remains owned; a third
+   waiter or another cold key cannot grow work beyond capacity. A further caller
+   joining the expired flight also gets its original deadline, giving three
+   observed deadline responses and two admission rejections in the fixed case.
+   Releasing the source produces no late cache fill; once work actually exits,
+   another read successfully recovers. There is no manual map reset.
+3. **Version changes:** hold an Alice version-1 load, commit version 2 through the
+   normal rename, and read version 2 and Bob's same-ID ticket independently.
+   Releasing the still-within-budget old load may populate its old version-1 key,
+   but the subsequent canonical version-2 lookup cannot select it. This preserves
+   the earlier snapshot freshness contract, not latest-at-response linearizability.
+4. **Two coordinators:** share the same Redis namespace but use two coordinator
+   objects. Both start an origin read before release: actual count **2**, not 1.
+   Coordination is per object, normally one shared object per application process;
+   separate objects in one JVM and separate application processes do not share it.
+   No distributed lock, lease, fencing or cross-process single-flight is implemented.
+5. **Existing outage behavior:** optional-path contract tests retain authoritative
+   bypass when Redis is unavailable and refuse unverifiable stale content when the
+   source fails. Original real Redis connection/auth failure tests remain separate.
+
+The additional `CacheMongoIntegrationTests` case runs six coalesced calls against
+**actual MongoDB and Redis**, asserts one actual full Mongo read, then commits a
+rename and observes version 2. It compiles locally; actual execution requires the
+dedicated all-services CI profile. This combined case does not turn the five
+controlled-origin Redis scenarios into real MongoDB failure experiments.
+
+After the native command, run `python3 examples/backend-data-services/verify_cache_recovery.py`
+to inspect the mandatory no-skip gate. `target/cache-recovery-evidence.json` records
+actual Redis/runtime versions, measured counts, required asserted outcomes and
+exact owned-key cleanup. It contains no passwords, tenant values, ticket contents,
+cache keys, ports or temporary paths. It is a local test receipt, not independent
+source-to-binary attestation. CI uploads it and requires all five new Redis cases
+plus all existing Redis/MongoDB cases with **zero skips**. Default skipped tests or
+an old receipt cannot satisfy the XML/report gate.
+
+The native runner uses a private generated Redis configuration/password and exact
+new-session process ownership for Redis and Maven. A scoped TERM/INT policy defers
+cancellation across Popen assignment, restores caller handlers/masks and always
+signals an owned group even if its launcher already exited. Regression probes
+observe actual child cleanup, other-thread signal delivery, partial-entry rollback
+and an exited leader's descendant while an unrelated process group stays running.
+Only direct children are waited/reaped; descendant termination is not a claim of
+reaping grandchildren. Imports alone do not replace a host's signal policy.
+Run its local checks with:
+
+```sh
+python3 -m unittest discover -s examples/backend-data-services -p 'test_owned_redis.py'
+```
+
+**Interview:** “I first measured overlapping cold misses against real Redis: six
+source full reads. A bounded shared coordinator reduced those to one while keeping
+all six canonical version checks. I limit waiters and active loads, preserve the
+original deadline, propagate source failures, and retain timed-out flight ownership
+until work exits. Revision/tenant keys keep a delayed old result from satisfying a
+new-version request. This coordinates one instance; Redis itself does not magically
+make a local future map into a distributed lock.”
+
 ## Bounds, cleanup and remaining scope
 
 - Redis commands use 500 ms connect / 800 ms socket timeouts, at most eight active
@@ -223,7 +359,7 @@ unknown outcomes, eviction and failures rather than claiming exactly once.”
 - Contract/race tests are deterministic fakes. Actual Redis evidence is a separate
   authenticated native/server run. MongoDB behavior requires the actual CI profile;
   BSON round-tripping is not a MongoDB server test.
-- Still pending: a measured cache stampede/coalescing exercise, actual eviction
+- The [bounded coalescing exercise](#6-measure-and-limit-a-cold-key-stampede) adds measured stampede/recovery evidence. Still pending: actual eviction
   pressure, replicas/failover/partitions, persistence recovery and production
   sessions/rate-limit integration. A single-node result does not prove distributed
   consistency, high availability or a production performance target.
@@ -248,3 +384,5 @@ only valid choices. Recheck compatibility and rerun actual tests before upgradin
 - [MongoDB single-document atomicity](https://www.mongodb.com/docs/manual/core/write-operations-atomicity/), [schema validation](https://www.mongodb.com/docs/manual/core/schema-validation/), and [compound indexes](https://www.mongodb.com/docs/manual/core/indexes/index-types/index-compound/).
 - [MongoDB Java driver](https://www.mongodb.com/docs/drivers/java/sync/current/) and [driver release metadata](https://repo.maven.apache.org/maven2/org/mongodb/mongodb-driver-sync/maven-metadata.xml).
 - [Docker Official Redis image definition](https://github.com/docker-library/redis) and [MongoDB image definition](https://github.com/docker-library/mongo).
+
+For the coalescing addition, primary API contracts checked 2026-10-21: [Java 17 SynchronousQueue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/SynchronousQueue.html), [CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html), and [Redis distributed-lock limitations](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/). No distributed lock is used here.

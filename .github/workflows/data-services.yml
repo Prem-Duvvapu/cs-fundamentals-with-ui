@@ -78,7 +78,7 @@ jobs:
           from pathlib import Path
           import xml.etree.ElementTree as ET
           root=Path('examples/backend-data-services/target/surefire-reports')
-          for name,count in {'RedisIntegrationTests':4,'MongoIntegrationTests':4,'CacheMongoIntegrationTests':3}.items():
+          for name,count in {'RedisIntegrationTests':4,'CacheRecoveryRedisTests':5,'MongoIntegrationTests':4,'CacheMongoIntegrationTests':4}.items():
               path=root/('TEST-com.csfundamentals.dataservices.'+name+'.xml')
               if not path.is_file(): raise SystemExit('Missing actual-service report: '+name)
               suite=ET.parse(path).getroot()
@@ -89,14 +89,20 @@ jobs:
                   raise SystemExit('Skipped or failed real-service evidence: '+name)
               if any(case.find(tag) is not None for case in cases for tag in ('skipped','failure','error')):
                   raise SystemExit('A real-service case did not execute/pass: '+name)
-          print('All 11 real service cases executed and passed, with no skips.')
+          print('All 17 real service cases executed and passed, with no skips.')
           PY
+      - name: Require actual cold-burst, bounded failure and recovery evidence
+        run: python3 examples/backend-data-services/verify_cache_recovery.py
+      - name: Native runner ownership and cancellation regressions
+        run: python3 -m unittest discover -s examples/backend-data-services -p 'test_owned_redis.py'
       - name: Retain actual service and query-plan reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-data-services-evidence
-          path: examples/backend-data-services/target/surefire-reports/
+          path: |
+            examples/backend-data-services/target/surefire-reports/
+            examples/backend-data-services/target/cache-recovery-evidence.json
           if-no-files-found: warn
       - name: Remove only this job's containers and owned anonymous volumes
         if: always() && env.DATA_REDIS_CONTAINER != ''
