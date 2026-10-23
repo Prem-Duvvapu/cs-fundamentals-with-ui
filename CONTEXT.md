@@ -814,3 +814,10 @@ navigation to verify the Expert misconception section. Existing frontend Markdow
 are reused; no new package or platform runtime route is added. This fixes an unanchored-regex
 false positive exposed by literal patch prefixes in the transaction lesson. Actual Chromium
 before/after confirms the restored h3 in both themes; source code/questions/diagrams are unchanged.
+
+The debugging runner now protects thread-local scope mutation with restoration and defers its
+complete selector/group-stop/wait/pipe closure. First-signal normal completion and pre-handler
+scope entry are separate actual regressions from Popen assignment. The helper preserves caller
+policy and finite owned cleanup; the unchanged Spring and fixed JDI execution contracts remain
+part of the dedicated actual-service gate. Source snapshots and imported execution receipts
+retain their distinct evidence limits.

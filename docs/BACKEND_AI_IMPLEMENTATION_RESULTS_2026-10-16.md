@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR85/PR86/PR87/PR88/PR89 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR85/PR86/PR87/PR88/PR89/PR90 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -53,7 +53,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | PR82 familiar two-entry revision and execution/OOP/primitive/reference reviews verified; methods/construction continuation locally verified, release pending; 26 sources and real learner pilot open | Java course familiarity |
+| CLOSE-02 | PR82 familiar two-entry revision and execution/OOP/primitive/reference reviews verified; PR90 methods/construction review verified; 26 sources and real learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -885,3 +885,26 @@ original source before repair; content-only c55471e removes only those eight pre
 records actual Chromium 0→1 heading and visible→absent marker text in both themes. No SQL/code,
 question, rubric or diagram body changes. RCA-2026-10-23-10 records cause and prevention;
 final integrated CI/release remains required.
+
+## PR90 merged release evidence — October 23
+
+PR [90](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/90) merged at
+2026-10-23T19:41:31Z as22fab5ab6754fa1726155aa2ad776e96e6a4c416. Exact head
+20bf26a47ca7bffea565f99a75a334d628bd601c passes all nine checks: six Verify jobs,
+GitGuardian and both Vercel checks. This delivers the nine-page methods/construction source
+review, marked Java17 example, original source/identity preservation and the parsed-outline
+misconception gate with its DBMS prose repair. Full frontend/browser/content/migration/diagram
+and actual-backend journeys pass. This supersedes the preceding two continuation-release
+qualifiers and RCA-2026-10-23-10's final-CI qualifier; source/learner limits are unchanged.
+
+## Debugging signal-lifecycle continuation — unreleased
+
+Sources08a3b3a/ad3281e add actual caller/nested state-entry and first-normal-teardown signal
+regressions to the existing debugging runner. Six old-code signal subcases fail; the correction
+passes all nine native tests, including unchanged six Spring launches and actual fixed-target
+JDI execution. Root repeats all three new guards successfully. The
+[local record](evidence/BACKEND_DEBUGGING_CLEANUP_2026-10-23.json) retains sanitized actual
+Spring/debugger reports, source/report identities and explicitly post-run module snapshot.
+RCA-2026-10-23-11 records the two timing gaps and preservation of caller policy, bounds, exact
+cleanup, imported sources and JDI identities. Final dedicated actual-service CI and release
+remain required; this does not close GUI/manual learner or all-wrapper audit requirements.

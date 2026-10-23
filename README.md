@@ -611,3 +611,7 @@ Practice [PostgreSQL concurrency and access paths](examples/backend-persistence/
 The [Java methods/construction review](docs/JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) connects familiar course entries 7/8 to the existing OOP lesson. Read a method declaration, predict field values through a constructor chain, and debug a missing no-argument constructor using the complete Java 17 example. Original notes are credited; the course-order revision pilot still has its two reviewed navigation entries.
 
 Curriculum validation checks the reader's parsed headings: the required Expert misconception section must actually render. A heading mentioned in prose, a fenced example or an earlier tier cannot satisfy that contract. The DBMS transaction lesson's leaked patch prefixes are repaired with its code and interview questions preserved.
+
+The [Spring/JDI exercise](examples/backend-debugging/README.md) also verifies cancellation at
+scope entry and during ordinary child teardown. Its nine native checks retain actual Spring
+launches and JDI events; signal guards alone are not a debugger or learner session.

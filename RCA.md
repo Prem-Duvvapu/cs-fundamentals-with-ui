@@ -1078,3 +1078,33 @@ The selected receipt is docs/evidence/RENDERED_SECTIONS_2026-10-23.json. Final i
 remains required; this is a rendering/contract repair, not new learner or technical-review proof.
 
 **Resolving commits:**3f1c7c5 (shared parsed-outline gate),c55471e (exact prose repair).
+
+## RCA-2026-10-23-11 — debugging guard entry and normal cleanup escaped restoration
+
+**Observed:** positioned actual TERM/INT against the unchanged debugging helper fail six
+subcases. Immediately after thread-local assignment, caller-handler and outer-guard cancellation
+leave the inner scope installed. During normal successful cleanup of a READY-confirmed
+TERM-ignoring child, cancellation escapes after real group TERM with returncode=None. Test
+fallbacks restore state and kill/wait only exact disposable children; an unrelated group survives.
+
+**Cause:** cancellation_guard assigned its state before the restoration try. OwnedProcess.close
+closed its selector and performed stop/wait/pipe closure outside cancellation deferral. Startup
+ownership tests exercised other timing windows and did not establish these two guarantees.
+
+**Resolution:** place scope assignment inside its try/finally and defer the whole close sequence.
+Keep the original caller handlers/masks, nested LIFO state, library/no-guard behavior, finite
+waits, exact new-session groups and cleanup of descendants after launcher exit. No imported
+Task Tracker source/resources or fixed JDI target changes.
+
+**Verification/prevention:** regression commit08a3b3a fails six actual signal subcases against
+old code. Fixed code passes all nine native tests, including six actual Spring configuration
+launches and real JDI conditional/step/caught-exception events. Root independently reruns all
+three new guard tests successfully. The tests cover scope entry from caller/nested handlers and
+the first signal during normal teardown, plus actual child wait/closed pipes and another group
+remaining alive. Fresh sanitized receipts preserve actual Java17 runtime, imported sources and
+owned cleanup. The selected local record is docs/evidence/BACKEND_DEBUGGING_CLEANUP_2026-10-23.json;
+its additional module snapshot is explicitly post-run rather than an independent execution
+attestation. Dedicated final-head actual-service CI remains required. Other helper copies are
+being audited separately; this entry does not certify every process wrapper.
+
+**Resolving commit:**ad3281e16a2ed55508d6e544b267c7a9e2182fb4.

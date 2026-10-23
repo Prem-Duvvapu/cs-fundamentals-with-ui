@@ -2,6 +2,12 @@
 
 ## Current completion scope — October 21
 
+Debugging cancellation guards must retain restoration across state assignment before handler
+installation and defer the complete normal close path, including the first signal on success.
+Keep the actual TERM/INT caller/nested-scope and TERM-ignoring-child regressions with all nine
+Spring/JDI/ownership tests. Library caller policy and imported sources stay unchanged; RCA-2026-10-23-11
+records these exact windows, not a whole-repository wrapper certification.
+
 The misconception gate must keep using the reader's parsed outline and require a rendered
 level-three heading in the Expert tier. Do not replace it with a substring or raw-line check:
 prose, patch prefixes and fenced examples previously passed without an actual section. Preserve
