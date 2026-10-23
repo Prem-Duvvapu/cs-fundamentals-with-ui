@@ -568,3 +568,7 @@ body limits and reload behavior, then inspect the source-bound HTTP receipt. Run
 native guards first; actual execution requires the documented local Docker prerequisites and
 all20 assertions with cleanup. Plain loopback HTTP, per-instance limiting and controlled fixtures
 are teaching boundaries rather than a production deployment claim.
+
+The gateway diagnostic reuses one bounded server JVM for its fixed unauthenticated service read.
+CI requires the observed single-JVM/32-PID setup; native-thread creation failure is diagnosed
+separately from heap exhaustion, and all20 actual HTTP assertions remain mandatory.

@@ -619,3 +619,14 @@ loopback-binding observations, typed missing-binding rejection and cleanup for b
 All15 native guards pass. RCA-2026-10-23-01 distinguishes the observation from the upstream report
 and leaves actual20-case CI/release pending. The backend remains on the internal network only;
 the gateway ingress bridge is not a production outbound firewall.
+
+### Gateway actual network proof and diagnostic resource repair — October23
+
+Run39996822363 confirms the original network diagnosis: actual Docker29.4.2 reports running Nginx
+with null publication before ingress attachment, then the correct loopback mapping and internal-
+only backend membership afterward. Four real HTTP assertions pass. A second diagnostic JVM then
+fails native thread creation under the configured32-PID/96MiB probe limits. The failed receipt
+records cleanup; exact cgroup exhaustion was not observed. Source2f326b6 reuses the existing server
+JVM for the same fixed forged-identity service request, retaining all20 assertions and requiring
+an observed single JVM/PID cap. All15 native guards pass. RCA-2026-10-23-02 records evidence and
+limits; complete actual Nginx CI remains pending before merge.

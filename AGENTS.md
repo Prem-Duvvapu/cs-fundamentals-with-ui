@@ -9,6 +9,9 @@ fifteen-test success is not Nginx execution: dedicated CI requires all20 actual 
 source-bound receipt, status/log distinctions and reload-worker replacement with no skips. Owned
 command groups must be stopped even after their launcher exits; preserve caller signal policy,
 non-group semantics and unrelated processes. No production TLS/global-quota/egress claim is made.
+The diagnostic fixture reuses its one server JVM and bounded HTTP client for the fixed forged-
+identity service read. Keep the observed single-JVM/32-PID gate; do not start a second diagnostic
+JVM inside that same finite container or infer heap exhaustion from a native-thread error.
 
 When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
 evidence in the affected lesson and run `node scripts/audit-simulation-questions.mjs --check`.

@@ -792,3 +792,30 @@ rejection and cleanup of the additional network while preserving unrelated resou
 merge. Do not substitute HostConfig's requested binding or a community report for actual mapping.
 
 **Resolving commit:**1c095b7; final actual-service evidence pending.
+
+## RCA-2026-10-23-02 — a second gateway diagnostic JVM exceeded its finite setup
+
+**Observed:** actual job120562398597 in run39996822363 now confirms the network repair on
+Docker29.4.2: Nginx was running with null publication before the ingress join; afterward its actual
+loopback mapping and isolated backend membership passed. Four actual HTTP cases passed. The next
+docker exec started a second Java process in the probe's configured32-PID/96MiB container and
+failed pthread_create(EAGAIN), then OutOfMemoryError while starting HttpClient's selector thread.
+The failed receipt confirms exact cleanup. No cgroup counter history was retained, so the exact
+exhausted OS resource is not independently proven and this is not Java heap-exhaustion evidence.
+
+**Cause:** an unnecessary second JVM duplicated runtime/thread overhead inside a finite container.
+Native compilation could not reveal the actual container resource interaction.
+
+**Resolution:** the existing diagnostic server performs the same fixed unauthenticated GET with
+forged identity metadata through one shared bounded HTTP client. It returns the observed service401
+alongside sanitized forwarding metadata. No target URL or credentials are accepted or forwarded.
+The harness observes one Java process and the declared32-PID cap; old direct-launch mode is rejected.
+The20 mandatory HTTP assertions and the service's unchanged security boundary remain intact.
+
+**Verification/prevention:** all15 native guards pass, including actual Java17 compilation and
+rejection of unknown/obsolete launch modes before network access. Exact-head actual Nginx CI must
+still establish all20 cases, actual single-JVM/network observations and cleanup. Keep setup and
+native compilation distinct from real container execution; inspect process/PID/native-memory
+constraints before treating every OutOfMemoryError as a heap-size problem.
+
+**Resolving commit:**2f326b6; actual final-service verification pending.
