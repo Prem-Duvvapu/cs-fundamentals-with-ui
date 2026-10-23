@@ -138,5 +138,6 @@ def run(args, cwd, budget, *, timeout=15, check=True, new_session=True, output_l
         return code, text
     finally:
         if process is not None:
-            stop(process, new_session)
-            process.stdout.close()
+            with defer_cancellation():
+                stop(process, new_session)
+                process.stdout.close()
