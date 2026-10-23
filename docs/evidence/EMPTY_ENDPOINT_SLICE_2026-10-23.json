@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-23",
+  "failedHead": "b13114c6017cfe1722882c7842a98391405ff0ca",
+  "failedRun": 40019384412,
+  "failedJob": 120639672759,
+  "failedStep": "Actual fresh kind cluster recovery cases (no skips)",
+  "failure": "TypeError: NoneType object is not iterable in Lab.endpoints after scale to zero",
+  "failedRunReceipt": {
+    "schemaVersion": 3,
+    "actualCasesExecuted": 5,
+    "actualSchedulingCasesExecuted": null,
+    "actualResourceCasesExecuted": null,
+    "skipped": 0,
+    "cleanupVerified": true
+  },
+  "failedReceiptRawSha256": "835c8a4627f9a1a6ddb2719a0367f413002c80a0b8f017539d2d1fadf06b7a80",
+  "failedLogRawSha256": "c270ace7354df930835a5338ab65352da862de3e773dd66e8640c3c6c6cf9458",
+  "testsFirstCommit": "70ad3e0",
+  "resolvingCommit": "cc7e16db40530c42f269d55725c68fcfa7a5d44e",
+  "nativeAfter": {
+    "tests": 17,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "seconds": 2.956,
+    "logRawSha256": "d3e5d99473e51e381fcb633ce7773f58501843ad03dc3323b80157a3ecd87e13"
+  },
+  "primaryApiType": "https://github.com/kubernetes/api/blob/v0.37.0/discovery/v1/types.go#L49-L54",
+  "limitations": [
+    "Failed trace establishes null iteration; the drained raw response was not saved before the failure",
+    "Synthetic guard fixtures are not a replacement actual kind execution",
+    "All nine actual cases and final-head CI remain required; the failed run completed only five before cleanup"
+  ]
+}

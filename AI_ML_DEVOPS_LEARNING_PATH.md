@@ -41,3 +41,20 @@ The lessons link to their primary project or standards documentation where versi
 The [freshness ledger](AI_ML_DEVOPS_FRESHNESS_REVIEW_2026-10-03.md) reviews all twelve lessons against current primary sources, superseding the earlier two-section date. Start with the [offline evaluation lab](examples/labs/README.md#ai-evaluation-make-a-prediction-before-reading-the-metric): predict the confusion matrix, tied-score AUC and multi-passage retrieval recall before running Python. Then use the [feature-history fixture](examples/labs/README.md#feature-history-event-time-is-not-serving-availability) to explain why a past event arriving late could not have been served earlier. Both have automated checks and need no paid model API.
 
 For DevOps interviews, calculate the 10-replica default rollout bounds (surge 3, unavailable 2), explain the HPA CPU-request denominator, and distinguish Nginx read inactivity from an overall deadline. Describe a rollback that restores routing but cannot undo completed writes. Real container/cloud/provider capstones are separate from these source and arithmetic checks; record actual versions and evidence when implementing them.
+
+## Operational debugging practice — October 23 continuation
+
+After Kubernetes basics, use the [Pending Pod exercise](examples/backend-operations/README.md#7-diagnose-pending-before-changing-a-probe).
+Predict what a selector matching no Node does. Observe the scheduling condition and exact Pod event,
+then distinguish DNS resolution from a Service having a healthy endpoint. Repair only the selector
+and prove the new Pod serves an authenticated request. Explain why restarting containers or changing
+a readiness probe cannot repair an unsatisfied scheduling requirement. The actual nine-case kind
+run is required; local contract tests alone are not cluster experience.
+
+After [distributed databases](content/dbms/09-distributed-databases-cap.md), follow the
+[replication exercise](examples/backend-replication/README.md). First predict a stale read after an
+acknowledged primary commit. Observe paused replay and a bounded same-timeline fence; resume replay
+and query the actual write. Then inspect stale promotion after local writer fencing and rebuild the
+old node from the selected history. Rehearse the difference between local commit, remote replay,
+transaction isolation, dependent-read freshness, writer fencing and reconciliation. State the
+exercise's single-host limits when discussing RPO/RTO or high availability in an interview.

@@ -9,6 +9,8 @@ import ssl
 import unittest
 
 import test_fetch
+import test_resolver_cleanup
+import test_scope_restoration
 from cancellation import CancellationScope, Cancelled
 from fixtures import Fixture
 from fetch import POLICY_VERSION
@@ -20,7 +22,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--record-local', action='store_true', help='Also retain this actual local run in evidence/YYYY-MM-DD-local.json')
     args = parser.parse_args()
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(test_fetch.SSRFTests)
+    suite = unittest.TestSuite([
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_fetch.SSRFTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_resolver_cleanup.ResolverCleanupTests),
+        unittest.defaultTestLoader.loadTestsFromTestCase(test_scope_restoration.ScopeRestorationTests),
+    ])
     with CancellationScope():
         try:
             result = unittest.TextTestRunner(verbosity=2).run(suite)
@@ -31,8 +37,8 @@ def main():
                 fixture.close()
             if hasattr(test_fetch.SSRFTests, 'directory'):
                 test_fetch.SSRFTests.directory.cleanup()
-    if not result.wasSuccessful() or result.skipped or result.testsRun != 16:
-        raise SystemExit('All 16 actual transport and policy tests must run without failures or skips')
+    if not result.wasSuccessful() or result.skipped or result.testsRun != 20:
+        raise SystemExit('All 20 actual transport, policy and cancellation-restoration tests must run without failures or skips')
     counters = test_fetch.COUNTERS
     if counters['httpRequests'] != 26 or counters['resolverChildren'] != counters['resolverChildrenReaped'] or not counters['temporaryTLSMaterialRemoved']:
         raise SystemExit('Actual HTTP cases and complete owned resource cleanup are mandatory')
@@ -42,10 +48,12 @@ def main():
         'executedAt':now.isoformat(), 'addressPolicyVersion':POLICY_VERSION,
         'runtime':{'python':platform.python_version(), 'openssl':ssl.OPENSSL_VERSION, 'system':platform.system()},
         'sourceSha256LF':{name:hashlib.sha256((ROOT/name).read_text().replace('\r\n','\n').encode()).hexdigest()
-                          for name in ['fetch.py','resolver_worker.py','fixtures.py','test_fetch.py','verify.py','cancellation.py']},
+                          for name in ['fetch.py','resolver_worker.py','fixtures.py','test_fetch.py','test_resolver_cleanup.py','test_scope_restoration.py','verify.py','cancellation.py']},
         'testsRun':result.testsRun, 'failures':0, 'errors':0, 'skipped':0,
         'foreignConnectionGuardEnabled':True, 'publicDNSExperiment':False,
         'cleanupVerified':True, 'observations':counters, 'cases':test_fetch.EVIDENCE,
+        'resolverCleanupCases':test_resolver_cleanup.EVIDENCE,
+        'scopeRestorationCases':test_scope_restoration.RESTORATION_EVIDENCE,
         'limitsOfEvidence':['Registered partner URL policy, not unrestricted Internet fetching',
                             'DNS replies are controlled child-process fixtures, not actual public DNS rebinding',
                             'No cloud metadata/private foreign service was contacted',

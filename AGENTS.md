@@ -1,6 +1,52 @@
 # AI Agent Context — Backend Engineering
 
-## Current completion scope — October 21
+## Current completion scope — October 23
+
+Scope exit must restore both original handlers and outer thread-local state even if the first
+actual TERM/INT reaches an already restored caller handler that raises. Preserve nested finally
+restoration in the nine opt-in helper copies and their actual caller/nested normal/error tests;
+debugging/engineering/gateway/SSRF also cover partial-entry rollback. Keep the caller exception,
+body context and original mask, without installing library policy or swallowing failures.
+RCA-2026-10-23-16 and its source-bound receipt distinguish this exit boundary from earlier
+startup/child-cleanup fixes. Current local suites: debugging11, engineering20, gateway21,
+SSRF20/26HTTP, replication19, persistence15, cache5, WebSocket9 and AI comparison16.
+Native guards never replace required actual domain/service/cluster execution.
+
+EndpointSlice arrays may be null when the owned workload is drained. Keep shared null/missing/
+empty handling and malformed-array rejection in both normal and scheduling readers; an empty
+array must not bypass Service/namespace ownership checks. Retain raw drained-slice evidence and
+all17 native contracts. A cleanup-success receipt from the first failed five-case run is not
+nine-case execution proof; require the final actual kind gate. See RCA-2026-10-23-17.
+
+The [replication lab](examples/backend-replication/README.md) may operate only on its two generated
+private PostgreSQL 16 clusters, never the shared local server. Preserve actual recovery/pause/LSN
+and timeline checks, old-writer process/listener fencing before promotion, missing acknowledged row
+on the selected history and fresh rebuilt-replica replay. Four real server launches, exact cleanup
+and unchanged source hashes precede publication. Keep exclusive unpredictable staging, handle-based
+writes and device/inode-bound cancelled-publication rollback; never return to a fixed sibling .tmp
+write. Nineteen guard tests are separate from actual database execution; dedicated native CI is
+required. No multi-host HA, automatic failover, network-partition or production RPO/RTO claim.
+
+The operations gate now requires nine actual kind cases and schemaVersion3, including the existing
+eight. The Pending case must keep exact scheduler reason/event and Pod/ReplicaSet/Deployment/
+Service/EndpointSlice ownership, zero endpoints, actual DNS success plus connection failure, then
+selector-only repair and fresh authenticated Service200. Do not mutate Nodes or substitute Pending
+alone for a diagnosis. Seventeen local contracts do not establish actual cluster execution.
+
+Engineering/gateway command cleanup and SSRF resolver finalization must remain wholly deferred
+under the existing opt-in policy, including first cancellation on success and timeout. SSRF must
+finish wait/pipe closure, active-PID registry removal and event recording before delivery. Preserve
+caller handlers/masks, library behavior, exact owned groups and the actual TERM/INT regressions.
+The [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) distinguishes confirmed failures from
+26 advisory startup probes under a caller-installed raising handler; those probes are not 13
+additional proven regressions or grounds to install signal handlers on import. RCA12–15 below
+refer to the dated RCA-2026-10-23 entries, not older similarly numbered historical entries.
+
+Debugging cancellation guards must retain restoration across state assignment before handler
+installation and defer the complete normal close path, including the first signal on success.
+Keep the actual TERM/INT caller/nested-scope and TERM-ignoring-child regressions with all eleven
+Spring/JDI/ownership tests. Library caller policy and imported sources stay unchanged; RCA-2026-10-23-11
+records these exact windows, not a whole-repository wrapper certification.
 
 The misconception gate must keep using the reader's parsed outline and require a rendered
 level-three heading in the Expert tier. Do not replace it with a substring or raw-line check:
@@ -47,7 +93,7 @@ Defer the first cancellation through complete normal cleanup, not only Popen ass
 The [gateway lab](examples/backend-gateway/README.md) puts digest-pinned actual Nginx in front
 of unchanged Task Tracker source. Keep the fixed auth subrequest, service CSRF/role/owner checks,
 actual-peer metadata, finite body/time/rate limits and exact labelled-resource cleanup. Native
-sixteen-test success is not Nginx execution: dedicated CI requires all20 actual HTTP assertions,
+twenty-one-test success is not Nginx execution: dedicated CI requires all20 actual HTTP assertions,
 source-bound receipt, status/log distinctions and reload-worker replacement with no skips. Owned
 command groups must be stopped even after their launcher exits; preserve caller signal policy,
 non-group semantics and unrelated processes. No production TLS/global-quota/egress claim is made.

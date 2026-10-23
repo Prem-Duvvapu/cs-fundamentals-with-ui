@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "scope": "GitHub final-head check metadata and separately observed merged state; existing local content/browser receipts remain distinct",
+  "merge": {
+    "mergeCommit": {
+      "oid": "22fab5ab6754fa1726155aa2ad776e96e6a4c416"
+    },
+    "mergedAt": "2026-10-23T19:41:31Z",
+    "number": 90,
+    "state": "MERGED",
+    "url": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/90"
+  },
+  "finalHeadChecks": {
+    "headRefOid": "20bf26a47ca7bffea565f99a75a334d628bd601c",
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:31:21Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40011437100/job/120612524046",
+        "name": "frontend",
+        "startedAt": "2026-10-23T19:26:36Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:28:34Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40011437100/job/120612524371",
+        "name": "backend",
+        "startedAt": "2026-10-23T19:26:36Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:28:00Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40011437100/job/120612523681",
+        "name": "practical-ai",
+        "startedAt": "2026-10-23T19:26:37Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:40:02Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40011437100/job/120612524290",
+        "name": "real-backend-journey",
+        "startedAt": "2026-10-23T19:26:36Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:28:20Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40011437100/job/120612524368",
+        "name": "containers",
+        "startedAt": "2026-10-23T19:26:36Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:27:02Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40011437100/job/120612524148",
+        "name": "labs",
+        "startedAt": "2026-10-23T19:26:36Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:26:34Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-10-23T19:26:33Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel",
+        "startedAt": "2026-10-23T19:26:47Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/prems-projects-e49be5f8/cs-fundamentals-with-ui/C1c9n3WEXpVQtp2eLrDJDLLRfMGj"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T19:26:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://vercel.com/github",
+        "name": "Vercel Preview Comments",
+        "startedAt": "2026-10-23T19:26:49Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ]
+  }
+}

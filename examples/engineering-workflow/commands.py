@@ -16,6 +16,17 @@ class LabFailure(RuntimeError):
 _cancellation = threading.local()
 
 
+def _restore_policy(previous, outer):
+    # A restored caller handler can raise; every remaining restoration must still run.
+    try:
+        signal.signal(signal.SIGTERM, previous[signal.SIGTERM])
+    finally:
+        try:
+            signal.signal(signal.SIGINT, previous[signal.SIGINT])
+        finally:
+            _cancellation.state = outer
+
+
 @contextmanager
 def cancellation_guard(error=LabFailure, message='Owned command cancelled'):
     """Opt-in executable policy; library calls alone leave host signals unchanged."""
@@ -34,15 +45,13 @@ def cancellation_guard(error=LabFailure, message='Owned command cancelled'):
             state['delivered'] = True
             raise error(message)
 
-    _cancellation.state = state
     try:
+        _cancellation.state = state
         for number in previous:
             signal.signal(number, cancel)
         yield
     finally:
-        for number, handler in previous.items():
-            signal.signal(number, handler)
-        _cancellation.state = outer
+        _restore_policy(previous, outer)
 
 
 @contextmanager
@@ -135,5 +144,6 @@ def run(args, cwd, budget, *, timeout=15, check=True, new_session=True, output_l
         return code, text
     finally:
         if process is not None:
-            stop(process, new_session)
-            process.stdout.close()
+            with defer_cancellation():
+                stop(process, new_session)
+                process.stdout.close()

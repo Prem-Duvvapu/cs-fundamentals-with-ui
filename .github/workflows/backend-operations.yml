@@ -37,14 +37,14 @@ jobs:
           echo "$RUNNER_TEMP/operations-bin" >> "$GITHUB_PATH"
       - name: Actual fresh kind cluster recovery cases (no skips)
         run: python3 examples/backend-operations/lab.py --run-cluster
-      - name: Require actual namespace, eight completed cases, resource signals and cleanup
+      - name: Require actual namespace, nine completed cases, scheduler/resource signals and cleanup
         run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
           result=json.loads(Path('examples/backend-operations/build/evidence/result.json').read_text())
-          if not result.get('namespaceUid') or result.get('schemaVersion')!=2 or result.get('actualCasesExecuted')!=8 or result.get('actualResourceCasesExecuted')!=3 or result.get('skipped')!=0 or result.get('cleanupVerified') is not True:
-              raise SystemExit('Actual owned namespace/eight recovery and resource cases/cleanup required; contracts or skips are insufficient')
+          if not result.get('namespaceUid') or result.get('schemaVersion')!=3 or result.get('actualCasesExecuted')!=9 or result.get('actualSchedulingCasesExecuted')!=1 or result.get('actualResourceCasesExecuted')!=3 or result.get('skipped')!=0 or result.get('cleanupVerified') is not True:
+              raise SystemExit('Actual owned namespace/nine recovery, scheduling and resource cases/cleanup required; contracts or skips are insufficient')
           for key in ['dnsAndAuthenticatedService','readinessRecovery','badRolloutOldReplicaAvailable','rollbackRecovery']:
               if result[key].get('authenticatedStatus')!=200 or result[key].get('dnsResolved') is not True:
                   raise SystemExit('Actual authenticated Service/DNS observation missing: '+key)
@@ -65,7 +65,35 @@ jobs:
                   raise SystemExit('Actual no-restart resource Pod UID required: '+mode)
               lab.validate_resource_termination(mode, item['termination'], (evidence/('resource-'+mode+'.log')).read_text())
           lab.validate_cpu_observation(resources['cpu']['observation'])
-          print('Eight actual cluster cases executed without skips; heap OOME, cgroup OOMKill and CPU throttling observed; owned cluster cleanup verified.')
+          scheduling = result.get('scheduling', {})
+          def load(name):
+              return json.loads((evidence/name).read_text())
+          pending = scheduling.get('pending', {})
+          observed = lab.validate_pending_observation(load('pending-pod.json'), load('pending-scheduler-events.json'),
+              load('scheduling-nodes.json'), load('pending-replicaset.json'), pending.get('deploymentUid'), result['cluster'])
+          if observed != pending or scheduling.get('pendingReadyEndpointCount') != 0:
+              raise SystemExit('Exact actual scheduler observation and zero ready endpoints required')
+          service = load('scheduling-service.json')
+          if lab.scheduling_endpoints(load('scheduling-drained-endpoint-slices.json'), service, result['cluster']):
+              raise SystemExit('Scaled-to-zero Deployment retained a ready Service endpoint')
+          if lab.scheduling_endpoints(load('pending-endpoint-slices.json'), service, result['cluster']):
+              raise SystemExit('Unschedulable Service retained a ready endpoint')
+          if scheduling.get('unavailableService') != {'dnsResolved': True, 'connectionUnavailable': True}:
+              raise SystemExit('Actual DNS success and connection failure required, never an invented HTTP status')
+          recovered = lab.validate_scheduling_recovery(load('scheduled-pod.json'), load('scheduled-replicaset.json'),
+              pending['deploymentUid'], result['cluster'], pending['podUid'], lab.scheduling_endpoints(load('scheduled-endpoint-slices.json'), service, result['cluster']))
+          if recovered != scheduling.get('recovered') or scheduling.get('recoveredService') != {'dnsResolved': True, 'authenticatedStatus': 200}:
+              raise SystemExit('Exact repaired Pod/endpoint and actual authenticated Service200 required')
+          initial = load('scheduling-initial-deployment.json')
+          final = load('scheduling-recovered-deployment.json')
+          if any(item['metadata']['uid'] != pending['deploymentUid'] or item['metadata']['namespace'] != result['cluster'] or item['metadata']['labels'].get('lab.csfundamentals/owner') != result['cluster'] for item in (initial, final)):
+              raise SystemExit('Initial/repaired Deployment ownership must bind the scheduler evidence')
+          if final['spec']['replicas'] != 1 or final['spec']['template']['spec'].get('nodeSelector'):
+              raise SystemExit('One repaired unconstrained desired replica required')
+          final_service = load('scheduling-recovered-service.json')
+          if final_service['metadata']['uid'] != service['metadata']['uid'] or final_service['spec'] != service['spec']:
+              raise SystemExit('Service must remain unchanged throughout scheduling repair')
+          print('Nine actual cluster cases executed without skips; Unschedulable repair, heap OOME, cgroup OOMKill and CPU throttling observed; owned cluster cleanup verified.')
           PY
       - name: Retry only owned cluster cleanup on failure/cancellation
         if: always()

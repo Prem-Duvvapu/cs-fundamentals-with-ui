@@ -38,3 +38,8 @@ Before running, freeze these classroom decision rules:
 The candidate code commit is the freeze marker. After the separately authored set is opened,
 further prompt changes need a new candidate/version and a newly separated evaluation before a
 fresh-selection claim. Human review and learned-embedding/retrieval evaluation remain other tasks.
+
+The comparison runner's opt-in cancellation scope also restores both caller handlers and outer
+state if the first TERM/INT interrupts normal/error exit. Eight positioned caller/nested signal
+subcases preserve the exact caller exception and mask; the full comparison guard suite has
+16 tests. These are process/helper checks, not new inference, prompt quality or billing evidence.

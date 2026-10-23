@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-23",
+  "scope": "Actual disposable process/signal audit in a private git archive; no domain service execution",
+  "sourceBinding": {
+    "baseline": "22fab5ab6754fa1726155aa2ad776e96e6a4c416",
+    "sourceSha256LF": {
+      "examples/engineering-workflow/commands.py": "ebdf2606660f0ee591544ef13d7ea0b773a126bb92a611cf3c12399e6081073f",
+      "examples/backend-ssrf/fetch.py": "638a41fa3680bfdaabd330455d756a32c1814688ed95edfaa52cf411635ffd87",
+      "examples/backend-ssrf/cancellation.py": "a4365aad5367ae166f144b0001879d2f135b624194396a69ec24d22149cb24a8",
+      "examples/backend-gateway/commands.py": "b923e0558d61a5208e742383e75bb4f0b005d76c90c338f20bbf7df5191610fe"
+    },
+    "probeSha256LF": {
+      "audit_gateway_lifecycle.py": "ac71783c4de439c99d842b60fc91ab6f5adaee789ff4e6c1b2dc808b823f7159",
+      "audit_gateway_normal_cleanup.py": "5f6aa7aeeef735ef370b7cb85d1786201c5e6497a54d6d03cc9cf7c06805541b",
+      "audit_lifecycle.py": "2d0e9cfc48a39540360b4b2a191c304fca7d5cdc2349338df60d3aaddcb7f657",
+      "audit_normal_cleanup.py": "2669d8427a7a4c6c0aa61ff9f724f7896cce3b7a06f59b4710df8bb05852e12d",
+      "audit_ssrf.py": "833e1c70fb2f5381c7d402ce291d0c3aac064c6c45eb00ffd5e633c8e1e5d968",
+      "audit_startup.py": "2ce2ad51797596cfbdebae7f472136efb4f3de1edea666aebff89cbe3b5ba35d"
+    }
+  },
+  "observations": {
+    "lifecycle-results.json": [
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGTERM",
+        "nested": false,
+        "actualSignalDelivered": true,
+        "stateRestored": false
+      },
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGTERM",
+        "nested": true,
+        "actualSignalDelivered": true,
+        "stateRestored": false
+      },
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGINT",
+        "nested": false,
+        "actualSignalDelivered": true,
+        "stateRestored": false
+      },
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGINT",
+        "nested": true,
+        "actualSignalDelivered": true,
+        "stateRestored": false
+      },
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "first-deadline-cleanup",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "first-deadline-cleanup",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      }
+    ],
+    "normal-cleanup-results.json": [
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "first-signal-after-successful-command",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "engineering-workflow/commands.py",
+        "case": "first-signal-after-successful-command",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "backend-ssrf/fetch.py",
+        "case": "first-signal-after-successful-resolution",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "activeRegistryCleared": false,
+        "cleanupEventRecorded": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "backend-ssrf/fetch.py",
+        "case": "first-signal-after-successful-resolution",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "activeRegistryCleared": false,
+        "cleanupEventRecorded": false,
+        "unrelatedStillRunning": true
+      }
+    ],
+    "gateway-lifecycle-results.json": [
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGTERM",
+        "nested": false,
+        "actualSignalDelivered": true,
+        "stateRestored": true
+      },
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGTERM",
+        "nested": true,
+        "actualSignalDelivered": true,
+        "stateRestored": true
+      },
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGINT",
+        "nested": false,
+        "actualSignalDelivered": true,
+        "stateRestored": true
+      },
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "scope-entry",
+        "signal": "SIGINT",
+        "nested": true,
+        "actualSignalDelivered": true,
+        "stateRestored": true
+      },
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "first-deadline-cleanup",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "first-deadline-cleanup",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      }
+    ],
+    "gateway-normal-cleanup-results.json": [
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "first-signal-after-successful-command",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "backend-gateway/commands.py",
+        "case": "first-signal-after-successful-command",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "pipeClosed": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "backend-ssrf/fetch.py",
+        "case": "first-signal-after-successful-resolution",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "activeRegistryCleared": false,
+        "cleanupEventRecorded": false,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "backend-ssrf/fetch.py",
+        "case": "first-signal-after-successful-resolution",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "successfulChildExit": true,
+        "activeRegistryCleared": false,
+        "cleanupEventRecorded": false,
+        "unrelatedStillRunning": true
+      }
+    ],
+    "ssrf-results.json": [
+      {
+        "module": "backend-ssrf/fetch.py",
+        "case": "first-resolver-timeout-cleanup",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "stdinClosed": true,
+        "stdoutClosed": false,
+        "activeRegistryCleared": false,
+        "cleanupEventRecorded": false,
+        "callerHandlersRestored": true,
+        "callerMaskRestored": true,
+        "outerStateRestored": true,
+        "unrelatedStillRunning": true
+      },
+      {
+        "module": "backend-ssrf/fetch.py",
+        "case": "first-resolver-timeout-cleanup",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "stdinClosed": true,
+        "stdoutClosed": false,
+        "activeRegistryCleared": false,
+        "cleanupEventRecorded": false,
+        "callerHandlersRestored": true,
+        "callerMaskRestored": true,
+        "outerStateRestored": true,
+        "unrelatedStillRunning": true
+      }
+    ],
+    "startup-results.json": [
+      {
+        "module": "engineering-workflow/linux_probe.py",
+        "function": "exercise",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "engineering-workflow/linux_probe.py",
+        "function": "exercise",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-testing/verify.py",
+        "function": "bounded_build",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-testing/verify.py",
+        "function": "bounded_build",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-identity/verify.py",
+        "function": "build",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-identity/verify.py",
+        "function": "build",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-identity/verify.py",
+        "function": "server",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-identity/verify.py",
+        "function": "server",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-webhooks/verify.py",
+        "function": "Server.__enter__",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-webhooks/verify.py",
+        "function": "Server.__enter__",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "ai-backend/verify_streaming.py",
+        "function": "bounded_java",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "ai-backend/verify_streaming.py",
+        "function": "bounded_java",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "ai-backend/verify_http.py",
+        "function": "verify",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "ai-backend/verify_http.py",
+        "function": "verify",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "java-runtime/verify.py",
+        "function": "busy_worker",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "java-runtime/verify.py",
+        "function": "busy_worker",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "labs/backend/observe.py",
+        "function": "observe_mode",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "labs/backend/observe.py",
+        "function": "observe_mode",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "labs/backend/database.py",
+        "function": "start_session",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "labs/backend/database.py",
+        "function": "start_session",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "labs/os/observe.py",
+        "function": "observe",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "labs/os/observe.py",
+        "function": "observe",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "java-spring/task-tracker/verify_http.py",
+        "function": "verify",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "java-spring/task-tracker/verify_http.py",
+        "function": "verify",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-operations/lab.py",
+        "function": "execute",
+        "signal": "SIGTERM",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      },
+      {
+        "module": "backend-operations/lab.py",
+        "function": "execute",
+        "signal": "SIGINT",
+        "actualSignalDelivered": true,
+        "childStillRunning": true,
+        "unrelatedStillRunning": true,
+        "scope": "Controlled Python child at actual Popen-return boundary; no domain/service execution claim"
+      }
+    ]
+  },
+  "resolutions": {
+    "engineering": "d9bc81a9747c35cef69ce48d3b25ff576de96d36",
+    "ssrf": "a3679dd793101418e5599401f34497bf03d6d362",
+    "gateway": "ff1f31ac5fa37aa553fcd487235e1f52c1a85596"
+  },
+  "limitations": [
+    "Startup probes use a caller-installed raising handler and a fixed substituted Python child; they are advisory, not 13 demonstrated contract regressions",
+    "Raw probe scripts and machine inventory remain private; retained hashes identify their exact local bytes",
+    "No Docker/kind, shared PostgreSQL, live AI model, real learner, production or all-wrapper cancellation proof"
+  ]
+}

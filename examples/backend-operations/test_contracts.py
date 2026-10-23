@@ -1,4 +1,5 @@
 """Native guards/manifests only. These tests do not establish actual Kubernetes behavior."""
+import copy
 import json
 import os
 from pathlib import Path
@@ -181,6 +182,130 @@ class OperationsContracts(unittest.TestCase):
             self.assertNotEqual(0, result.returncode)
             self.assertIn('heap, native or cpu required', result.stderr)
             self.assertNotIn('RESOURCE_PROBE', result.stdout)
+
+    def scheduling_fixtures(self):
+        name = 'ops-0123456789abcdef'
+        def metadata(uid, kind, owner):
+            return {'uid': uid, 'namespace': name, 'labels': {'lab.csfundamentals/owner': name},
+                    'ownerReferences': [{'kind': kind, 'uid': owner, 'controller': True}]}
+        pod = {'metadata': metadata('pending-uid', 'ReplicaSet', 'rs-uid'),
+               'spec': {'nodeSelector': {lab.SCHEDULING_LABEL: name}},
+               'status': {'phase': 'Pending', 'conditions': [{'type': 'PodScheduled', 'status': 'False',
+                   'reason': 'Unschedulable', 'message': "0/1 nodes are available: 1 node(s) didn't match Pod's node affinity/selector."}]}}
+        replica_set = {'metadata': metadata('rs-uid', 'Deployment', 'deployment-uid')}
+        nodes = {'items': [{'metadata': {'uid': 'node-uid', 'labels': {}}}]}
+        event = {'metadata': {'uid': 'event-uid', 'namespace': name}, 'reason': 'FailedScheduling', 'type': 'Warning',
+                 'involvedObject': {'uid': 'pending-uid', 'namespace': name, 'kind': 'Pod'},
+                 'reportingComponent': 'default-scheduler', 'message': pod['status']['conditions'][0]['message']}
+        return name, pod, replica_set, nodes, {'items': [event]}
+
+    def test_pending_requires_actual_cause_event_identity_and_unmatched_nodes(self):
+        # Mock API-shaped fixtures exercise guards, never claim scheduler execution.
+        name, pod, replica_set, nodes, events = self.scheduling_fixtures()
+        result = lab.validate_pending_observation(pod, events, nodes, replica_set, 'deployment-uid', name)
+        self.assertEqual('pending-uid', result['podUid'])
+        self.assertEqual('event-uid', result['schedulerEvents'][0]['uid'])
+        self.assertFalse(result['nodeAssigned'])
+        for mutate in (
+            lambda p,e,n,r: p['status'].update(phase='Running'),
+            lambda p,e,n,r: p['spec'].update(nodeName='assigned-node'),
+            lambda p,e,n,r: p['spec'].update(nodeSelector={}),
+            lambda p,e,n,r: p['status']['conditions'][0].update(reason='ContainersNotReady'),
+            lambda p,e,n,r: p['status']['conditions'][0].update(status='True'),
+            lambda p,e,n,r: p['status']['conditions'][0].update(message='Insufficient memory'),
+            lambda p,e,n,r: p['status'].update(containerStatuses=[{'state': {'running': {}} ,'containerID': 'actual-process'}]),
+            lambda p,e,n,r: e['items'][0]['involvedObject'].update(uid='foreign-pod'),
+            lambda p,e,n,r: e['items'][0]['involvedObject'].update(namespace='foreign'),
+            lambda p,e,n,r: e['items'][0]['metadata'].update(namespace='foreign'),
+            lambda p,e,n,r: e['items'][0].update(reportingComponent='kubelet'),
+            lambda p,e,n,r: e['items'][0].update(reason='Failed', message='ImagePullBackOff'),
+            lambda p,e,n,r: e['items'].clear(),
+            lambda p,e,n,r: n['items'][0]['metadata']['labels'].update({lab.SCHEDULING_LABEL: name}),
+            lambda p,e,n,r: n['items'].clear(),
+            lambda p,e,n,r: r['metadata']['ownerReferences'][0].update(uid='foreign-deployment'),
+            lambda p,e,n,r: p['metadata']['labels'].clear(),
+        ):
+            p,e,n,r = copy.deepcopy((pod,events,nodes,replica_set)); mutate(p,e,n,r)
+            with self.subTest(mutation=mutate), self.assertRaises(RuntimeError):
+                lab.validate_pending_observation(p,e,n,r,'deployment-uid',name)
+        legacy = copy.deepcopy(events)
+        legacy['items'][0].pop('reportingComponent')
+        legacy['items'][0]['source'] = {'component': 'default-scheduler'}
+        self.assertEqual('default-scheduler', lab.validate_pending_observation(pod,legacy,nodes,replica_set,'deployment-uid',name)['schedulerEvents'][0]['reporter'])
+
+    def test_repair_requires_replacement_ready_container_and_exact_service_endpoint(self):
+        name, pod, replica_set, nodes, events = self.scheduling_fixtures()
+        pod['metadata']['uid'] = 'replacement-uid'
+        pod['spec'] = {'nodeName': 'owned-node'}
+        pod['status'] = {'phase': 'Running', 'conditions': [{'type': 'PodScheduled', 'status': 'True'}, {'type': 'Ready', 'status': 'True'}],
+                         'containerStatuses': [{'restartCount': 0, 'ready': True}]}
+        endpoints = [{'conditions': {'ready': True}, 'targetRef': {'uid': 'replacement-uid'}}]
+        result = lab.validate_scheduling_recovery(pod,replica_set,'deployment-uid',name,'pending-uid',endpoints)
+        self.assertEqual('replacement-uid',result['readyEndpointPodUid'])
+        for mutate in (
+            lambda p,e: p['metadata'].update(uid='pending-uid'),
+            lambda p,e: p['spec'].pop('nodeName'),
+            lambda p,e: p['spec'].update(nodeSelector={lab.SCHEDULING_LABEL: name}),
+            lambda p,e: p['status']['conditions'][1].update(status='False'),
+            lambda p,e: p['status']['containerStatuses'][0].update(restartCount=1),
+            lambda p,e: e[0]['targetRef'].update(uid='old-pod'),
+            lambda p,e: e[0]['conditions'].update(ready=False),
+            lambda p,e: e.clear(),
+            lambda p,e: e.append(copy.deepcopy(e[0])),
+        ):
+            p,e = copy.deepcopy((pod,endpoints)); mutate(p,e)
+            with self.subTest(mutation=mutate), self.assertRaises(RuntimeError):
+                lab.validate_scheduling_recovery(p,replica_set,'deployment-uid',name,'pending-uid',e)
+
+    def test_scheduling_endpoints_reject_foreign_service_slice_and_pod_identity(self):
+        name = 'ops-0123456789abcdef'
+        service = {'metadata': {'name': 'task', 'namespace': name, 'uid': 'service-uid', 'labels': {'lab.csfundamentals/owner': name}},
+                   'spec': {'selector': {'app': 'task'}}}
+        slices = {'items': [{'metadata': {'namespace': name, 'uid': 'slice-uid', 'labels': {'kubernetes.io/service-name': 'task'},
+                    'ownerReferences': [{'kind': 'Service', 'uid': 'service-uid', 'controller': True}]},
+                    'endpoints': [{'conditions': {'ready': True}, 'targetRef': {'kind': 'Pod', 'namespace': name, 'uid': 'pod-uid'}}]}]}
+        self.assertEqual('pod-uid',lab.scheduling_endpoints(slices,service,name)[0]['targetRef']['uid'])
+        self.assertEqual([],lab.scheduling_endpoints({'items': []},service,name))
+        for mutate in (
+            lambda s,v: v['metadata'].update(uid='foreign-service'),
+            lambda s,v: v['spec'].update(selector={'app': 'other'}),
+            lambda s,v: s['items'][0]['metadata'].update(namespace='foreign'),
+            lambda s,v: s['items'][0]['metadata']['ownerReferences'][0].update(controller=False),
+            lambda s,v: s['items'][0]['endpoints'][0]['targetRef'].update(namespace='foreign'),
+            lambda s,v: s['items'][0]['endpoints'][0]['targetRef'].update(kind='Node'),
+        ):
+            changed_slices,changed_service=copy.deepcopy((slices,service)); mutate(changed_slices,changed_service)
+            with self.assertRaises(RuntimeError): lab.scheduling_endpoints(changed_slices,changed_service,name)
+
+    def test_empty_endpoint_slice_shapes_and_malformed_values_keep_ownership_checks(self):
+        instance = lab.Lab('ops-0123456789abcdef')
+        name = instance.name
+        service = {'metadata': {'name': 'task', 'namespace': name, 'uid': 'service-uid',
+                   'labels': {'lab.csfundamentals/owner': name}}, 'spec': {'selector': {'app': 'task'}}}
+        item = {'metadata': {'namespace': name, 'uid': 'slice-uid',
+                'labels': {'kubernetes.io/service-name': 'task'},
+                'ownerReferences': [{'kind': 'Service', 'uid': 'service-uid', 'controller': True}]}}
+        for shape in ({'endpoints': None}, {'endpoints': []}, {}):
+            slices = {'items': [{**copy.deepcopy(item), **shape}]}
+            with self.subTest(shape=shape):
+                with patch.object(instance, 'obj', return_value=slices):
+                    self.assertEqual([], instance.endpoints())
+                self.assertEqual([], lab.scheduling_endpoints(slices, service, name))
+        for invalid in (False, 0, {}, 'invalid', [None]):
+            slices = {'items': [{**copy.deepcopy(item), 'endpoints': invalid}]}
+            with self.subTest(invalid=invalid):
+                with patch.object(instance, 'obj', return_value=slices), self.assertRaises(RuntimeError):
+                    instance.endpoints()
+                with self.assertRaises(RuntimeError):
+                    lab.scheduling_endpoints(slices, service, name)
+        for foreign in ('namespace', 'owner'):
+            slices = {'items': [{**copy.deepcopy(item), 'endpoints': None}]}
+            if foreign == 'namespace':
+                slices['items'][0]['metadata']['namespace'] = 'foreign'
+            else:
+                slices['items'][0]['metadata']['ownerReferences'][0]['uid'] = 'foreign-service'
+            with self.subTest(foreign=foreign), self.assertRaises(RuntimeError):
+                lab.scheduling_endpoints(slices, service, name)
 
     def test_credentials_are_redacted_from_evidence(self):
         instance = lab.Lab('ops-0123456789abcdef')

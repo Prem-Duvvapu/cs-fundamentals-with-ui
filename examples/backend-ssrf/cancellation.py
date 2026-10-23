@@ -22,6 +22,17 @@ class Cancelled(KeyboardInterrupt):
 _cancellation = threading.local()
 
 
+def _restore_policy(previous, outer):
+    # A restored caller handler can raise; every remaining restoration must still run.
+    try:
+        signal.signal(signal.SIGTERM, previous[signal.SIGTERM])
+    finally:
+        try:
+            signal.signal(signal.SIGINT, previous[signal.SIGINT])
+        finally:
+            _cancellation.state = outer
+
+
 class CancellationScope:
     """Executable-only TERM/INT policy; preserve caller handlers and masks."""
     def __enter__(self):
@@ -42,16 +53,12 @@ class CancellationScope:
             for number in self.previous:
                 signal.signal(number, stop)
         except BaseException:
-            for number, handler in self.previous.items():
-                signal.signal(number, handler)
-            _cancellation.state = self.outer
+            _restore_policy(self.previous, self.outer)
             raise
         return self
 
     def __exit__(self, *args):
-        for number, handler in self.previous.items():
-            signal.signal(number, handler)
-        _cancellation.state = self.outer
+        _restore_policy(self.previous, self.outer)
 
 
 @contextmanager

@@ -3,8 +3,8 @@
 This focused **BE-08** milestone takes the existing Java 17
 [Task Tracker](../java-spring/task-tracker/README.md) into an owned, single-node
 kind cluster. It observes actual cluster DNS, authenticated Service requests,
-readiness withdrawal/recovery, a failed rollout followed by rollback, and three
-separate JVM/container resource incidents.
+readiness withdrawal/recovery, a failed rollout followed by rollback, an actual
+unschedulable-Pod repair, and three separate JVM/container resource incidents.
 
 Read [Docker fundamentals](../../content/devops/01-docker-fundamentals.md),
 [Kubernetes fundamentals](../../content/devops/02-kubernetes-fundamentals.md) and
@@ -32,6 +32,8 @@ traffic; it is different from restarting a dead process.
 | Remove that marker | Same Pod becomes eligible again | Same Pod UID/restart count and authenticated HTTP 200 |
 | Roll out an invalid JVM option | New container exits; old healthy replica still serves | Actual failed container exit/logs, available old replica and HTTP 200 |
 | Undo the rollout | Desired template returns to previous good revision | Rollout status completes, invalid command absent, authenticated HTTP 200 |
+| Require a Node label absent from every owned-cluster Node | Replacement stays Pending without starting Java | PodScheduled=False/Unschedulable, exact-Pod scheduler event, zero ready endpoints |
+| Remove only that artificial selector | A replacement can be scheduled and serve | New owned Pod UID, assigned Node, Ready condition, exact ready endpoint and authenticated HTTP 200 |
 
 The marker is an explicitly synthetic **readiness incident trigger**. It does not
 claim to reproduce a database outage or change application business health. Startup
@@ -63,11 +65,13 @@ From the repository root, first run the native contracts:
 python3 -m unittest discover -s examples/backend-operations -p test_contracts.py -v
 ```
 
-These **13** tests validate ownership, context selection, credential redaction,
+These **17** tests validate ownership, context selection, credential redaction,
 resource/probe manifests, reviewed base pins, cleanup decisions and an actual
 owned subprocess deadline. They compile `ResourceProbe.java` for Java 17 and reject
 unknown modes before work. Resource guards reject an ordinary exit 137 masquerading
 as OOMKilled, incorrect quotas, counter resets and missing throttle observations.
+Scheduling guards also reject missing/foreign scheduler events, assigned/image-pull Pods,
+constraints already satisfied by a Node and recovery pointing to an old Service backend.
 They do not execute memory/CPU workloads on the host. Mocked command results in guard tests are not API
 responses or proof of cluster behavior.
 
@@ -78,7 +82,7 @@ python3 examples/backend-operations/lab.py --run-cluster
 ```
 
 This builds Task Tracker, creates a fresh random `ops-<16 hex characters>` cluster
-and matching namespace, loads the local image, runs all eight observations, and
+and matching namespace, loads the local image, runs all nine observations, and
 cleans up. There is no option to attach to an existing cluster, supply a production
 context, target a public endpoint or provide an arbitrary namespace. The cluster
 API binds to `127.0.0.1`; the Service stays inside the cluster. No public host port
@@ -101,13 +105,14 @@ For a successful CI run, inspect `build/evidence/result.json`:
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "namespaceUid": "actual API-assigned UID",
   "dnsAndAuthenticatedService": {"dnsResolved": true, "authenticatedStatus": 200},
   "withdrawnReadyEndpointCount": 0,
   "readinessWithdrawal": {"dnsResolved": true, "connectionUnavailable": true},
   "readinessSamePodNoRestart": true,
-  "actualCasesExecuted": 8,
+  "actualCasesExecuted": 9,
+  "actualSchedulingCasesExecuted": 1,
   "actualResourceCasesExecuted": 3,
   "skipped": 0,
   "cleanupVerified": true
@@ -211,7 +216,9 @@ alone; reclaiming shared Docker storage is outside the lab's scope.
 **Resource extension evidence status:** implementation/native guards are verified
 locally; actual resource observations require the dedicated CI job. A successful
 older five-case recovery run does not prove these three new cases. CI accepts
-only all eight actual cases, version 2 evidence, all required signals and cleanup.
+only all nine actual cases, version 3 evidence, all required signals and cleanup.
+The previously verified eight cases remain mandatory; native scheduling tests do
+not establish the new ninth case.
 
 A Java application uses memory outside its Java heap: direct buffers, class
 metadata, thread stacks, code and JVM/runtime allocations. The `-Xmx` heap limit
@@ -247,7 +254,7 @@ if the intended observation did not occur.
 
 ### Read the evidence before choosing a fix
 
-The generated **version 2** `build/evidence/result.json` contains the actual
+The generated **version 3** `build/evidence/result.json` contains the actual
 `resources.heap`, `resources.native` and `resources.cpu` observations, each with
 an API-assigned Pod UID, zero restarts, requested limits and actual container
 termination fields (`reason`, `exitCode`, start/finish timestamps). The native log
@@ -304,6 +311,80 @@ case: the process completes, but a finite quota and increasing throttle counters
 show lost runnable time. I identify the constraint and allocation/latency cause
 before changing heap, container limits or workload concurrency.”
 
+
+## 7. Diagnose Pending before changing a probe
+
+The drain can produce an EndpointSlice with `endpoints: null`, an omitted field or an empty array.
+The runner treats each as zero backends while still validating exact Service/namespace ownership;
+wrong-shaped scalar/object values are rejected. It retains the actual drained-slice response before
+the scheduling mutation. The [versioned API type](https://github.com/kubernetes/api/blob/v0.37.0/discovery/v1/types.go#L49-L54)
+declares an optional endpoint slice. Native shape checks supplement the required actual cluster
+run; they do not manufacture a successful Service observation.
+
+**New extension status:** native guards pass; the ninth actual case is not verified
+until the mandatory fresh-kind CI run succeeds. No local Docker run is claimed.
+Read the existing [Kubernetes scheduling lesson](../../content/devops/02-kubernetes-fundamentals.md)
+before this exercise. **Pending is a phase, not a root cause.** A Pod can be Pending
+while waiting for scheduling or for container setup; an image pull problem is not
+proof that the scheduler rejected its Node constraints.
+
+**Predict:** the lab first scales its owned `task` Deployment to zero and observes
+the old Pods disappear. This deliberate interruption removes the old healthy backend
+so it cannot hide the replacement failure. The Service and DNS record stay present.
+The next template requires `lab.csfundamentals/required-node=<this random run name>`.
+The lab reads actual Node labels and refuses to proceed if any Node already matches.
+It never labels, taints, drains, resizes or otherwise changes a Node.
+
+**Observe:** after restoring one desired replica, the actual API must show all of:
+
+- The owned Pod's phase is `Pending`, its `nodeName` is absent, and no container ran.
+- Its `PodScheduled` condition is `False` with reason `Unschedulable` and an actual
+  node-affinity/selector mismatch diagnostic.
+- A `Warning`/`FailedScheduling` event from `default-scheduler` names that exact Pod
+  UID and namespace and reports the same kind of mismatch. A foreign Pod event,
+  missing event, kubelet image-pull warning or `Insufficient memory` alone fails.
+- The unchanged Service has zero ready EndpointSlice backends. Its real client Pod
+  still resolves DNS, but its bounded HTTP exchange fails at the connection level.
+  No HTTP 503 or other status is invented from a refusal/timeout; any received HTTP
+  response fails this particular unavailable-Service assertion.
+
+**Debug and repair:** compare `pending-pod.json`, `pending-replicaset.json`,
+`pending-scheduler-events.json`, `scheduling-nodes.json` and
+`pending-endpoint-slices.json`. Check the Pod's condition and scheduling constraints
+before changing application readiness, image credentials, DNS or CPU limits. Only
+the artificial template selector is removed. Kubernetes creates a replacement Pod;
+no Node label, host setting, user kubeconfig or global scheduler setting changes.
+
+The repair requires rollout completion, a different owned Pod UID, an actual Node
+assignment, `PodScheduled=True`, `Ready=True`, zero container restarts and exactly
+one ready Service endpoint naming that replacement UID. A real authenticated Service
+GET must then return HTTP 200. `scheduled-pod.json`, `scheduled-replicaset.json`,
+`scheduled-endpoint-slices.json` and `scheduling-recovered-deployment.json` retain
+the API evidence. `result.json.scheduling` binds these observations to the same
+Deployment UID, and dedicated CI revalidates the saved objects against the summary.
+The actual Service UID/selector and EndpointSlice owner references are also checked;
+the repair cannot substitute a different Service or foreign backend. The application
+uses disposable data; replacing this Pod is not a durability test.
+
+**Change one thing:** before making a disposable branch experiment, predict the
+difference between an absent Node selector and insufficient requested resources.
+Both may produce unschedulable Pods, but their scheduler messages and appropriate
+repairs differ. The fixed test intentionally accepts only its selector case; a
+changed experiment needs new observed evidence and matching assertions. Adding a
+Node label merely to satisfy an accidental application constraint can place work
+on an unsuitable Node; fix the intended scheduling policy deliberately.
+
+**Interview answer:** “I do not diagnose from Pending alone. I inspect PodScheduled,
+Node assignment, scheduler events and the Pod's constraints. Here no Node matches
+an artificial selector, and the scheduler names that exact mismatch before a
+container starts. I remove the erroneous workload constraint, then verify the new
+Pod's ownership, Ready endpoint and an authenticated request. DNS still resolving
+does not mean a Service has a usable backend.”
+
+This case demonstrates one scheduler-policy mistake and repair in a single-node
+owned cluster. It does not prove general capacity planning, taint/volume/affinity
+variants, preemption, autoscaling, multi-node availability or NetworkPolicy enforcement.
+
 ## Limits and next work
 
 This single-node local cluster does not prove multi-node/zone availability, cloud
@@ -325,3 +406,5 @@ in-flight requests and external secret-store integration remain separate exercis
 
 - [Kubernetes memory resources](https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/): actual memory limits and OOMKilled status.
 - [Kubernetes CPU resources](https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/): CPU quota and request/limit distinctions.
+
+- [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) and [debugging Pending Pods](https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/): exact selectors, scheduling conditions and scheduler events (checked 2026-10-23).

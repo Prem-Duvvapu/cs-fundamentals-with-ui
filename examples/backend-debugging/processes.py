@@ -16,6 +16,17 @@ class LabFailure(RuntimeError):
 _cancellation = threading.local()
 
 
+def _restore_policy(previous, outer):
+    # A restored caller handler can raise; every remaining restoration must still run.
+    try:
+        signal.signal(signal.SIGTERM, previous[signal.SIGTERM])
+    finally:
+        try:
+            signal.signal(signal.SIGINT, previous[signal.SIGINT])
+        finally:
+            _cancellation.state = outer
+
+
 @contextmanager
 def cancellation_guard(error=LabFailure, message='Owned command cancelled'):
     """Opt-in executable policy; library calls alone leave host signals unchanged."""
@@ -34,15 +45,13 @@ def cancellation_guard(error=LabFailure, message='Owned command cancelled'):
             state['delivered'] = True
             raise error(message)
 
-    _cancellation.state = state
     try:
+        _cancellation.state = state
         for number in previous:
             signal.signal(number, cancel)
         yield
     finally:
-        for number, handler in previous.items():
-            signal.signal(number, handler)
-        _cancellation.state = outer
+        _restore_policy(previous, outer)
 
 
 @contextmanager
@@ -127,26 +136,27 @@ class OwnedProcess:
         return self.process.wait(timeout=1), bytes(self.output)
 
     def close(self):
-        if self.selector is not None:
-            self.selector.close()
-        if self.process is None:
-            return
-        # Kill only the new session's group, including descendants after launcher exit.
-        try:
-            os.killpg(self.process.pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
-        try:
+        with defer_cancellation():
+            if self.selector is not None:
+                self.selector.close()
+            if self.process is None:
+                return
+            # Kill only the new session's group, including descendants after launcher exit.
+            try:
+                os.killpg(self.process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                self.process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                pass
+            try:
+                os.killpg(self.process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
             self.process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            pass
-        try:
-            os.killpg(self.process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        self.process.wait(timeout=2)
-        self.process.stdout.close()
-        self.process.stdin.close()
+            self.process.stdout.close()
+            self.process.stdin.close()
 
     def __exit__(self, *_):
         self.close()

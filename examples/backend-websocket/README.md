@@ -38,8 +38,8 @@ named transport cases, the nine required policy tests, actual child JVM feature
 and full runtime version, executed framework versions, source/JAR hashes and
 cleanup outcomes. Compiler release 17 and emitted class major 61 are checked
 separately; a newer JVM targeting 17 does not satisfy the actual Java 17 gate.
-CI rejects skipped/missing/failed cases and publishes **only sanitized JSON**. Eight Python
-guards cover cancellation ownership/scope entry, report publication and diagnostic privacy.
+CI rejects skipped/missing/failed cases and publishes **only sanitized JSON**. Nine Python
+guards cover cancellation ownership/scope entry/exit, report publication and diagnostic privacy.
 A failed Maven phase reports only its fixed phase, exit code, missing-provider indicator and
 allowlisted test source-line numbers. Raw exceptions, HTTP bodies, cookies, credentials and
 private temporary paths stay out of the published report. Missing diagnostics do not establish
@@ -262,3 +262,6 @@ Cleanup defers the first TERM/INT across group termination, direct-child wait an
 then delivers cancellation. A positioned regression starts a TERM-ignoring child, interrupts normal
 successful cleanup, and requires the child already reaped while an unrelated test group stays alive.
 Scope-entry interruption also restores the caller's thread-local guard state, handlers and mask.
+An actual first TERM/INT during handler restoration on normal/error exit must finish restoring
+both handlers and outer state, then propagate the original caller exception. Caller and nested
+scope cases are tested separately; no new signal policy is installed for library-only use.

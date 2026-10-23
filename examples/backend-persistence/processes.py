@@ -37,9 +37,13 @@ def cancellation_guard():
             signal.signal(number,cancel)
         yield
     finally:
-        for number,handler in previous.items():
-            signal.signal(number,handler)
-        _cancellation.state=outer
+        try:
+            signal.signal(signal.SIGTERM,previous[signal.SIGTERM])
+        finally:
+            try:
+                signal.signal(signal.SIGINT,previous[signal.SIGINT])
+            finally:
+                _cancellation.state=outer
 
 
 @contextmanager

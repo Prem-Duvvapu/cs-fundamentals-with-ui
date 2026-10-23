@@ -333,6 +333,10 @@ TERM-ignoring owned child has been killed/waited and its pipes closed; cancellat
 does not interrupt that cleanup midway.
 Only direct children are waited/reaped; descendant termination is not a claim of
 reaping grandchildren. Imports alone do not replace a host's signal policy.
+Five native ownership tests also include actual TERM/INT during normal/error scope exit,
+with caller and nested handlers. Separate finally blocks restore both original handlers and
+outer state even when the restored caller handler raises; that exact exception propagates.
+These are scoped helper checks, separate from actual Redis/MongoDB execution.
 Run its local checks with:
 
 ```sh

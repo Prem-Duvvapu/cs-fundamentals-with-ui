@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "sourceFixCommit": "ad3281e16a2ed55508d6e544b267c7a9e2182fb4",
+  "regressionTestCommit": "08a3b3a0f398fd9bbde9c9c6cb8d28e535863c28",
+  "fullNativeTestsPassed": 9,
+  "rootRepeatedGuardTestsPassed": 3,
+  "originalSignalSubcasesFailed": 6,
+  "nativeLogSha256": "b8f240a66dce89dc876d2a439bca88fdbf58094dce3a2c16334c66e81b800efe",
+  "rootGuardLogSha256": "687eb1ec94189546e2d6b20985357cf2d46fc13b5994fd6fd1b91126413ec0cf",
+  "moduleSnapshotSha256LF": {
+    "examples/backend-debugging/.gitignore": "1141064ed2630abfb4a4b52385d7e6c5676a9a51c3c01a4884a7cdaf05609a74",
+    "examples/backend-debugging/README.md": "8468c022d575ed9d1a1320b4e7172621b766bb8d8d705533952786514558805f",
+    "examples/backend-debugging/fixtures/TaskServiceDebugTarget.java": "0850f5f80508dc7d5be4279287ad36fa489a5ef53d8220fe1860aac2c42ba655",
+    "examples/backend-debugging/fixtures/TaskServiceDebugger.java": "94e58ebe7433f265c1f27418a1d0abd8c4b2361fda3af096a8b4e56331bb5b73",
+    "examples/backend-debugging/pom.xml": "7ac18bff411cfe2a47884f2a7f6e9b15ff5cddc114c683028431763dd16c8986",
+    "examples/backend-debugging/processes.py": "58b60e9a53b20b0d894e1158f9622d2ea5b9217bbedd1629f065a87c600fe8f2",
+    "examples/backend-debugging/src/test/java/com/csfundamentals/debugging/ConfigurationProbe.java": "525cb531fab885b9dcf1c083971b753bfec87ce3a01fcb954f722c31d27d461a",
+    "examples/backend-debugging/test_process_guards.py": "b33dbe3fe8ae77adc2973e3cb87606a707c5f6893d0f15510708f68f01cdfc55",
+    "examples/backend-debugging/test_verify.py": "a724c606838853aaaa38ad3c5fed11b0f8dd8df8102117c0b630ba2287c82177",
+    "examples/backend-debugging/verify.py": "39c2b9479e08a957caadb4be57050b8c2934e82526ec6207334d2bc9fec81020"
+  },
+  "moduleSnapshotTiming": "Recorded after native verification; matches committed source. Not an independent before/after execution attestation.",
+  "configurationReceiptSha256": "d6a0c1be4c35f59124416dbe7a24269cced58adb644539d0952fdfa401919627",
+  "debuggerReceiptSha256": "cc4996ee668b5c0c5e56d0893cb305dc92a38a6a9a8e3d365d8f0377b3162a8f",
+  "configuration": {
+    "schemaVersion": 1,
+    "evidence": "actual-owned-spring-and-jdi",
+    "compilerTargetRelease": 17,
+    "sourceSha256": {
+      "pom.xml": "7bf1457821425298f1187eb051065fce79593c30ef500553f679d22125b44334",
+      "src/main/java/com/csfundamentals/example/CachingConfiguration.java": "8ed08fe1749203cd62ed424ac88e86d17e741286c64ea6f02b681e7aefd70d26",
+      "src/main/java/com/csfundamentals/example/CsrfController.java": "55426455154e73508331de33f9d194a741a8a688fcc8539456bc77ed3662ed90",
+      "src/main/java/com/csfundamentals/example/JpaTaskRepository.java": "c3803c64c49a05f3a9bd628546f9974262e78ca672e58cac97a30bc1f6d86f49",
+      "src/main/java/com/csfundamentals/example/MemoryTaskRepository.java": "2dbb440addb78063cd6201d656dc47f014d6be88f67852612fe38a7151290490",
+      "src/main/java/com/csfundamentals/example/PageResult.java": "b30b9e7e6fedb2dd1084aec568a786db782c630dd3835a6e59b3882aa998ad94",
+      "src/main/java/com/csfundamentals/example/ProjectConflictException.java": "75705ba0567a25fd600ee03ce0a7adc634754552eb0f591e3df3f04bb8f2128b",
+      "src/main/java/com/csfundamentals/example/ProjectController.java": "fadf798cfb0710839ac023e276210ae3dda67fdee4e64f380d68bf608d297b64",
+      "src/main/java/com/csfundamentals/example/ProjectEntity.java": "6d4085c07184e1d40db3afd6e06ede46ed662970b5f07249dda71507f596b636",
+      "src/main/java/com/csfundamentals/example/ProjectErrors.java": "009031c77a88c94c8109d406afad02474d022a3f31775db7372a344e4f68f45c",
+      "src/main/java/com/csfundamentals/example/ProjectService.java": "7a6894f5f50d277e875030863a3f97cf68584a9b3995d52ad20c289c7ce9dd42",
+      "src/main/java/com/csfundamentals/example/ProjectView.java": "3725ab84eb55cee050220a78f5a22d0861acde12760810e371d92b26a7a5ef65",
+      "src/main/java/com/csfundamentals/example/SecurityConfiguration.java": "bf4cbcd52eb3ff7427967ff92bc378a5b0fd9641c92154ec0a5fd9cf6231cf6e",
+      "src/main/java/com/csfundamentals/example/Task.java": "4a35c105e9482eb7bbb52b48adfa8f98a0316f57cea3324ded444c4d2a8c6824",
+      "src/main/java/com/csfundamentals/example/TaskController.java": "ece0ef5f5085b4fb8169a746bb18b6b55128a363b51e5f5919838d563d190191",
+      "src/main/java/com/csfundamentals/example/TaskEntity.java": "988926d7be39d33c261e94f295ba535fdad7b247a58793db99a4cd82e2a84a19",
+      "src/main/java/com/csfundamentals/example/TaskRepository.java": "e270d2548b32a8301d7a2ba39f650396444ffa505e2e829ae8d2c470cbce9027",
+      "src/main/java/com/csfundamentals/example/TaskService.java": "799667e7ea9c239bdc3f713c78bdf19bc4c8c3a95cdb07f0be7f2297edd37ba9",
+      "src/main/java/com/csfundamentals/example/TaskTrackerApplication.java": "e1623ab7dea3662307c33dc1fc9928e7d54412ac715eb8eef7f5574f4ee5aa73",
+      "src/main/java/com/csfundamentals/example/observability/LocalSpanLogExporter.java": "c592181665c6a844f7f48fbfd2fc020a860cb01ec9b2ea3d3697d0da8f73f1df",
+      "src/main/java/com/csfundamentals/example/observability/ObservabilityConfiguration.java": "7c25ce2f44b88ae9f73b10bd1eb6e8e1d7898ba690893a60f06ee977be3e07f4",
+      "src/main/java/com/csfundamentals/example/observability/ProbeAlert.java": "90dd47d4841c2d9b0983116599cd7634898b4c252555aa4c1765beffd0f56ebe",
+      "src/main/java/com/csfundamentals/example/observability/ProbeController.java": "222d403265b17e0986a3512813af3eb265a30653fde5f86890324137dbb11b49",
+      "src/main/java/com/csfundamentals/example/observability/ProbeDependency.java": "9703395dfc8ce736f66b0ca361eb7d44db6f83b6e81b6b2f40d5853bbb9821dc",
+      "src/main/java/com/csfundamentals/example/observability/ProbePipeline.java": "744a8d84fc4f902ce423d2cc45341d9a7e1b71c98374caabcc34109e048cb35b",
+      "src/main/java/com/csfundamentals/example/observability/TeachingTelemetry.java": "5f04de4a796421bb83279b7df128ae80471eb6a0a02404a3a9a83a3e3358aaab",
+      "src/main/java/com/csfundamentals/example/security/BoundedJwkSource.java": "f582e746e0897192eed9cb5a350c23eb907b2cd5cc6178d7aaf658b8ba597f08",
+      "src/main/java/com/csfundamentals/example/security/JwtSecurityConfiguration.java": "f5cf498ff7bcfb5f955852ec0d3bb699d4ad664f2ac24f8d72d82e4bceb8859e",
+      "src/main/resources/application-memory.properties": "53f80ec4a37c64f852747a2f7d7d577c2ab2d537c4d32d3fa722c331362e5b46",
+      "src/main/resources/application-persistence.properties": "6bf91d05645a073227a7cf91f907042841dcbb7a2534ebcceed5d5af58675891",
+      "src/main/resources/application-production.properties": "dee99cd6a6281afb51c6ca98c142af47aa8c9bf472fe9fd3f125c1b90ac073a4",
+      "src/main/resources/application.properties": "13f1b7f6d878d4800e975a2592aa5fcd04690453a2f5108f0f5cd308106cab3e",
+      "src/main/resources/db/migration/V1__tasks.sql": "4c8fcefa3359b47f463b628d4de260c65ad740d3c7e156a1e61accce424e20ca",
+      "src/main/resources/db/migration/V2__project_ownership.sql": "9296f9b1b31aff8d8cb7a4a99d76416621c8bd0bdb19d8ccbb6ff76254170a97"
+    },
+    "configurations": [
+      {
+        "state": "ready",
+        "property": "management.endpoints.web.exposure.include",
+        "effective": "health",
+        "orderedCandidates": [
+          {
+            "source": "application.properties",
+            "line": 9,
+            "value": "health"
+          }
+        ],
+        "boundExposure": [
+          "health"
+        ],
+        "activeProfiles": [],
+        "defaultProfiles": [
+          "memory"
+        ],
+        "repositoryClass": "com.csfundamentals.example.MemoryTaskRepository",
+        "cacheManagerCount": 0,
+        "configuredPort": 0,
+        "runtime": {
+          "version": "17.0.20.1+1-1-24.04-Ubuntu",
+          "feature": 17
+        },
+        "name": "memory-default",
+        "healthStatus": 200,
+        "metricsStatus": 404,
+        "childReaped": true
+      },
+      {
+        "state": "ready",
+        "property": "management.endpoints.web.exposure.include",
+        "effective": "health,metrics",
+        "orderedCandidates": [
+          {
+            "source": "application-production.properties",
+            "line": 1,
+            "value": "health,metrics"
+          },
+          {
+            "source": "application.properties",
+            "line": 9,
+            "value": "health"
+          }
+        ],
+        "boundExposure": [
+          "health",
+          "metrics"
+        ],
+        "activeProfiles": [
+          "production",
+          "persistence",
+          "secure",
+          "cached"
+        ],
+        "defaultProfiles": [
+          "memory"
+        ],
+        "repositoryClass": "com.csfundamentals.example.JpaTaskRepository",
+        "cacheManagerCount": 1,
+        "configuredPort": 0,
+        "runtime": {
+          "feature": 17,
+          "version": "17.0.20.1+1-1-24.04-Ubuntu"
+        },
+        "name": "production-profile",
+        "healthStatus": 200,
+        "metricsStatus": 200,
+        "childReaped": true
+      },
+      {
+        "state": "ready",
+        "property": "management.endpoints.web.exposure.include",
+        "effective": "health",
+        "orderedCandidates": [
+          {
+            "source": "environment-variable",
+            "value": "health"
+          },
+          {
+            "source": "application-production.properties",
+            "line": 1,
+            "value": "health,metrics"
+          },
+          {
+            "source": "application.properties",
+            "line": 9,
+            "value": "health"
+          }
+        ],
+        "boundExposure": [
+          "health"
+        ],
+        "activeProfiles": [
+          "production",
+          "persistence",
+          "secure",
+          "cached"
+        ],
+        "defaultProfiles": [
+          "memory"
+        ],
+        "repositoryClass": "com.csfundamentals.example.JpaTaskRepository",
+        "cacheManagerCount": 1,
+        "configuredPort": 0,
+        "runtime": {
+          "feature": 17,
+          "version": "17.0.20.1+1-1-24.04-Ubuntu"
+        },
+        "name": "production-environment",
+        "healthStatus": 200,
+        "metricsStatus": 404,
+        "childReaped": true
+      },
+      {
+        "state": "ready",
+        "property": "management.endpoints.web.exposure.include",
+        "effective": "health,metrics",
+        "orderedCandidates": [
+          {
+            "source": "command-line",
+            "value": "health,metrics"
+          },
+          {
+            "source": "environment-variable",
+            "value": "health"
+          },
+          {
+            "source": "application-production.properties",
+            "line": 1,
+            "value": "health,metrics"
+          },
+          {
+            "source": "application.properties",
+            "line": 9,
+            "value": "health"
+          }
+        ],
+        "boundExposure": [
+          "health",
+          "metrics"
+        ],
+        "activeProfiles": [
+          "production",
+          "persistence",
+          "secure",
+          "cached"
+        ],
+        "defaultProfiles": [
+          "memory"
+        ],
+        "repositoryClass": "com.csfundamentals.example.JpaTaskRepository",
+        "cacheManagerCount": 1,
+        "configuredPort": 0,
+        "runtime": {
+          "feature": 17,
+          "version": "17.0.20.1+1-1-24.04-Ubuntu"
+        },
+        "name": "production-cli",
+        "healthStatus": 200,
+        "metricsStatus": 200,
+        "childReaped": true
+      },
+      {
+        "name": "bad-port",
+        "state": "startup-failed",
+        "causeTypes": [
+          "BeanDefinitionStoreException",
+          "IllegalStateException",
+          "ConversionFailedException",
+          "InvalidConfigurationPropertyValueException",
+          "NumberFormatException"
+        ],
+        "property": "server.port",
+        "failedOrigin": "command-line",
+        "observedProperty": "server.port",
+        "invalidValue": "invalid-port",
+        "repairedBy": "memory-repaired",
+        "runtime": {
+          "feature": 17,
+          "version": "17.0.20.1+1-1-24.04-Ubuntu"
+        },
+        "childReaped": true
+      },
+      {
+        "state": "ready",
+        "property": "management.endpoints.web.exposure.include",
+        "effective": "health",
+        "orderedCandidates": [
+          {
+            "source": "application.properties",
+            "line": 9,
+            "value": "health"
+          }
+        ],
+        "boundExposure": [
+          "health"
+        ],
+        "activeProfiles": [],
+        "defaultProfiles": [
+          "memory"
+        ],
+        "repositoryClass": "com.csfundamentals.example.MemoryTaskRepository",
+        "cacheManagerCount": 0,
+        "configuredPort": 0,
+        "runtime": {
+          "version": "17.0.20.1+1-1-24.04-Ubuntu",
+          "feature": 17
+        },
+        "name": "memory-repaired",
+        "healthStatus": 200,
+        "metricsStatus": 404,
+        "childReaped": true
+      }
+    ],
+    "debugger": null,
+    "scope": "Java17-targeted TaskTracker sources; actual child runtimes must be observed as Java17; no GUI/human session, production deployment, arbitrary external attach or private configuration inspection.",
+    "jarSha256": "e9465882287583433d7e723c570b3b3394cbe897954b7678104a55bd1630b07f",
+    "importedSourcesUnchanged": true,
+    "ownedWorkspaceRemoved": true
+  },
+  "debugger": {
+    "schemaVersion": 1,
+    "evidence": "actual-owned-spring-and-jdi",
+    "compilerTargetRelease": 17,
+    "sourceSha256": {
+      "pom.xml": "7bf1457821425298f1187eb051065fce79593c30ef500553f679d22125b44334",
+      "src/main/java/com/csfundamentals/example/CachingConfiguration.java": "8ed08fe1749203cd62ed424ac88e86d17e741286c64ea6f02b681e7aefd70d26",
+      "src/main/java/com/csfundamentals/example/CsrfController.java": "55426455154e73508331de33f9d194a741a8a688fcc8539456bc77ed3662ed90",
+      "src/main/java/com/csfundamentals/example/JpaTaskRepository.java": "c3803c64c49a05f3a9bd628546f9974262e78ca672e58cac97a30bc1f6d86f49",
+      "src/main/java/com/csfundamentals/example/MemoryTaskRepository.java": "2dbb440addb78063cd6201d656dc47f014d6be88f67852612fe38a7151290490",
+      "src/main/java/com/csfundamentals/example/PageResult.java": "b30b9e7e6fedb2dd1084aec568a786db782c630dd3835a6e59b3882aa998ad94",
+      "src/main/java/com/csfundamentals/example/ProjectConflictException.java": "75705ba0567a25fd600ee03ce0a7adc634754552eb0f591e3df3f04bb8f2128b",
+      "src/main/java/com/csfundamentals/example/ProjectController.java": "fadf798cfb0710839ac023e276210ae3dda67fdee4e64f380d68bf608d297b64",
+      "src/main/java/com/csfundamentals/example/ProjectEntity.java": "6d4085c07184e1d40db3afd6e06ede46ed662970b5f07249dda71507f596b636",
+      "src/main/java/com/csfundamentals/example/ProjectErrors.java": "009031c77a88c94c8109d406afad02474d022a3f31775db7372a344e4f68f45c",
+      "src/main/java/com/csfundamentals/example/ProjectService.java": "7a6894f5f50d277e875030863a3f97cf68584a9b3995d52ad20c289c7ce9dd42",
+      "src/main/java/com/csfundamentals/example/ProjectView.java": "3725ab84eb55cee050220a78f5a22d0861acde12760810e371d92b26a7a5ef65",
+      "src/main/java/com/csfundamentals/example/SecurityConfiguration.java": "bf4cbcd52eb3ff7427967ff92bc378a5b0fd9641c92154ec0a5fd9cf6231cf6e",
+      "src/main/java/com/csfundamentals/example/Task.java": "4a35c105e9482eb7bbb52b48adfa8f98a0316f57cea3324ded444c4d2a8c6824",
+      "src/main/java/com/csfundamentals/example/TaskController.java": "ece0ef5f5085b4fb8169a746bb18b6b55128a363b51e5f5919838d563d190191",
+      "src/main/java/com/csfundamentals/example/TaskEntity.java": "988926d7be39d33c261e94f295ba535fdad7b247a58793db99a4cd82e2a84a19",
+      "src/main/java/com/csfundamentals/example/TaskRepository.java": "e270d2548b32a8301d7a2ba39f650396444ffa505e2e829ae8d2c470cbce9027",
+      "src/main/java/com/csfundamentals/example/TaskService.java": "799667e7ea9c239bdc3f713c78bdf19bc4c8c3a95cdb07f0be7f2297edd37ba9",
+      "src/main/java/com/csfundamentals/example/TaskTrackerApplication.java": "e1623ab7dea3662307c33dc1fc9928e7d54412ac715eb8eef7f5574f4ee5aa73",
+      "src/main/java/com/csfundamentals/example/observability/LocalSpanLogExporter.java": "c592181665c6a844f7f48fbfd2fc020a860cb01ec9b2ea3d3697d0da8f73f1df",
+      "src/main/java/com/csfundamentals/example/observability/ObservabilityConfiguration.java": "7c25ce2f44b88ae9f73b10bd1eb6e8e1d7898ba690893a60f06ee977be3e07f4",
+      "src/main/java/com/csfundamentals/example/observability/ProbeAlert.java": "90dd47d4841c2d9b0983116599cd7634898b4c252555aa4c1765beffd0f56ebe",
+      "src/main/java/com/csfundamentals/example/observability/ProbeController.java": "222d403265b17e0986a3512813af3eb265a30653fde5f86890324137dbb11b49",
+      "src/main/java/com/csfundamentals/example/observability/ProbeDependency.java": "9703395dfc8ce736f66b0ca361eb7d44db6f83b6e81b6b2f40d5853bbb9821dc",
+      "src/main/java/com/csfundamentals/example/observability/ProbePipeline.java": "744a8d84fc4f902ce423d2cc45341d9a7e1b71c98374caabcc34109e048cb35b",
+      "src/main/java/com/csfundamentals/example/observability/TeachingTelemetry.java": "5f04de4a796421bb83279b7df128ae80471eb6a0a02404a3a9a83a3e3358aaab",
+      "src/main/java/com/csfundamentals/example/security/BoundedJwkSource.java": "f582e746e0897192eed9cb5a350c23eb907b2cd5cc6178d7aaf658b8ba597f08",
+      "src/main/java/com/csfundamentals/example/security/JwtSecurityConfiguration.java": "f5cf498ff7bcfb5f955852ec0d3bb699d4ad664f2ac24f8d72d82e4bceb8859e",
+      "src/main/resources/application-memory.properties": "53f80ec4a37c64f852747a2f7d7d577c2ab2d537c4d32d3fa722c331362e5b46",
+      "src/main/resources/application-persistence.properties": "6bf91d05645a073227a7cf91f907042841dcbb7a2534ebcceed5d5af58675891",
+      "src/main/resources/application-production.properties": "dee99cd6a6281afb51c6ca98c142af47aa8c9bf472fe9fd3f125c1b90ac073a4",
+      "src/main/resources/application.properties": "13f1b7f6d878d4800e975a2592aa5fcd04690453a2f5108f0f5cd308106cab3e",
+      "src/main/resources/db/migration/V1__tasks.sql": "4c8fcefa3359b47f463b628d4de260c65ad740d3c7e156a1e61accce424e20ca",
+      "src/main/resources/db/migration/V2__project_ownership.sql": "9296f9b1b31aff8d8cb7a4a99d76416621c8bd0bdb19d8ccbb6ff76254170a97"
+    },
+    "configurations": [],
+    "debugger": {
+      "conditionalChecks": 3,
+      "conditionalMatches": 1,
+      "caughtExceptions": 1,
+      "exceptionType": "java.lang.IllegalArgumentException",
+      "exceptionLocation": "com.csfundamentals.example.TaskService.create",
+      "catchLocation": "TaskServiceDebugTarget.main",
+      "stepLocations": [
+        "com.csfundamentals.example.TaskService.create",
+        "com.csfundamentals.example.MemoryTaskRepository.add"
+      ],
+      "debuggeeExited": true,
+      "transport": "owned-loopback-socket",
+      "guiOrHumanSession": false,
+      "runtime": {
+        "feature": 17,
+        "version": "17.0.20.1+1-1-24.04-Ubuntu"
+      },
+      "debuggeeRuntime": {
+        "feature": 17,
+        "version": "17.0.20.1",
+        "vmName": "OpenJDK 64-Bit Server VM"
+      },
+      "ownedDebuggeeReaped": true,
+      "sourceSha256": {
+        "Task.java": "4a35c105e9482eb7bbb52b48adfa8f98a0316f57cea3324ded444c4d2a8c6824",
+        "TaskRepository.java": "e270d2548b32a8301d7a2ba39f650396444ffa505e2e829ae8d2c470cbce9027",
+        "MemoryTaskRepository.java": "2dbb440addb78063cd6201d656dc47f014d6be88f67852612fe38a7151290490",
+        "TaskService.java": "799667e7ea9c239bdc3f713c78bdf19bc4c8c3a95cdb07f0be7f2297edd37ba9",
+        "TaskServiceDebugTarget.java": "d5300f321195a435f4924df6b51ffc974d96e80b4ef359c4b043308bf0284129",
+        "TaskServiceDebugger.java": "ea2d3bcb9b03807237ab0fa3fa716722803fa5e7fbf977a69e8b861061637cb6"
+      }
+    },
+    "scope": "Java17-targeted TaskTracker sources; actual child runtimes must be observed as Java17; no GUI/human session, production deployment, arbitrary external attach or private configuration inspection.",
+    "importedSourcesUnchanged": true,
+    "ownedWorkspaceRemoved": true
+  },
+  "limitations": [
+    "Native actual Spring/JDI plus disposable Python signal checks",
+    "No GUI/human debugger, other-JDK, arbitrary attach or production evidence",
+    "Final dedicated actual-service CI and release remain required",
+    "No SIGKILL cleanup guarantee; library callers retain their signal policy"
+  ]
+}

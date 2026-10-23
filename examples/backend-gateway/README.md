@@ -205,7 +205,7 @@ this lab does not claim long-lived-connection or failed-reload coverage.
 ## 7. Verify cleanup and limits honestly
 
 The executable restores its prior TERM/INT handlers, defers cancellation until child ownership
-is assigned, and reaps the directly owned command child. Cleanup signals its owned new-session
+is assigned and through complete command teardown (stop, bounded wait and stdout close), and reaps the directly owned command child. Cleanup signals its owned new-session
 process group even when the launcher has already exited: a descendant can still hold stdout
 open. Positioned regressions exercise both deadline and TERM/INT after actual leader exit,
 verify the descendant is absent or no longer running, close the captured pipe, and keep an
@@ -213,6 +213,13 @@ independent process group alive. An orphaned grandchild is reaped by its OS pare
 runner. Non-group commands retain individual-child termination. Native regressions deliver actual TERM/INT at
 startup, including delivery via another live thread, and during handler installation. It never
 changes caller signal masks. Library helpers do not install handlers on their own.
+
+Additional positioned regressions cover the first actual TERM/INT during deadline cleanup and after a successful command exit. A READY-confirmed owned child must be killed/reaped and its stdout closed before cancellation escapes; the successful-child case must close its pipe too. Caller and nested scope-entry restoration, existing caller signal masks, non-group termination and an unrelated process group remain protected. The native suite now has 21 tests; none executes Nginx. The dedicated workflow still requires all 20 actual Nginx/HTTP assertions, source-bound evidence and owned cleanup with zero skips.
+
+The scope-exit tests add twelve actual TERM/INT caller/nested cases across normal/error exit and
+partial-entry rollback. If an already restored caller handler raises, separate finally blocks
+still restore the other handler and outer state before propagating the original exception.
+Uninterrupted success/error/setup-failure controls preserve the existing caller policy and mask.
 
 Cleanup inspects only exact generated names/tags, requires their exact owner label, removes
 matched container/network IDs, and verifies absence. It removes only its two image tags; shared

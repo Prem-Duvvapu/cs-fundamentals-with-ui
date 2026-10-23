@@ -164,9 +164,25 @@ are not kernel deadlines for a blocked filesystem operation.
 
 The subprocess helper installs scoped TERM/INT handling only for executable work,
 defers cancellation until `Popen` ownership is assigned, and preserves caller handlers
-and signal masks. Cleanup addresses only each new session's group, reaps the owned
+and signal masks. Scope entry restores the prior thread-local state even if a caller
+or outer guard cancels immediately after the new state is assigned. The first TERM/INT
+during normal teardown is deferred through selector closure, termination, wait and pipe
+closure; cancellation is delivered only after that complete cleanup. Cleanup addresses
+only each new session's group, reaps the owned
 launcher/debuggee, closes pipes and removes the temporary workspace. A changed/default
 PID or arbitrary attach target is never used for cleanup.
+
+The positioned native guard tests deliver actual TERM and INT at scope entry and
+during successful teardown of a READY-confirmed TERM-ignoring child. They require
+caller/nested restoration, direct-child wait, closed pipes and an unrelated process
+group left running. Library use alone installs no signal policy. These guards establish
+neither a SIGKILL cleanup guarantee nor reaping of grandchildren; the actual Spring/JDI
+tests remain required alongside them.
+
+The full suite now has 11 tests. Additional actual TERM/INT cases interrupt restored caller
+handlers on normal/error exit and partial-entry rollback, in caller and nested scopes. Nested
+finally blocks restore both handlers and outer state before the original exception propagates;
+uninterrupted success/error/setup-failure cases retain their original behavior and mask.
 
 Inherited Spring/server/management/Task Tracker/telemetry settings and Java option
 injection are excluded before creating children. Configuration inspection is limited

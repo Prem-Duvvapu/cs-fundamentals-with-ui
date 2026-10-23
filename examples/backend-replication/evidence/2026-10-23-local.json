@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "scenario": "actual-private-postgresql-replication",
+  "postgresVersionNum": 160015,
+  "durability": {
+    "synchronousCommit": "on",
+    "fsync": "on",
+    "fullPageWrites": "on",
+    "synchronousStandbyNames": "",
+    "replicationMode": "asynchronous"
+  },
+  "replay": {
+    "initialIds": [
+      1
+    ],
+    "acknowledgedPrimaryIds": [
+      1,
+      2
+    ],
+    "pausedReplicaIds": [
+      1
+    ],
+    "commitFlushLsn": "0/3000170",
+    "pausedFence": {
+      "reached": false,
+      "checks": 4,
+      "elapsedMs": 247
+    },
+    "resumedFence": {
+      "reached": true,
+      "checks": 1,
+      "elapsedMs": 19
+    },
+    "recoveredReplicaIds": [
+      1,
+      2
+    ],
+    "sameTimelineFenceOnly": true,
+    "pauseIsNetworkPartition": false
+  },
+  "failover": {
+    "oldPrimaryAcknowledgedIds": [
+      1,
+      2,
+      3
+    ],
+    "promotedIdsBeforeNewWrite": [
+      1,
+      2
+    ],
+    "acknowledgedRowsMissingOnSelectedTimeline": [
+      3
+    ],
+    "oldDiskPresentBeforeRebuild": true,
+    "oldPrimaryProcessTerminalBeforePromotion": true,
+    "oldPrimaryPortRefusedBeforePromotion": true,
+    "oldTimeline": 1,
+    "promotedTimeline": 2,
+    "unreplicatedCommitFlushLsn": "0/3000218",
+    "newPrimaryIds": [
+      1,
+      2,
+      4
+    ],
+    "observedStopToCheckedWriteMs": 593,
+    "automaticFailover": false,
+    "multiHostFencing": false
+  },
+  "rebuild": {
+    "fromPromotedPrimary": true,
+    "recoveryRoleObserved": true,
+    "initialIds": [
+      1,
+      2,
+      4
+    ],
+    "freshWriteReplayedIds": [
+      1,
+      2,
+      4,
+      5
+    ],
+    "rebuildFence": {
+      "reached": true,
+      "checks": 1,
+      "elapsedMs": 16
+    },
+    "freshWriteFence": {
+      "reached": true,
+      "checks": 1,
+      "elapsedMs": 18
+    }
+  },
+  "limits": {
+    "ownedClusters": 2,
+    "maxConnectionsPerCluster": 8,
+    "sharedBuffersMiBPerCluster": 16,
+    "workBudgetSeconds": 180,
+    "startupPollSeconds": 8,
+    "clientSeconds": 3,
+    "sqlMilliseconds": 2000,
+    "privateLogBytesPerCluster": 524288
+  },
+  "actualServerStarts": {
+    "originalDirectory": 2,
+    "standbyDirectory": 2
+  },
+  "scope": "Two private processes on one host; replay pause is not a network partition; local fencing is not STONITH; observed recovery duration is not an RTO SLA; no production capacity or multi-host HA proof",
+  "ownedResourcesCleaned": true,
+  "sourceSha256LF": {
+    "processes.py": "d4f7cb4cd9e91b64cd1ffdf251fc464b577acf3e342f34c629e70168019b261c",
+    "test_verify.py": "559c9a36f4a62449cc4c900b7535e26f3176c3e98c8a96ce60f08714d17b67e7",
+    "verify.py": "7773b88ebca3495571d39964d2c59ae5e97028d700c3ce255c7d000bd003ace9"
+  }
+}

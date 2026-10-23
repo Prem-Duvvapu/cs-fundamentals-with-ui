@@ -115,6 +115,105 @@ def manifests(name, image, passwords):
             {'apiVersion':'v1','kind':'Service','metadata':meta('task'),'spec':{'selector':{'app':'task'},'ports':[{'port':9191,'targetPort':9191}]}},client]
 
 
+SCHEDULING_LABEL = 'lab.csfundamentals/required-node'
+
+
+def owned_deployment_pod(pod, replica_set, deployment_uid, name):
+    checked_name(name)
+    def controller(resource, kind, uid):
+        return any(item.get('kind') == kind and item.get('uid') == uid and item.get('controller') is True
+                   for item in resource.get('metadata', {}).get('ownerReferences', []))
+    for resource in (pod, replica_set):
+        metadata = resource.get('metadata', {})
+        if not metadata.get('uid') or metadata.get('namespace') != name or metadata.get('labels', {}).get('lab.csfundamentals/owner') != name:
+            raise RuntimeError('Actual owned Pod and ReplicaSet identity required')
+    if not deployment_uid or not controller(pod, 'ReplicaSet', replica_set['metadata']['uid']) or not controller(replica_set, 'Deployment', deployment_uid):
+        raise RuntimeError('Actual Pod-to-ReplicaSet-to-Deployment ownership required')
+
+
+def validate_pending_observation(pod, events, nodes, replica_set, deployment_uid, name):
+    owned_deployment_pod(pod, replica_set, deployment_uid, name)
+    status, spec = pod.get('status', {}), pod.get('spec', {})
+    if status.get('phase') != 'Pending' or spec.get('nodeName') or spec.get('nodeSelector') != {SCHEDULING_LABEL: name}:
+        raise RuntimeError('Pending unassigned Pod with exact unsatisfied selector required')
+    if any(item.get('containerID') or item.get('state', {}).get('running') or item.get('state', {}).get('terminated')
+           for item in status.get('containerStatuses', [])):
+        raise RuntimeError('Unschedulable case must not execute a container')
+    node_items = nodes.get('items', [])
+    if not node_items or any(not item.get('metadata', {}).get('uid') for item in node_items):
+        raise RuntimeError('Actual node identity/label observations required')
+    if any(item['metadata'].get('labels', {}).get(SCHEDULING_LABEL) == name for item in node_items):
+        raise RuntimeError('Deliberate scheduling selector must match no observed Node')
+    condition = next((item for item in status.get('conditions', []) if item.get('type') == 'PodScheduled'), {})
+    mismatch = 'node affinity/selector'
+    if condition.get('status') != 'False' or condition.get('reason') != 'Unschedulable' or mismatch not in condition.get('message', ''):
+        raise RuntimeError('Actual PodScheduled False/Unschedulable selector diagnostic required')
+    scheduler_events = [item for item in events.get('items', [])
+        if item.get('reason') == 'FailedScheduling' and item.get('type') == 'Warning'
+        and item.get('involvedObject', {}).get('uid') == pod['metadata']['uid']
+        and item.get('involvedObject', {}).get('namespace') == name
+        and item.get('involvedObject', {}).get('kind') == 'Pod'
+        and (item.get('reportingComponent') == 'default-scheduler' or item.get('source', {}).get('component') == 'default-scheduler')
+        and item.get('metadata', {}).get('uid') and item.get('metadata', {}).get('namespace') == name and mismatch in item.get('message', '')]
+    if not scheduler_events:
+        raise RuntimeError('Matching actual default-scheduler FailedScheduling event required')
+    return {'podUid': pod['metadata']['uid'], 'replicaSetUid': replica_set['metadata']['uid'],
+            'deploymentUid': deployment_uid, 'phase': status['phase'], 'nodeAssigned': False,
+            'selector': spec['nodeSelector'], 'condition': condition,
+            'schedulerEvents': [{'uid': item['metadata']['uid'], 'reason': item['reason'],
+                'reporter': 'default-scheduler',
+                'message': item['message']} for item in scheduler_events],
+            'observedNodeUids': sorted(item['metadata']['uid'] for item in node_items)}
+
+
+def slice_endpoints(item):
+    endpoints = item.get('endpoints')
+    if endpoints is None:
+        return []
+    if not isinstance(endpoints, list) or any(not isinstance(endpoint, dict) for endpoint in endpoints):
+        raise RuntimeError('EndpointSlice endpoints must be an array of objects or empty')
+    return endpoints
+
+
+def scheduling_endpoints(slices, service, name):
+    checked_name(name)
+    metadata = service.get('metadata', {})
+    if metadata.get('name') != 'task' or metadata.get('namespace') != name or not metadata.get('uid') or metadata.get('labels', {}).get('lab.csfundamentals/owner') != name or service.get('spec', {}).get('selector') != {'app': 'task'}:
+        raise RuntimeError('Exact owned application Service identity and selector required')
+    ready = []
+    for item in slices.get('items', []):
+        meta = item.get('metadata', {})
+        if meta.get('namespace') != name or not meta.get('uid') or meta.get('labels', {}).get('kubernetes.io/service-name') != 'task' or not any(
+                owner.get('kind') == 'Service' and owner.get('uid') == metadata['uid'] and owner.get('controller') is True
+                for owner in meta.get('ownerReferences', [])):
+            raise RuntimeError('Actual EndpointSlice ownership must match this Service UID')
+        for endpoint in slice_endpoints(item):
+            if endpoint.get('conditions', {}).get('ready') is True:
+                target = endpoint.get('targetRef', {})
+                if target.get('kind') != 'Pod' or target.get('namespace') != name or not target.get('uid'):
+                    raise RuntimeError('Ready endpoint must identify a Pod in the owned namespace')
+                ready.append(endpoint)
+    return ready
+
+
+def validate_scheduling_recovery(pod, replica_set, deployment_uid, name, pending_uid, endpoints):
+    owned_deployment_pod(pod, replica_set, deployment_uid, name)
+    status = pod.get('status', {})
+    conditions = {item.get('type'): item.get('status') for item in status.get('conditions', [])}
+    if pod['metadata']['uid'] == pending_uid or status.get('phase') != 'Running' or not pod.get('spec', {}).get('nodeName'):
+        raise RuntimeError('Replacement running Pod with actual node assignment required')
+    if SCHEDULING_LABEL in pod['spec'].get('nodeSelector', {}) or conditions.get('PodScheduled') != 'True' or conditions.get('Ready') != 'True':
+        raise RuntimeError('Repaired selector and actual Scheduled/Ready conditions required')
+    if len(endpoints) != 1 or endpoints[0].get('conditions', {}).get('ready') is not True or endpoints[0].get('targetRef', {}).get('uid') != pod['metadata']['uid']:
+        raise RuntimeError('Exactly one ready Service endpoint for the repaired Pod required')
+    statuses = status.get('containerStatuses', [])
+    if len(statuses) != 1 or statuses[0].get('restartCount') != 0 or statuses[0].get('ready') is not True:
+        raise RuntimeError('Replacement application container must be actually ready without restarts')
+    return {'podUid': pod['metadata']['uid'], 'replicaSetUid': replica_set['metadata']['uid'],
+            'deploymentUid': deployment_uid, 'nodeName': pod['spec']['nodeName'],
+            'phase': status['phase'], 'readyEndpointPodUid': endpoints[0]['targetRef']['uid'], 'restartCount': 0}
+
+
 def resource_manifest(name, image, mode):
     checked_name(name)
     if image != f'cs-operations:{name}' or mode not in RESOURCE_CASES:
@@ -183,7 +282,7 @@ class Lab:
         self.local_docker = False
         self.images_owned = False
         self.passwords = {key:secrets.token_urlsafe(24) for key in ['TASK_TRACKER_ALICE_PASSWORD','TASK_TRACKER_BOB_PASSWORD','TASK_TRACKER_VIEWER_PASSWORD','SPRING_DATASOURCE_PASSWORD']}
-        self.observations = {'schemaVersion': 2}
+        self.observations = {'schemaVersion': 3}
 
     def k(self, *args, timeout=20, data=None, check=True):
         return execute(['kubectl','--kubeconfig',str(BUILD/'kubeconfig'),'--context',f'kind-{self.name}',
@@ -209,7 +308,7 @@ class Lab:
 
     def endpoints(self):
         slices = self.obj('endpointslices','-l','kubernetes.io/service-name=task')
-        return [endpoint for item in slices['items'] for endpoint in item.get('endpoints',[]) if endpoint.get('conditions',{}).get('ready') is True]
+        return [endpoint for item in slices['items'] for endpoint in slice_endpoints(item) if endpoint.get('conditions',{}).get('ready') is True]
 
     def probe(self, mode):
         result = self.k('exec','client','--','java','-Xmx32m','-cp','/probe','Probe',f'task.{self.name}.svc.cluster.local',mode,timeout=12)
@@ -332,6 +431,87 @@ class Lab:
         self.observations['skipped'] = 0
 
 
+    def pending_scheduling(self):
+        deployment = self.obj('deployment', 'task')
+        if deployment['metadata']['labels'].get('lab.csfundamentals/owner') != self.name:
+            raise RuntimeError('Scheduling repair requires the owned Deployment')
+        if deployment['spec']['template']['spec'].get('nodeSelector'):
+            raise RuntimeError('Refusing to overwrite an existing application node selector')
+        self.save('scheduling-initial-deployment.json', deployment)
+        service = self.obj('service', 'task')
+        scheduling_endpoints(self.obj('endpointslices', '-l', 'kubernetes.io/service-name=task'), service, self.name)
+        self.save('scheduling-service.json', service)
+        deployment_uid = deployment['metadata']['uid']
+        nodes = self.obj('nodes')
+        if not nodes.get('items') or any(item['metadata'].get('labels', {}).get(SCHEDULING_LABEL) == self.name for item in nodes['items']):
+            raise RuntimeError('Refusing a scheduling constraint already satisfied by an observed Node')
+        self.save('scheduling-nodes.json', nodes)
+        # Remove old ready replicas so they cannot hide the deliberately unschedulable replacement.
+        self.k('scale', 'deployment/task', '--replicas=0')
+        self.until('old application Pods removed', lambda: not self.obj('pods', '-l', 'app=task')['items'], 75)
+        self.until('no old ready Service endpoints', lambda: not self.endpoints())
+        self.save('scheduling-drained-endpoint-slices.json', self.obj('endpointslices', '-l', 'kubernetes.io/service-name=task'))
+        patch = {'spec': {'replicas': 1, 'template': {'spec': {'nodeSelector': {SCHEDULING_LABEL: self.name}}}}}
+        self.k('patch', 'deployment', 'task', '--type=strategic', '-p', json.dumps(patch))
+        def unschedulable():
+            pods = self.obj('pods', '-l', 'app=task')['items']
+            if len(pods) != 1:
+                return None
+            pod = pods[0]
+            owner = next((item for item in pod['metadata'].get('ownerReferences', []) if item.get('kind') == 'ReplicaSet' and item.get('controller') is True), None)
+            if not owner:
+                return None
+            replica_set = self.obj('replicaset', owner['name'])
+            events = self.obj('events', '--field-selector', 'involvedObject.uid='+pod['metadata']['uid'])
+            self.save('pending-pod.json', pod)
+            self.save('pending-replicaset.json', replica_set)
+            self.save('pending-scheduler-events.json', events)
+            try:
+                observed = validate_pending_observation(pod, events, nodes, replica_set, deployment_uid, self.name)
+            except RuntimeError:
+                return None
+            return observed
+        pending = self.until('actual unschedulable condition and matching scheduler event', unschedulable, 60)
+        self.until('unschedulable Service has no ready endpoint', lambda: not self.endpoints())
+        slices = self.obj('endpointslices', '-l', 'kubernetes.io/service-name=task')
+        if scheduling_endpoints(slices, service, self.name):
+            raise RuntimeError('Unschedulable Service has an unexpected ready backend')
+        self.save('pending-endpoint-slices.json', slices)
+        unavailable = self.probe('down')
+        if unavailable.get('dnsResolved') is not True or unavailable.get('connectionUnavailable') is not True or self.endpoints():
+            raise RuntimeError('Unschedulable Pod must leave DNS present but Service unavailable')
+        self.observations['scheduling'] = {'pending': pending, 'pendingReadyEndpointCount': 0, 'unavailableService': unavailable}
+        self.k('patch', 'deployment', 'task', '--type=strategic', '-p', json.dumps({'spec': {'template': {'spec': {'nodeSelector': None}}}}))
+        self.k('rollout', 'status', 'deployment/task', '--timeout=200s', timeout=210)
+        self.until('repaired scheduling endpoint', self.endpoints)
+        recovered_service = self.obj('service', 'task')
+        if recovered_service['metadata']['uid'] != service['metadata']['uid'] or recovered_service['spec'] != service['spec']:
+            raise RuntimeError('Scheduling repair must not replace or reconfigure the Service')
+        slices = self.obj('endpointslices', '-l', 'kubernetes.io/service-name=task')
+        endpoints = scheduling_endpoints(slices, service, self.name)
+        pods = [item for item in self.obj('pods', '-l', 'app=task')['items'] if not item['metadata'].get('deletionTimestamp')]
+        if len(pods) != 1:
+            raise RuntimeError('Exactly one current repaired application Pod required')
+        pod = pods[0]
+        owner = next(item for item in pod['metadata']['ownerReferences'] if item.get('kind') == 'ReplicaSet' and item.get('controller') is True)
+        replica_set = self.obj('replicaset', owner['name'])
+        recovered = validate_scheduling_recovery(pod, replica_set, deployment_uid, self.name, pending['podUid'], endpoints)
+        self.save('scheduled-pod.json', pod)
+        self.save('scheduled-replicaset.json', replica_set)
+        self.save('scheduled-endpoint-slices.json', slices)
+        self.save('scheduling-recovered-service.json', recovered_service)
+        recovered_deployment = self.obj('deployment', 'task')
+        if recovered_deployment['metadata']['uid'] != deployment_uid or recovered_deployment['spec']['replicas'] != 1 or recovered_deployment['spec']['template']['spec'].get('nodeSelector'):
+            raise RuntimeError('Repair must retain the owned Deployment with one unconstrained desired replica')
+        self.save('scheduling-recovered-deployment.json', recovered_deployment)
+        service = self.probe('up')
+        if service.get('dnsResolved') is not True or service.get('authenticatedStatus') != 200:
+            raise RuntimeError('Actual authenticated Service recovery required after selector repair')
+        self.observations['scheduling'].update(recovered=recovered, recoveredService=service)
+        self.observations['actualSchedulingCasesExecuted'] = 1
+        self.observations['actualCasesExecuted'] += 1
+
+
     def resources(self):
         results = {}
         self.observations['resources'] = results
@@ -409,6 +589,7 @@ def main():
     try:
         lab.prepare()
         lab.journey()
+        lab.pending_scheduling()
         lab.resources()
     finally:
         try:

@@ -1,8 +1,8 @@
 # Backend Engineering
 
 Current scope: the core curriculum and UI refinement are delivered; the expanded practical
-backend/AI roadmap is still in progress. [PR79](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/79)
-ships the frozen prompt comparison, actual Kubernetes resource incidents and Java OOP source review.
+backend/AI roadmap is still in progress. Releases through [PR90](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/90)
+include the frozen prompt comparison, actual service/cluster exercises and five familiar Java source reviews.
 Use the [current capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
 for what remains. Dated milestones below retain their original evidence; they are not blanket
 completion claims. The [editorial maintenance guide](docs/EDITORIAL_MAINTENANCE.md) defines how to
@@ -604,10 +604,43 @@ Telemetry is off by default; the fixed local fixture needs no live model or coll
 documented build, Python guards and packaged verifier; unknown usage is not zero or billing proof.
 The gateway exercise distinguishes a received response from an idle-body connection close. Its
 timeout acceptance also requires the actual matching Nginx408 log, so a disconnect never becomes
-a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.
+a fabricated client status. Twenty-one native guards precede the mandatory20 actual HTTP cases.
 
 Practice [PostgreSQL concurrency and access paths](examples/backend-persistence/README.md#6-read-committed-repeatable-read-and-serializable-observe-the-history) after the DBMS lessons. Predict actual snapshots, reproduce write skew and deadlock, retry the whole known-aborted transaction, compare optimistic/pessimistic decisions, and inspect equivalent query results and index work. Finish with mutable-order pagination counterexamples and a real isolated restore. The expanded local runner passes12 actual tests without skips; Docker CI is separate evidence.
 
 The [Java methods/construction review](docs/JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) connects familiar course entries 7/8 to the existing OOP lesson. Read a method declaration, predict field values through a constructor chain, and debug a missing no-argument constructor using the complete Java 17 example. Original notes are credited; the course-order revision pilot still has its two reviewed navigation entries.
 
 Curriculum validation checks the reader's parsed headings: the required Expert misconception section must actually render. A heading mentioned in prose, a fenced example or an earlier tier cannot satisfy that contract. The DBMS transaction lesson's leaked patch prefixes are repaired with its code and interview questions preserved.
+
+The [Spring/JDI exercise](examples/backend-debugging/README.md) also verifies cancellation at
+scope entry and during ordinary child teardown. Its eleven native checks retain actual Spring
+launches and JDI events; signal guards alone are not a debugger or learner session.
+
+### Replication and scheduling recovery — October 23 continuation
+
+After the transaction/concurrency exercises, run the [PostgreSQL replication lab](examples/backend-replication/README.md).
+Predict an acknowledged primary write that a paused replica cannot read, recover with a bounded
+replay fence, inspect a deliberately stale promotion after local writer fencing, and rebuild the
+former primary from the selected new history. Two private PostgreSQL 16 clusters and a fresh
+replayed write provide actual evidence; this does not establish multi-host HA or an RTO SLA.
+The runner never attaches to or stops the shared local database. Follow the guide's prerequisites
+and predict/observe/diagnose/repair/change/interview tasks.
+
+The [Pending Pod exercise](examples/backend-operations/README.md#7-diagnose-pending-before-changing-a-probe)
+adds an unsatisfied owned node selector to the existing Kubernetes recovery path. Diagnose from
+PodScheduled and the exact scheduler event, confirm DNS succeeds while the Service has no ready
+endpoints, remove the selector and verify the replacement Pod and an authenticated request.
+The dedicated cluster gate now requires all nine cases, including the original eight; 16 native
+contracts do not substitute for actual kind execution.
+
+The teaching command helpers also retain their existing opt-in cancellation policy through
+scope entry and complete normal cleanup. Local checks cover debugging (11), engineering (20),
+gateway (21), SSRF (20 with 26 actual HTTP requests), replication guards (19) and operations
+contracts (17); five debugging process guards and its six actual Spring/JDI tests are distinct. Read the [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) for the exact
+reproductions and remaining unassessed boundaries. Combined final-head service/cluster CI and
+release are still required; these counts are separate evidence scopes, not one platform test total.
+
+The first actual nine-case cluster attempt exposed a drained EndpointSlice with null endpoints.
+The reader now accepts null/missing/empty arrays as no backends while rejecting malformed values
+and retaining Service/namespace ownership checks. The 17 local contracts pass; the complete actual
+cluster rerun remains required before release.
