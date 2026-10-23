@@ -740,3 +740,67 @@ compression and paraphrase, not just simulator deletion; a semantic equivalent d
 an intentionally literal evidence contract. Final-head CI must rerun before merge.
 
 **Resolving commit:** 7ea7a72 (source c0a424a500db4ab0b6cfcfd26195d075d6234ab4).
+
+## RCA-2026-10-21-17 — late WebSocket admission revived a revoked session
+
+**Observed:** prerelease review identified invalidate-before-reserve ordering in source6d5c389.
+A focused actual registry regression failed: after invalidate(oldId) returned with no reservations,
+reserve(alice,oldId) still returned a new reservation. The old test covered only invalidation
+following admission. No released platform endpoint or external session was affected.
+
+**Cause:** invalidation closed existing reservations but recorded no live authentication state;
+reserve accepted any retained request's principal and session ID. A request authenticated before
+reauthentication can reach the endpoint later. Tomcat getId alone does not establish validity.
+
+**Resolution:** successful form login registers the live session ID and principal in a bounded
+map; destruction/rotation removes membership under the admission lock. Admission never creates
+authentication membership, checks the exact principal and rejects stale requests with401.
+Registration validates servlet session liveness under the same lock; bind also rechecks membership.
+The map has at most32 entries, removes destroyed IDs and clears at shutdown, avoiding unbounded
+revocation tombstones. Existing connection/capacity release remains idempotent.
+
+**Verification/prevention:**9 policy tests pass, including late admission after invalidation,
+a retained Alice principal against Bob's rotated session, and registration after destruction.
+The real transport test pauses an actual authenticated Alice upgrade after the security chain,
+performs Bob form login/ID rotation over HTTP, then releases the request:401 is mandatory and a
+fresh Bob socket must echo successfully. All22 actual transport cases and5 Python harness guards
+pass, preserving established-socket logout, independent actual expiry, original REST owner/CSRF,
+ACK/message limits and cleanup. The sanitized source-bound receipt records actual Java17,
+Boot4.1.1,Framework7.0.9 and Tomcat11.0.24; dedicated final-head CI remains required. Cover both
+orders around revocation, not just closing already-admitted sockets.
+
+**Resolving commit:**68ab14c (source b93a49d; original module6d5c389).
+
+## RCA-2026-10-23-03 — WebSocket preparation hid offline test prerequisites
+
+**Observed:** PR86 actual-session-websocket job119475144049 in run39672905738 returned only
+LabFailure with no completed transport receipt. That historical report does not identify a unique
+Maven failure phase. A separate controlled repository overlay omitted only Surefire's dynamically
+selected JUnit provider: old skipTests packaging exited0, then offline verification exited1 with
+surefire-junit-platform unavailable. The original local warm cache masked this prerequisite defect.
+
+**Cause:** preparing package dependencies with tests skipped does not execute provider selection.
+The failure report suppressed all child output, including safe phase/test identity, so it could
+not distinguish missing prerequisites from a transport assertion. Local success was insufficient
+fresh-runner evidence; no runtime claim is inferred from the old generic failure.
+
+**Resolution:** prepare packages while running all9 policy tests, require their no-skip report,
+then run the full verification offline. Record observed preparation test count and offline mode.
+Failure receipts expose only fixed phase, exit code, a missing-provider boolean, owned suite names
+and source-line numbers from new bounded reports. Raw messages, credentials, cookies, paths and
+response bodies are excluded. Stale or foreign reports cannot supply diagnostics.
+
+The module also contained the reviewed scope-entry and normal-cleanup guard gaps: place thread-
+local state assignment inside restoration try and defer the first TERM/INT through complete
+termination/wait/pipe close. Existing caller policy, masks, nested state and other groups remain.
+
+**Verification/prevention:** the controlled missing-provider overlay now downloads the provider
+through actual policy preparation and passes offline verification (both exits0). All22 actual
+HTTP/session/socket cases,9 policy tests and8 Python guards pass on final local sources. Diagnostic
+privacy/staleness cases pass. Actual first-signal cleanup tests use a READY-confirmed TERM-ignoring
+child; the original close implementation fails both signal subcases, while the fix requires the
+child already killed/waited, pipes closed and an unrelated group alive. Actual positioned scope-
+entry TERM/INT cover caller and nested restoration. Final remote CI remains required; the old
+failure is not declared fully diagnosed until the new actual-service check passes.
+
+**Resolving commit:**f31d66a; source-bound final local receipt WEBSOCKET_SESSIONS_2026-10-23.json.
