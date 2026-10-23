@@ -10,6 +10,14 @@ integration. Deadlines do not cover initial lookups or roll back already-started
 Native child cleanup and the dedicated all-services gate preserve exact ownership and evidence.
 Failed CI startup retains bounded credential-redacted state/log diagnostics for exact job containers
 before teardown; a startup artifact never counts as service-case execution.
+`examples/backend-gateway` is an isolated Docker learning journey using actual digest-pinned
+Nginx, unchanged Task Tracker build input and a Java metadata/fixed-service-read fixture on a private network.
+Only the gateway joins a second owned publishing bridge and publishes an ephemeral loopback port. The service retains authentication,
+CSRF, role and owner decisions; the fixed GET auth subrequest also consumes service work.
+Actual HTTP/log evidence distinguishes gateway429, service503 and upstream-timeout504, checks
+framing/forwarding, and observes valid reload recovery. Bounded clients/processes, no-skip CI,
+source hashes and exact container/network/tag cleanup are mandatory. The diagnostic server reuses one JVM under its32-PID cap; direct401 observation does not start another process. The native guards are
+separate from actual Nginx evidence; no platform routes or shared learner telemetry are added.
 
 `examples/backend-websocket` extends unchanged Task Tracker sources in an isolated Boot4.1.1
 module with the matching WebSocket starter. A narrow ordered chain establishes real servlet
@@ -762,3 +770,7 @@ The data-services job records the actual Docker daemon kernel/version on its Ubu
 runner before starting pinned MongoDB8. It rejects the vendor's known incompatible kernel range;
 containers retain the host kernel. The startup guard is never disabled. This runtime observation
 is separate from the mandatory17 actual Redis/Mongo/combined cases and bounded failure diagnostics.
+The gateway stalled-body observation records received HTTP status separately from EOF-before-status.
+Acceptance additionally requires the matching access-log408. A wire close alone is insufficient;
+Nginx timeout finalization can terminate a request without sending a response status. Failed-run
+logs are retained before cleanup, without swallowing cancellation or changing the20-case gate.
