@@ -277,6 +277,36 @@ class OperationsContracts(unittest.TestCase):
             changed_slices,changed_service=copy.deepcopy((slices,service)); mutate(changed_slices,changed_service)
             with self.assertRaises(RuntimeError): lab.scheduling_endpoints(changed_slices,changed_service,name)
 
+    def test_empty_endpoint_slice_shapes_and_malformed_values_keep_ownership_checks(self):
+        instance = lab.Lab('ops-0123456789abcdef')
+        name = instance.name
+        service = {'metadata': {'name': 'task', 'namespace': name, 'uid': 'service-uid',
+                   'labels': {'lab.csfundamentals/owner': name}}, 'spec': {'selector': {'app': 'task'}}}
+        item = {'metadata': {'namespace': name, 'uid': 'slice-uid',
+                'labels': {'kubernetes.io/service-name': 'task'},
+                'ownerReferences': [{'kind': 'Service', 'uid': 'service-uid', 'controller': True}]}}
+        for shape in ({'endpoints': None}, {'endpoints': []}, {}):
+            slices = {'items': [{**copy.deepcopy(item), **shape}]}
+            with self.subTest(shape=shape):
+                with patch.object(instance, 'obj', return_value=slices):
+                    self.assertEqual([], instance.endpoints())
+                self.assertEqual([], lab.scheduling_endpoints(slices, service, name))
+        for invalid in (False, 0, {}, 'invalid', [None]):
+            slices = {'items': [{**copy.deepcopy(item), 'endpoints': invalid}]}
+            with self.subTest(invalid=invalid):
+                with patch.object(instance, 'obj', return_value=slices), self.assertRaises(RuntimeError):
+                    instance.endpoints()
+                with self.assertRaises(RuntimeError):
+                    lab.scheduling_endpoints(slices, service, name)
+        for foreign in ('namespace', 'owner'):
+            slices = {'items': [{**copy.deepcopy(item), 'endpoints': None}]}
+            if foreign == 'namespace':
+                slices['items'][0]['metadata']['namespace'] = 'foreign'
+            else:
+                slices['items'][0]['metadata']['ownerReferences'][0]['uid'] = 'foreign-service'
+            with self.subTest(foreign=foreign), self.assertRaises(RuntimeError):
+                lab.scheduling_endpoints(slices, service, name)
+
     def test_credentials_are_redacted_from_evidence(self):
         instance = lab.Lab('ops-0123456789abcdef')
         with tempfile.TemporaryDirectory() as directory,patch.object(lab,'EVIDENCE',Path(directory)):
