@@ -40,6 +40,8 @@ jobs:
           report = json.loads(Path('target/evidence/verification.json').read_text())
           assert report['status'] == 'passed'
           assert report['importedTaskTrackerSourceUnchanged'] is True
+          assert report['mavenVerificationOffline'] is True
+          assert report['preparationPolicyTestsExecuted'] == 9
           validate(report['transport'])
           assert len(report['transport']['passedCases']) == 22 == len(CASES)
           assert report['transport']['ordinaryLimits']['active'] == 0

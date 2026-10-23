@@ -34,8 +34,8 @@ def cancellation_guard(error=LabFailure, message='Owned command cancelled'):
             state['delivered'] = True
             raise error(message)
 
-    _cancellation.state = state
     try:
+        _cancellation.state = state
         for number in previous:
             signal.signal(number, cancel)
         yield
@@ -127,6 +127,10 @@ class OwnedProcess:
         return self.process.wait(timeout=1), bytes(self.output)
 
     def close(self):
+        with defer_cancellation():
+            self._close()
+
+    def _close(self):
         if self.selector is not None:
             self.selector.close()
         if self.process is None:

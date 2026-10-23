@@ -24,8 +24,10 @@ python3 -m unittest -v test_verify.py
 python3 verify.py --prepare
 ```
 
-`--prepare` allows normal public Maven resolution of the declared dependencies.
-The subsequent actual verification always uses Maven **offline**. Later runs:
+`--prepare` allows normal public Maven resolution and executes all nine policy tests while
+packaging. That actual test phase resolves Surefire's dynamically selected JUnit provider;
+packaging with tests skipped does not populate it on a fresh runner. The subsequent complete
+transport verification always uses Maven **offline**. Later runs:
 
 ```sh
 python3 verify.py
@@ -36,7 +38,12 @@ named transport cases, the nine required policy tests, actual child JVM feature
 and full runtime version, executed framework versions, source/JAR hashes and
 cleanup outcomes. Compiler release 17 and emitted class major 61 are checked
 separately; a newer JVM targeting 17 does not satisfy the actual Java 17 gate.
-CI rejects skipped/missing/failed cases and publishes **only sanitized JSON**.
+CI rejects skipped/missing/failed cases and publishes **only sanitized JSON**. Eight Python
+guards cover cancellation ownership/scope entry, report publication and diagnostic privacy.
+A failed Maven phase reports only its fixed phase, exit code, missing-provider indicator and
+allowlisted test source-line numbers. Raw exceptions, HTTP bodies, cookies, credentials and
+private temporary paths stay out of the published report. Missing diagnostics do not establish
+that transport cases ran; only the complete successful receipt does.
 
 All users/passwords are generated per run; H2 paths are private temporary paths.
 Both application instances use `127.0.0.1` and OS-assigned port 0. Clients use an
@@ -250,3 +257,8 @@ Read the resolved POM and compile against the actual managed version; do not mix
 cached Spring 6.2 or Boot 3.x WebSocket libraries into this Spring 7 application.
 
 The invalid-session validity check follows the [Servlet6.1 HttpSession contract](https://jakarta.ee/specifications/servlet/6.1/apidocs/jakarta.servlet/jakarta/servlet/http/HttpSession.html#getCreationTime()).
+
+Cleanup defers the first TERM/INT across group termination, direct-child wait and pipe closure,
+then delivers cancellation. A positioned regression starts a TERM-ignoring child, interrupts normal
+successful cleanup, and requires the child already reaped while an unrelated test group stays alive.
+Scope-entry interruption also restores the caller's thread-local guard state, handlers and mask.

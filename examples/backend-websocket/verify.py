@@ -4,6 +4,8 @@ import argparse
 import hashlib
 import json
 import os
+import re
+import time
 from pathlib import Path
 import tempfile
 import xml.etree.ElementTree as ET
@@ -27,6 +29,43 @@ CASES = {
     'unchanged_task_tracker_basic_csrf_and_owner_contract', 'application_shutdown_socket_and_registry_cleanup',
     'independent_actual_servlet_idle_expiry_and_socket_consequence',
 }
+
+
+class VerificationFailure(LabFailure):
+    def __init__(self, phase, exit_code, diagnostics):
+        super().__init__('Owned verification phase failed')
+        self.phase, self.exit_code, self.diagnostics = phase, exit_code, diagnostics
+
+
+def test_diagnostics(reports, started_ns):
+    """Publish fixed test identities/line numbers, never exception messages or response bodies."""
+    result = []
+    for name in ('PolicyTest', 'WebSocketTransportTest'):
+        path = reports / ('TEST-com.csfundamentals.websocketlab.'+name+'.xml')
+        if not path.is_file() or path.is_symlink() or path.stat().st_mtime_ns < started_ns or path.stat().st_size > 262144:
+            continue
+        try:
+            suite = ET.parse(path).getroot()
+            if suite.get('name') != 'com.csfundamentals.websocketlab.'+name:
+                continue
+            for failure in list(suite.findall('.//failure')) + list(suite.findall('.//error')):
+                lines = re.findall(r'\b'+name+r'\.java:([0-9]{1,5})\)', failure.text or '')
+                result.append({'suite': name, 'kind': 'assertion' if failure.get('type', '').endswith('AssertionFailedError') else 'execution',
+                               'sourceLines': sorted({int(line) for line in lines})[:8]})
+                if len(result) >= 10:
+                    return result
+        except (OSError, ET.ParseError):
+            continue
+    return result
+
+
+def maven_phase(command, budget, phase, timeout):
+    started = time.time_ns()
+    code, output = run(command, HERE, budget, timeout=timeout, check=False)
+    if code:
+        diagnostics = {'missingOfflineTestProvider': b'surefire-junit-platform' in output and b'offline' in output,
+                       'testFailures': test_diagnostics(HERE/'target/surefire-reports', started)}
+        raise VerificationFailure(phase, code, diagnostics)
 
 
 def sha(path):
@@ -120,9 +159,15 @@ def verify(*, prepare=False):
         settings = Path(directory) / 'settings.xml'
         settings.write_text('<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"/>\n')
         command = ['mvn', '-s', settings, '-gs', settings, '-B', '-ntp', '-q']
+        prepared_tests = 0
         if prepare:
-            run(command+['-DskipTests', 'package'], HERE, budget, timeout=120)
-        run(command+['-o', 'verify'], HERE, budget, timeout=175)
+            # An actual policy run resolves Surefire's dynamically selected provider; skipTests does not.
+            maven_phase(command+['-Dtest=PolicyTest', 'package'], budget, 'prepare', 120)
+            policy = ET.parse(HERE/'target/surefire-reports/TEST-com.csfundamentals.websocketlab.PolicyTest.xml').getroot()
+            if policy.get('tests') != '9' or any(int(policy.get(field, '0')) for field in ('failures', 'errors', 'skipped')):
+                raise LabFailure('Preparation must execute every policy test')
+            prepared_tests = 9
+        maven_phase(command+['-o', 'verify'], budget, 'offline-verification', 175)
     if imported_hashes() != before:
         raise LabFailure('Imported Task Tracker source changed')
     if module_hashes() != module_before:
@@ -138,6 +183,7 @@ def verify(*, prepare=False):
     return dict(schemaVersion=1, status='passed', transport=receipt,
         importedTaskTrackerSourceUnchanged=True, importedSourceSha256=before, moduleSourceSha256=module_before,
         artifactSha256=sha(jar), transportReceiptSha256=sha(evidence),
+        mavenVerificationOffline=True, preparationPolicyTestsExecuted=prepared_tests,
         limits={'wholeRunSeconds': 300, 'mavenPhaseSeconds': 175, 'childOutputBytes': 131072, 'reportBytes': 65536},
         scope=['reviewed synthetic local fixtures', 'actual Spring HTTP/1.1 upgrade and JDK WebSocket clients',
                'application ACK pressure is not TCP stall evidence', 'no chat, fan-out, distributed sessions, TLS or browser/GUI proof'])
@@ -157,6 +203,8 @@ def main():
         print(f'Passed: {len(CASES)} actual WebSocket/session cases, 9 policy tests; sanitized evidence in target/evidence/verification.json')
     except (LabFailure, OSError, ValueError, KeyError, ET.ParseError) as failure:
         report = dict(schemaVersion=1, status='interrupted' if isinstance(failure, LabFailure) and 'cancelled' in str(failure).lower() else 'failed', failureType=type(failure).__name__)
+        if isinstance(failure, VerificationFailure):
+            report.update(phase=failure.phase, exitCode=failure.exit_code, diagnostics=failure.diagnostics)
         publish(destination, report)
         print('WebSocket verification did not pass; private child output is not published.')
         return 1
