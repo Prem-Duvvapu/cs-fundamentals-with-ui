@@ -63,6 +63,77 @@ class VerificationGuardTests(unittest.TestCase):
 
 
 class ProcessOwnershipTests(unittest.TestCase):
+    def test_actual_first_signal_during_exit_restores_all_handlers_state_and_body_context(self):
+        from contextlib import nullcontext
+        numbers = (signal.SIGTERM, signal.SIGINT)
+        previous = {number: signal.getsignal(number) for number in numbers}
+        original_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        original_state = getattr(processes._cancellation, 'state', None)
+        actual_signal = signal.signal
+        class CallerCancelled(RuntimeError):
+            pass
+        class BodyFailed(RuntimeError):
+            pass
+        try:
+            mask = (original_mask | {signal.SIGUSR1}) - set(numbers)
+            signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+            for selected in numbers:
+                for nested in (False, True):
+                    for body_error in (False, True):
+                        with self.subTest(signal=selected.name, nested=nested, bodyError=body_error):
+                            caller_exception = CallerCancelled('caller restoration cancellation')
+                            body_exception = BodyFailed('owned fixture body error')
+                            def caller(_number, _frame):
+                                raise caller_exception
+                            for number in numbers:
+                                actual_signal(number, caller)
+                            with processes.cancellation_guard() if nested else nullcontext():
+                                outer = getattr(processes._cancellation, 'state', None)
+                                handlers = {number: signal.getsignal(number) for number in numbers}
+                                armed, delivered, caught = [], [], None
+                                def restore(number, handler):
+                                    value = actual_signal(number, handler)
+                                    if armed and number == selected and handler is handlers[selected] and not delivered:
+                                        delivered.append(number)
+                                        os.kill(os.getpid(), number)
+                                    return value
+                                try:
+                                    with patch.object(signal, 'signal', side_effect=restore):
+                                        try:
+                                            with processes.cancellation_guard():
+                                                armed.append(True)
+                                                if body_error:
+                                                    raise body_exception
+                                        except BaseException as failure:
+                                            caught = failure
+                                    self.assertEqual([selected], delivered, 'Actual caller/outer handler must execute during exit restoration')
+                                    if nested:
+                                        self.assertIsInstance(caught, processes.LabFailure)
+                                        self.assertIn('cancelled', str(caught))
+                                    else:
+                                        self.assertIs(caller_exception, caught, 'Caller exception must propagate without replacement or swallowing')
+                                    if body_error:
+                                        self.assertIs(body_exception, caught.__context__)
+                                    self.assertTrue(all(signal.getsignal(number) is handler for number, handler in handlers.items()),
+                                                    'Restoring one handler must not skip the other handler')
+                                    self.assertIs(outer, getattr(processes._cancellation, 'state', None))
+                                    self.assertEqual(mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+                                    if nested:
+                                        self.assertTrue(outer['requested'] and outer['delivered'])
+                                finally:
+                                    # Isolate failing-old probes without claiming the helper restored anything.
+                                    for number, handler in handlers.items():
+                                        actual_signal(number, handler)
+                                    processes._cancellation.state = outer
+                            self.assertIs(original_state, getattr(processes._cancellation, 'state', None))
+                            self.assertTrue(all(signal.getsignal(number) is caller for number in numbers))
+                            self.assertEqual(mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+        finally:
+            for number, handler in previous.items():
+                actual_signal(number, handler)
+            processes._cancellation.state = original_state
+            signal.pthread_sigmask(signal.SIG_SETMASK, original_mask)
+
     def test_binary_input_stdout_and_stderr_have_separate_finite_channels(self):
         payload=bytes(range(256))*256
         with tempfile.TemporaryDirectory() as directory:
