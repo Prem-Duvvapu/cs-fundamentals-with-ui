@@ -28,14 +28,15 @@ keys and short-lived resolver children. From the repository root:
 python3 examples/backend-ssrf/verify.py
 ```
 
-The executable accepts no URL or fetch destination. It runs **16 tests**, including
-**26 actual HTTP requests**, real TLS handshakes, zero-follow redirect cases and an
-actual SIGTERM cancellation regression. Missing tools, skipped tests, failed
-assertions or incomplete cleanup fail the command. The dedicated
+The executable accepts no URL or fetch destination. It runs **18 tests**, including
+**26 actual HTTP requests**, real TLS handshakes, zero-follow redirect cases, an
+actual SIGTERM cancellation regression, and first TERM/INT during resolver timeout
+and successful-result finalization. Missing tools, skipped tests, failed assertions
+or incomplete cleanup fail the command. The dedicated
 [workflow](../../.github/workflows/backend-ssrf.yml) runs the same command and
 checks its sanitized `build/evidence/result.json` before passing.
 
-[The recorded local report](evidence/2026-10-21-local.json) includes actual runtime,
+[The recorded local report](evidence/2026-10-23-local.json) includes actual runtime,
 LF-normalized source hashes, counts, cases and cleanup observations. To intentionally
 update a dated local report after changing this lab, use `--record-local`. Runtime
 `build/` output is ignored by Git; certificate/private-key material never appears
@@ -137,6 +138,14 @@ installs a restoring main-thread TERM/INT scope so cancellation raises through i
 owned-operation `finally` blocks, closes fixtures and removes temporary TLS files.
 The scope defers its own cancellation handler briefly across process creation,
 assignment and registration, inside an already-active cleanup `try/finally`. It
+also defers the first TERM/INT through the complete resolver finalizer: exact owned
+group termination when needed, bounded communication/wait and pipe closure, active
+registry removal and the bounded cleanup event. Cancellation escapes only afterward,
+including when the resolver had already returned a successful result. Positioned
+regressions require timeout children already killed/reaped and successful children
+already exited, closed pipes, completed registry/events, a healthy next library call,
+preserved caller handlers/masks and an unrelated process group left running. These
+exercise the existing executable scope; library calls install no signal policy. It
 preserves caller signal masks and restores both previous handlers. Entry is
 exception-safe: actual TERM/INT injection immediately after handler installation
 but before context entry completes rolls back both handlers and the outer scoped
