@@ -2,6 +2,11 @@
 
 ## Current completion scope — October 21
 
+The misconception gate must keep using the reader's parsed outline and require a rendered
+level-three heading in the Expert tier. Do not replace it with a substring or raw-line check:
+prose, patch prefixes and fenced examples previously passed without an actual section. Preserve
+inline-formatting/LF/CRLF/fence/tier tests and the exact DBMS prose repair documented in RCA10.
+
 The [methods/constructors source review](docs/JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) covers
 all nine S05 pages and course entries 7/8. Keep canonical OOP metadata, original questions/rubrics,
 migration literals and diagram bodies; ConstructorDemo's marked Java 17 output is 2/5/9. Preserve

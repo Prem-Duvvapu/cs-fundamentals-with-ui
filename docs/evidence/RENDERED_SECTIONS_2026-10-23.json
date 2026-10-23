@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "introducedIn": "89315267f2eaee72e73bf58eb1f4986946b78c3b",
+  "gateCommit": "3f1c7c5",
+  "contentCommit": "c55471e",
+  "sourceFile": "content/dbms/06-transactions-acid.md",
+  "originalSha256LF": "1063499371668688234a32788351a5081bdd95edc60cb17ce4db135d441d22c9",
+  "repairedSha256LF": "931a35c2f7a6750d19b95c706ceb6c2256d8bb5ec767b37eddcee4341b303684",
+  "prefixesRemoved": 8,
+  "originalRegexAcceptedMalformedHeading": true,
+  "newGateRejectsOriginal": true,
+  "newGateAcceptsRepaired": true,
+  "allLessonsPass": 68,
+  "scriptTestsPass": 20,
+  "migrationItemsResolved": 109,
+  "browser": {
+    "evidence": "Actual Chromium presentation/API fixtures",
+    "cases": [
+      {
+        "theme": "light",
+        "source": "original",
+        "misconceptionHeadingCount": 0,
+        "patchHeadingTextVisible": true
+      },
+      {
+        "theme": "light",
+        "source": "repaired",
+        "misconceptionHeadingCount": 1,
+        "patchHeadingTextVisible": false
+      },
+      {
+        "theme": "dark",
+        "source": "original",
+        "misconceptionHeadingCount": 0,
+        "patchHeadingTextVisible": true
+      },
+      {
+        "theme": "dark",
+        "source": "repaired",
+        "misconceptionHeadingCount": 1,
+        "patchHeadingTextVisible": false
+      }
+    ],
+    "scope": "Structural rendering only; no new technical-content or learner review"
+  },
+  "limitations": [
+    "Structural rendering repair, not a new technical review",
+    "API-fixture presentation, not actual backend or learner evidence"
+  ]
+}

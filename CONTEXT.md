@@ -808,3 +808,9 @@ confirm the declared Java 17 boundaries. Canonical topic/question/rubric identit
 all diagram bodies and two-entry course presentation mapping are preserved. No PDF assets,
 second metadata registry, new runtime dependency or learner evidence is introduced. The source
 ledger now has five of 31 distinct links reviewed; actual recognition and 26 sources remain open.
+
+The content validator imports the same pure `parseMarkdownOutline` utility used by reader
+navigation to verify the Expert misconception section. Existing frontend Markdown dependencies
+are reused; no new package or platform runtime route is added. This fixes an unanchored-regex
+false positive exposed by literal patch prefixes in the transaction lesson. Actual Chromium
+before/after confirms the restored h3 in both themes; source code/questions/diagrams are unchanged.

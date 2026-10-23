@@ -873,3 +873,15 @@ axe findings and native same-tab source credit; these are API-fixture presentati
 Five of 31 distinct course source links are now reviewed; 26 remain. The two-entry revision
 pilot is unchanged and real learner/manual accessibility gates remain open. Final integrated
 CI and release are required before this continuation is delivered.
+
+### Rendered-section contract repair — unreleased
+
+The reference DBMS transaction lesson contained eight patch-prefix bytes from89315267, making
+its required misconception heading ordinary text. The old unanchored regex accepted it. Gate
+3f1c7c5 shares the reader's parsed outline, requires that h3 within Expert and rejects the
+original source before repair; content-only c55471e removes only those eight prefixes. All
+68 lessons and20 content/migration/charset tests pass, along with109 migration items and
+295 diagrams/590 assets. The [before/after receipt](evidence/RENDERED_SECTIONS_2026-10-23.json)
+records actual Chromium0→1 heading and visible→absent marker text in both themes. No SQL/code,
+question, rubric or diagram body changes. RCA-2026-10-23-10 records cause and prevention;
+final integrated CI/release remains required.
