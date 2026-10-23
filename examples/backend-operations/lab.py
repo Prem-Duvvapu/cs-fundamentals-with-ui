@@ -166,6 +166,15 @@ def validate_pending_observation(pod, events, nodes, replica_set, deployment_uid
             'observedNodeUids': sorted(item['metadata']['uid'] for item in node_items)}
 
 
+def slice_endpoints(item):
+    endpoints = item.get('endpoints')
+    if endpoints is None:
+        return []
+    if not isinstance(endpoints, list) or any(not isinstance(endpoint, dict) for endpoint in endpoints):
+        raise RuntimeError('EndpointSlice endpoints must be an array of objects or empty')
+    return endpoints
+
+
 def scheduling_endpoints(slices, service, name):
     checked_name(name)
     metadata = service.get('metadata', {})
@@ -178,7 +187,7 @@ def scheduling_endpoints(slices, service, name):
                 owner.get('kind') == 'Service' and owner.get('uid') == metadata['uid'] and owner.get('controller') is True
                 for owner in meta.get('ownerReferences', [])):
             raise RuntimeError('Actual EndpointSlice ownership must match this Service UID')
-        for endpoint in item.get('endpoints', []):
+        for endpoint in slice_endpoints(item):
             if endpoint.get('conditions', {}).get('ready') is True:
                 target = endpoint.get('targetRef', {})
                 if target.get('kind') != 'Pod' or target.get('namespace') != name or not target.get('uid'):
@@ -299,7 +308,7 @@ class Lab:
 
     def endpoints(self):
         slices = self.obj('endpointslices','-l','kubernetes.io/service-name=task')
-        return [endpoint for item in slices['items'] for endpoint in item.get('endpoints',[]) if endpoint.get('conditions',{}).get('ready') is True]
+        return [endpoint for item in slices['items'] for endpoint in slice_endpoints(item) if endpoint.get('conditions',{}).get('ready') is True]
 
     def probe(self, mode):
         result = self.k('exec','client','--','java','-Xmx32m','-cp','/probe','Probe',f'task.{self.name}.svc.cluster.local',mode,timeout=12)
@@ -441,6 +450,7 @@ class Lab:
         self.k('scale', 'deployment/task', '--replicas=0')
         self.until('old application Pods removed', lambda: not self.obj('pods', '-l', 'app=task')['items'], 75)
         self.until('no old ready Service endpoints', lambda: not self.endpoints())
+        self.save('scheduling-drained-endpoint-slices.json', self.obj('endpointslices', '-l', 'kubernetes.io/service-name=task'))
         patch = {'spec': {'replicas': 1, 'template': {'spec': {'nodeSelector': {SCHEDULING_LABEL: self.name}}}}}
         self.k('patch', 'deployment', 'task', '--type=strategic', '-p', json.dumps(patch))
         def unschedulable():

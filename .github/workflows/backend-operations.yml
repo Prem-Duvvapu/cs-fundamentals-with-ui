@@ -74,6 +74,8 @@ jobs:
           if observed != pending or scheduling.get('pendingReadyEndpointCount') != 0:
               raise SystemExit('Exact actual scheduler observation and zero ready endpoints required')
           service = load('scheduling-service.json')
+          if lab.scheduling_endpoints(load('scheduling-drained-endpoint-slices.json'), service, result['cluster']):
+              raise SystemExit('Scaled-to-zero Deployment retained a ready Service endpoint')
           if lab.scheduling_endpoints(load('pending-endpoint-slices.json'), service, result['cluster']):
               raise SystemExit('Unschedulable Service retained a ready endpoint')
           if scheduling.get('unavailableService') != {'dnsResolved': True, 'connectionUnavailable': True}:
