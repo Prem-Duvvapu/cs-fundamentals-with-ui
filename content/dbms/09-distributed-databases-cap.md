@@ -4,7 +4,7 @@ A distributed database stores or replicates one logical data set across independ
 
 **Before you start:** Read [transactions](06-transactions-acid.md) and [concurrency control](07-concurrency-control.md), starting with their Beginner tiers.
 **After this lesson:** Trace an uncertain commit, calculate replica-set overlap, and distinguish replicated bytes from a correct wallet transaction.
-**Practice boundary:** The [SQL lab](../../examples/labs/README.md) verifies local query/rollback behavior. It does not simulate replicas, failover or distributed atomic commit; the traces below are worked models.
+**Practice boundary:** The [SQL lab](../../examples/labs/README.md) verifies local query/rollback behavior. Its fixtures do not exercise replica failover or distributed atomic commit; the traces below are worked models. The replication exercise linked below adds actual primary/replica histories and local failover.
 
 **Run the failure boundary:** The [messaging and saga lab](../../examples/backend-messaging/README.md#8-persisted-saga-reconcile-separate-local-commits) exercises real brokers separately from three independent local H2 commits. Stop after a participant commits, reopen the files, and explain how a durable receipt prevents repeating that effect. Fake payment/inventory and compensation do not prove global exactly-once behavior or real replica failover.
 
@@ -82,6 +82,15 @@ Replication may acknowledge at different durability points:
    Protection depends on durable acknowledgements, failover selection and supported failures; waiting for receipt is not waiting for replay. In PostgreSQL 16, `remote_apply` waits for replay on required standbys. Slow or partitioned required replicas can delay or stop writes.
 
 Safe failover must establish an eligible durable history, fence the old primary and redirect clients. A replica that merely looks newest is not proof that it contains every acknowledged write; replication policy and promotion rules must agree.
+
+**Try it:** The [PostgreSQL replication exercise](../../examples/backend-replication/README.md) uses two private database servers on one computer. Follow its setup, then:
+
+1. **Predict:** If the replica pauses applying the change log, will it show a write the primary has acknowledged?
+2. **Observe:** Compare event IDs on both servers; resume replay and wait for the replica to reach the write's log position before reading again.
+3. **Repair:** Follow the guide's failover and [replica rebuild](../../examples/backend-replication/README.md#4-rebuild-the-former-primary-from-the-selected-new-history). Stop the old writer before promotion: this is local process fencing.
+4. **Explain in an interview:** Why can an acknowledged write be absent from the promoted history, and which data-loss and recovery-time assumptions must you state?
+
+Replay pause controls log application; it does not create a network partition. Local process fencing covers this host, so the exercise does not establish multi-host high availability or production recovery guarantees.
 
 ### Sharding and Partitioning
 
