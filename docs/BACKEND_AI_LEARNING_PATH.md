@@ -202,4 +202,9 @@ established socket's logout with an upgrade paused across reauthentication. Expl
 HTTP authentication alone does not preserve a long-lived connection's authorization. Diagnose
 ACK pressure, idle expiry and message bounds separately; the exercise does not simulate a TCP stall.
 
+For AI latency/rejection diagnosis, use [the actual stage trace](../examples/ai-backend/OBSERVABILITY.md).
+Compare a no-evidence abstention with provider429, a deadline and post-generation revocation.
+Follow real parent IDs and distinguish model attempts from HTTP calls and answer acceptance.
+Do not sum nested stage durations or invent queue time; the local nonstream path has no queue.
+Keep unknown usage separate from free work and retain the existing authorization boundary.
 For transaction and query diagnosis, continue with [actual PostgreSQL histories](../examples/backend-persistence/README.md#6-read-committed-repeatable-read-and-serializable-observe-the-history). Predict each snapshot before looking at its receipt. Distinguish a write skew, serialization abort, deadlock, optimistic version conflict and ordinary lock wait. Repair the whole decision, compare equivalent indexed results, then explain why keyset pagination still repeats/misses rows when ordering keys move. Each section includes a private change task and interview explanation; actual learner completion remains unobserved.

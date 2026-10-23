@@ -22,9 +22,14 @@ public final class OllamaHttpModel implements ChatModel {
     private final Duration deadline;
     private final int maxCalls;
     private final AtomicInteger calls = new AtomicInteger();
+    private final AiTelemetry telemetry;
     private final ObjectMapper json = new ObjectMapper();
 
     public OllamaHttpModel(URI endpoint, String model, Duration deadline, int maxCalls) {
+        this(endpoint, model, deadline, maxCalls, AiTelemetry.noop());
+    }
+    public OllamaHttpModel(URI endpoint, String model, Duration deadline, int maxCalls, AiTelemetry telemetry) {
+        this.telemetry = Objects.requireNonNull(telemetry);
         if (!Set.of("http", "https").contains(endpoint.getScheme()) || endpoint.getHost() == null
                 || endpoint.getUserInfo() != null || endpoint.getFragment() != null || endpoint.getQuery() != null)
             throw new IllegalArgumentException("Configure an explicit HTTP model endpoint without credentials/query/fragment");
@@ -34,32 +39,59 @@ public final class OllamaHttpModel implements ChatModel {
     }
 
     @Override public ChatResponse call(Prompt prompt) {
+        var usage = new AiTelemetry.Usage[]{AiTelemetry.Usage.unknown()};
+        try { return telemetry.observe(AiTelemetry.Stage.MODEL, () -> callObserved(prompt, usage)); }
+        finally { telemetry.usage(usage[0]); }
+    }
+    private ChatResponse callObserved(Prompt prompt, AiTelemetry.Usage[] usage) {
         if (prompt.getContents().length() > 12000) throw new ModelFailure("input_limit");
         if (calls.incrementAndGet() > maxCalls) throw new ModelFailure("call_budget_exhausted");
         var messages = prompt.getInstructions().stream().map(m -> Map.of(
                 "role", m.getMessageType().getValue(), "content", m.getText())).toList();
         String body = json.writeValueAsString(Map.of("model", model, "stream", false, "format", "json",
                 "messages", messages, "keep_alive", "1m", "options", Map.of("num_predict", 256, "num_ctx", 4096, "temperature", 0)));
-        var request = HttpRequest.newBuilder(endpoint).timeout(deadline).header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body)).build();
-        var future = http.sendAsync(request, info -> new LimitedBody());
+        var builder = HttpRequest.newBuilder(endpoint).timeout(deadline).header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body));
+        var response = telemetry.observe(AiTelemetry.Stage.MODEL_HTTP, () -> {
+                String parent = telemetry.traceparent();
+                if (parent != null) builder.header("traceparent", parent);
+                var future = http.sendAsync(builder.build(), info -> new LimitedBody());
+                try {
+                    var received = future.get(deadline.toMillis(), TimeUnit.MILLISECONDS);
+                    if (received.statusCode() != 200) throw new ModelFailure("provider_http_" + received.statusCode());
+                    return received;
+                } catch (TimeoutException e) {
+                    future.cancel(true); throw new ModelFailure("provider_deadline");
+                } catch (InterruptedException e) {
+                    future.cancel(true); Thread.currentThread().interrupt(); throw new ModelFailure("cancelled");
+                } catch (ExecutionException e) {
+                    future.cancel(true); throw new ModelFailure("provider_transport_" + e.getCause().getClass().getSimpleName());
+                } catch (ModelFailure e) { throw e; }
+                catch (RuntimeException e) { throw new ModelFailure("provider_invalid_envelope"); }
+            });
         try {
-            var response = future.get(deadline.toMillis(), TimeUnit.MILLISECONDS);
-            if (response.statusCode() != 200) throw new ModelFailure("provider_http_" + response.statusCode());
             var root = json.readTree(response.body());
+            if (telemetry.enabled()) usage[0] = observeUsage(root);
             if (!root.path("done").asBoolean(false) || "length".equals(root.path("done_reason").asString()))
                 throw new ModelFailure("incomplete_output");
             var content = root.path("message").path("content");
             if (!content.isString() || content.asString().isBlank()) throw new ModelFailure("empty_output");
             return new ChatResponse(List.of(new Generation(new AssistantMessage(content.asString()))));
-        } catch (TimeoutException e) {
-            future.cancel(true); throw new ModelFailure("provider_deadline");
-        } catch (InterruptedException e) {
-            future.cancel(true); Thread.currentThread().interrupt(); throw new ModelFailure("cancelled");
-        } catch (ExecutionException e) {
-            future.cancel(true); throw new ModelFailure("provider_transport_" + e.getCause().getClass().getSimpleName());
         } catch (ModelFailure e) { throw e; }
         catch (RuntimeException e) { throw new ModelFailure("provider_invalid_envelope"); }
+    }
+
+    static AiTelemetry.Usage observeUsage(tools.jackson.databind.JsonNode root) {
+        if (root == null) return AiTelemetry.Usage.unknown();
+        var input = root.path("prompt_eval_count"); var output = root.path("eval_count");
+        var cached = root.path("prompt_eval_cached_count");
+        if (!validCount(input) || !validCount(output)
+                || (!cached.isMissingNode() && !validCount(cached))) return AiTelemetry.Usage.unknown();
+        if (!cached.isMissingNode() && cached.asLong() > input.asLong()) return AiTelemetry.Usage.unknown();
+        return new AiTelemetry.Usage(input.asLong(), output.asLong(), cached.isMissingNode() ? null : cached.asLong());
+    }
+    private static boolean validCount(tools.jackson.databind.JsonNode value) {
+        return value.isIntegralNumber() && value.canConvertToLong() && value.asLong() >= 0 && value.asLong() <= 1_000_000_000L;
     }
 
     public static final class ModelFailure extends RuntimeException {

@@ -1,5 +1,13 @@
 # Backend Engineering — System Architecture & Development Context
 
+`AiTelemetry` instruments actual nonstream lexical RAG request/retrieval/context/model/native
+HTTP/validation boundaries only when explicitly enabled. The original no-op constructors/default
+stay compatible. A bounded in-memory SDK exporter emits fixed enum metadata and causal IDs;
+Micrometer labels are fixed enums, with failure-inclusive executed-stage counts and known/unknown
+attempt usage. The owned provider extracts actual W3C parent context. Native HTTP timeout and
+Future wait races preserve original model exceptions while recording the same deadline category.
+The packaged source/JAR-bound fixture has12 scenarios,14 operations,11 HTTP calls and83 spans;
+it adds no platform telemetry, metrics endpoint, collector or queue/admission implementation.
 `CoalescedLoads` is an optional bounded coordinator in the existing backend-data-services module.
 It shares concurrent misses by canonical namespace/tenant/ID/version, limits callers and distinct
 loads with no executor queue, and retains a timed-out flight until its origin operation exits.

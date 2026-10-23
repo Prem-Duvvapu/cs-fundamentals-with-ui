@@ -68,8 +68,8 @@ def cancellation_signals():
             state['delivered'] = True
             raise error(message)
 
-    _cancellation.state = state
     try:
+        _cancellation.state = state
         for number in previous:
             signal.signal(number, cancel)
         yield
@@ -262,26 +262,26 @@ def bounded_child(command, environment, timeout, *, input_bytes=None, output_lim
             raise ChildFailure(error_prefix + '_failed', bytes(output))
         return bytes(output)
     finally:
-        selector.close()
-        # Own session only: parent exit does not prove its child group exited.
-        if process is not None:
-            try:
-                os.killpg(process.pid, signal.SIGTERM)
+        with defer_cancellation():
+            selector.close()
+            # Own session only: parent exit does not prove its child group exited.
+            if process is not None:
                 try:
-                    process.wait(timeout=2)
-                except subprocess.TimeoutExpired:
-                    pass
-                try:
-                    os.killpg(process.pid, signal.SIGKILL)
+                    os.killpg(process.pid, signal.SIGTERM)
+                    try:
+                        process.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        pass
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
                 except ProcessLookupError:
                     pass
-            except ProcessLookupError:
-                pass
-            process.wait(timeout=3)
-            process.stdout.close()
-            if process.stdin is not None and not process.stdin.closed:
-                process.stdin.close()
-
+                process.wait(timeout=3)
+                process.stdout.close()
+                if process.stdin is not None and not process.stdin.closed:
+                    process.stdin.close()
 
 def bounded_java(command, environment, timeout):
     bounded_child(command, environment, timeout)

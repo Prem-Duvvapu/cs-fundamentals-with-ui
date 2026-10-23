@@ -597,6 +597,11 @@ those tests can leave the JUnit provider missing on a fresh runner. Failed phase
 sanitized phase/test-source diagnostics. See the guide for the cold-provider reproduction and
 scoped cancellation/cleanup guards; normal success still requires every actual transport case.
 
+Use [AI stage tracing](examples/ai-backend/OBSERVABILITY.md) to follow a real RAG request across
+retrieval, context, model HTTP and answer validation. Predict which stages run for an abstention,
+429, deadline or revoked source, then inspect actual causal spans and failure-inclusive counters.
+Telemetry is off by default; the fixed local fixture needs no live model or collector. Run the
+documented build, Python guards and packaged verifier; unknown usage is not zero or billing proof.
 The gateway exercise distinguishes a received response from an idle-body connection close. Its
 timeout acceptance also requires the actual matching Nginx408 log, so a disconnect never becomes
 a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.

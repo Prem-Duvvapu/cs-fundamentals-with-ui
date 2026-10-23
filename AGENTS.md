@@ -2,6 +2,13 @@
 
 ## Current completion scope — October 21
 
+The [AI stage tracing exercise](examples/ai-backend/OBSERVABILITY.md) is explicitly opt-in and
+uses a bounded local SDK exporter with fixed enum-only metadata. Keep actual RAG/HTTP causal
+parents, pre/post-generation authorization, original prompts/defaults and nullable bounded usage.
+HTTP timeout wrappers and timed Future.get deadlines share the DEADLINE trace category without
+changing the original public exception. No payload, tenant/source IDs, raw exceptions/events or
+trace-ID metric labels may enter exports. Preserve source/JAR binding, owned cleanup and the
+packaged fixture in practical-ai CI. Streaming/tools/collector/live-quality remain separate work.
 The [PostgreSQL incident/concurrency lab](examples/backend-persistence/README.md) requires all12
 actual tests without skips, ten case groups, source-byte integrity, real dump/restore invariants
 and exact generated role/database cleanup. Preserve actual two-connection isolation histories,

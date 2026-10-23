@@ -15,9 +15,13 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 class AiConfiguration {
+    @Bean(destroyMethod="close") AiTelemetry aiTelemetry(io.micrometer.core.instrument.MeterRegistry meters,
+            @Value("${ai.observability.enabled:false}") boolean enabled) {
+        return enabled ? new AiTelemetry(meters, new AiTelemetry.RecordingExporter()) : AiTelemetry.noop();
+    }
     @Bean ChatClient chatClient(@Value("${ai.endpoint}") URI endpoint, @Value("${ai.model}") String model,
-            @Value("${ai.timeout-ms}") long timeout, @Value("${ai.max-calls}") int maxCalls) {
-        return ChatClient.create(new OllamaHttpModel(endpoint, model, Duration.ofMillis(timeout), maxCalls));
+            @Value("${ai.timeout-ms}") long timeout, @Value("${ai.max-calls}") int maxCalls, AiTelemetry telemetry) {
+        return ChatClient.create(new OllamaHttpModel(endpoint, model, Duration.ofMillis(timeout), maxCalls, telemetry));
     }
     @Bean ExtractionService extraction(ChatClient client) { return new ExtractionService(client); }
     @Bean KnowledgeStore knowledgeStore(@Value("${ai.jdbc-url}") String url, @Value("${ai.jdbc-user}") String user, @Value("${ai.jdbc-password}") String password) {
@@ -38,7 +42,7 @@ class AiConfiguration {
         return new VectorKnowledgeRetrieval(store, provider, index,
                 mode.equals("pgvector-exact") ? PgVectorKnowledgeIndex.Mode.EXACT : PgVectorKnowledgeIndex.Mode.ANN);
     }
-    @Bean KnowledgeService knowledgeService(KnowledgeStore store, ChatClient client, KnowledgeRetrieval retrieval) { return new KnowledgeService(store, client, retrieval); }
+    @Bean KnowledgeService knowledgeService(KnowledgeStore store, ChatClient client, KnowledgeRetrieval retrieval, AiTelemetry telemetry) { return new KnowledgeService(store, client, retrieval, telemetry); }
     @Bean RefundWorkflow refundWorkflow(@Value("${ai.jdbc-url}") String url, @Value("${ai.jdbc-user}") String user,
             @Value("${ai.jdbc-password}") String password, @Value("${ai.approval-secret}") String secret) {
         return new RefundWorkflow(url, user, password, secret, java.time.Clock.systemUTC());

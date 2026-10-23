@@ -108,8 +108,8 @@ input rejection without a call, response limits, refusal, truncation, 429, deadl
 
 The [lexical knowledge baseline](KNOWLEDGE.md), [optional pgvector retrieval](VECTOR_RETRIEVAL.md),
 [controlled workflow/MCP milestone](WORKFLOW.md), [document/OCR exercise](DOCUMENTS.md) and
-[bounded streaming/usage exercise](STREAMING.md) are implemented for their documented scope.
-Learned semantic relevance, human answer support, full stage telemetry, safe retry policy,
+[bounded streaming/usage exercise](STREAMING.md) and [opt-in RAG stage tracing](OBSERVABILITY.md) are implemented for their documented scope.
+Learned semantic relevance, human answer support, streaming/tool stage telemetry, safe retry policy,
 richer multimodal work and broader production quality remain open. Track
 exact evidence in [the implementation ledger](../../docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md).
 

@@ -933,6 +933,69 @@ failure is not declared fully diagnosed until the new actual-service check passe
 
 **Resolving commit:**f31d66a; source-bound final local receipt WEBSOCKET_SESSIONS_2026-10-23.json.
 
+## RCA-2026-10-21-18 — AI runner scope entry left thread-local state changed
+
+**Observed:** independent review delivered actual SIGINT immediately after compare_tickets assigned
+its thread-local cancellation scope but before its restoration try began. The caller's handler was
+preserved, but scope state was not restored. Review restored its owned state afterward; no children
+or external calls were involved. The new observation runner reused this existing helper.
+
+**Cause:** state assignment preceded the restoration try. Tests covered installed-handler and Popen
+boundaries, not cancellation from the caller/outer handler at this earlier entry mutation.
+
+**Resolution:** move scope assignment inside the existing try/finally; preserve caller handlers,
+masks, nested scope and cancellation propagation. No prompt, dataset or model behavior changes.
+
+**Verification/prevention:** actual positioned TERM/INT tests cover caller-handler and nested-guard
+entry, unreachable body, no swallowed cancellation and normal nested LIFO restoration. Existing
+Popen/live-thread and caller-policy tests remain. Current comparison suite passes15 tests; the
+observation guards pass5, including the actual packaged fixture. Frozen packaged comparison still
+has8 HTTP calls and unchanged3/2/4 matches. Source f3e483a integrates6cd3070; final CI is required.
+
+**Resolving commit:**f3e483a (source6cd30702a156b385dbe09abcb99b2da8202cedf3).
+
+## RCA-2026-10-23-07 — first cancellation escaped AI child teardown
+
+**Observed:** the reused bounded_child helper also stopped children outside cancellation deferral.
+Positioned actual TERM/INT after a deadline began cleanup of a READY-confirmed TERM-ignoring child;
+both cases escaped with child.returncode=None. Test fallback killed/reaped only its exact child.
+The old requested flag protected repeated signals but did not protect the first signal in cleanup.
+
+**Resolution:** defer cancellation through selector closure, owned-group termination, direct-child
+wait and pipe closure, then deliver it. Keep caller policy, unrelated groups and original timeout
+behavior. Imports alone do not replace host signal handlers; no SIGKILL cleanup promise is made.
+
+**Verification/prevention:** both old-code signal cases fail the child-wait invariant. After the fix,
+the child is already SIGKILL-waited, PID absent, pipe closed, original handlers/mask restored and a
+separate group alive. All15 comparison guards,5 observation guards and the actual packaged8-call
+comparison pass. Preserve startup, scope-entry and first-cancellation teardown as separate cases.
+
+**Resolving commit:**1c510cb.
+
+## RCA-2026-10-23-08 — equivalent AI timeouts received different trace categories
+
+**Observed:** integrated Maven verification failed the actual pipeline's stage attribution gate.
+A separate SDK regression proves the adapter's native HttpTimeoutException wrapper is classified
+TRANSPORT although the timed Future.get path is DEADLINE. The native wrapper and wait can finish
+in either order; the historical generic failure did not retain its precise enum, so that initial
+run's unique path is not invented.
+
+**Cause:** trace classification recognized provider_deadline but treated all exceptional HTTP
+completion wrappers as generic transport errors, including HttpTimeoutException and its connect
+timeout subclass. The original public ModelFailure codes were already different and stay unchanged.
+
+**Resolution:** classify both known HTTP timeout wrappers as DEADLINE for tracing, keep non-timeout
+network failures TRANSPORT, and add fixed scenario/enum-only fixture failure diagnostics. No public
+exception, prompt, default or application acceptance rule is changed.
+
+**Verification/prevention:** the old SDK regression fails expectedDEADLINE/actualTRANSPORT. The new
+case checks all3 causal stages, same exception identity, connect/response timeouts, a NoRoute control
+and no raw private event/error export. Full Maven passes128 tests with11 explicit optional PG/OCR
+skips; all117 local executions pass. The actual packaged fixture retains12 scenarios/14 operations/
+11 HTTP/83 spans,7 known/5 unknown usage; all20 Python guards and packaged comparison pass. Dedicated
+real PG/OCR and final-head CI remain required. Timing races must not silently change failure meaning.
+
+**Resolving commit:**1c510cb.
 **RCA-2026-10-23-05 verification update:** actual job120574386977/run40000312697 observes
 Docker kernel6.8.0-1064-azure and executes all17 service cases without skips. The selected CI
 receipt is docs/evidence/CACHE_SERVICES_CI_2026-10-23.json. Historical exact bad-kernel value stays

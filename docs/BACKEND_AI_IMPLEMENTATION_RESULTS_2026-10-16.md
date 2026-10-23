@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR85/PR86/PR87/PR89 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -25,7 +25,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
 | AI-09 | Partial: actual paired prompt regression and failure-inclusive reports; human quality open | Quality and regression evaluation |
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
-| AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry open | Operations and debugging |
+| AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry locally verified, release pending | Operations and debugging |
 | AI-12 | Partial: actual token usage and failure-inclusive scenario costs; model comparison open | Cost, capacity and model choice |
 | AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
 | AI-14 | PR80 verified: reviewed AI-authored patches, actual Java/Git/Maven and independent regression tests | AI-assisted engineering |
@@ -36,18 +36,18 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-02 | Partial: actual lexical miss and diagnostic report | Relevant document never retrieved |
 | D-03 | Partial: injected wrong generation with correct retrieval | Correct sources, unsupported answer |
 | D-04 | Partial: JDBC and HTTP tenant tests | Tenant data appears in another answer |
-| D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; AI tracing open | Slow or hanging response |
+| D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; AI tracing locally verified, release pending | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
 | D-07 | Partial: bounded read-only agent tests | Agent keeps calling tools |
 | D-08 | Partial: actual frozen prompt regression with paired cases; model/context upgrades open | Quality drops after an upgrade |
 | D-09 | Partial: failure-inclusive cost arithmetic and unknown-usage diagnosis; comparative budget report open | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
-| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; configuration and JDI locally verified, release pending; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
+| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; PR83 configuration and actual JDI CI verified; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore; expanded concurrency/plans locally verified, release pending | Database incidents: SQL, optimizer, transactions, JPA |
-| BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
-| BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket; gateway/egress work open | API/security: REST + Spring Security |
+| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore plus PR89 actual concurrency/plans CI; broader database work open | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; PR84 concurrent rebalance/replay/dedup actual CI verified | Messaging: distributed DBMS + Spring async |
+| BE-05 / P0 | Partial: real HTTP reliability plus PR87 bounded Redis coalescence/recovery CI; eviction/fairness/failover open | Reliability: Spring caching/async + network application layer |
+| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket and PR85 actual gateway; production egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
@@ -696,6 +696,24 @@ historical. All8 Python guards pass, including scope-entry restoration and first
 cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
 records these scoped observations. Remote actual-service CI remains a release gate.
 
+## Actual AI stage tracing continuation — unreleased
+
+Source4810986/6cd3070 (integratede64c37e/f3e483a) and corrective1c510cb add opt-in actual nonstream
+RAG/HTTP tracing, fixed metadata, bounded nullable usage and failure-inclusive measurements. The
+[final-source local receipt](evidence/AI_STAGE_TRACING_2026-10-23.json) retains observed Java17,
+actual12 scenarios/14 service operations/11 HTTP/83 causal spans, usage7 known/5 unknown and
+source/JAR hashes. It is byte binding, not independent source-to-binary attestation or model quality.
+
+Full local Maven verification passes117 executions with11 explicit optional PG/OCR skips (128
+discovered). All15 comparison guards,5 observation guards and the packaged8-call comparison pass,
+with unchanged3/2/4 fixture matches and original prompt/default. RCA18 and October23-07/08 record
+actual scope-entry, cleanup and deadline-category failures plus their corrected evidence. Native
+HTTP timeout wrappers retain original public errors and now share the DEADLINE trace category.
+
+Existing practical-ai CI now runs the packaged trace and its privacy/causal/ownership guards and
+retains only the bounded sanitized observation JSON. No collector, streaming/tool/vector internals,
+provider queue, live quality/cost or learner gate is closed. Dedicated real pgvector/OCR, all final-
+head platform checks and merge remain required before release.
 ## PR84 receipt reconciliation — October21
 
 PR [84](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/84) merged as
@@ -747,6 +765,29 @@ All16 native guards pass, including controlled realTCP408-versus-EOF distinction
 Nginx all20-case execution remains pending. RCA-2026-10-23-06 records the missing historical logs
 and selected-source finalization behavior without claiming every disconnect is a timeout.
 
+## PR85 merged release evidence — October23
+
+PR [85](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/85) merged at
+2026-10-23T18:33:27Z as8bab21a7744b166775012aee0b54c958caa325f7. Exact head
+14faa958f8e5f840d7c78813d535474f0bad467b passed all ten checks. The actual Nginx job
+40001384613/job120578060371 passed all20 HTTP assertions, zero skips and exact owned cleanup.
+The [source-bound CI receipt](evidence/GATEWAY_CI_2026-10-23.json) records Nginx1.30.6,
+Docker29.4.2, the publishing/private-network distinction, one diagnostic JVM at32-PID cap,
+worker replacement and separate stalled-body wire EOF/server-log408 evidence. It supersedes
+prior gateway execution/release-pending notes and the final-evidence qualifiers in RCA16 and
+October23-01/02/06. No production TLS/global quota/egress or multi-upstream HA is established.
+
+## PR87 merged release evidence — October23
+
+PR [87](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/87) merged at
+2026-10-23T18:42:34Z as4d7ba8df2559ba27c5648cbce0d3fd5f6a8aa53d. Exact head
+342cba78267317e4bd704ef628e7c79d1147b953 passes all ten checks, including actual
+Redis/MongoDB job40004637856/job120589306297 and all six Verify jobs. Its no-skip gate
+requires17 actual cases and five controlled-origin recovery observations; the source-bound
+[persistent CI receipt](evidence/CACHE_SERVICES_CI_2026-10-23.json) preserves the earlier successful
+execution of unchanged service source. The final integrated head reran the same actual-service
+gate successfully. This supersedes cache release-pending notes without closing production
+eviction, distributed coordination, capacity/fairness or failover. MongoDB's guard was retained.
 ## Expanded PostgreSQL concurrency continuation — unreleased
 
 Source8d10fbd extends the existing [persistence incident guide](../examples/backend-persistence/README.md)
@@ -777,3 +818,25 @@ actual PostgreSQL160015, observed Java17, real blocker/retry/query/pagination hi
 restored data/constraints/sequence state and exact resource cleanup. This supersedes the preceding
 Docker-execution-pending note for that head. Final merged-integration checks and release remain
 required; no production performance, replication or participant result is inferred.
+
+## PR89 merged release evidence — October23
+
+PR [89](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/89) merged at
+2026-10-23T18:48:29Z as8bda98028301c8c32fdb88857fdb5c682f29747c. Exact head
+13a1240c5660a070f8676c18f50faeb3cb5b9311 passes all ten checks, including actual
+PostgreSQL job40005762899/job120593124527 and every core Verify job. The dedicated gate
+requires12 tests with zero skips, ten source-bound case groups, restore invariants and exact
+cleanup. The [persistent receipt](evidence/POSTGRES_CONCURRENCY_CI_2026-10-23.json) retains
+the earlier actual execution of identical module source; final integration reruns the same
+mandatory gate successfully. This supersedes database execution/release-pending notes and
+RCA-2026-10-23-09's remote-evidence qualifier. Replication/HA/capacity and learners remain open.
+
+### AI actual-CI observation — final release still pending
+
+The [actual CI trace receipt](evidence/AI_STAGE_TRACING_CI_2026-10-23.json) binds all51 observed
+source files at a7731b6 to the actual packaged12-scenario/14-operation/11-HTTP/83-span fixture
+from job40004727845/job120589615850. Owned resources close; usage remains7 known/5 unknown
+attempts with84 input,28 output and21 cached-input subset tokens. Both dedicated regression
+gates also pass at that head: all8 actual pgvector cases and all3 actual OCR cases with zero
+skips. Source bytes remain unchanged through the subsequent main integrations. Final integrated
+head checks and release are still required; these synthetic observations do not close live quality.

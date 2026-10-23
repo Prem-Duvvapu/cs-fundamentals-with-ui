@@ -1,4 +1,5 @@
 import copy
+import inspect
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
@@ -20,6 +21,106 @@ def variant(correct, errors=None):
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_first_signal_during_deadline_cleanup_waits_for_owned_child(self):
+        previous = {number: signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
+        mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        actual_popen, actual_kill = subprocess.Popen, os.killpg
+        for number in previous:
+            with self.subTest(signal=number), tempfile.TemporaryDirectory(prefix='owned-ai-cleanup-') as directory:
+                ready = Path(directory)/'ready'
+                children, delivered = [], []
+                other = actual_popen([sys.executable,'-c','import time;time.sleep(30)'], start_new_session=True,
+                                     stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+                code = 'import signal,time,sys;from pathlib import Path;signal.signal(signal.SIGTERM,signal.SIG_IGN);Path(sys.argv[1]).write_text("READY");time.sleep(30)'
+                def spawn(*args, **kwargs):
+                    child = actual_popen(*args, **kwargs); children.append(child); return child
+                def interrupt_cleanup(group, value):
+                    actual_kill(group, value)
+                    if children and group == children[0].pid and value == signal.SIGTERM and not delivered:
+                        self.assertEqual('READY', ready.read_text(), 'Owned child must install TERM-ignore before the first cancellation')
+                        delivered.append(number)
+                        os.kill(os.getpid(), number)
+                try:
+                    with self.assertRaises(comparison.ComparisonCancelled), comparison.cancellation_signals(), patch.object(subprocess,'Popen',spawn), patch.object(os,'killpg',interrupt_cleanup):
+                        comparison.bounded_child([sys.executable,'-c',code,str(ready)],comparison.isolated_environment(),.4)
+                    self.assertEqual([number],delivered)
+                    self.assertEqual(-signal.SIGKILL,children[0].returncode, 'Cancellation must escape only after owned wait/KILL')
+                    self.assertTrue(children[0].stdout.closed)
+                    with self.assertRaises(ProcessLookupError): os.kill(children[0].pid,0)
+                    self.assertIsNone(other.poll())
+                    self.assertEqual(mask,signal.pthread_sigmask(signal.SIG_BLOCK,set()))
+                    for sig,handler in previous.items(): self.assertIs(handler,signal.getsignal(sig))
+                finally:
+                    for child in children:
+                        try: actual_kill(child.pid,signal.SIGKILL)
+                        except ProcessLookupError: pass
+                        child.wait(timeout=2);child.stdout.close()
+                    actual_kill(other.pid,signal.SIGKILL);other.wait(timeout=2)
+
+    @unittest.skipUnless(hasattr(signal, 'pthread_sigmask'), 'POSIX thread signals required')
+    def test_real_scope_entry_signal_after_state_assignment_restores_caller_and_nested_scope(self):
+        signals = (signal.SIGTERM, signal.SIGINT)
+        previous = {number: signal.getsignal(number) for number in signals}
+        previous_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        previous_state = getattr(comparison._cancellation, 'state', None)
+        previous_trace = sys.gettrace()
+        source, first = inspect.getsourcelines(comparison.cancellation_signals.__wrapped__)
+        after_assignment = first + next(index for index, line in enumerate(source)
+            if line.strip() == '_cancellation.state = state') + 1
+        target = comparison.cancellation_signals.__wrapped__.__code__
+        class CallerCancelled(RuntimeError):
+            pass
+        def caller_handler(_number, _frame):
+            raise CallerCancelled('caller_scope_entry_cancelled')
+        def positioned(number, expected, state, handlers, mask):
+            delivered, body = [], []
+            def trace(frame, event, _argument):
+                if frame.f_code is target and event == 'line' and frame.f_lineno == after_assignment and not delivered:
+                    delivered.append(number)
+                    os.kill(os.getpid(), number)
+                return trace
+            try:
+                sys.settrace(trace)
+                with self.assertRaises(expected):
+                    with comparison.cancellation_signals():
+                        body.append(True)
+            finally:
+                sys.settrace(previous_trace)
+            self.assertEqual([number], delivered, 'An actual signal must execute immediately after scope mutation')
+            self.assertEqual([], body, 'Scope-entry cancellation must not be swallowed')
+            self.assertIs(state, getattr(comparison._cancellation, 'state', None))
+            for value, handler in handlers.items(): self.assertIs(handler, signal.getsignal(value))
+            self.assertEqual(mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+        try:
+            mask = (previous_mask | {signal.SIGUSR1}) - set(signals)
+            signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+            for number in signals: signal.signal(number, caller_handler)
+            caller_handlers = {number: caller_handler for number in signals}
+            for number in signals:
+                with self.subTest(signal=number.name, nested=False):
+                    positioned(number, CallerCancelled, previous_state, caller_handlers, mask)
+                with self.subTest(signal=number.name, nested=True):
+                    with comparison.cancellation_signals():
+                        outer = comparison._cancellation.state
+                        outer_handlers = {value: signal.getsignal(value) for value in signals}
+                        positioned(number, comparison.ComparisonCancelled, outer, outer_handlers, mask)
+                        self.assertTrue(outer['requested'] and outer['delivered'])
+                    self.assertIs(previous_state, getattr(comparison._cancellation, 'state', None))
+                    for value, handler in caller_handlers.items(): self.assertIs(handler, signal.getsignal(value))
+            # Ordinary nested success must preserve the same LIFO state/handler restoration.
+            with comparison.cancellation_signals():
+                outer = comparison._cancellation.state
+                outer_handlers = {number: signal.getsignal(number) for number in signals}
+                with comparison.cancellation_signals(): self.assertIsNot(outer, comparison._cancellation.state)
+                self.assertIs(outer, comparison._cancellation.state)
+                for number, handler in outer_handlers.items(): self.assertIs(handler, signal.getsignal(number))
+            self.assertIs(previous_state, getattr(comparison._cancellation, 'state', None))
+        finally:
+            sys.settrace(previous_trace)
+            comparison._cancellation.state = previous_state
+            for number, handler in previous.items(): signal.signal(number, handler)
+            signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+
     def test_frozen_identity_requires_exact_prompt_bytes_and_full_commit(self):
         self.assertEqual('2d1247d7ab887cc0f4440d494a4d59528430144d', comparison.FROZEN_COMMIT)
         identity = dict(sha256='b'*64, lfSha256='c'*64, ids=['identity-case'], cases=1)
