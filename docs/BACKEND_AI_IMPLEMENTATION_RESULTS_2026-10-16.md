@@ -610,3 +610,22 @@ records all22 actual cases and observed offline/preparation metadata; the Octobe
 historical. All8 Python guards pass, including scope-entry restoration and first-signal successful
 cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
 records these scoped observations. Remote actual-service CI remains a release gate.
+
+## Actual AI stage tracing continuation — unreleased
+
+Source4810986/6cd3070 (integratede64c37e/f3e483a) and corrective1c510cb add opt-in actual nonstream
+RAG/HTTP tracing, fixed metadata, bounded nullable usage and failure-inclusive measurements. The
+[final-source local receipt](evidence/AI_STAGE_TRACING_2026-10-23.json) retains observed Java17,
+actual12 scenarios/14 service operations/11 HTTP/83 causal spans, usage7 known/5 unknown and
+source/JAR hashes. It is byte binding, not independent source-to-binary attestation or model quality.
+
+Full local Maven verification passes117 executions with11 explicit optional PG/OCR skips (128
+discovered). All15 comparison guards,5 observation guards and the packaged8-call comparison pass,
+with unchanged3/2/4 fixture matches and original prompt/default. RCA18 and October23-07/08 record
+actual scope-entry, cleanup and deadline-category failures plus their corrected evidence. Native
+HTTP timeout wrappers retain original public errors and now share the DEADLINE trace category.
+
+Existing practical-ai CI now runs the packaged trace and its privacy/causal/ownership guards and
+retains only the bounded sanitized observation JSON. No collector, streaming/tool/vector internals,
+provider queue, live quality/cost or learner gate is closed. Dedicated real pgvector/OCR, all final-
+head platform checks and merge remain required before release.

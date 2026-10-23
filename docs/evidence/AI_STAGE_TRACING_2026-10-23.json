@@ -1,0 +1,1720 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "sourceCommit": "1c510cbf673e5cbce5bdf876526ca83193cff8c7",
+  "originalReceiptSha256": "b4375d5f6b7f0deee62f4a763d955b5882ef847a1e881d393085bc33a5c29224",
+  "scope": "Actual final-source local lexical RAG/native HTTP fixture; integrated remote release pending",
+  "verification": {
+    "schemaVersion": 1,
+    "state": "complete",
+    "evidence": "actual-owned-rag-http-fixture",
+    "observation": {
+      "schemaVersion": 1,
+      "evidence": "actual-owned-rag-http-fixture",
+      "runtime": {
+        "feature": 17,
+        "version": "17.0.20.1+1-1-24.04-Ubuntu"
+      },
+      "cases": [
+        {
+          "scenario": "SUCCESS",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "SUCCESS"
+          ],
+          "errors": [
+            "NONE"
+          ]
+        },
+        {
+          "scenario": "ABSTENTION",
+          "operations": 1,
+          "httpRequests": 0,
+          "outcomes": [
+            "ABSTAIN"
+          ],
+          "errors": [
+            "NONE"
+          ]
+        },
+        {
+          "scenario": "RATE_LIMITED",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "ERROR"
+          ],
+          "errors": [
+            "RATE_LIMITED"
+          ]
+        },
+        {
+          "scenario": "DEADLINE",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "ERROR"
+          ],
+          "errors": [
+            "DEADLINE"
+          ]
+        },
+        {
+          "scenario": "SCHEMA",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "ERROR"
+          ],
+          "errors": [
+            "VALIDATION"
+          ]
+        },
+        {
+          "scenario": "CITATION",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "ERROR"
+          ],
+          "errors": [
+            "VALIDATION"
+          ]
+        },
+        {
+          "scenario": "REVOKED",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "ERROR"
+          ],
+          "errors": [
+            "AUTHORIZATION"
+          ]
+        },
+        {
+          "scenario": "UNKNOWN_USAGE",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "SUCCESS"
+          ],
+          "errors": [
+            "NONE"
+          ]
+        },
+        {
+          "scenario": "MALFORMED_USAGE",
+          "operations": 1,
+          "httpRequests": 1,
+          "outcomes": [
+            "SUCCESS"
+          ],
+          "errors": [
+            "NONE"
+          ]
+        },
+        {
+          "scenario": "INPUT_REJECTED",
+          "operations": 1,
+          "httpRequests": 0,
+          "outcomes": [
+            "ERROR"
+          ],
+          "errors": [
+            "INPUT"
+          ]
+        },
+        {
+          "scenario": "BUDGET",
+          "operations": 2,
+          "httpRequests": 1,
+          "outcomes": [
+            "SUCCESS",
+            "ERROR"
+          ],
+          "errors": [
+            "NONE",
+            "BUDGET"
+          ]
+        },
+        {
+          "scenario": "CONCURRENT",
+          "operations": 2,
+          "httpRequests": 2,
+          "outcomes": [
+            "SUCCESS",
+            "SUCCESS"
+          ],
+          "errors": [
+            "NONE",
+            "NONE"
+          ]
+        }
+      ],
+      "traces": [
+        {
+          "traceId": "af7afb13cd673e81fd50daf2da9169e6",
+          "spanId": "d944b27c6f37bffc",
+          "parentSpanId": "bb89464c4b776193",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 38046332
+        },
+        {
+          "traceId": "af7afb13cd673e81fd50daf2da9169e6",
+          "spanId": "980412273c2953ca",
+          "parentSpanId": "bb89464c4b776193",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 59684082
+        },
+        {
+          "traceId": "af7afb13cd673e81fd50daf2da9169e6",
+          "spanId": "d6b82d7b97461506",
+          "parentSpanId": "51587280a9fe1a6c",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 23995313
+        },
+        {
+          "traceId": "af7afb13cd673e81fd50daf2da9169e6",
+          "spanId": "51587280a9fe1a6c",
+          "parentSpanId": "e6bd4894fcbcb8c9",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 75902593
+        },
+        {
+          "traceId": "af7afb13cd673e81fd50daf2da9169e6",
+          "spanId": "e6bd4894fcbcb8c9",
+          "parentSpanId": "bb89464c4b776193",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 102440441
+        },
+        {
+          "traceId": "af7afb13cd673e81fd50daf2da9169e6",
+          "spanId": "799221e20eb65391",
+          "parentSpanId": "bb89464c4b776193",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2732608
+        },
+        {
+          "traceId": "af7afb13cd673e81fd50daf2da9169e6",
+          "spanId": "bb89464c4b776193",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 244023203
+        },
+        {
+          "traceId": "afc48507c01d4cc1f1f550978591eb54",
+          "spanId": "6f2da6bf05599bc4",
+          "parentSpanId": "8e2c52561d70d08a",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1457196
+        },
+        {
+          "traceId": "afc48507c01d4cc1f1f550978591eb54",
+          "spanId": "bd5cc4c40cd7bf8a",
+          "parentSpanId": "8e2c52561d70d08a",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1068932
+        },
+        {
+          "traceId": "afc48507c01d4cc1f1f550978591eb54",
+          "spanId": "8e2c52561d70d08a",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ABSTAIN",
+          "error": "NONE",
+          "durationNanos": 2784140
+        },
+        {
+          "traceId": "125cfe531b2c38009f965987fba58edd",
+          "spanId": "4462d59d35081c0e",
+          "parentSpanId": "6d9586b3510a04bd",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1066358
+        },
+        {
+          "traceId": "125cfe531b2c38009f965987fba58edd",
+          "spanId": "607f06555b973850",
+          "parentSpanId": "6d9586b3510a04bd",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 4727667
+        },
+        {
+          "traceId": "125cfe531b2c38009f965987fba58edd",
+          "spanId": "cfb9ccb6f8c9e147",
+          "parentSpanId": "4cade3d064e53400",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "ERROR",
+          "error": "RATE_LIMITED",
+          "durationNanos": 4138774
+        },
+        {
+          "traceId": "125cfe531b2c38009f965987fba58edd",
+          "spanId": "4cade3d064e53400",
+          "parentSpanId": "54cc16780f1e903c",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "ERROR",
+          "error": "RATE_LIMITED",
+          "durationNanos": 8537213
+        },
+        {
+          "traceId": "125cfe531b2c38009f965987fba58edd",
+          "spanId": "54cc16780f1e903c",
+          "parentSpanId": "6d9586b3510a04bd",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "RATE_LIMITED",
+          "durationNanos": 10651159
+        },
+        {
+          "traceId": "125cfe531b2c38009f965987fba58edd",
+          "spanId": "6d9586b3510a04bd",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "RATE_LIMITED",
+          "durationNanos": 16943450
+        },
+        {
+          "traceId": "a5db559eabbb082d057e4606aa3e457d",
+          "spanId": "c97f1b278ab8d440",
+          "parentSpanId": "4645438a205ac54c",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1205122
+        },
+        {
+          "traceId": "a5db559eabbb082d057e4606aa3e457d",
+          "spanId": "fc540ec21afdd804",
+          "parentSpanId": "4645438a205ac54c",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2490082
+        },
+        {
+          "traceId": "a5db559eabbb082d057e4606aa3e457d",
+          "spanId": "ff4951f95ead1973",
+          "parentSpanId": "97a5fe10c8641aa5",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "ERROR",
+          "error": "DEADLINE",
+          "durationNanos": 102671063
+        },
+        {
+          "traceId": "a5db559eabbb082d057e4606aa3e457d",
+          "spanId": "97a5fe10c8641aa5",
+          "parentSpanId": "4645438a205ac54c",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "DEADLINE",
+          "durationNanos": 104467342
+        },
+        {
+          "traceId": "a5db559eabbb082d057e4606aa3e457d",
+          "spanId": "4645438a205ac54c",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "DEADLINE",
+          "durationNanos": 108634260
+        },
+        {
+          "traceId": "a5db559eabbb082d057e4606aa3e457d",
+          "spanId": "cf0fedb91e000f28",
+          "parentSpanId": "ff4951f95ead1973",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "ERROR",
+          "error": "INTERNAL",
+          "durationNanos": 254356507
+        },
+        {
+          "traceId": "72fcc0ad48fab8779024f0ea7dc2b28b",
+          "spanId": "a00e63f9c36b38ff",
+          "parentSpanId": "4f4f76b979751ef7",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1026185
+        },
+        {
+          "traceId": "72fcc0ad48fab8779024f0ea7dc2b28b",
+          "spanId": "55a3cf488dec79d4",
+          "parentSpanId": "4f4f76b979751ef7",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2480329
+        },
+        {
+          "traceId": "72fcc0ad48fab8779024f0ea7dc2b28b",
+          "spanId": "8dc5eb12833c208b",
+          "parentSpanId": "f69504ecb3530028",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1767300
+        },
+        {
+          "traceId": "72fcc0ad48fab8779024f0ea7dc2b28b",
+          "spanId": "f69504ecb3530028",
+          "parentSpanId": "37f2a36462696fb1",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 5986623
+        },
+        {
+          "traceId": "72fcc0ad48fab8779024f0ea7dc2b28b",
+          "spanId": "37f2a36462696fb1",
+          "parentSpanId": "4f4f76b979751ef7",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 8212326
+        },
+        {
+          "traceId": "72fcc0ad48fab8779024f0ea7dc2b28b",
+          "spanId": "f926f75b8ff88aa8",
+          "parentSpanId": "4f4f76b979751ef7",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "VALIDATION",
+          "durationNanos": 1108262
+        },
+        {
+          "traceId": "72fcc0ad48fab8779024f0ea7dc2b28b",
+          "spanId": "4f4f76b979751ef7",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "VALIDATION",
+          "durationNanos": 13457698
+        },
+        {
+          "traceId": "66e5ff9176f55b957c86d934121fe56f",
+          "spanId": "10058572fe6c74e1",
+          "parentSpanId": "437acd978b9d623b",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 4052534
+        },
+        {
+          "traceId": "66e5ff9176f55b957c86d934121fe56f",
+          "spanId": "16de5adc8085550a",
+          "parentSpanId": "437acd978b9d623b",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2792810
+        },
+        {
+          "traceId": "66e5ff9176f55b957c86d934121fe56f",
+          "spanId": "7a6f0a72088ae257",
+          "parentSpanId": "e6cf693fce77cc2c",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2502427
+        },
+        {
+          "traceId": "66e5ff9176f55b957c86d934121fe56f",
+          "spanId": "e6cf693fce77cc2c",
+          "parentSpanId": "d0aa18d26c061900",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 7232198
+        },
+        {
+          "traceId": "66e5ff9176f55b957c86d934121fe56f",
+          "spanId": "d0aa18d26c061900",
+          "parentSpanId": "437acd978b9d623b",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 10932827
+        },
+        {
+          "traceId": "66e5ff9176f55b957c86d934121fe56f",
+          "spanId": "a5a83a9f9df942e3",
+          "parentSpanId": "437acd978b9d623b",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "VALIDATION",
+          "durationNanos": 226330
+        },
+        {
+          "traceId": "66e5ff9176f55b957c86d934121fe56f",
+          "spanId": "437acd978b9d623b",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "VALIDATION",
+          "durationNanos": 18610343
+        },
+        {
+          "traceId": "147fbedf20a142803be37652bcd75f85",
+          "spanId": "8c81edc255d6a2c7",
+          "parentSpanId": "274c4858ce6a5abe",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1229269
+        },
+        {
+          "traceId": "147fbedf20a142803be37652bcd75f85",
+          "spanId": "660216e7f094bc6f",
+          "parentSpanId": "274c4858ce6a5abe",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 3129798
+        },
+        {
+          "traceId": "147fbedf20a142803be37652bcd75f85",
+          "spanId": "2388641c1b819cf5",
+          "parentSpanId": "5ec43a0185e77e95",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 7280554
+        },
+        {
+          "traceId": "147fbedf20a142803be37652bcd75f85",
+          "spanId": "5ec43a0185e77e95",
+          "parentSpanId": "1f52c716fc35b0ff",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 11756780
+        },
+        {
+          "traceId": "147fbedf20a142803be37652bcd75f85",
+          "spanId": "1f52c716fc35b0ff",
+          "parentSpanId": "274c4858ce6a5abe",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 13890552
+        },
+        {
+          "traceId": "147fbedf20a142803be37652bcd75f85",
+          "spanId": "2a1cd6e9e084d11e",
+          "parentSpanId": "274c4858ce6a5abe",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "AUTHORIZATION",
+          "durationNanos": 1041746
+        },
+        {
+          "traceId": "147fbedf20a142803be37652bcd75f85",
+          "spanId": "274c4858ce6a5abe",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "AUTHORIZATION",
+          "durationNanos": 20152104
+        },
+        {
+          "traceId": "acfb9a8963600a76594ca2a84c59ad3f",
+          "spanId": "b3adc35196227286",
+          "parentSpanId": "04744c315edb06e7",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 916132
+        },
+        {
+          "traceId": "acfb9a8963600a76594ca2a84c59ad3f",
+          "spanId": "af6084828ecd8e5e",
+          "parentSpanId": "04744c315edb06e7",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1985381
+        },
+        {
+          "traceId": "acfb9a8963600a76594ca2a84c59ad3f",
+          "spanId": "7058acd0ee1a70fc",
+          "parentSpanId": "26c105bdf212c6c4",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2092815
+        },
+        {
+          "traceId": "acfb9a8963600a76594ca2a84c59ad3f",
+          "spanId": "26c105bdf212c6c4",
+          "parentSpanId": "869b05bd77c74cd0",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 6038045
+        },
+        {
+          "traceId": "acfb9a8963600a76594ca2a84c59ad3f",
+          "spanId": "869b05bd77c74cd0",
+          "parentSpanId": "04744c315edb06e7",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 7587493
+        },
+        {
+          "traceId": "acfb9a8963600a76594ca2a84c59ad3f",
+          "spanId": "d5fdd5bede8a831c",
+          "parentSpanId": "04744c315edb06e7",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1057103
+        },
+        {
+          "traceId": "acfb9a8963600a76594ca2a84c59ad3f",
+          "spanId": "04744c315edb06e7",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 12068634
+        },
+        {
+          "traceId": "8a679e4385c0ff79d1f3dac0f76021b1",
+          "spanId": "36873f157c99c05b",
+          "parentSpanId": "42e46cfe52abfd9a",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1044377
+        },
+        {
+          "traceId": "8a679e4385c0ff79d1f3dac0f76021b1",
+          "spanId": "cc7e7ca5bc6da0d6",
+          "parentSpanId": "42e46cfe52abfd9a",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2165216
+        },
+        {
+          "traceId": "8a679e4385c0ff79d1f3dac0f76021b1",
+          "spanId": "d583bb75dfe2f519",
+          "parentSpanId": "267fa411ef6b0483",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2336493
+        },
+        {
+          "traceId": "8a679e4385c0ff79d1f3dac0f76021b1",
+          "spanId": "267fa411ef6b0483",
+          "parentSpanId": "708db0ab10cbc55e",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 6563004
+        },
+        {
+          "traceId": "8a679e4385c0ff79d1f3dac0f76021b1",
+          "spanId": "708db0ab10cbc55e",
+          "parentSpanId": "42e46cfe52abfd9a",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 8807091
+        },
+        {
+          "traceId": "8a679e4385c0ff79d1f3dac0f76021b1",
+          "spanId": "00ba7dcc20b48c66",
+          "parentSpanId": "42e46cfe52abfd9a",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1150092
+        },
+        {
+          "traceId": "8a679e4385c0ff79d1f3dac0f76021b1",
+          "spanId": "42e46cfe52abfd9a",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 13854415
+        },
+        {
+          "traceId": "ac06b6a5d3eb79bc21976a20f5b4afdf",
+          "spanId": "54183d5dd94d8874",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "INPUT",
+          "durationNanos": 135187
+        },
+        {
+          "traceId": "d9354d82212ead64776d85f151b66a99",
+          "spanId": "39aaff08525f2403",
+          "parentSpanId": "60619c0de27f0469",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 812358
+        },
+        {
+          "traceId": "d9354d82212ead64776d85f151b66a99",
+          "spanId": "b3a46a91fe8248c8",
+          "parentSpanId": "60619c0de27f0469",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1820152
+        },
+        {
+          "traceId": "d9354d82212ead64776d85f151b66a99",
+          "spanId": "b7ad93048878b6e3",
+          "parentSpanId": "71e7bda7f52138ef",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 6879394
+        },
+        {
+          "traceId": "d9354d82212ead64776d85f151b66a99",
+          "spanId": "71e7bda7f52138ef",
+          "parentSpanId": "ca9e2fbedede6571",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 11035134
+        },
+        {
+          "traceId": "d9354d82212ead64776d85f151b66a99",
+          "spanId": "ca9e2fbedede6571",
+          "parentSpanId": "60619c0de27f0469",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 12376791
+        },
+        {
+          "traceId": "d9354d82212ead64776d85f151b66a99",
+          "spanId": "3e840aee67832be0",
+          "parentSpanId": "60619c0de27f0469",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 877881
+        },
+        {
+          "traceId": "d9354d82212ead64776d85f151b66a99",
+          "spanId": "60619c0de27f0469",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 16364941
+        },
+        {
+          "traceId": "90f0286fc13489ea5113011de3d5ad83",
+          "spanId": "8915bb80710c7d03",
+          "parentSpanId": "d8fc4966cf74cbe7",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 673032
+        },
+        {
+          "traceId": "90f0286fc13489ea5113011de3d5ad83",
+          "spanId": "0ec68cfdb00330f2",
+          "parentSpanId": "d8fc4966cf74cbe7",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 704212
+        },
+        {
+          "traceId": "90f0286fc13489ea5113011de3d5ad83",
+          "spanId": "7561d4630db90561",
+          "parentSpanId": "d8fc4966cf74cbe7",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "BUDGET",
+          "durationNanos": 103540
+        },
+        {
+          "traceId": "90f0286fc13489ea5113011de3d5ad83",
+          "spanId": "d8fc4966cf74cbe7",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "ERROR",
+          "error": "BUDGET",
+          "durationNanos": 1832571
+        },
+        {
+          "traceId": "0ee5067bf84005c50d403578e7036606",
+          "spanId": "b95e53b8ef13112a",
+          "parentSpanId": "bb8d5fe9019ccaf4",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 984445
+        },
+        {
+          "traceId": "86ae10f0b04088338001674669b876a1",
+          "spanId": "c40ea835af23c78c",
+          "parentSpanId": "5de0c9080a1a647c",
+          "remoteParent": false,
+          "stage": "RETRIEVAL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 634545
+        },
+        {
+          "traceId": "0ee5067bf84005c50d403578e7036606",
+          "spanId": "703e7a5edbe4ccea",
+          "parentSpanId": "bb8d5fe9019ccaf4",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1861814
+        },
+        {
+          "traceId": "86ae10f0b04088338001674669b876a1",
+          "spanId": "e87678753cc4fea0",
+          "parentSpanId": "5de0c9080a1a647c",
+          "remoteParent": false,
+          "stage": "CONTEXT",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1100868
+        },
+        {
+          "traceId": "86ae10f0b04088338001674669b876a1",
+          "spanId": "bb4eca39361959eb",
+          "parentSpanId": "1d0ad358b20c35cc",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2180679
+        },
+        {
+          "traceId": "0ee5067bf84005c50d403578e7036606",
+          "spanId": "34dea900609f5968",
+          "parentSpanId": "7d39b36159ff4ca2",
+          "remoteParent": true,
+          "stage": "FIXTURE_PROVIDER",
+          "kind": "SERVER",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 3522468
+        },
+        {
+          "traceId": "0ee5067bf84005c50d403578e7036606",
+          "spanId": "7d39b36159ff4ca2",
+          "parentSpanId": "b737eab14be7e201",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 8064163
+        },
+        {
+          "traceId": "0ee5067bf84005c50d403578e7036606",
+          "spanId": "b737eab14be7e201",
+          "parentSpanId": "bb8d5fe9019ccaf4",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 9484670
+        },
+        {
+          "traceId": "86ae10f0b04088338001674669b876a1",
+          "spanId": "1d0ad358b20c35cc",
+          "parentSpanId": "0f763afe2d0af8ac",
+          "remoteParent": false,
+          "stage": "MODEL_HTTP",
+          "kind": "CLIENT",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 8851637
+        },
+        {
+          "traceId": "86ae10f0b04088338001674669b876a1",
+          "spanId": "0f763afe2d0af8ac",
+          "parentSpanId": "5de0c9080a1a647c",
+          "remoteParent": false,
+          "stage": "MODEL",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 9988131
+        },
+        {
+          "traceId": "86ae10f0b04088338001674669b876a1",
+          "spanId": "33102dde07bdef18",
+          "parentSpanId": "5de0c9080a1a647c",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 1527717
+        },
+        {
+          "traceId": "86ae10f0b04088338001674669b876a1",
+          "spanId": "5de0c9080a1a647c",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 13855440
+        },
+        {
+          "traceId": "0ee5067bf84005c50d403578e7036606",
+          "spanId": "addbd470f2309add",
+          "parentSpanId": "bb8d5fe9019ccaf4",
+          "remoteParent": false,
+          "stage": "VALIDATION",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 2523854
+        },
+        {
+          "traceId": "0ee5067bf84005c50d403578e7036606",
+          "spanId": "bb8d5fe9019ccaf4",
+          "parentSpanId": "0000000000000000",
+          "remoteParent": false,
+          "stage": "REQUEST",
+          "kind": "INTERNAL",
+          "outcome": "SUCCESS",
+          "error": "NONE",
+          "durationNanos": 15314682
+        }
+      ],
+      "measurements": [
+        {
+          "name": "ai.model.known.tokens",
+          "tags": {
+            "direction": "cached_input"
+          },
+          "samples": 21,
+          "total": 21.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.model.known.tokens",
+          "tags": {
+            "direction": "input"
+          },
+          "samples": 84,
+          "total": 84.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.model.known.tokens",
+          "tags": {
+            "direction": "output"
+          },
+          "samples": 28,
+          "total": 28.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.model.usage.calls",
+          "tags": {
+            "state": "known"
+          },
+          "samples": 7,
+          "total": 7.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.model.usage.calls",
+          "tags": {
+            "state": "unknown"
+          },
+          "samples": 5,
+          "total": 5.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "AUTHORIZATION",
+            "outcome": "ERROR",
+            "stage": "REQUEST"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "AUTHORIZATION",
+            "outcome": "ERROR",
+            "stage": "VALIDATION"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "BUDGET",
+            "outcome": "ERROR",
+            "stage": "MODEL"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "BUDGET",
+            "outcome": "ERROR",
+            "stage": "REQUEST"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "DEADLINE",
+            "outcome": "ERROR",
+            "stage": "MODEL_HTTP"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "DEADLINE",
+            "outcome": "ERROR",
+            "stage": "MODEL"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "DEADLINE",
+            "outcome": "ERROR",
+            "stage": "REQUEST"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "INPUT",
+            "outcome": "ERROR",
+            "stage": "REQUEST"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "INTERNAL",
+            "outcome": "ERROR",
+            "stage": "FIXTURE_PROVIDER"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "ABSTAIN",
+            "stage": "REQUEST"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "SUCCESS",
+            "stage": "CONTEXT"
+          },
+          "samples": 13,
+          "total": 13.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "SUCCESS",
+            "stage": "FIXTURE_PROVIDER"
+          },
+          "samples": 9,
+          "total": 9.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "SUCCESS",
+            "stage": "MODEL_HTTP"
+          },
+          "samples": 9,
+          "total": 9.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "SUCCESS",
+            "stage": "MODEL"
+          },
+          "samples": 9,
+          "total": 9.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "SUCCESS",
+            "stage": "REQUEST"
+          },
+          "samples": 6,
+          "total": 6.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "SUCCESS",
+            "stage": "RETRIEVAL"
+          },
+          "samples": 13,
+          "total": 13.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "NONE",
+            "outcome": "SUCCESS",
+            "stage": "VALIDATION"
+          },
+          "samples": 6,
+          "total": 6.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "RATE_LIMITED",
+            "outcome": "ERROR",
+            "stage": "FIXTURE_PROVIDER"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "RATE_LIMITED",
+            "outcome": "ERROR",
+            "stage": "MODEL_HTTP"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "RATE_LIMITED",
+            "outcome": "ERROR",
+            "stage": "MODEL"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "RATE_LIMITED",
+            "outcome": "ERROR",
+            "stage": "REQUEST"
+          },
+          "samples": 1,
+          "total": 1.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "VALIDATION",
+            "outcome": "ERROR",
+            "stage": "REQUEST"
+          },
+          "samples": 2,
+          "total": 2.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.calls",
+          "tags": {
+            "error": "VALIDATION",
+            "outcome": "ERROR",
+            "stage": "VALIDATION"
+          },
+          "samples": 2,
+          "total": 2.0,
+          "unit": "count"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "ABSTAIN",
+            "stage": "REQUEST"
+          },
+          "samples": 1,
+          "total": 2752583.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "ERROR",
+            "stage": "FIXTURE_PROVIDER"
+          },
+          "samples": 2,
+          "total": 258409858.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "ERROR",
+            "stage": "MODEL_HTTP"
+          },
+          "samples": 2,
+          "total": 111115725.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "ERROR",
+            "stage": "MODEL"
+          },
+          "samples": 3,
+          "total": 115147473.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "ERROR",
+            "stage": "REQUEST"
+          },
+          "samples": 7,
+          "total": 179591949.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "ERROR",
+            "stage": "VALIDATION"
+          },
+          "samples": 3,
+          "total": 2281314.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "SUCCESS",
+            "stage": "CONTEXT"
+          },
+          "samples": 13,
+          "total": 85553088.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "SUCCESS",
+            "stage": "FIXTURE_PROVIDER"
+          },
+          "samples": 9,
+          "total": 51885494.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "SUCCESS",
+            "stage": "MODEL_HTTP"
+          },
+          "samples": 9,
+          "total": 141132291.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "SUCCESS",
+            "stage": "MODEL"
+          },
+          "samples": 9,
+          "total": 183467834.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "SUCCESS",
+            "stage": "REQUEST"
+          },
+          "samples": 6,
+          "total": 314526807.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "SUCCESS",
+            "stage": "RETRIEVAL"
+          },
+          "samples": 13,
+          "total": 51055749.0,
+          "unit": "nanoseconds"
+        },
+        {
+          "name": "ai.stage.duration",
+          "tags": {
+            "outcome": "SUCCESS",
+            "stage": "VALIDATION"
+          },
+          "samples": 6,
+          "total": 9729831.0,
+          "unit": "nanoseconds"
+        }
+      ],
+      "droppedSpans": 0,
+      "fixtureResourcesClosed": true,
+      "scope": "Actual local lexical/JDBC/context/native HTTP/validation tracing; fixture only, no model quality, provider queue, streaming, tools, collector or production deployment evidence."
+    },
+    "binding": {
+      "sources": {
+        "src/main/java/com/csfundamentals/aiexample/AiBackendApplication.java": {
+          "sha256": "e61fc8b10a7645bf3b497160971d040bce0ee1e373eb9882a56bee98af7a6059",
+          "lfSha256": "41b5b0f796713b2ed6aa4f744a7f2ae90e556a524250f47f5e80adeb748b7310"
+        },
+        "src/main/java/com/csfundamentals/aiexample/AiConfiguration.java": {
+          "sha256": "3220ec77800f3512fad88d4fc6cab98947bdcf161c9c54ff1d8f905f1608987b",
+          "lfSha256": "4fce3b66ef003aad2937c1b418866fdfea9745fdb391cbb05d4e479cfb18b736"
+        },
+        "src/main/java/com/csfundamentals/aiexample/AiObservabilityDemo.java": {
+          "sha256": "690b1df5dad2ea8f8a58faafb00837aa04ed40fadaa4ead726e58e87378ffca1",
+          "lfSha256": "4f4a475e0bf879e14614e21bbaf12e751d21a6be92ab1089f1fc6c8db00a17a6"
+        },
+        "src/main/java/com/csfundamentals/aiexample/AiTelemetry.java": {
+          "sha256": "57eb462fe051f980e4dcdee5dbcbea517eca0f76a2742f911f362ecd2885b8ec",
+          "lfSha256": "57eb462fe051f980e4dcdee5dbcbea517eca0f76a2742f911f362ecd2885b8ec"
+        },
+        "src/main/java/com/csfundamentals/aiexample/EmbeddingProvider.java": {
+          "sha256": "663b6b09cd21c5cb36576d637a378b228e1e91b67a1b933e2e9fb0cb6cc8d13d",
+          "lfSha256": "f76ef3e2ca9721fb7abf828c7c89ce624d283d7a65418abe79b5ae14e492eaa4"
+        },
+        "src/main/java/com/csfundamentals/aiexample/EmbeddingSpace.java": {
+          "sha256": "c49917e8c297ccd91739991ed953242860c338f47a7d977f6afbaee1a607bbbf",
+          "lfSha256": "8f47c6f4caecae554cb4204c5e47df077ae2f3efd90d7ac53678558af92eadd0"
+        },
+        "src/main/java/com/csfundamentals/aiexample/EvaluateKnowledge.java": {
+          "sha256": "227b831c7c84fbaa95229e3fd9001496672e6bc765ce9626fd1bb4ff4ca5cf3b",
+          "lfSha256": "1bb1a53bd160a0b193db82316d754075312b5c9a85ee411e1efc3297ffbda18c"
+        },
+        "src/main/java/com/csfundamentals/aiexample/EvaluateTickets.java": {
+          "sha256": "ff2970b53d8493862d51c1529a24280eaeea690cc9136b203306f9d115958e52",
+          "lfSha256": "bf2c6eed823032f3d0c6e0de76ce76074f776bfa4a23a69896d022f45f0fdcfb"
+        },
+        "src/main/java/com/csfundamentals/aiexample/EvaluateWorkflow.java": {
+          "sha256": "39d697d6121e28a59c6fc6afc023c169a389f3711ba3f0c93c825c053caec498",
+          "lfSha256": "a3cf1661a761622aac9257772de92acbf27c443e584491d5e1904814047c319e"
+        },
+        "src/main/java/com/csfundamentals/aiexample/EvaluationSummary.java": {
+          "sha256": "1d67c85ec70043a2a2102c2c28f11cb34f8dba8733f6285277f7e2e338615515",
+          "lfSha256": "cf08491969d5975446b3ed6bda3c737d90de7b163c3efbe8b84a7a78b0b85be6"
+        },
+        "src/main/java/com/csfundamentals/aiexample/ExtractionController.java": {
+          "sha256": "183a010127e35d973110f162ba6dcd7c5150556db34dd94d80438a0eb4714267",
+          "lfSha256": "d86dbca6855f9373a99c872f180314cdb175105821bc9b5d9abddfcff90ed901"
+        },
+        "src/main/java/com/csfundamentals/aiexample/ExtractionService.java": {
+          "sha256": "ea7481adc78dcbd3b0c680791d55e9b20df0924ed47c973fbd342081ade114b1",
+          "lfSha256": "b61f7adc1aef1d77f25a98a8b916591a31965b34d8dea2557f13ae16285a7ceb"
+        },
+        "src/main/java/com/csfundamentals/aiexample/KnowledgeChunks.java": {
+          "sha256": "4fb8c7e0f75a4fd1edcfd3cb7db568ab242398e823d2f698b0674b659fb96b61",
+          "lfSha256": "7b226c8f68f0cce71467aed07d99869cfcbe5cf6756c3a9eb4ac9141a9b4b8aa"
+        },
+        "src/main/java/com/csfundamentals/aiexample/KnowledgeController.java": {
+          "sha256": "9a25db1fd09d1ee70df3be3decbee860e1977903bbed15e2818944059a88e2f4",
+          "lfSha256": "9af2a49995521b287fbb9ec56e14b32b045f31fb1f2e69c8c76fd233eedb9ef5"
+        },
+        "src/main/java/com/csfundamentals/aiexample/KnowledgeRetrieval.java": {
+          "sha256": "1c35affe2fc352f97957da275db2ff9e858866a1d962709041f2a62d6349c195",
+          "lfSha256": "93acfce3b1724485b4ddd1b2ae00cf1abf507ac5ee45e2cfdd40ada34962e7e3"
+        },
+        "src/main/java/com/csfundamentals/aiexample/KnowledgeService.java": {
+          "sha256": "9c5c6e12e6c52443e59c150e45e684f686efb0487e9b04c327c7471976b0859f",
+          "lfSha256": "47e2b3e4a154150d977818f70c21f580a4030cd4005469eb3e22fb00a94c4bdc"
+        },
+        "src/main/java/com/csfundamentals/aiexample/KnowledgeStore.java": {
+          "sha256": "52172661f7b94d02c91956d2425e540459a73e667b1817aef9e195b3747a7d55",
+          "lfSha256": "1ff8a61157c2a29f95ab8ce25f6f24eb41d789f99345708fe3e7ec234bce1fca"
+        },
+        "src/main/java/com/csfundamentals/aiexample/OllamaEmbeddingProvider.java": {
+          "sha256": "e464e75d44f3fd0ab3380d053a3514cf348c1733f2dd1374f43e06f7ffd433cc",
+          "lfSha256": "faf54809900a7c1aa372242dc9a286eab205f00e28b3b33a624c4e99b55caa78"
+        },
+        "src/main/java/com/csfundamentals/aiexample/OllamaHttpModel.java": {
+          "sha256": "146a6ddd11ca52bc1592b80348723d3cacf2b562cee9a9405293795ae47bb099",
+          "lfSha256": "0d97cf6549a753bec00662c24cdc495a2f323b619008dfa82873685008246eb7"
+        },
+        "src/main/java/com/csfundamentals/aiexample/PgVectorKnowledgeIndex.java": {
+          "sha256": "bed0999eb9a513c05c3b5a90cc6c2268b7fd84430d0156b261c3fbaf95f18ddd",
+          "lfSha256": "6ea8f7d9aa3fef2777dff39410b439e83facdafb5657e25e37d3e9b15800e2f3"
+        },
+        "src/main/java/com/csfundamentals/aiexample/ReadOnlyAgent.java": {
+          "sha256": "b2734153b78bfac15dc20ab904bf4b1adb3b085d4964b638909280c1885da76a",
+          "lfSha256": "433173c7657397adf6619f704d222a4f28e0e35cb57f66b7bf6513df9f009b21"
+        },
+        "src/main/java/com/csfundamentals/aiexample/ReadOnlyMcpDemo.java": {
+          "sha256": "51d461c26d30e8a527222acf8e5d09a7473ab491da014998c3cb110339c40256",
+          "lfSha256": "850cae1e1ce74450e93f25bd14c02fb0f3bd9c825c854561cee6c05cc7a0b6a3"
+        },
+        "src/main/java/com/csfundamentals/aiexample/RefundWorkflow.java": {
+          "sha256": "3181e1e20363cc916098069127e10481d0bfe5b2cfb55581c4be8a845cfd9bf9",
+          "lfSha256": "cb493ab98c5af674876e5eb7c5c66463628d89e68a5af37bcf62eef64314048c"
+        },
+        "src/main/java/com/csfundamentals/aiexample/RetrievalEvaluation.java": {
+          "sha256": "0a6e11e7015d7c68fc05f8022d8f2e021a943f7ef0a653e69e3016a24217ade8",
+          "lfSha256": "c12b773026a4787ce716826ebd9f8a48baeb3f1c459cb6e8873a2c180b4a6145"
+        },
+        "src/main/java/com/csfundamentals/aiexample/StreamingOllamaClient.java": {
+          "sha256": "dadeb8019b73bb0677e0b90d04e38ff7daeaa97bbf23aa0935ede8620b8fc01c",
+          "lfSha256": "aeb2d061c59f3d5d94e1752ed66d50c0c4ad1017a48e6ac0bbd0a8f9e4a9cd4e"
+        },
+        "src/main/java/com/csfundamentals/aiexample/StreamingOllamaCosts.java": {
+          "sha256": "d86a99f4267d5ea4d55a27ca7d96242905a46af22846fcbc9b5243867bfdc50a",
+          "lfSha256": "982302211803518abac164d18c0920d91c09deef868f10b2753299327c8ef658"
+        },
+        "src/main/java/com/csfundamentals/aiexample/StreamingOllamaDemo.java": {
+          "sha256": "66e75e47fe7e5138bd75c0b061e6b9fbd53213dad5e8dcf8203b9ba50b577feb",
+          "lfSha256": "8e3198fbd0128ad85c07472cf73002819753e1d2f546b82cc3fbdcb434facb18"
+        },
+        "src/main/java/com/csfundamentals/aiexample/StreamingOllamaResult.java": {
+          "sha256": "32c36f70e6e6854dd5ac4f9b1c90027804aa24df66c43aa0e73cf6582d506b8e",
+          "lfSha256": "39a565f292905e1a612fb4dbaef2568fd40fe9bbfd57d5190e3eadcb64844488"
+        },
+        "src/main/java/com/csfundamentals/aiexample/TicketPrompts.java": {
+          "sha256": "0903711d61b05dc471105f145e842f1046b25a807455ab581bde1cc76757be42",
+          "lfSha256": "91f0ef5701cc48fcffb9ba035d3a0bd2c73505ac8187911b747e7cda1141f45b"
+        },
+        "src/main/java/com/csfundamentals/aiexample/TicketRuleBaseline.java": {
+          "sha256": "7f1d820f7dd3956e719110c7f292d4f3da6a6af069a19f5770294cb982a8ebf6",
+          "lfSha256": "d1e1f55697e0314e7738c1f321e02f158b1c5ff1de91c1b586fe206f061aa86e"
+        },
+        "src/main/java/com/csfundamentals/aiexample/VectorKnowledgeRetrieval.java": {
+          "sha256": "70ffa413d8b02cb0bd246f01fe87611728c8e2e1808f40a7c073c4fa1a03edfd",
+          "lfSha256": "a0bb6b9af0b675e062264bbcaff440af1c7e7cfc64373e6509c3bc6cf07a7e07"
+        },
+        "src/main/java/com/csfundamentals/aiexample/WorkflowController.java": {
+          "sha256": "5993114fe83dfa1a69344f4b0371a823f1a80e53d1cd82be1aade4094d221de9",
+          "lfSha256": "4cf4cd8f6152f54057d38f6e75238907e0dca87420fe57f83c0932ed4ceba3ed"
+        },
+        "src/main/java/com/csfundamentals/aiexample/WorkflowEvaluation.java": {
+          "sha256": "9db7ff8fc17354a7b25677665438050c70ccb8afe0321e09b2a111bc1504792a",
+          "lfSha256": "961e7aed231c19bd7eef1083248ed05e2ff397ef85867e3f9dc51544f7dcf4d7"
+        },
+        "src/main/java/com/csfundamentals/aiexample/WorkflowEvaluationCases.java": {
+          "sha256": "82c7462b7600d71423dda32dac0f710cb4300055a7b6bd7cbe2d3012a3c3c235",
+          "lfSha256": "f7b896a1372d0e29037982b12e6c7d64a4c333cab59ae2522eb35ad0d87fff9b"
+        },
+        "src/main/java/com/csfundamentals/aiexample/WorkflowEvaluationFixture.java": {
+          "sha256": "89cdc1c1b642faf1d0c3baac6b33cf53c6f15d831970912f8211cb57014c3f5a",
+          "lfSha256": "f59604e06c171e565c5c6129086a569c2198c380cbf21ed4d081a466159d885b"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/DocumentCommand.java": {
+          "sha256": "35e3b829d44b4c92a813b3914193d4ef75fa1e82194b58086039aa1fabc7a6ae",
+          "lfSha256": "073a1ab8b38a3e54a3fa191f15cd156005a4b47f313e1905e6d9740f974e98a2"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/DocumentFailure.java": {
+          "sha256": "eebc151573c6dfec4242a903e5b5c3727ec24aa9ba8c3ddf8d08bb27f959eff7",
+          "lfSha256": "c1e8db16a91a61985346c3bdc98dcb19bc6618d90b1aa614cee7f4efc645adbd"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/DocumentFixtures.java": {
+          "sha256": "d4814107c513d4c6ed93a74a8a7a4578a0adf94fc50ff23151278453afccfb9d",
+          "lfSha256": "922a47d160ca825f19438a4676628000700f44dd88c228f59ef5dc41bc169046"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/DocumentReport.java": {
+          "sha256": "8ca8486058bcf7c0f36933ecc6e78afde18a9b48b8e255b17e0e095e82207861",
+          "lfSha256": "535861a32b70e88dac13fea4ad78b76c436ccc51109827de93e5e6ffa4a97d6f"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/DocumentWorker.java": {
+          "sha256": "b8b10dc412a786d2bc76fec014d32267f6ff6eae788e8a61e21d5e7e442f69a1",
+          "lfSha256": "d9481a72e85c4da2181065ad57627b687d7e8fa5a5eb994bf5d3da508ac37814"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/LiteralFields.java": {
+          "sha256": "e5bf57d4fb8679f1286bf9280bd8203ddcec9a32d79019616b9e16a691c188f8",
+          "lfSha256": "694ad702b4e573ce24c2d36587a871354ca7ddaf956ff488764fcbe961c0e194"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/OwnedProcess.java": {
+          "sha256": "a47426c6004dbbd89d2d50f67e7cf7be9ff41219a8918681c14508c3acb42f64",
+          "lfSha256": "07e9a7e9577157071fd0f20a7d7d1bf3196ea1204f84233eca9004349726144a"
+        },
+        "src/main/java/com/csfundamentals/aiexample/documents/TsvWords.java": {
+          "sha256": "40115f39a06995c50309cb70cf1375eea0afbf53ea45fe3c4cfab977bd519830",
+          "lfSha256": "9335d3fef942bc3f336b21c7de7a5d86cd25618c06fee0b7b46206d45b26ee6f"
+        },
+        "pom.xml": {
+          "sha256": "cd67e177c2b92ddb02a111325394d2d9d9a6a186990b75339f02ee1a9b66236a",
+          "lfSha256": "8ff7d34a16a0bc500ce420cbb6955d8bdb1922f4dcb2dcb6772740cf79129f63"
+        },
+        "src/main/resources/application.properties": {
+          "sha256": "5b0478d6af2e7616e977f6cf4ba0f4328840372c2d012856240c4b43464a79ba",
+          "lfSha256": "09973b32ad1c0739281d94daf53576f95ee0e2e118c2c88f358be8ddae75b59d"
+        },
+        "src/test/java/com/csfundamentals/aiexample/AiTelemetryTests.java": {
+          "sha256": "f131ca42494b9fd3f0590b83d37dc755c4985b52d84b3cdedc63f5e63800614b",
+          "lfSha256": "7bb5ad4730b060eed53db8710ca35c16c2453e905673d8d293ead9499d342ba1"
+        },
+        "src/test/java/com/csfundamentals/aiexample/AiDeadlineTelemetryTests.java": {
+          "sha256": "77ea478f843cc7d9657b4728de93f800a979200aa61f081014bbd3910a978b8e",
+          "lfSha256": "77ea478f843cc7d9657b4728de93f800a979200aa61f081014bbd3910a978b8e"
+        },
+        "verify_observability.py": {
+          "sha256": "08a9f164cbda490aa9bb92caf9d8895a3ac7490d104ca8a14c7fd3e98fbd0018",
+          "lfSha256": "08a9f164cbda490aa9bb92caf9d8895a3ac7490d104ca8a14c7fd3e98fbd0018"
+        },
+        "test_observability.py": {
+          "sha256": "94e3253ba06ce5dae11b3fdcebf301efba6328ba75ffc0393956d286a7af3546",
+          "lfSha256": "3e85324003df7a4261a2556c6d154da0e374f8f5c12732c50f8b215a8a2a5ce8"
+        },
+        "OBSERVABILITY.md": {
+          "sha256": "00fd00ce0c220f18c98ebbc0fbcf7f79aeb0f8ebc7180a1fec98a44ab4d24895",
+          "lfSha256": "00fd00ce0c220f18c98ebbc0fbcf7f79aeb0f8ebc7180a1fec98a44ab4d24895"
+        },
+        "compare_tickets.py": {
+          "sha256": "123cbfcf55a40754047fb0de135f7a5549030ec75fe61623dc6cad18b6c7be03",
+          "lfSha256": "123cbfcf55a40754047fb0de135f7a5549030ec75fe61623dc6cad18b6c7be03"
+        }
+      },
+      "jarSha256": "f34477e9e72daa8aaa2d6442ea8067f0c6935de2f44b0fb333398c9760d18887",
+      "status": "same-observed-bytes-before-and-after",
+      "limit": "Binds this execution to observed files and copied JAR; not independent source-to-binary build attestation."
+    },
+    "ownedWorkspaceRemoved": true,
+    "ownedChildrenReaped": true,
+    "scope": "Original local fixtures only; no live model, fresh holdout, collector, streaming, tools, quality, price, production traffic or provider queue measurement."
+  }
+}

@@ -1,5 +1,14 @@
 # Backend Engineering — System Architecture & Development Context
 
+`AiTelemetry` instruments actual nonstream lexical RAG request/retrieval/context/model/native
+HTTP/validation boundaries only when explicitly enabled. The original no-op constructors/default
+stay compatible. A bounded in-memory SDK exporter emits fixed enum metadata and causal IDs;
+Micrometer labels are fixed enums, with failure-inclusive executed-stage counts and known/unknown
+attempt usage. The owned provider extracts actual W3C parent context. Native HTTP timeout and
+Future wait races preserve original model exceptions while recording the same deadline category.
+The packaged source/JAR-bound fixture has12 scenarios,14 operations,11 HTTP calls and83 spans;
+it adds no platform telemetry, metrics endpoint, collector or queue/admission implementation.
+
 `examples/backend-websocket` extends unchanged Task Tracker sources in an isolated Boot4.1.1
 module with the matching WebSocket starter. A narrow ordered chain establishes real servlet
 session login while original REST checks remain. Live authenticated session/principal membership

@@ -190,3 +190,9 @@ Predict login-CSRF and fixation behavior, inspect the real cookie upgrade, then 
 established socket's logout with an upgrade paused across reauthentication. Explain why current
 HTTP authentication alone does not preserve a long-lived connection's authorization. Diagnose
 ACK pressure, idle expiry and message bounds separately; the exercise does not simulate a TCP stall.
+
+For AI latency/rejection diagnosis, use [the actual stage trace](../examples/ai-backend/OBSERVABILITY.md).
+Compare a no-evidence abstention with provider429, a deadline and post-generation revocation.
+Follow real parent IDs and distinguish model attempts from HTTP calls and answer acceptance.
+Do not sum nested stage durations or invent queue time; the local nonstream path has no queue.
+Keep unknown usage separate from free work and retain the existing authorization boundary.

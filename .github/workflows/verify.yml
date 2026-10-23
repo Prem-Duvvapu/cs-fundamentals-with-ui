@@ -86,12 +86,21 @@ jobs:
       - run: python3 examples/ai-backend/verify_rules.py
       - run: python3 examples/ai-backend/verify_workflow.py
       - run: python3 examples/ai-backend/verify_streaming.py
+      - run: python3 -m unittest discover -s examples/ai-backend -p test_observability.py -v
+      - run: python3 examples/ai-backend/verify_observability.py
       - run: python3 -m unittest discover -s examples/ai-backend -p test_comparison.py -v
       - run: python3 examples/ai-backend/verify_comparison.py
       - run: python3 -m unittest discover -s examples/labs -p test_training.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_recommendations.py -v
       - run: python3 -m unittest discover -s examples/labs -p test_backend_debug.py -v
       - run: python3 -m unittest discover -s scripts -p test_topic_inventory.py -v
+      - name: Retain bounded AI stage observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-stage-observations
+          path: examples/ai-backend/build/evidence/observability.json
+          if-no-files-found: warn
 
   real-backend-journey:
     # The browser harness above uses API fixtures; this job runs the built frontend against the real
