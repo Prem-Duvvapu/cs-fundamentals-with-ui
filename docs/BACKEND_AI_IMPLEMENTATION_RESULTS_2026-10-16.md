@@ -580,3 +580,20 @@ skipped because Docker is unavailable locally. Final source compilation passes a
 review finds no remaining concrete blocker. The dedicated actual-brokers workflow requires all
 three broker test classes without skips plus the complete rebalance receipt. Actual execution and
 release remain pending until that job succeeds; no native observation is promoted to broker evidence.
+
+## Bounded cache recovery continuation — unreleased
+
+Sourcesd96b999/fa91c02 (integrated733def5/eeea2db) extend the existing data-services lab with
+optional per-coordinator coalescence. All13 default contracts pass;17 actual service cases remain
+explicit skips without their prerequisites. Final native Redis verification executes9 cases without
+skips, including the five new controlled-origin scenarios. The
+[source-matched local receipt](evidence/CACHE_RECOVERY_2026-10-23.json) preserves actual versions,
+source/report hashes,6→1 full origin reads with6→6 metadata reads, failure/deadline/capacity recovery,
+tenant/revision behavior and two independent coordinators still producing two origin reads.
+
+Independent review found and fixed first-cancellation interruption during normal cleanup; all4
+Python ownership tests pass and RCA-2026-10-23-04 records the failing original mutation and passing
+actual children. The dedicated data-services workflow must run all17 real Redis/Mongo/combined
+cases with zero skips and validate the five-case receipt before release. Controlled origin is not
+MongoDB failure evidence; coordination is per instance, not distributed locking/failover, and the
+load budget starts after initial lookups. Production eviction/capacity/fairness remain separate.

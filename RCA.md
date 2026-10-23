@@ -740,3 +740,28 @@ compression and paraphrase, not just simulator deletion; a semantic equivalent d
 an intentionally literal evidence contract. Final-head CI must rerun before merge.
 
 **Resolving commit:** 7ea7a72 (source c0a424a500db4ab0b6cfcfd26195d075d6234ab4).
+
+## RCA-2026-10-23-04 — first cancellation interrupted ordinary cache-runner cleanup
+
+**Observed:** independent review positioned the first SIGINT during normal successful cleanup of
+an actual READY-confirmed TERM-ignoring child. The runner sent TERM, then cancellation escaped
+before wait/KILL. The child remained running with its pipe closed; review finally removed only
+its exact owned process group. Earlier tests delivered cancellation before cleanup and missed this
+window because their requested flag suppressed subsequent signals.
+
+**Cause:** Popen assignment was deferred but the ordinary finally's stop/wait/stream-close sequence
+was not. Ownership after startup alone does not prevent a new signal from interrupting teardown.
+
+**Resolution:** defer cancellation across the entire active cleanup finally, then deliver it after
+owned termination/wait and pipe closure. Preserve library caller policy and masks, non-group
+behavior and unrelated groups. Descendant termination is not a claim of grandchild reaping.
+
+**Verification/prevention:** four Python tests pass. The positioned READY-confirmed regression covers
+first TERM and INT during otherwise successful cleanup, requires direct child already waited with
+SIGKILL, PID absent, streams closed, original handlers/mask restored and another real group still
+alive. An in-memory original-implementation mutation fails both signal subcases; test fallback
+reaps its exact children. Final changed-runner native Redis verification passes all9 cases without
+skips, actual Redis8.6.2/Java17, owned workspace removed. Actual combined MongoDB cases still require
+CI. Cover first cancellation during normal completion as well as startup and already-cancelled work.
+
+**Resolving commit:**eeea2db (source fa91c02a5cb8247f1b718803704dc5141b088f6f).

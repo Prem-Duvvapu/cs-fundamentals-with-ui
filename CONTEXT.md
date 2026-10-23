@@ -1,5 +1,14 @@
 # Backend Engineering — System Architecture & Development Context
 
+`CoalescedLoads` is an optional bounded coordinator in the existing backend-data-services module.
+It shares concurrent misses by canonical namespace/tenant/ID/version, limits callers and distinct
+loads with no executor queue, and retains a timed-out flight until its origin operation exits.
+The unchanged constructor remains ordinary cache-aside. Actual Redis tests compare six overlapping
+full origin reads with one while retaining six metadata checks; another test shows two coordinator
+objects still perform two reads. Controlled-origin failures are separate from actual MongoDB
+integration. Deadlines do not cover initial lookups or roll back already-started valid Redis writes.
+Native child cleanup and the dedicated all-services gate preserve exact ownership and evidence.
+
 `examples/backend-debugging` imports Task Tracker source/resources unchanged through an isolated
 Boot 4.1.1/Java-17-targeted Maven module. Its normal SpringApplication observer reads one nonsecret
 property, ordered source origins, actual bound actuator exposure and profile-selected beans. Owned

@@ -561,3 +561,9 @@ and what HTTP endpoints are actually exposed. It reproduces an invalid-port star
 then uses real JDI breakpoints, stepping and a caught exception on owned Java processes. Run
 `python3 examples/backend-debugging/verify.py` with the documented cached dependencies and JDK.
 This provides executable debugging evidence; a real learner's IDE session remains separate.
+
+The [cache stampede exercise](examples/backend-data-services/README.md#6-measure-and-limit-a-cold-key-stampede)
+measures overlapping misses against actual Redis and compares ordinary reads with bounded request
+coalescing. Follow shared failures, timeout/capacity recovery and tenant/version checks before
+explaining the measured6→1 full origin reads. All six metadata reads remain. Native Redis evidence
+is distinct from combined MongoDB CI; the coordinator does not implement a distributed lock.

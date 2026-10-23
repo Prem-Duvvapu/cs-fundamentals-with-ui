@@ -2,6 +2,14 @@
 
 ## Current completion scope — October 21
 
+The [cache coalescing exercise](examples/backend-data-services/README.md#6-measure-and-limit-a-cold-key-stampede)
+extends the existing cache-aside path through an optional per-instance bounded coordinator. Keep
+canonical tenant/version checks, the unchanged default constructor, finite waiter/flight limits,
+shared deadlines, failure propagation and timed-out worker ownership until actual completion.
+The budget begins after initial metadata/cache lookup; separate instances do not share a lock.
+Require actual Redis/Mongo cases without skips and exact owned keys/database/process cleanup.
+Defer the first cancellation through complete normal cleanup, not only Popen assignment.
+
 When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
 evidence in the affected lesson and run `node scripts/audit-simulation-questions.mjs --check`.
 Preserving question IDs, code blocks and diagrams alone does not preserve these prose citations;
