@@ -24,12 +24,12 @@
     "pausedFence": {
       "reached": false,
       "checks": 4,
-      "elapsedMs": 232
+      "elapsedMs": 247
     },
     "resumedFence": {
       "reached": true,
       "checks": 1,
-      "elapsedMs": 16
+      "elapsedMs": 19
     },
     "recoveredReplicaIds": [
       1,
@@ -62,7 +62,7 @@
       2,
       4
     ],
-    "observedStopToCheckedWriteMs": 416,
+    "observedStopToCheckedWriteMs": 593,
     "automaticFailover": false,
     "multiHostFencing": false
   },
@@ -83,12 +83,12 @@
     "rebuildFence": {
       "reached": true,
       "checks": 1,
-      "elapsedMs": 15
+      "elapsedMs": 16
     },
     "freshWriteFence": {
       "reached": true,
       "checks": 1,
-      "elapsedMs": 20
+      "elapsedMs": 18
     }
   },
   "limits": {
@@ -108,8 +108,8 @@
   "scope": "Two private processes on one host; replay pause is not a network partition; local fencing is not STONITH; observed recovery duration is not an RTO SLA; no production capacity or multi-host HA proof",
   "ownedResourcesCleaned": true,
   "sourceSha256LF": {
-    "processes.py": "5d0f30b0332db16d4accf909bc1a836bca802c50114ed354a8a0d6a931d7df5b",
-    "test_verify.py": "23cde634e5c724932fa8939b9b4bae075fcbe89aed825f4c76970da771879f28",
+    "processes.py": "d4f7cb4cd9e91b64cd1ffdf251fc464b577acf3e342f34c629e70168019b261c",
+    "test_verify.py": "559c9a36f4a62449cc4c900b7535e26f3176c3e98c8a96ce60f08714d17b67e7",
     "verify.py": "7773b88ebca3495571d39964d2c59ae5e97028d700c3ce255c7d000bd003ace9"
   }
 }
