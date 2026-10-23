@@ -16,6 +16,72 @@ from verify import HERE, publish, test_diagnostics
 
 
 class HarnessTests(unittest.TestCase):
+    @unittest.skipUnless(hasattr(signal, 'pthread_sigmask'), 'POSIX signals required')
+    def test_actual_term_int_during_scope_restoration_preserves_caller_nested_state_and_exception(self):
+        signals = (signal.SIGTERM, signal.SIGINT)
+        previous = {number: signal.getsignal(number) for number in signals}
+        original_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        original_state = getattr(processes._cancellation, 'state', None)
+        real_signal = signal.signal
+        class CallerCancelled(RuntimeError): pass
+        class BodyFailure(RuntimeError): pass
+        try:
+            mask = (original_mask | {signal.SIGUSR1}) - set(signals)
+            signal.pthread_sigmask(signal.SIG_SETMASK, mask)
+            for selected in signals:
+                for nested in (False, True):
+                    for body_error in (False, True):
+                        with self.subTest(signal=selected.name, nested=nested, body_error=body_error):
+                            delivered, observed = [], []
+                            caller_error = CallerCancelled('caller restoration interrupted')
+                            def caller(_number, _frame): raise caller_error
+                            for number in signals: real_signal(number, caller)
+                            processes._cancellation.state = original_state
+                            def check_scope():
+                                expected_state = getattr(processes._cancellation, 'state', None)
+                                handler = signal.getsignal(selected)
+                                def observe(number, frame):
+                                    try: handler(number, frame)
+                                    except BaseException as failure:
+                                        observed.append(failure)
+                                        raise
+                                real_signal(selected, observe)
+                                handlers = {number: signal.getsignal(number) for number in signals}
+                                armed = []
+                                def install(number, restored):
+                                    result = real_signal(number, restored)
+                                    if armed and number == selected and not delivered:
+                                        delivered.append(number)
+                                        os.kill(os.getpid(), number)
+                                    return result
+                                expected = processes.LabFailure if nested else CallerCancelled
+                                with patch.object(signal, 'signal', side_effect=install):
+                                    with self.assertRaises(expected) as caught:
+                                        with processes.cancellation_guard():
+                                            armed.append(True)
+                                            if body_error: raise BodyFailure('original body error')
+                                self.assertEqual([selected], delivered, 'Actual signal must interrupt handler restoration')
+                                self.assertEqual(1, len(observed))
+                                self.assertIs(observed[0], caught.exception, 'Caller exception must propagate unchanged')
+                                if not nested: self.assertIs(caller_error, caught.exception)
+                                self.assertIs(expected_state, getattr(processes._cancellation, 'state', None))
+                                for number, restored in handlers.items(): self.assertIs(restored, signal.getsignal(number))
+                                self.assertEqual(mask, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+                                real_signal(selected, handler)
+                            try:
+                                if nested:
+                                    with processes.cancellation_guard(): check_scope()
+                                else: check_scope()
+                                self.assertIs(original_state, getattr(processes._cancellation, 'state', None))
+                                for number in signals: self.assertIs(caller, signal.getsignal(number))
+                            finally:
+                                processes._cancellation.state = original_state
+                                for number, restored in previous.items(): real_signal(number, restored)
+        finally:
+            processes._cancellation.state = original_state
+            for number, restored in previous.items(): real_signal(number, restored)
+            signal.pthread_sigmask(signal.SIG_SETMASK, original_mask)
+
     def test_first_signal_during_successful_cleanup_waits_for_owned_child_and_preserves_other_group(self):
         previous = {number: signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
         mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
