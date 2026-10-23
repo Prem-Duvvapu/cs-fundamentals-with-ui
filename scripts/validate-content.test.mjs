@@ -3,9 +3,42 @@ import test from 'node:test'
 import {
   countAnswerClauses,
   findThinAnswers,
+  hasExpertMisconceptionsSection,
   getApplicableCoverageEntries,
   validateCoverageEntries
 } from './validate-content.mjs'
+
+test('misconception section uses the reader outline and accepts rendered inline formatting', async () => {
+  for (const heading of ['### Common Misconceptions', '### Common **Misconceptions**', '### common misconceptions']) {
+    for (const newline of ['\n', '\r\n']) {
+      const source = ['## 🔴 Expert Level', '', heading, '', 'Explain the mistaken belief.'].join(newline)
+      assert.equal(await hasExpertMisconceptionsSection(source), true)
+    }
+  }
+})
+
+test('prose, patch prefixes and fenced heading examples cannot satisfy the section contract', async () => {
+  const snippets = [
+    '+### Common Misconceptions',
+    'Read ### Common Misconceptions before continuing.',
+    '```markdown\n### Common Misconceptions\n```',
+    '~~~~markdown\n### Common Misconceptions\n~~~~',
+    '    ### Common Misconceptions',
+    '#### Common Misconceptions'
+  ]
+  for (const snippet of snippets) {
+    assert.equal(await hasExpertMisconceptionsSection(`## 🔴 Expert Level\n\n${snippet}\n`), false, snippet)
+  }
+})
+
+test('misconceptions must belong to the actual Expert tier', async () => {
+  for (const source of [
+    '### Common Misconceptions',
+    '## 🟢 Beginner Level\n\n### Common Misconceptions\n\n## 🔴 Expert Level',
+    '## 🔴 Expert Level\n\n## Another tier\n\n### Common Misconceptions',
+    '```markdown\n## 🔴 Expert Level\n```\n\n### Common Misconceptions'
+  ]) assert.equal(await hasExpertMisconceptionsSection(source), false, source)
+})
 
 test('coverage validation reports unknown IDs, missing files, and missing headings', () => {
   const entries = [
