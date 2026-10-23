@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "sourceCommit": "fa91c02a5cb8247f1b718803704dc5141b088f6f",
+  "scope": "Actual native Redis plus controlled original origin; combined MongoDB execution and release pending",
+  "sourceSha256LF": {
+    "examples/backend-data-services/pom.xml": "b07d7023fbb0eae00e3d0b07fd227590b5dd6949f642e0f26cea0b59911dd3a9",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/CacheAsideTickets.java": "33cb6bdc1a6dfaf8b0277ef36c0390c94ddc9b481275b545512fc026a3f943ed",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/CachePort.java": "d247287a3a2421943628a6273aa3d215970b92bd4bf22e9fdecaed726c7bb946",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/CoalescedLoads.java": "e17f8284f051ac504cefb231fb704987226a0308c4e8e413c611a645fcd52517",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/LocalServices.java": "eaea8f52fc52685c5cca1979a41641902f3461a51bdc4cf5a257e27e08d10aa6",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/MongoTickets.java": "88de761de6bbd06beaac9e51b54d067efdb514dfd370ea7fa1a15621711c9708",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/RedisCache.java": "6088e0a56052889cf25fa6a1bb33f508afa7c034bc75d618d543b1ed70b5e164",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/Ticket.java": "1cd68e1de929fd1232f241c1d25c370c76cfca1b67da5ba2da9283cb94c7f6be",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/TicketSource.java": "f37ab9a5e99a1b38e4b74b068f0b236c85cbee9ecbe1417a1b7fe492ae081963",
+    "examples/backend-data-services/src/test/java/com/csfundamentals/dataservices/CacheContractTests.java": "dfdfb4e51be508f2dd597de25eabae244fcfa87ce141e18e1098081b8acdde12",
+    "examples/backend-data-services/src/test/java/com/csfundamentals/dataservices/CacheMongoIntegrationTests.java": "45a9ca371b92375435edfd5d33a0fe9b7734bd9fd649e669f06aa9f2641f6ff6",
+    "examples/backend-data-services/src/test/java/com/csfundamentals/dataservices/CacheRecoveryRedisTests.java": "dcdad8a068b83a8173581d7438caa2e249b53b0a604295edf01e9e52d89ff519",
+    "examples/backend-data-services/src/test/java/com/csfundamentals/dataservices/CoalescingContractTests.java": "cf978ac01218804a1c20b23858cab0f90a356ab1688a44d949de1ae9a2380a2e",
+    "examples/backend-data-services/src/test/java/com/csfundamentals/dataservices/MongoIntegrationTests.java": "bafd018a34a600aa4f970a839d66e2df8a76e92ef947cf8b453fe006f54bf89b",
+    "examples/backend-data-services/src/test/java/com/csfundamentals/dataservices/RedisIntegrationTests.java": "60466dff954b5c8560e71bb95fb9d257ed8891b4c7d265f0b30e7d49e47ce71a",
+    "examples/backend-data-services/test_owned_redis.py": "b64a56da2b73baeca314b73bbd4ea093829df8b270eaf17871213a6ca7d371b2",
+    "examples/backend-data-services/verify_cache_recovery.py": "78545df6552ee78ff28b89364b7af3a58475801e116788d85332daeddbf31ee4",
+    "examples/backend-data-services/verify_redis.py": "291cabb67a33f1130cd3fbba5fc5f2de7834375768247f6edd9b37ace5d9ff61"
+  },
+  "originalReceiptSha256": "d4fe749c56b4306ef4a55c16c00d564cfebc82b4350904f70ec38be433279c9e",
+  "actualNativeSuites": [
+    {
+      "suite": "RedisIntegrationTests",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "reportSha256": "7315df33982d0d149ab439f38d05b203e88e618835bae9d30a792ecb19309d27"
+    },
+    {
+      "suite": "CacheRecoveryRedisTests",
+      "tests": 5,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "reportSha256": "7bbdd45a05e4d009df94badb180a771445d51ffcdc0ed1a80810c8dc09293047"
+    }
+  ],
+  "observations": {
+    "schemaVersion": 1,
+    "evidence": "actual-redis-controlled-origin",
+    "redisVersion": "8.6.2",
+    "javaRuntime": "17.0.20.1+1-1-24.04-Ubuntu",
+    "actualCasesExecuted": 5,
+    "cases": {
+      "cold-burst": {
+        "callersPerRun": 6,
+        "metadataReads": [
+          6,
+          6
+        ],
+        "originFullReads": [
+          6,
+          1
+        ],
+        "ownedKeysDeleted": true
+      },
+      "coordination-scope": {
+        "coordinatorInstances": 2,
+        "sharedRedis": true,
+        "originFullReads": 2,
+        "ownedKeysDeleted": true,
+        "distributedLock": false
+      },
+      "deadline-capacity": {
+        "timedOutCalls": 3,
+        "originReadsAfterRecovery": 2,
+        "originReadsBeforeRelease": 1,
+        "retainedFlightsWhileOriginBlocked": 1,
+        "rejectedAdmissions": 2,
+        "expiredOriginNotCached": true,
+        "ownedKeysDeleted": true
+      },
+      "origin-failure": {
+        "sharedFailures": 6,
+        "failedOriginReads": 1,
+        "errorNotCached": true,
+        "ownedKeysDeleted": true,
+        "totalOriginReadsAfterRecovery": 2
+      },
+      "tenant-version": {
+        "subsequentCurrentVersion": 2,
+        "lateOldVersion": 1,
+        "tenantIsolation": true,
+        "ownedKeysDeleted": true,
+        "independentOriginReads": 3
+      }
+    },
+    "scope": "Actual authenticated Redis; controlled original origin, no MongoDB, cross-process lock, load benchmark or production capacity claim."
+  },
+  "limits": [
+    "Per coordinator instance; no distributed lock or failover proof",
+    "Six canonical metadata queries remain in the coalesced run",
+    "Load/wait budget starts after initial metadata/cache lookup",
+    "A started valid Redis write is not rolled back by a waiting caller deadline",
+    "No production performance, capacity or model quality claim"
+  ]
+}

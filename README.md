@@ -562,6 +562,18 @@ then uses real JDI breakpoints, stepping and a caught exception on owned Java pr
 `python3 examples/backend-debugging/verify.py` with the documented cached dependencies and JDK.
 This provides executable debugging evidence; a real learner's IDE session remains separate.
 
+The [cache stampede exercise](examples/backend-data-services/README.md#6-measure-and-limit-a-cold-key-stampede)
+measures overlapping misses against actual Redis and compares ordinary reads with bounded request
+coalescing. Follow shared failures, timeout/capacity recovery and tenant/version checks before
+explaining the measured6→1 full origin reads. All six metadata reads remain. Native Redis evidence
+is distinct from combined MongoDB CI; the coordinator does not implement a distributed lock.
+
+Data-services CI retains bounded, credential-redacted diagnostics if an owned service exits before
+readiness; setup failures still block release and do not count toward the required service cases.
+
+MongoDB CI also checks the actual Docker daemon kernel against the vendor's documented compatibility
+range on a supported LTS runner. A pinned container image does not pin its host kernel; startup
+compatibility and passing the real service tests are separate requirements.
 The [gateway exercise](examples/backend-gateway/README.md) connects actual Nginx to the unchanged
 Task Tracker. Predict forwarded-header trust, service authorization/CSRF,429 versus503/504,
 body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its sixteen

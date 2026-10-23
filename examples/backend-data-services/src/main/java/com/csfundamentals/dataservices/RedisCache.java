@@ -23,6 +23,15 @@ public final class RedisCache implements CachePort, AutoCloseable {
         settings = DefaultJedisClientConfig.builder().autoNegotiateProtocol(false).password(password).connectionTimeoutMillis(500).socketTimeoutMillis(800).build();
     }
     public String namespace() { return namespace; }
+    public String observedServerVersion() {
+        return execute(redis -> {
+            String info = redis.info("server");
+            if (info.length() > 32768) throw new CachePort.Unavailable();
+            return info.lines().filter(line -> line.startsWith("redis_version:")).map(line -> line.substring(14).trim())
+                    .filter(value -> value.matches("[0-9]+\\.[0-9]+\\.[0-9]+(?:[-a-zA-Z0-9.]+)?") && value.length() <= 40)
+                    .findFirst().orElseThrow(CachePort.Unavailable::new);
+        });
+    }
     private void key(String key) {
         if (key == null || !key.startsWith(namespace + ":") || key.length() > 180 || !key.matches("[a-z0-9_:-]+"))
             throw new IllegalArgumentException("foreign_cache_key");

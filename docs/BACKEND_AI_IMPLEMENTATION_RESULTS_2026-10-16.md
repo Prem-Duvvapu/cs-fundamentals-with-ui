@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR85/PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR85/PR86/PR87 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -46,7 +46,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; PR84 concurrent rebalance/replay/dedup actual CI verified | Messaging: distributed DBMS + Spring async |
-| BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
+| BE-05 / P0 | Partial: real HTTP reliability plus PR87 bounded Redis coalescence/recovery CI; eviction/fairness/failover open | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket and PR85 actual gateway; production egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
@@ -581,6 +581,41 @@ review finds no remaining concrete blocker. The dedicated actual-brokers workflo
 three broker test classes without skips plus the complete rebalance receipt. Actual execution and
 release remain pending until that job succeeds; no native observation is promoted to broker evidence.
 
+## Bounded cache recovery continuation — unreleased
+
+Sourcesd96b999/fa91c02 (integrated733def5/eeea2db) extend the existing data-services lab with
+optional per-coordinator coalescence. All13 default contracts pass;17 actual service cases remain
+explicit skips without their prerequisites. Final native Redis verification executes9 cases without
+skips, including the five new controlled-origin scenarios. The
+[source-matched local receipt](evidence/CACHE_RECOVERY_2026-10-23.json) preserves actual versions,
+source/report hashes,6→1 full origin reads with6→6 metadata reads, failure/deadline/capacity recovery,
+tenant/revision behavior and two independent coordinators still producing two origin reads.
+
+Independent review found and fixed first-cancellation interruption during normal cleanup; all4
+Python ownership tests pass and RCA-2026-10-23-04 records the failing original mutation and passing
+actual children. The dedicated data-services workflow must run all17 real Redis/Mongo/combined
+cases with zero skips and validate the five-case receipt before release. Controlled origin is not
+MongoDB failure evidence; coordination is per instance, not distributed locking/failover, and the
+load budget starts after initial lookups. Production eviction/capacity/fairness remain separate.
+
+### Cache integration setup evidence pending — October23
+
+PR87's actual-service run39998627475 stopped before Maven: the exact owned MongoDB container
+exited before authenticated readiness while Redis8.4.7 was running. No service cases executed and
+no test artifact existed. Exit/OOM state and container logs were not retained, so the cause is
+unproven. The next head adds immediate stopped-container failure and bounded credential-redacted
+startup diagnostics before exact teardown. The17-case no-skip requirement is unchanged; there is
+no model/test-quality or MongoDB correctness claim from this setup observation.
+
+### MongoDB startup cause established — October23
+
+The next retained [actual startup receipt](evidence/MONGODB_STARTUP_2026-10-23.json) shows the
+MongoDB kernel-compatibility guard (message12257600/SERVER-121912), exit1 and no OOM kill; Redis
+is running and no service cases execute. Official MongoDB8.0 notes identify the incompatible
+Linux6.19–7.0.13 range. The service job now uses a supported Ubuntu22.04 LTS runner and records/
+checks the actual Docker daemon kernel, while preserving the pinned image and vendor guard.
+RCA-2026-10-23-05 records the evidence and the missing historical exact kernel value. The full
+17-case no-skip run remains required; setup metadata does not close it.
 ## Nginx gateway continuation — unreleased
 
 Sources132f5b3/33f15ce/a5b685e (integratedb1570bc/3c2cfe1/99e89a2) add the isolated
@@ -679,6 +714,37 @@ Existing practical-ai CI now runs the packaged trace and its privacy/causal/owne
 retains only the bounded sanitized observation JSON. No collector, streaming/tool/vector internals,
 provider queue, live quality/cost or learner gate is closed. Dedicated real pgvector/OCR, all final-
 head platform checks and merge remain required before release.
+## PR84 receipt reconciliation — October21
+
+PR [84](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/84) merged as
+941e8a2d979f317e61fe92087893d22adecb63f9 at2026-10-21T20:40:52Z. All ten checks passed at
+head9cc3fc411863c7d64d410db1cac552e784a625bb. Actual broker job39671778169 executes all22
+messaging tests with zero skips. The [persistent source-bound receipt](evidence/KAFKA_REBALANCE_2026-10-21.json)
+records independent one→two→one broker assignments, exact partition1/offset0 replay without a
+second local effect, fresh work and final offset2, actual revocation commits and owned cleanup.
+This supersedes Kafka's earlier CI-pending notes without claiming multi-broker failover or global
+exactly-once behavior.
+
+## PR86 actual-CI receipt reconciliation — October23
+
+PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged as
+b1487113ba27b35cf1a4e85e83659a9d5a119c3f at2026-10-23T18:05:39Z. All ten checks passed on
+headf7b2a41d4d3ad054e021bc0bdd81aa41c81fcd41, including the actual session/WebSocket job and
+all platform/browser checks. The [actual CI receipt](evidence/WEBSOCKET_CI_2026-10-23.json)
+records22 real transport cases,9 preparation policy tests, offline verification, observed Java17,
+matching source hashes, context closure and zero retained reservations. It supersedes earlier
+WebSocket release-pending statements; human/browser and distributed-session limits remain.
+
+### All17 actual data-service cases verified — release still pending
+
+Actual run40000312697/job120574386977 passes all17 Redis/Mongo/combined cases without skips,
+including the5 controlled-origin Redis recovery cases and4 actual cache/MongoDB integration cases.
+The [source-bound CI receipt](evidence/CACHE_SERVICES_CI_2026-10-23.json) records Docker daemon
+kernel6.8.0-1064-azure/x86_64 and Docker28.0.4 on the supported runner. This establishes actual
+service execution for head5b8009144fccb9dd1bedaf64496add753a83dd2d and supersedes the earlier
+unknown startup-cause/pending actual-service observations for that scope. The branch now includes
+merged PR86; final integrated-head checks and merge remain required. No production capacity,
+distributed lock, failover or human learning gate is closed.
 ## PR86 merged release evidence — October23
 
 PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged at
@@ -710,3 +776,15 @@ Docker29.4.2, the publishing/private-network distinction, one diagnostic JVM at3
 worker replacement and separate stalled-body wire EOF/server-log408 evidence. It supersedes
 prior gateway execution/release-pending notes and the final-evidence qualifiers in RCA16 and
 October23-01/02/06. No production TLS/global quota/egress or multi-upstream HA is established.
+
+## PR87 merged release evidence — October23
+
+PR [87](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/87) merged at
+2026-10-23T18:42:34Z as4d7ba8df2559ba27c5648cbce0d3fd5f6a8aa53d. Exact head
+342cba78267317e4bd704ef628e7c79d1147b953 passes all ten checks, including actual
+Redis/MongoDB job40004637856/job120589306297 and all six Verify jobs. Its no-skip gate
+requires17 actual cases and five controlled-origin recovery observations; the source-bound
+[persistent CI receipt](evidence/CACHE_SERVICES_CI_2026-10-23.json) preserves the earlier successful
+execution of unchanged service source. The final integrated head reran the same actual-service
+gate successfully. This supersedes cache release-pending notes without closing production
+eviction, distributed coordination, capacity/fairness or failover. MongoDB's guard was retained.

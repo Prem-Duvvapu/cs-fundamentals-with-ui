@@ -9,6 +9,18 @@ HTTP timeout wrappers and timed Future.get deadlines share the DEADLINE trace ca
 changing the original public exception. No payload, tenant/source IDs, raw exceptions/events or
 trace-ID metric labels may enter exports. Preserve source/JAR binding, owned cleanup and the
 packaged fixture in practical-ai CI. Streaming/tools/collector/live-quality remain separate work.
+The [cache coalescing exercise](examples/backend-data-services/README.md#6-measure-and-limit-a-cold-key-stampede)
+extends the existing cache-aside path through an optional per-instance bounded coordinator. Keep
+canonical tenant/version checks, the unchanged default constructor, finite waiter/flight limits,
+shared deadlines, failure propagation and timed-out worker ownership until actual completion.
+The budget begins after initial metadata/cache lookup; separate instances do not share a lock.
+Require actual Redis/Mongo cases without skips and exact owned keys/database/process cleanup.
+If a CI service exits, retain bounded credential-redacted startup state/logs before teardown;
+never replace the actual-service gate with setup success.
+MongoDB8 has a documented Linux6.19–7.0.13 incompatibility. Observe the Docker daemon kernel,
+not the client kernel or image tag; keep the supported LTS service runner, exact image and startup
+guard. A runtime compatibility preflight does not replace any of the17 service tests.
+Defer the first cancellation through complete normal cleanup, not only Popen assignment.
 The [gateway lab](examples/backend-gateway/README.md) puts digest-pinned actual Nginx in front
 of unchanged Task Tracker source. Keep the fixed auth subrequest, service CSRF/role/owner checks,
 actual-peer metadata, finite body/time/rate limits and exact labelled-resource cleanup. Native

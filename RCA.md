@@ -741,6 +741,55 @@ an intentionally literal evidence contract. Final-head CI must rerun before merg
 
 **Resolving commit:** 7ea7a72 (source c0a424a500db4ab0b6cfcfd26195d075d6234ab4).
 
+## RCA-2026-10-23-04 — first cancellation interrupted ordinary cache-runner cleanup
+
+**Observed:** independent review positioned the first SIGINT during normal successful cleanup of
+an actual READY-confirmed TERM-ignoring child. The runner sent TERM, then cancellation escaped
+before wait/KILL. The child remained running with its pipe closed; review finally removed only
+its exact owned process group. Earlier tests delivered cancellation before cleanup and missed this
+window because their requested flag suppressed subsequent signals.
+
+**Cause:** Popen assignment was deferred but the ordinary finally's stop/wait/stream-close sequence
+was not. Ownership after startup alone does not prevent a new signal from interrupting teardown.
+
+**Resolution:** defer cancellation across the entire active cleanup finally, then deliver it after
+owned termination/wait and pipe closure. Preserve library caller policy and masks, non-group
+behavior and unrelated groups. Descendant termination is not a claim of grandchild reaping.
+
+**Verification/prevention:** four Python tests pass. The positioned READY-confirmed regression covers
+first TERM and INT during otherwise successful cleanup, requires direct child already waited with
+SIGKILL, PID absent, streams closed, original handlers/mask restored and another real group still
+alive. An in-memory original-implementation mutation fails both signal subcases; test fallback
+reaps its exact children. Final changed-runner native Redis verification passes all9 cases without
+skips, actual Redis8.6.2/Java17, owned workspace removed. Actual combined MongoDB cases still require
+CI. Cover first cancellation during normal completion as well as startup and already-cancelled work.
+
+**Resolving commit:**eeea2db (source fa91c02a5cb8247f1b718803704dc5141b088f6f).
+
+## RCA-2026-10-23-05 — MongoDB refused the CI host kernel before tests
+
+**Observed:** PR87 run39999159858/job120570429199 retained the owned service state: Redis running,
+MongoDB exited1, oomKilled=false. MongoDB message12257600 explicitly identifies its kernel
+compatibility guard and SERVER-121912. No Maven/service cases executed. The earlier run failed
+similarly without retaining sufficient startup evidence; it was not a cache assertion failure.
+
+**Cause:** an image digest pins database/userspace bytes, not the Docker daemon host kernel.
+The unqualified latest runner could use a kernel in MongoDB8's documented TCMalloc-incompatible
+range. The failed artifact did not retain the exact kernel version, so no exact value is invented.
+Official MongoDB8.0 notes identify Linux6.19 through7.0.13 and state7.0.14+ resolves that issue.
+
+**Resolution:** use the supported Ubuntu22.04 LTS service runner, observe the actual Docker daemon
+kernel/architecture/OS/version before service creation and explicitly reject the documented range.
+Keep the pinned MongoDB image and its startup guard. Retain bounded runtime metadata with failure
+artifacts; do not downgrade to an old image or disable a guard to manufacture test execution.
+
+**Verification/prevention:** the [selected actual startup receipt](docs/evidence/MONGODB_STARTUP_2026-10-23.json)
+records state, vendor message ID and original artifact hash without credentials or raw private
+configuration. The next final-head job must observe a permitted daemon kernel and execute all17
+actual service cases with zero skips. An allowed kernel excludes this one incompatibility; it does
+not certify every future platform. Real service verification and merge remain pending.
+
+**Resolving commit:**ce4a103; supported-runner execution pending.
 ## RCA-2026-10-21-16 — gateway launcher exit left an owned descendant running
 
 **Observed:** independent prerelease review of gateway source33f15ce launched a disposable
@@ -947,6 +996,10 @@ skips; all117 local executions pass. The actual packaged fixture retains12 scena
 real PG/OCR and final-head CI remain required. Timing races must not silently change failure meaning.
 
 **Resolving commit:**1c510cb.
+**RCA-2026-10-23-05 verification update:** actual job120574386977/run40000312697 observes
+Docker kernel6.8.0-1064-azure and executes all17 service cases without skips. The selected CI
+receipt is docs/evidence/CACHE_SERVICES_CI_2026-10-23.json. Historical exact bad-kernel value stays
+unknown; no guard was disabled and no test gate was weakened. Final integrated release is pending.
 ## RCA-2026-10-23-06 — gateway timeout expectation confused server and wire status
 
 **Observed:** actual gateway job120572873600 in run39999874593 passes13 HTTP assertions,
