@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR85/PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -25,7 +25,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
 | AI-09 | Partial: actual paired prompt regression and failure-inclusive reports; human quality open | Quality and regression evaluation |
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
-| AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry open | Operations and debugging |
+| AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry locally verified, release pending | Operations and debugging |
 | AI-12 | Partial: actual token usage and failure-inclusive scenario costs; model comparison open | Cost, capacity and model choice |
 | AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
 | AI-14 | PR80 verified: reviewed AI-authored patches, actual Java/Git/Maven and independent regression tests | AI-assisted engineering |
@@ -36,18 +36,18 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-02 | Partial: actual lexical miss and diagnostic report | Relevant document never retrieved |
 | D-03 | Partial: injected wrong generation with correct retrieval | Correct sources, unsupported answer |
 | D-04 | Partial: JDBC and HTTP tenant tests | Tenant data appears in another answer |
-| D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; AI tracing open | Slow or hanging response |
+| D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; AI tracing locally verified, release pending | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
 | D-07 | Partial: bounded read-only agent tests | Agent keeps calling tools |
 | D-08 | Partial: actual frozen prompt regression with paired cases; model/context upgrades open | Quality drops after an upgrade |
 | D-09 | Partial: failure-inclusive cost arithmetic and unknown-usage diagnosis; comparative budget report open | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
-| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; configuration and JDI locally verified, release pending; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
+| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; PR83 configuration and actual JDI CI verified; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
-| BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
+| BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; PR84 concurrent rebalance/replay/dedup actual CI verified | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket; gateway/egress work open | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket and PR85 actual gateway; production egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
@@ -698,3 +698,15 @@ separately and additionally requires the exact Nginx log408, while retaining log
 All16 native guards pass, including controlled realTCP408-versus-EOF distinction; final actual
 Nginx all20-case execution remains pending. RCA-2026-10-23-06 records the missing historical logs
 and selected-source finalization behavior without claiming every disconnect is a timeout.
+
+## PR85 merged release evidence — October23
+
+PR [85](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/85) merged at
+2026-10-23T18:33:27Z as8bab21a7744b166775012aee0b54c958caa325f7. Exact head
+14faa958f8e5f840d7c78813d535474f0bad467b passed all ten checks. The actual Nginx job
+40001384613/job120578060371 passed all20 HTTP assertions, zero skips and exact owned cleanup.
+The [source-bound CI receipt](evidence/GATEWAY_CI_2026-10-23.json) records Nginx1.30.6,
+Docker29.4.2, the publishing/private-network distinction, one diagnostic JVM at32-PID cap,
+worker replacement and separate stalled-body wire EOF/server-log408 evidence. It supersedes
+prior gateway execution/release-pending notes and the final-evidence qualifiers in RCA16 and
+October23-01/02/06. No production TLS/global quota/egress or multi-upstream HA is established.

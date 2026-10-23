@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "sourceHead": "14faa958f8e5f840d7c78813d535474f0bad467b",
+  "actualRun": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40001384613",
+  "actualJob": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40001384613/job/120578060371",
+  "jobConclusion": "success",
+  "originalReceiptSha256": "bb9aa6d18b1e66cf3d56d27af59c45a044881779d0874a50669654c2c569f4ba",
+  "verification": {
+    "schemaVersion": 1,
+    "scenario": "actual-nginx-task-tracker-http",
+    "cases": [
+      "unknown-host-400",
+      "missing-auth-401-despite-identity-headers",
+      "invalid-auth-401",
+      "forwarding-headers-sanitized",
+      "direct-service-forged-identity-401",
+      "service-csrf-still-required",
+      "authenticated-owner-create-201",
+      "owner-read-200",
+      "different-owner-404-despite-forged-identity",
+      "viewer-read-200",
+      "viewer-write-403-with-valid-csrf",
+      "body-cap-413",
+      "chunked-body-cap-413",
+      "stalled-body-inactivity-408",
+      "genuine-task-tracker-503",
+      "gateway-upstream-inactivity-504",
+      "gateway-burst-429-and-admitted-200",
+      "rate-limit-retry-guidance",
+      "valid-reload-and-request-recovery",
+      "logs-separate-gateway-429-from-upstream-503"
+    ],
+    "beforeIngressPublished": null,
+    "gatewayRunningBeforeIngress": true,
+    "networkIsolation": {
+      "backendInternal": true,
+      "ingressInternal": false,
+      "gatewayNetworkCount": 2,
+      "backendNetworkCount": 1,
+      "actualPublishedHostIp": "127.0.0.1"
+    },
+    "dockerServerVersion": "29.4.2",
+    "gatewayContainerId": "9691143b4f7f8deba3d178e86dbaafcc19447948b2a1ade1fd027b307bd14aaa",
+    "gatewayResolvedImageId": "sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5",
+    "nginxVersion": "1.30.6",
+    "nginxImage": "nginx:1.30.6-alpine@sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5",
+    "forwardedMetadata": {
+      "calls": 1,
+      "directServiceStatus": 401,
+      "Host": "gateway.example.test",
+      "X-Real-IP": "172.19.0.1",
+      "X-Forwarded-For": "172.19.0.1",
+      "X-Forwarded-Proto": "http",
+      "Forwarded": "",
+      "X-Forwarded-Host": "",
+      "X-Forwarded-Port": "",
+      "X-Forwarded-Prefix": "",
+      "X-User": "",
+      "X-Auth-Request-User": "",
+      "X-Forwarded-User": ""
+    },
+    "representativeNoCookieGetResponseSetCookie": false,
+    "diagnosticJvmCount": 1,
+    "diagnosticPidsLimit": 32,
+    "stalledBodyObservation": {
+      "wireOutcome": "closed-before-status",
+      "httpStatus": null,
+      "elapsedMillis": 1103
+    },
+    "stalledBodyElapsedMillis": 1103,
+    "timeoutElapsedMillis": 127,
+    "burstStatuses": {
+      "200": 3,
+      "429": 5
+    },
+    "reloadWorkers": {
+      "before": [
+        "3621"
+      ],
+      "after": [
+        "3865"
+      ]
+    },
+    "statusEvidence": {
+      "gatewayRejected": [
+        {
+          "case": "rate-2",
+          "status": 429,
+          "upstream": "",
+          "limit": "REJECTED",
+          "peer": "172.19.0.1",
+          "uri": "/limited"
+        },
+        {
+          "case": "rate-4",
+          "status": 429,
+          "upstream": "",
+          "limit": "REJECTED",
+          "peer": "172.19.0.1",
+          "uri": "/limited"
+        },
+        {
+          "case": "rate-5",
+          "status": 429,
+          "upstream": "",
+          "limit": "REJECTED",
+          "peer": "172.19.0.1",
+          "uri": "/limited"
+        },
+        {
+          "case": "rate-6",
+          "status": 429,
+          "upstream": "",
+          "limit": "REJECTED",
+          "peer": "172.19.0.1",
+          "uri": "/limited"
+        },
+        {
+          "case": "rate-7",
+          "status": 429,
+          "upstream": "",
+          "limit": "REJECTED",
+          "peer": "172.19.0.1",
+          "uri": "/limited"
+        }
+      ],
+      "upstreamFailure": [
+        {
+          "case": "upstream-503",
+          "status": 503,
+          "upstream": "503",
+          "limit": "",
+          "peer": "172.19.0.1",
+          "uri": "/api/observability/probe"
+        }
+      ],
+      "upstreamTimeout": [
+        {
+          "case": "timeout-504",
+          "status": 504,
+          "upstream": "504",
+          "limit": "",
+          "peer": "172.19.0.1",
+          "uri": "/timeout"
+        }
+      ],
+      "forwardingObservation": [
+        {
+          "case": "headers",
+          "status": 200,
+          "upstream": "200",
+          "limit": "",
+          "peer": "172.19.0.1",
+          "uri": "/headers"
+        }
+      ],
+      "stalledBodyTimeout": [
+        {
+          "case": "stalled-body",
+          "status": 408,
+          "upstream": "",
+          "limit": "",
+          "peer": "172.19.0.1",
+          "uri": "/api/projects"
+        }
+      ]
+    },
+    "actualCasesExecuted": 20,
+    "httpCalls": 34,
+    "skipped": 0,
+    "cleanupVerified": true,
+    "sourceSha256LF": {
+      "lab.py": "db45458f59eeda6aa38e101cafc571cda8bdb760773baa68e2bf1da6e6072a65",
+      "commands.py": "b923e0558d61a5208e742383e75bb4f0b005d76c90c338f20bbf7df5191610fe",
+      "GatewayProbe.java": "b86e11f7e49ab077d2974336d606a9f0ca0588ba53d417f676bd33eaca0ff2e4",
+      "nginx.conf": "54890c8eaa93d9ba50d174e268f21b5bf8a2c80677d5e4cc3603cef2235034cb",
+      "proxy-headers.conf": "ddcc2da3edd64ee7058e74d231d0736130e63bcfdc74ef1af59a94b7c81390e2"
+    }
+  },
+  "limitations": [
+    "Owned loopback HTTP and synthetic fixture only",
+    "No production TLS, distributed quota, multi-upstream HA or production egress evidence",
+    "Source-byte binding is not independent source-to-binary attestation"
+  ]
+}
