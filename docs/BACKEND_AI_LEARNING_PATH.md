@@ -196,3 +196,5 @@ Predict login-CSRF and fixation behavior, inspect the real cookie upgrade, then 
 established socket's logout with an upgrade paused across reauthentication. Explain why current
 HTTP authentication alone does not preserve a long-lived connection's authorization. Diagnose
 ACK pressure, idle expiry and message bounds separately; the exercise does not simulate a TCP stall.
+
+For transaction and query diagnosis, continue with [actual PostgreSQL histories](../examples/backend-persistence/README.md#6-read-committed-repeatable-read-and-serializable-observe-the-history). Predict each snapshot before looking at its receipt. Distinguish a write skew, serialization abort, deadlock, optimistic version conflict and ordinary lock wait. Repair the whole decision, compare equivalent indexed results, then explain why keyset pagination still repeats/misses rows when ordering keys move. Each section includes a private change task and interview explanation; actual learner completion remains unobserved.

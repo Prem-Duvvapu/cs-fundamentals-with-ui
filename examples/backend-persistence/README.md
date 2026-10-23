@@ -263,3 +263,5 @@ positioned regression sends the first actual TERM or INT after a READY-confirmed
 child reaches cleanup. The owned child must be killed and waited, its pipes closed, caller
 handlers/masks restored and a separate process group left alive before cancellation is delivered.
 This is bounded executable cleanup, not a SIGKILL or production database recovery guarantee.
+
+Primary PostgreSQL16 references checked2026-10-23: [transaction isolation](https://www.postgresql.org/docs/16/transaction-iso.html), [serialization failure handling](https://www.postgresql.org/docs/16/mvcc-serialization-failure-handling.html), [explicit locking/deadlocks](https://www.postgresql.org/docs/16/explicit-locking.html) and [index-only/covering scans](https://www.postgresql.org/docs/16/indexes-index-only-scans.html). The sample deliberately rejects23505 automatically; PostgreSQL documents cases where application-specific retry may be appropriate. Determine that from the invariant rather than treating every unique violation as transient or permanently nonretryable.

@@ -2,6 +2,16 @@
 
 ## Current completion scope — October 21
 
+The [PostgreSQL incident/concurrency lab](examples/backend-persistence/README.md) requires all12
+actual tests without skips, ten case groups, source-byte integrity, real dump/restore invariants
+and exact generated role/database cleanup. Preserve actual two-connection isolation histories,
+observed blocker cycles/repair, whole fresh-transaction retry with finite scheduling/attempt caps,
+OCC/pessimistic waits, equivalent XML query plans and mutable-key pagination counterexamples.
+A40001/40P01-only sample policy is not a universal retry rule; unknown commit outcomes are not
+blindly repeated. Keep bounded nonblocking stdin/stdout/stderr, Popen assignment ownership and
+complete child cleanup under cancellation deferral. Do not stop the shared local PostgreSQL server.
+Native/local success is separate from dedicated Docker actual-service CI or learner evidence.
+
 The [gateway lab](examples/backend-gateway/README.md) puts digest-pinned actual Nginx in front
 of unchanged Task Tracker source. Keep the fixed auth subrequest, service CSRF/role/owner checks,
 actual-peer metadata, finite body/time/rate limits and exact labelled-resource cleanup. Native

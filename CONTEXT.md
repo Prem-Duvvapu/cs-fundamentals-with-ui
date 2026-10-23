@@ -760,3 +760,18 @@ The gateway stalled-body observation records received HTTP status separately fro
 Acceptance additionally requires the matching access-log408. A wire close alone is insufficient;
 Nginx timeout finalization can terminate a request without sending a response status. Failed-run
 logs are retained before cleanup, without swallowing cancellation or changing the20-case gate.
+
+### Actual PostgreSQL histories and access paths — October23
+
+The isolated backend-persistence module now runs12 actual PostgreSQL16 tests and emits ten bounded
+case groups. JDBC-owned worker connections establish snapshots, write skew,40001 fresh-transaction
+recovery/exhaustion, actual40P01 blocker cycles and consistent-order repair, optimistic version
+conflicts and FOR UPDATE waits. Real XML EXPLAIN ANALYZE/BUFFERS/WAL reports compare equal results,
+composite covering-index work and deep offset/cursor access. Pagination explicitly counterexamples
+mutable sort keys; it is not a public cursor implementation or a cross-request snapshot.
+
+The verifier keeps exact generated role/database markers, independent finite cleanup, nonblocking
+input/output, offline Maven execution, source binding and actual dump/restore invariants. Its
+opt-in executable cancellation policy defers through Popen assignment and complete stop/wait/pipe
+closure; library callers retain their handlers/masks. The native14 guards and actual local12
+tests pass separately. Docker CI, other engines, replication, failover and capacity remain separate.
