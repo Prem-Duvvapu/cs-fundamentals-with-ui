@@ -1203,3 +1203,43 @@ No fsync/host-failure, binary-attestation, multi-host HA or production SLA claim
 final-head native actual-service CI and merged release remain required.
 
 **Resolving commit:**9794e2cc9fb5525a9c85c688ed16a05d2c5598fd.
+
+## RCA-2026-10-23-16 — a restored caller signal handler could interrupt remaining scope restoration
+
+**Observed:** independent actual TERM/INT delivery immediately after restoring a caller handler
+on normal scope exit leaves thread-local state installed in debugging, engineering, gateway and
+SSRF. TERM also skips restoration of the second handler. All eight initial probe cases fail on
+a5886ef. Equivalent scoped helpers in replication, persistence, Redis, WebSocket and AI comparison
+contain the same loop. Tests-first commits reproduce88 actual signal failures across nine copies:
+12 each in the first four (normal/body-error/entry-rollback × caller/nested × TERM/INT), eight each
+in the other five (normal/body-error × caller/nested × TERM/INT). Advisory unguarded-startup
+probes are not included in this confirmed count.
+
+**Cause:** a sequential restoration loop followed by outer-state assignment assumes restored
+caller handlers cannot raise during the loop. Earlier safe entry/child cleanup fixes addressed
+different boundaries and did not establish exception-safe exit restoration.
+
+**Resolution:** nested finally blocks restore SIGTERM, SIGINT and outer thread-local state even
+if an already restored caller handler raises. SSRF uses the same helper for entry rollback and
+ordinary exit. Preserve exact caller exception identity, existing body-error context, masks,
+nested guard state and library/import behavior. No new handler policy, signal mask, model call,
+prompt/default change or service business behavior is added.
+
+**Verification/prevention:** source-bound evidence in
+docs/evidence/PROCESS_SCOPE_RESTORATION_2026-10-23.json preserves initial old/new probe rows,
+tests-first/fix commits, source identities, log digests and exact scope. The original independent
+eight-case probe now passes all cases. Root reruns the full11 debugging tests in51.003s,
+including actual Spring/configuration repair and JDI; native engineering20, gateway21, SSRF20,
+replication19, persistence15, Redis5, WebSocket9 and comparison16 all pass. SSRF retains26 actual
+HTTP/TLS requests, zero skips and explicit restoration rows/source binding. A refreshed actual
+private PostgreSQL16.15 receipt binds the corrected helper and all19 guards; its database/workflow
+assertions pass. Dedicated final-head actual service/cluster and platform CI remain mandatory;
+native checks are not Nginx/kind/Redis/MongoDB or multi-host/production execution evidence.
+Repeated distinct asynchronous exceptions and every other wrapper are not certified by these
+positioned first-signal checks. Future guard changes must exercise entry, normal/error exit,
+partial-entry rollback where implemented, startup ownership and successful/timeout cleanup.
+
+**Tests-first commits:**36309bb,db6a65e,7fe2d24.
+
+**Resolving commits:**19c406231fff51732cc0272a2dbeb35c024312a7,
+7d6a0f221f614dfad2dbd1e7198179d0ee21f89c,1bde055a743b6b173aeecfab54f31df2238331ba.

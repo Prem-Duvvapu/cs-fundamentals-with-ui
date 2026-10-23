@@ -931,6 +931,18 @@ regressions and fixes in debugging, engineering, gateway and SSRF, plus the inde
 publication finding. Root independently repeats gateway19, engineering18, SSRF18/26HTTP,
 operations16 and replication18 guards successfully. Full nine-test native Spring/JDI evidence
 remains separate. Final review then reproduces a distinct signal-handler restoration window;
-its equivalent scoped helper copies are being corrected and rechecked before release.
+its equivalent scoped helper copies are corrected and rechecked in the checkpoint below.
 All dedicated final-head actual service/cluster checks and merged release remain pending.
 No platform CSS/runtime routes, learner analytics, canonical lesson or diagram sources change.
+
+### Interrupted scope restoration corrected — final integrated CI pending
+
+The [source-bound restoration record](evidence/PROCESS_SCOPE_RESTORATION_2026-10-23.json) covers
+nine existing opt-in helper copies. Tests-first commits reproduce88 actual TERM/INT failures;
+nested finally restoration preserves both handlers, outer state, caller exception and masks.
+The original independent eight-case probe now passes. Final native suites pass debugging11
+(including root's actual Spring/JDI rerun), engineering20, gateway21, SSRF20/26HTTP, replication19,
+persistence15, Redis5, WebSocket9 and AI comparison16. The refreshed actual private PostgreSQL
+receipt and actual SSRF receipt bind their current executable/guard sources. RCA-2026-10-23-16
+records the separate failure boundary and limitations. No frozen prompts/defaults or live model
+quality changes. Final-head actual domain/service/cluster CI and merged release remain required.

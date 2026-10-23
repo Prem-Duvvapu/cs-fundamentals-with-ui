@@ -604,7 +604,7 @@ Telemetry is off by default; the fixed local fixture needs no live model or coll
 documented build, Python guards and packaged verifier; unknown usage is not zero or billing proof.
 The gateway exercise distinguishes a received response from an idle-body connection close. Its
 timeout acceptance also requires the actual matching Nginx408 log, so a disconnect never becomes
-a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.
+a fabricated client status. Twenty-one native guards precede the mandatory20 actual HTTP cases.
 
 Practice [PostgreSQL concurrency and access paths](examples/backend-persistence/README.md#6-read-committed-repeatable-read-and-serializable-observe-the-history) after the DBMS lessons. Predict actual snapshots, reproduce write skew and deadlock, retry the whole known-aborted transaction, compare optimistic/pessimistic decisions, and inspect equivalent query results and index work. Finish with mutable-order pagination counterexamples and a real isolated restore. The expanded local runner passes12 actual tests without skips; Docker CI is separate evidence.
 
@@ -613,7 +613,7 @@ The [Java methods/construction review](docs/JAVA_METHODS_SOURCE_REVIEW_2026-10-2
 Curriculum validation checks the reader's parsed headings: the required Expert misconception section must actually render. A heading mentioned in prose, a fenced example or an earlier tier cannot satisfy that contract. The DBMS transaction lesson's leaked patch prefixes are repaired with its code and interview questions preserved.
 
 The [Spring/JDI exercise](examples/backend-debugging/README.md) also verifies cancellation at
-scope entry and during ordinary child teardown. Its nine native checks retain actual Spring
+scope entry and during ordinary child teardown. Its eleven native checks retain actual Spring
 launches and JDI events; signal guards alone are not a debugger or learner session.
 
 ### Replication and scheduling recovery — October 23 continuation
@@ -634,8 +634,8 @@ The dedicated cluster gate now requires all nine cases, including the original e
 contracts do not substitute for actual kind execution.
 
 The teaching command helpers also retain their existing opt-in cancellation policy through
-scope entry and complete normal cleanup. Local checks pass for debugging (9), engineering (18),
-gateway (19), SSRF (18 with 26 actual HTTP requests), replication guards (18) and operations
-contracts (16). Read the [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) for the exact
+scope entry and complete normal cleanup. Local checks cover debugging (11), engineering (20),
+gateway (21), SSRF (20 with 26 actual HTTP requests), replication guards (19) and operations
+contracts (16); five debugging process guards and its six actual Spring/JDI tests are distinct. Read the [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) for the exact
 reproductions and remaining unassessed boundaries. Combined final-head service/cluster CI and
 release are still required; these counts are separate evidence scopes, not one platform test total.

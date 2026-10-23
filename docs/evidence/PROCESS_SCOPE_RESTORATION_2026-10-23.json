@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-23",
+  "base": "a5886efc8b7a8330a447bc802222bb734ff6815e",
+  "initialIndependentBefore": [
+    {
+      "module": "debugging",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": false
+    },
+    {
+      "module": "debugging",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": true
+    },
+    {
+      "module": "engineering",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": false
+    },
+    {
+      "module": "engineering",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": true
+    },
+    {
+      "module": "gateway",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": false
+    },
+    {
+      "module": "gateway",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": true
+    },
+    {
+      "module": "ssrf",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": false
+    },
+    {
+      "module": "ssrf",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": false,
+      "handlersRestored": true
+    }
+  ],
+  "independentSameProbeAfter": [
+    {
+      "module": "debugging",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    },
+    {
+      "module": "debugging",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    },
+    {
+      "module": "engineering",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    },
+    {
+      "module": "engineering",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    },
+    {
+      "module": "gateway",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    },
+    {
+      "module": "gateway",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    },
+    {
+      "module": "ssrf",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGTERM",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    },
+    {
+      "module": "ssrf",
+      "case": "first-actual-signal-during-normal-handler-restoration",
+      "signal": "SIGINT",
+      "actualSignalDelivered": true,
+      "stateRestored": true,
+      "handlersRestored": true
+    }
+  ],
+  "fourCopyTestsFirstProof": {
+    "base": "a5886ef",
+    "testsFirstCommit": "36309bb37e301691a228210b5c95c135fca8cd63",
+    "fixCommit": "19c406231fff51732cc0272a2dbeb35c024312a7",
+    "python": "3.13.3",
+    "oldSourceSha256LF": {
+      "debugging": "58b60e9a53b20b0d894e1158f9622d2ea5b9217bbedd1629f065a87c600fe8f2",
+      "engineering": "477dc2609f0f21ab66433ae20cecfa0b47c6d9b0a5529e66851d4e6c61f68429",
+      "gateway": "1d3d910118644eb22d7c741cbba4843da81c336d33b93280fd4d8f90a4383e67",
+      "ssrf": "a4365aad5367ae166f144b0001879d2f135b624194396a69ec24d22149cb24a8"
+    },
+    "unchangedSourceFailures": {
+      "debugging": {
+        "methods": 2,
+        "actualSignalSubcases": 12,
+        "failedSignalSubcases": 12,
+        "logSha256": "b9314a150b5f50742a0105595339cd674fe3a61cd4ef2aefd8aa81ab4d23dbd9"
+      },
+      "engineering": {
+        "methods": 2,
+        "actualSignalSubcases": 12,
+        "failedSignalSubcases": 12,
+        "logSha256": "9bdbf5b6f3833f2a785b2878db7bd7ddf9a118a50e8829c8ef690be72a208a65"
+      },
+      "gateway": {
+        "methods": 2,
+        "actualSignalSubcases": 12,
+        "failedSignalSubcases": 12,
+        "logSha256": "5d9b07ab739199f985c244d9a18e116d2b37ed56a7c0c46f2b9dd259d869da86"
+      },
+      "ssrf": {
+        "methods": 2,
+        "actualSignalSubcases": 12,
+        "failedSignalSubcases": 12,
+        "logSha256": "00fa39554b87f42b374105ab074b30e6a7756b1cafaca2c8d571368f5ce05585"
+      }
+    },
+    "finalNative": {
+      "engineering": {
+        "methods": 20,
+        "seconds": 43.347,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "logSha256": "157d680c71489ac1ecfa58baf216371159ee22ff5285588eb6e2addae27eea88"
+      },
+      "gateway": {
+        "methods": 21,
+        "seconds": 3.139,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "logSha256": "d910b21e4c563e56aceb9cf03ff54731cfdb9693e0964dfbe943cd53f9fc86cb"
+      },
+      "debugging-process-guards": {
+        "methods": 5,
+        "seconds": 4.154,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "logSha256": "36130e79982d2ba05d46161e96572a5579af23f05f80870e1feded29904a6ca2"
+      },
+      "ssrf": {
+        "methods": 20,
+        "seconds": 5.009,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "logSha256": "59664fa3e588ec936853450890b2b1b8014f85dc92fcc7b372f2fa67a74a56ee"
+      }
+    },
+    "actualSignalSubcasesPerModule": 12,
+    "actualSignalSubcasesTotal": 48,
+    "ssrfActualHttpRequests": 26,
+    "ssrfScopeRestorationCases": [
+      {
+        "signal": "SIGTERM",
+        "nested": false,
+        "mode": "normal",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGTERM",
+        "nested": false,
+        "mode": "body-error",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGTERM",
+        "nested": false,
+        "mode": "entry-rollback",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGTERM",
+        "nested": true,
+        "mode": "normal",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGTERM",
+        "nested": true,
+        "mode": "body-error",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGTERM",
+        "nested": true,
+        "mode": "entry-rollback",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGINT",
+        "nested": false,
+        "mode": "normal",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGINT",
+        "nested": false,
+        "mode": "body-error",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGINT",
+        "nested": false,
+        "mode": "entry-rollback",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGINT",
+        "nested": true,
+        "mode": "normal",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGINT",
+        "nested": true,
+        "mode": "body-error",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      },
+      {
+        "signal": "SIGINT",
+        "nested": true,
+        "mode": "entry-rollback",
+        "actualSignals": 1,
+        "callerExceptionPreserved": true,
+        "handlersRestored": true,
+        "outerStateRestored": true,
+        "maskPreserved": true
+      }
+    ],
+    "ssrfSourceSha256LF": {
+      "fetch.py": "e15738e1a0058afc2f429304822d40656408a04bbcac8d7e63a37cf22db5d3e5",
+      "resolver_worker.py": "0ad23504c83cdfaf3004a92af779d2c98fca1520ff978849c22876efdd6d9ba5",
+      "fixtures.py": "8c709d1a48f2f4d6befe8da752d3eac0069f69702f921b75f92f808f793c0dc4",
+      "test_fetch.py": "7650eb798f11f24430b0f192c7b1d20b4b5035e51f07d80365ba156a764daa2b",
+      "test_resolver_cleanup.py": "1c11914cecdbf2fda9abac1593269fec9d1a76d751dea84beb9fe20b60d6c84f",
+      "test_scope_restoration.py": "18b7f913e6a663e25b39de06f7aa29d2278b98d962b06339b2c50936fff82558",
+      "verify.py": "ad646416b11815282e159395a88a284972f22c63901562086dcb8f2360f82284",
+      "cancellation.py": "d54b5d939ce405774a766532a3a0cef90f5ea1b37e5e03ee2ac08387bffd7b7e"
+    },
+    "ssrfReceiptSha256": "5b18421f84038a4b8d068df4781ec46322315196ca36aeb174e54efb4932b9ac",
+    "scope": "Actual positioned TERM/INT with existing opt-in policies; no masks changed, no domain Nginx/Docker or full Spring/JDI rerun claimed"
+  },
+  "otherFiveCopies": [
+    {
+      "module": "replication",
+      "originalFailedActualSignalSubcases": 8,
+      "oldLogRawSha256": "9ea6a1835f719849d29c188ef7277b09622fa2626e98d3a51521a636249949b9",
+      "finalNativeTests": 19,
+      "elapsedSeconds": 12.1,
+      "finalLogRawSha256": "7bcf9442ba4b223692f8c33683ee1f9636630ed4208bc22f776afd384f0da0d2",
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "module": "persistence",
+      "originalFailedActualSignalSubcases": 8,
+      "oldLogRawSha256": "e236039c8b02fbdfd845682aecc9d374d5dad5567f905a5229f84a08abd785e6",
+      "finalNativeTests": 15,
+      "elapsedSeconds": 1.97,
+      "finalLogRawSha256": "d13e793e451069f0d3a1fe27bd505726c6d742561a527b9a93e19d642335bf7d",
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "module": "data",
+      "originalFailedActualSignalSubcases": 8,
+      "oldLogRawSha256": "0fabd5261cf5abcd249286cfccd72560370517d24882c092c714cf1b2014a63c",
+      "finalNativeTests": 5,
+      "elapsedSeconds": 6.337,
+      "finalLogRawSha256": "4ab8028247b5f2d0d5d1ab8694b143d6c529d79b6d7b307f7473b7f5da0457a2",
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "module": "websocket",
+      "originalFailedActualSignalSubcases": 8,
+      "oldLogRawSha256": "8719e1506529607b303961360644db4f9614558b7735eb6fd03c650b82569c89",
+      "finalNativeTests": 9,
+      "elapsedSeconds": 4.355,
+      "finalLogRawSha256": "dbc104abfe1791fed0d4c4849a18531456d799d5c6a3efffae6a2e1d25115694",
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "module": "ai-comparison",
+      "originalFailedActualSignalSubcases": 8,
+      "oldLogRawSha256": "bb9ce521202ac9d269c1c3630221ccbbd3ecc8436a7ef8784e560c979f272449",
+      "finalNativeTests": 16,
+      "elapsedSeconds": 10.63,
+      "finalLogRawSha256": "7abd55f1968663519bef77754395d9012b6ced5e8ee5aa328359844f714cf3ba",
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    }
+  ],
+  "sourceSnapshots": {
+    "debugging": {
+      "path": "examples/backend-debugging/processes.py",
+      "beforeSha256LF": "58b60e9a53b20b0d894e1158f9622d2ea5b9217bbedd1629f065a87c600fe8f2",
+      "afterSha256LF": "a822c9b5db72f469285b103063be087b6f253f923f566001eee0da3463af9fbe"
+    },
+    "engineering": {
+      "path": "examples/engineering-workflow/commands.py",
+      "beforeSha256LF": "477dc2609f0f21ab66433ae20cecfa0b47c6d9b0a5529e66851d4e6c61f68429",
+      "afterSha256LF": "81bc4788a07669343cedfbfff1c6a1b8e80a7ee1eb7596061ce68db00cd3c430"
+    },
+    "gateway": {
+      "path": "examples/backend-gateway/commands.py",
+      "beforeSha256LF": "1d3d910118644eb22d7c741cbba4843da81c336d33b93280fd4d8f90a4383e67",
+      "afterSha256LF": "a3463193689ffeb2d05bb1c082de9a442fd2904239b68168952ff6348f64c539"
+    },
+    "ssrf": {
+      "path": "examples/backend-ssrf/cancellation.py",
+      "beforeSha256LF": "a4365aad5367ae166f144b0001879d2f135b624194396a69ec24d22149cb24a8",
+      "afterSha256LF": "d54b5d939ce405774a766532a3a0cef90f5ea1b37e5e03ee2ac08387bffd7b7e"
+    },
+    "replication": {
+      "path": "examples/backend-replication/processes.py",
+      "beforeSha256LF": "5d0f30b0332db16d4accf909bc1a836bca802c50114ed354a8a0d6a931d7df5b",
+      "afterSha256LF": "d4f7cb4cd9e91b64cd1ffdf251fc464b577acf3e342f34c629e70168019b261c"
+    },
+    "persistence": {
+      "path": "examples/backend-persistence/processes.py",
+      "beforeSha256LF": "66d909a44dbfd253f117cdcc86478ed83636f89aa890d19a060ae72eb900d0dc",
+      "afterSha256LF": "d4aed451b7a127e1a52735a66d5de3cf2d1c2f910238820aabba83d3ddaf4a67"
+    },
+    "data": {
+      "path": "examples/backend-data-services/verify_redis.py",
+      "beforeSha256LF": "291cabb67a33f1130cd3fbba5fc5f2de7834375768247f6edd9b37ace5d9ff61",
+      "afterSha256LF": "2eeb24d9cc57facf0a29078f21136bd9ce4fe14b49e3d3d237dfcff69c9b88d9"
+    },
+    "websocket": {
+      "path": "examples/backend-websocket/processes.py",
+      "beforeSha256LF": "2af5a93097634631bc1fd5e8bc100bc21bbd1a30026cc51b7fe73624b850a2dd",
+      "afterSha256LF": "ad7966d9aa6666516f4dcda8c763805f7a92002c1777f8e9531ccb88d10a4fed"
+    },
+    "ai-comparison": {
+      "path": "examples/ai-backend/compare_tickets.py",
+      "beforeSha256LF": "123cbfcf55a40754047fb0de135f7a5549030ec75fe61623dc6cad18b6c7be03",
+      "afterSha256LF": "6ce16e2754e71bc65f2328837a061813443ca4ae7388cca007046a146624d74f"
+    }
+  },
+  "testsFirstCommits": [
+    "36309bb37e301691a228210b5c95c135fca8cd63",
+    "db6a65e5662e85ab34498734d693335fc37c313b",
+    "7fe2d2467535801e4f97660d966ac0331f8ce2b8"
+  ],
+  "resolvingCommits": [
+    "19c406231fff51732cc0272a2dbeb35c024312a7",
+    "7d6a0f221f614dfad2dbd1e7198179d0ee21f89c",
+    "1bde055a743b6b173aeecfab54f31df2238331ba"
+  ],
+  "oldFailedActualSignalSubcasesAcrossNineHelpers": 88,
+  "limitations": [
+    "Actual signals positioned during restoration; no arbitrary multiple-signal or all-wrapper certification",
+    "Native guard suites are separate from actual domain/service CI",
+    "Frozen AI prompts/default and model quality unchanged; no inference/cloud/learner/manual accessibility evidence"
+  ],
+  "rootFullDebuggingRerun": {
+    "tests": 11,
+    "seconds": 51.003,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "logRawSha256": "01f71e58e814a7a271dc1a5e1ff9a7c86c8dccda8bfdb4dcfaa07e0bb08f6a07",
+    "scope": "Actual six Spring configurations and fixed JDI fixture plus process guards; imported source hashes remain separate from Python helper snapshot",
+    "reports": {
+      "configuration.json": "13594be3bbf7cc2fa1f92126715b70b4f5084bdfaeaa61c9333689e1d504d03a",
+      "debugger.json": "cc4996ee668b5c0c5e56d0893cb305dc92a38a6a9a8e3d365d8f0377b3162a8f"
+    }
+  },
+  "currentActualReceipts": {
+    "replication": {
+      "path": "examples/backend-replication/evidence/2026-10-23-local.json",
+      "rawSha256": "07d6a9d96328f7c43274b50144881adcf681a9c6bbd4340715786507d493d57e",
+      "sourceSha256LF": {
+        "processes.py": "d4f7cb4cd9e91b64cd1ffdf251fc464b577acf3e342f34c629e70168019b261c",
+        "test_verify.py": "559c9a36f4a62449cc4c900b7535e26f3176c3e98c8a96ce60f08714d17b67e7",
+        "verify.py": "7773b88ebca3495571d39964d2c59ae5e97028d700c3ce255c7d000bd003ace9"
+      }
+    },
+    "ssrf": {
+      "path": "examples/backend-ssrf/evidence/2026-10-23-local.json",
+      "rawSha256": "7cf7083f22ba6eee93a3488b5ed9fa1ea707718bbda5a2d565070e5754d5c272",
+      "sourceSha256LF": {
+        "fetch.py": "e15738e1a0058afc2f429304822d40656408a04bbcac8d7e63a37cf22db5d3e5",
+        "resolver_worker.py": "0ad23504c83cdfaf3004a92af779d2c98fca1520ff978849c22876efdd6d9ba5",
+        "fixtures.py": "8c709d1a48f2f4d6befe8da752d3eac0069f69702f921b75f92f808f793c0dc4",
+        "test_fetch.py": "7650eb798f11f24430b0f192c7b1d20b4b5035e51f07d80365ba156a764daa2b",
+        "test_resolver_cleanup.py": "1c11914cecdbf2fda9abac1593269fec9d1a76d751dea84beb9fe20b60d6c84f",
+        "test_scope_restoration.py": "18b7f913e6a663e25b39de06f7aa29d2278b98d962b06339b2c50936fff82558",
+        "verify.py": "ad646416b11815282e159395a88a284972f22c63901562086dcb8f2360f82284",
+        "cancellation.py": "d54b5d939ce405774a766532a3a0cef90f5ea1b37e5e03ee2ac08387bffd7b7e"
+      }
+    }
+  }
+}

@@ -15,7 +15,7 @@ python3 -m unittest discover -s examples/backend-persistence -p 'test_verify.py'
 mvn -B -f examples/backend-persistence/pom.xml verify
 ```
 
-The first command runs **13 provisioning, privacy, cancellation and process-budget guards** without connecting to PostgreSQL. The Maven command resolves the declared dependencies, passes two Java guards and **skips ten actual PostgreSQL tests**. It does not prove database behavior. Run it once before the actual runner: the runner uses offline Maven with empty settings and a finite deadline, so an empty dependency cache fails rather than silently using a different graph. The dedicated workflow performs this dependency-resolution step explicitly.
+The first command runs **15 provisioning, privacy, cancellation and process-budget guards** without connecting to PostgreSQL. The Maven command resolves the declared dependencies, passes two Java guards and **skips ten actual PostgreSQL tests**. It does not prove database behavior. Run it once before the actual runner: the runner uses offline Maven with empty settings and a finite deadline, so an empty dependency cache fails rather than silently using a different graph. The dedicated workflow performs this dependency-resolution step explicitly.
 
 To run the complete exercise against an already-running local server:
 
@@ -253,6 +253,12 @@ The [dedicated workflow](../../.github/workflows/backend-persistence.yml) exerci
 Runtime artifacts stay under ignored `target/`; only reviewed sanitized evidence is committed. No learner telemetry is collected. The module deliberately does not add a second CRUD app, an in-memory substitute for PostgreSQL evidence, production credentials, or cloud dependencies.
 
 TERM/INT cancellation is opt-in for the executable, leaves library callers’ signal handlers/masks unchanged, and defers delivery across process ownership and exact database cleanup. Repeated cancellation cannot interrupt that finite cleanup; SIGKILL or host failure can. Twelve actual tests and successful cleanup must be established by the runner, not inferred from compilation or guard tests.
+
+The current 15 Python guards include actual first TERM/INT during handler restoration on both
+normal and error exits with caller/nested scopes. Both handlers and outer state must be restored
+even if the restored caller raises; its original exception and any body-error context propagate.
+This supplements the historical local receipt's 14 guards; final actual-service CI verifies the
+current helper separately from those earlier database observations.
 
 Primary references: [Hibernate fetching strategies](https://docs.hibernate.org/orm/7.4/userguide/html_single/#fetching), [Hikari configuration](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby), [PostgreSQL 16 pg_dump](https://www.postgresql.org/docs/16/app-pgdump.html), [pg_restore](https://www.postgresql.org/docs/16/app-pgrestore.html), [ALTER TABLE locks and constraints](https://www.postgresql.org/docs/16/sql-altertable.html) and [sequence non-rollback behavior](https://www.postgresql.org/docs/16/functions-sequence.html). Versions and references checked 2026-10-18.
 

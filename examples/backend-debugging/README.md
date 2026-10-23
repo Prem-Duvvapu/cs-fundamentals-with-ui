@@ -179,6 +179,11 @@ group left running. Library use alone installs no signal policy. These guards es
 neither a SIGKILL cleanup guarantee nor reaping of grandchildren; the actual Spring/JDI
 tests remain required alongside them.
 
+The full suite now has 11 tests. Additional actual TERM/INT cases interrupt restored caller
+handlers on normal/error exit and partial-entry rollback, in caller and nested scopes. Nested
+finally blocks restore both handlers and outer state before the original exception propagates;
+uninterrupted success/error/setup-failure cases retain their original behavior and mask.
+
 Inherited Spring/server/management/Task Tracker/telemetry settings and Java option
 injection are excluded before creating children. Configuration inspection is limited
 to the one allowlisted nonsecret key; profile names and known bean classes are public

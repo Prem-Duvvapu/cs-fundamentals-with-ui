@@ -143,6 +143,12 @@ The AI-review exercise in `ai_review.py` opts into the command helper's scoped T
 
 Three positioned regression tests cover eight actual signal cases: TERM/INT after state assignment with caller and nested scopes, at the first deadline cleanup of a READY-confirmed owned child, and at the first cleanup after exit zero. They verify the exact child is reaped, stdout is closed, caller handlers/masks are restored and an unrelated process group survives. Full native discovery now passes all 18 tests. These regressions supplement the original disposable Git/Maven/Linux and independent patch-review tests; they do not claim a real learner completed the tasks.
 
+The later scope-exit correction raises full native discovery to 20 tests. Twelve actual TERM/INT
+subcases interrupt handler restoration on normal/error exit and partial-entry rollback with caller
+or nested scopes. Both handlers and outer state restore through nested finally blocks while the
+original caller exception propagates. Uninterrupted success/error/setup-failure controls also pass.
+The opt-in boundary remains the AI-review path, not the original workflow/Linux runner.
+
 Initial local execution and all four tests passed with Git 2.43.0, javac 17.0.20.1, Maven 3.8.7 and installed Plexus Utils 3.4.2. Actual runtime versions and the support-JAR digest are recorded per run. Maven 4 API/layout, real IDE participation, unfamiliar-repository comprehension and current dependency/security review remain separate gates. No website/API/content changes are made by this package.
 
 Primary sources reviewed October 18, 2026: [Git bisect and exit codes](https://git-scm.com/docs/git-bisect), [Git revert](https://git-scm.com/docs/git-revert), [Maven dependency mediation/management](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html), [Maven CI-friendly version properties](https://maven.apache.org/guides/mini/guide-maven-ci-friendly.html), [Spring Boot external configuration](https://docs.spring.io/spring-boot/reference/features/external-config.html), and [Linux process file descriptors](https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html).

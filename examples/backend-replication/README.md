@@ -6,7 +6,7 @@ Start with the existing [distributed databases, replication and consistency less
 
 ## 1. Run the real exercise
 
-Requirements: Linux, Python 3.12+, and an installed matching PostgreSQL **major 16** server/client tool directory containing `postgres`, `initdb`, `psql` and `pg_basebackup`. The [sanitized local receipt](evidence/2026-10-23-local.json) records an actual **16.15** run; the 18 guard tests passed under Python **3.13.3**. Run as a regular user who can create private temporary files and launch local processes; never run as root.
+Requirements: Linux, Python 3.12+, and an installed matching PostgreSQL **major 16** server/client tool directory containing `postgres`, `initdb`, `psql` and `pg_basebackup`. The [sanitized local receipt](evidence/2026-10-23-local.json) records an actual **16.15** run; the 19 guard tests passed under Python **3.13.3**. Run as a regular user who can create private temporary files and launch local processes; never run as root.
 
 From the repository root:
 
@@ -106,6 +106,11 @@ The second history deliberately exposes asynchronous replication's recovery-poin
 | Success | Four actual server launches; required histories; cleanup first; normalized source hashes unchanged before/after; atomic sanitized report publication |
 
 The guard suite positions actual TERM/INT at subprocess assignment, scope entry and the first normal cleanup, including a child that ignores TERM and must be killed/reaped. An unrelated process group must survive. Binary stdin/stdout/stderr are nonblocking and bounded. These prove helper ownership behavior, not database lag; the actual runner proves the separate database history.
+
+Scope-exit tests also interrupt actual handler restoration on normal/error exits in caller and
+nested scopes. Nested finally blocks restore TERM, INT and outer state before the caller's exact
+exception propagates; a body error remains its context. Signal masks and library policy stay
+unchanged. The refreshed local actual receipt binds this corrected helper and all current guards.
 
 Runtime artifacts stay under ignored `target/`. Source hashes cover the Python executable/guards. Publication guards verify an unrelated symlink victim stays unchanged, the final receipt is a regular file, and actual TERM/INT at staging creation, rename or final staging cleanup leaves no owned staging/success receipt. The receipt excludes generated usernames, passwords, temporary paths, ports, connection strings and raw logs. Rows are five fixed original synthetic IDs, not learner/customer data. If SIGKILL/host failure interrupts cleanup, only the owner should inspect this run's exact private directory/processes; never use a global PostgreSQL cleanup command.
 

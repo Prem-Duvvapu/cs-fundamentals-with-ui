@@ -60,8 +60,15 @@ Review of combined source `a5886ef` subsequently reproduces a distinct first-sig
 normal scope-handler restoration in debugging, engineering, gateway and SSRF. A caller handler
 raising immediately after its restoration skips remaining handler/state cleanup. The eight actual
 signal observations are separate from the earlier process-cleanup failures above. Equivalent
-scoped helper copies are being checked and corrected before release; no existing local success
-count closes this newly observed window. RCA-2026-10-23-16 records the follow-up evidence.
+scoped helpers in replication, persistence, Redis, WebSocket and AI comparison were then checked:
+88 tests-first signal subcases across all nine copies fail on old code. Nested finally restoration
+fixes all copies without changing masks or opt-in policy. The original independent eight-case
+probe now passes, and root's full11 Spring/JDI rerun passes in51.003s. Other native suites pass:
+engineering20, gateway21, SSRF20/26HTTP, replication19, persistence15, Redis5, WebSocket9 and AI
+comparison16. Fresh source-bound actual SSRF and private PostgreSQL receipts are retained.
+[The separate restoration receipt](evidence/PROCESS_SCOPE_RESTORATION_2026-10-23.json) and
+RCA-2026-10-23-16 distinguish these current observations from earlier counts above. Actual
+final-head service/cluster CI and merge remain required.
 
 ## Remaining evidence boundaries
 

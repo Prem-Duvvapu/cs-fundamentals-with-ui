@@ -8,7 +8,7 @@ after a deliberately stale promotion, then a fresh rebuild and new replicated wr
 process termination/listener refusal precede promotion; this is local fencing, not multi-host HA.
 The source-bound sanitized receipt is published only after owned process/file cleanup through
 an exclusive staging handle and atomic replacement. Cancellation rollback targets only the
-installed device/inode and preserves a concurrently replaced report. Eighteen native guards
+installed device/inode and preserves a concurrently replaced report. Nineteen native guards
 and a dedicated actual-service workflow retain the distinct helper/database evidence scopes.
 
 The operations module adds a ninth actual kind case: an owned Deployment with a fresh selector
@@ -28,6 +28,14 @@ Task Tracker sources. Engineering's AI-review path enters that scope; its origin
 and Linux probe do not. The [lifecycle audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) distinguishes
 confirmed contract regressions from unguarded startup probes; no repository-wide signal-safety
 certification is inferred. Final integrated service/cluster CI remains required for this continuation.
+
+All nine existing opt-in helper copies now use nested finally restoration for SIGTERM, SIGINT
+and outer thread-local state. A caller handler raising during restoration cannot skip the remaining
+steps; its exact exception and existing body-error context propagate. Tests deliver real signals
+on normal/error caller/nested exits; four helpers also exercise partial-entry rollback. This changes
+no mask, import-time policy, frozen prompt/default or business behavior. Current native guard
+results and before/after source identities are retained in the lifecycle evidence, separate from
+the required actual service jobs. The full Spring/JDI rerun passes all11 tests locally.
 
 `AiTelemetry` instruments actual nonstream lexical RAG request/retrieval/context/model/native
 HTTP/validation boundaries only when explicitly enabled. The original no-op constructors/default

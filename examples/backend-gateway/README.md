@@ -214,7 +214,12 @@ runner. Non-group commands retain individual-child termination. Native regressio
 startup, including delivery via another live thread, and during handler installation. It never
 changes caller signal masks. Library helpers do not install handlers on their own.
 
-Additional positioned regressions cover the first actual TERM/INT during deadline cleanup and after a successful command exit. A READY-confirmed owned child must be killed/reaped and its stdout closed before cancellation escapes; the successful-child case must close its pipe too. Caller and nested scope-entry restoration, existing caller signal masks, non-group termination and an unrelated process group remain protected. The native suite now has 19 tests; none executes Nginx. The dedicated workflow still requires all 20 actual Nginx/HTTP assertions, source-bound evidence and owned cleanup with zero skips.
+Additional positioned regressions cover the first actual TERM/INT during deadline cleanup and after a successful command exit. A READY-confirmed owned child must be killed/reaped and its stdout closed before cancellation escapes; the successful-child case must close its pipe too. Caller and nested scope-entry restoration, existing caller signal masks, non-group termination and an unrelated process group remain protected. The native suite now has 21 tests; none executes Nginx. The dedicated workflow still requires all 20 actual Nginx/HTTP assertions, source-bound evidence and owned cleanup with zero skips.
+
+The scope-exit tests add twelve actual TERM/INT caller/nested cases across normal/error exit and
+partial-entry rollback. If an already restored caller handler raises, separate finally blocks
+still restore the other handler and outer state before propagating the original exception.
+Uninterrupted success/error/setup-failure controls preserve the existing caller policy and mask.
 
 Cleanup inspects only exact generated names/tags, requires their exact owner label, removes
 matched container/network IDs, and verifies absence. It removes only its two image tags; shared

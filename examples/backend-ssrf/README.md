@@ -156,6 +156,13 @@ INT before the caller receives its return value, including delivery through a
 live unmasked thread while the main thread blocks that signal. It requires exact
 child reaping and restored handlers/masks. These are executable-scoped semantics;
 callers using the library alone must explicitly own their cancellation policy.
+
+Scope restoration uses nested finally blocks for both original handlers and outer thread-local
+state. Twelve actual TERM/INT caller/nested subcases cover normal/error exit and partial-entry
+rollback while preserving the caller's exact exception and mask. The verifier now requires all
+20 tests, those 12 restoration rows, four resolver-cleanup rows, unchanged 26 actual HTTP requests
+and all eight executable/regression source hashes. Helper tests do not replace owned TLS/transport
+or production egress evidence.
 A separate short-lived Linux test supervisor TERM-cancels a wrapper while its
 resolver is active. It requires actual child reaping, closed fixture socket/thread,
 removed keys and no remaining resolver `/proc` entry. Only this test supervisor
