@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   redis-mongodb:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +22,35 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
+      - name: Check the actual Docker kernel against MongoDB compatibility
+        run: |
+          python3 - <<'PY'
+          import json, re, subprocess
+          from pathlib import Path
+          command = ['docker','info','--format','{{.KernelVersion}}|{{.Architecture}}|{{.OSType}}|{{.ServerVersion}}']
+          result = subprocess.run(command, capture_output=True, timeout=10)
+          if result.returncode or len(result.stdout)>1024:
+              raise SystemExit('Cannot observe the actual Docker daemon runtime')
+          values = result.stdout.decode('ascii').strip().split('|')
+          if len(values)!=4 or any(not re.fullmatch('[A-Za-z0-9._+/-]{1,128}', value) for value in values):
+              raise SystemExit('Unexpected Docker runtime metadata')
+          kernel, architecture, system, version = values
+          match = re.match(r'([0-9]+)[.]([0-9]+)[.]([0-9]+)', kernel)
+          if not match or system!='linux':
+              raise SystemExit('Observed Linux Docker kernel required')
+          release = tuple(map(int, match.groups()))
+          supported = not ( (6,19,0) <= release < (7,0,14) )
+          report = {'schemaVersion':1,'dockerKernel':kernel,'architecture':architecture,'system':system,
+                    'dockerServerVersion':version,'knownMongoKernelIncompatibilityExcluded':supported,
+                    'scope':'observed Docker kernel against the documented MongoDB8 incompatibility; not general platform certification',
+                    'source':'https://www.mongodb.com/docs/manual/release-notes/8.0/'}
+          target=Path('examples/backend-data-services/target/host-runtime.json')
+          target.parent.mkdir(parents=True,exist_ok=True)
+          target.write_text(json.dumps(report,indent=2)+'\n')
+          if not supported:
+              raise SystemExit('MongoDB8 refuses Linux6.19 through7.0.13; use a supported Docker host kernel, not an older image or a disabled startup guard')
+          print('Observed Docker host kernel is outside the documented incompatible range')
+          PY
       - name: Generate private runtime credentials
         shell: bash
         run: |
@@ -89,6 +118,10 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import xml.etree.ElementTree as ET
+          import json
+          runtime=json.loads(Path('examples/backend-data-services/target/host-runtime.json').read_text())
+          if runtime.get('knownMongoKernelIncompatibilityExcluded') is not True:
+              raise SystemExit('Actual supported Docker kernel observation required')
           root=Path('examples/backend-data-services/target/surefire-reports')
           for name,count in {'RedisIntegrationTests':4,'CacheRecoveryRedisTests':5,'MongoIntegrationTests':4,'CacheMongoIntegrationTests':4}.items():
               path=root/('TEST-com.csfundamentals.dataservices.'+name+'.xml')
@@ -144,6 +177,7 @@ jobs:
             examples/backend-data-services/target/surefire-reports/
             examples/backend-data-services/target/cache-recovery-evidence.json
             examples/backend-data-services/target/service-startup.json
+            examples/backend-data-services/target/host-runtime.json
           if-no-files-found: warn
       - name: Remove only this job's containers and owned anonymous volumes
         if: always() && env.DATA_REDIS_CONTAINER != ''

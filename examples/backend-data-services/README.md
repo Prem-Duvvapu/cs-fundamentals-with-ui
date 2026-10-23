@@ -395,3 +395,14 @@ If an owned CI service exits before readiness, the job fails immediately and ret
 credential-redacted startup log plus running/exit/OOM state for its two exact job containers.
 This is setup evidence, not a passing service test; the17-case gate remains mandatory. Diagnostics
 are gathered before exact teardown, without dumping environment or application data.
+
+The actual MongoDB startup diagnostics identified its documented TCMalloc/kernel compatibility
+check, not a cache assertion: MongoDB8 refuses Linux6.19 through7.0.13. Containers share the Docker
+host kernel, so a pinned image does not pin that kernel. CI uses the supported Ubuntu22.04 LTS
+runner and records the actual Docker daemon kernel/version before starting services; the known
+incompatible range fails explicitly. No startup guard is disabled and the database image remains
+pinned. The17 actual service cases are still required on that observed runtime. This check excludes
+one documented incompatibility; it is not a certification of every host or future kernel.
+
+Primary source checked2026-10-23: [MongoDB8.0 kernel compatibility notes](https://www.mongodb.com/docs/manual/release-notes/8.0/)
+and [supported Ubuntu releases](https://www.mongodb.com/docs/v8.0/tutorial/install-mongodb-on-ubuntu/).
