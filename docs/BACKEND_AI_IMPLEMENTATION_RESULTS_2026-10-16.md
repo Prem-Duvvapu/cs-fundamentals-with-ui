@@ -44,12 +44,12 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; PR83 configuration and actual JDI CI verified; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore plus PR89 actual concurrency/plans CI; broader database work open | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-03 / P0 | Partial: PR89 actual concurrency/plans CI; two-cluster replication/rebuild locally verified, final CI/release pending; broader database work open | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; PR84 concurrent rebalance/replay/dedup actual CI verified | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability plus PR87 bounded Redis coalescence/recovery CI; eviction/fairness/failover open | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket and PR85 actual gateway; production egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
-| BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
+| BE-08 / P1 | Partial: original eight actual kind cases CI verified; ninth Pending/Unschedulable case locally guard-tested, actual CI/release pending; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
@@ -891,7 +891,8 @@ final integrated CI/release remains required.
 PR [90](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/90) merged at
 2026-10-23T19:41:31Z as22fab5ab6754fa1726155aa2ad776e96e6a4c416. Exact head
 20bf26a47ca7bffea565f99a75a334d628bd601c passes all nine checks: six Verify jobs,
-GitGuardian and both Vercel checks. This delivers the nine-page methods/construction source
+GitGuardian and both Vercel checks. The [release receipt](evidence/PR90_RELEASE_2026-10-23.json)
+retains the final-head checks and separately observed merged state. This delivers the nine-page methods/construction source
 review, marked Java17 example, original source/identity preservation and the parsed-outline
 misconception gate with its DBMS prose repair. Full frontend/browser/content/migration/diagram
 and actual-backend journeys pass. This supersedes the preceding two continuation-release
@@ -908,3 +909,28 @@ Spring/debugger reports, source/report identities and explicitly post-run module
 RCA-2026-10-23-11 records the two timing gaps and preservation of caller policy, bounds, exact
 cleanup, imported sources and JDI identities. Final dedicated actual-service CI and release
 remain required; this does not close GUI/manual learner or all-wrapper audit requirements.
+
+## Replication, scheduling and lifecycle continuation — unreleased
+
+The new [replication exercise](../examples/backend-replication/README.md) adds actual native
+PostgreSQL16.15 two-cluster stale-read, bounded same-timeline fence, fenced stale promotion and
+fresh rebuild/replay evidence. Its [source-bound local receipt](../examples/backend-replication/evidence/2026-10-23-local.json)
+requires four real foreground starts and exact owned process/private-file cleanup. It never
+attaches to or stops the shared database. The original selected timeline lacks acknowledged ID3;
+the old disk still exists before deliberate rebuild. This advances BE-03/BEC-44/45 but does not
+close multi-host HA, partition/sharding, automatic failover or production RPO/RTO requirements.
+
+The [Pending recovery extension](../examples/backend-operations/README.md#7-diagnose-pending-before-changing-a-probe)
+adds one exact scheduler-cause/ownership/recovery case to the previous eight required actual
+kind cases. Sixteen native contracts pass; an independent reviewer also executes the workflow
+validator against 14 invalid synthetic evidence variants, all rejected. These are guard checks,
+not kind execution. The actual schemaVersion3/nine-case cluster gate remains required.
+
+The [lifecycle review](PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) records actual entry/normal-cleanup
+regressions and fixes in debugging, engineering, gateway and SSRF, plus the independent replication
+publication finding. Root independently repeats gateway19, engineering18, SSRF18/26HTTP,
+operations16 and replication18 guards successfully. Full nine-test native Spring/JDI evidence
+remains separate. Final review then reproduces a distinct signal-handler restoration window;
+its equivalent scoped helper copies are being corrected and rechecked before release.
+All dedicated final-head actual service/cluster checks and merged release remain pending.
+No platform CSS/runtime routes, learner analytics, canonical lesson or diagram sources change.

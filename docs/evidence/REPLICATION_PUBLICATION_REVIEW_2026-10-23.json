@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "observedOn": "2026-10-23",
+  "originalSourceCommit": "96b6a51df2639dd9737a7f9ab49de7b6f9e91104",
+  "originalActualPrivateRun": {
+    "returncode": 0,
+    "victimChanged": true,
+    "publishedReportIsSymlink": true,
+    "trackedFilesTouched": false,
+    "moduleEvidenceOverwritten": false,
+    "ownedResourcesCleaned": true,
+    "actualServerStarts": {
+      "originalDirectory": 2,
+      "standbyDirectory": 2
+    },
+    "postgresVersionNum": 160015,
+    "acknowledgedRowsMissing": [
+      3
+    ]
+  },
+  "resolvingCommit": "9794e2cc9fb5525a9c85c688ed16a05d2c5598fd",
+  "correctedActualReceipt": "examples/backend-replication/evidence/2026-10-23-local.json",
+  "correctedReceiptRawSha256": "ba9c112ae06411033f3d3b41841aa709e5059d701073e09f284009790b39ca8c",
+  "correctedSourceSha256LF": {
+    "processes.py": "5d0f30b0332db16d4accf909bc1a836bca802c50114ed354a8a0d6a931d7df5b",
+    "test_verify.py": "23cde634e5c724932fa8939b9b4bae075fcbe89aed825f4c76970da771879f28",
+    "verify.py": "7773b88ebca3495571d39964d2c59ae5e97028d700c3ce255c7d000bd003ace9"
+  },
+  "guardTestsPassed": 18,
+  "limitations": [
+    "Controlled private symlink victim only; no hostile-filesystem isolation guarantee",
+    "Corrected local actual database receipt is separate from dedicated final-head CI and merged release"
+  ],
+  "correctedActualReportAt9794e2": {
+    "schemaVersion": 1,
+    "scenario": "actual-private-postgresql-replication",
+    "postgresVersionNum": 160015,
+    "durability": {
+      "synchronousCommit": "on",
+      "fsync": "on",
+      "fullPageWrites": "on",
+      "synchronousStandbyNames": "",
+      "replicationMode": "asynchronous"
+    },
+    "replay": {
+      "initialIds": [
+        1
+      ],
+      "acknowledgedPrimaryIds": [
+        1,
+        2
+      ],
+      "pausedReplicaIds": [
+        1
+      ],
+      "commitFlushLsn": "0/3000170",
+      "pausedFence": {
+        "reached": false,
+        "checks": 4,
+        "elapsedMs": 232
+      },
+      "resumedFence": {
+        "reached": true,
+        "checks": 1,
+        "elapsedMs": 16
+      },
+      "recoveredReplicaIds": [
+        1,
+        2
+      ],
+      "sameTimelineFenceOnly": true,
+      "pauseIsNetworkPartition": false
+    },
+    "failover": {
+      "oldPrimaryAcknowledgedIds": [
+        1,
+        2,
+        3
+      ],
+      "promotedIdsBeforeNewWrite": [
+        1,
+        2
+      ],
+      "acknowledgedRowsMissingOnSelectedTimeline": [
+        3
+      ],
+      "oldDiskPresentBeforeRebuild": true,
+      "oldPrimaryProcessTerminalBeforePromotion": true,
+      "oldPrimaryPortRefusedBeforePromotion": true,
+      "oldTimeline": 1,
+      "promotedTimeline": 2,
+      "unreplicatedCommitFlushLsn": "0/3000218",
+      "newPrimaryIds": [
+        1,
+        2,
+        4
+      ],
+      "observedStopToCheckedWriteMs": 416,
+      "automaticFailover": false,
+      "multiHostFencing": false
+    },
+    "rebuild": {
+      "fromPromotedPrimary": true,
+      "recoveryRoleObserved": true,
+      "initialIds": [
+        1,
+        2,
+        4
+      ],
+      "freshWriteReplayedIds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "rebuildFence": {
+        "reached": true,
+        "checks": 1,
+        "elapsedMs": 15
+      },
+      "freshWriteFence": {
+        "reached": true,
+        "checks": 1,
+        "elapsedMs": 20
+      }
+    },
+    "limits": {
+      "ownedClusters": 2,
+      "maxConnectionsPerCluster": 8,
+      "sharedBuffersMiBPerCluster": 16,
+      "workBudgetSeconds": 180,
+      "startupPollSeconds": 8,
+      "clientSeconds": 3,
+      "sqlMilliseconds": 2000,
+      "privateLogBytesPerCluster": 524288
+    },
+    "actualServerStarts": {
+      "originalDirectory": 2,
+      "standbyDirectory": 2
+    },
+    "scope": "Two private processes on one host; replay pause is not a network partition; local fencing is not STONITH; observed recovery duration is not an RTO SLA; no production capacity or multi-host HA proof",
+    "ownedResourcesCleaned": true,
+    "sourceSha256LF": {
+      "processes.py": "5d0f30b0332db16d4accf909bc1a836bca802c50114ed354a8a0d6a931d7df5b",
+      "test_verify.py": "23cde634e5c724932fa8939b9b4bae075fcbe89aed825f4c76970da771879f28",
+      "verify.py": "7773b88ebca3495571d39964d2c59ae5e97028d700c3ce255c7d000bd003ace9"
+    }
+  },
+  "correctedActualReceiptAtCommit": "9794e2cc9fb5525a9c85c688ed16a05d2c5598fd"
+}

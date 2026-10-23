@@ -2,6 +2,30 @@
 
 ## Current completion scope — October 21
 
+The [replication lab](examples/backend-replication/README.md) may operate only on its two generated
+private PostgreSQL 16 clusters, never the shared local server. Preserve actual recovery/pause/LSN
+and timeline checks, old-writer process/listener fencing before promotion, missing acknowledged row
+on the selected history and fresh rebuilt-replica replay. Four real server launches, exact cleanup
+and unchanged source hashes precede publication. Keep exclusive unpredictable staging, handle-based
+writes and device/inode-bound cancelled-publication rollback; never return to a fixed sibling .tmp
+write. Eighteen guard tests are separate from actual database execution; dedicated native CI is
+required. No multi-host HA, automatic failover, network-partition or production RPO/RTO claim.
+
+The operations gate now requires nine actual kind cases and schemaVersion3, including the existing
+eight. The Pending case must keep exact scheduler reason/event and Pod/ReplicaSet/Deployment/
+Service/EndpointSlice ownership, zero endpoints, actual DNS success plus connection failure, then
+selector-only repair and fresh authenticated Service200. Do not mutate Nodes or substitute Pending
+alone for a diagnosis. Sixteen local contracts do not establish actual cluster execution.
+
+Engineering/gateway command cleanup and SSRF resolver finalization must remain wholly deferred
+under the existing opt-in policy, including first cancellation on success and timeout. SSRF must
+finish wait/pipe closure, active-PID registry removal and event recording before delivery. Preserve
+caller handlers/masks, library behavior, exact owned groups and the actual TERM/INT regressions.
+The [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) distinguishes confirmed failures from
+26 advisory startup probes under a caller-installed raising handler; those probes are not 13
+additional proven regressions or grounds to install signal handlers on import. RCA12–15 below
+refer to the dated RCA-2026-10-23 entries, not older similarly numbered historical entries.
+
 Debugging cancellation guards must retain restoration across state assignment before handler
 installation and defer the complete normal close path, including the first signal on success.
 Keep the actual TERM/INT caller/nested-scope and TERM-ignoring-child regressions with all nine

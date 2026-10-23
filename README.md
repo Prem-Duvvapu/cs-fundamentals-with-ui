@@ -1,8 +1,8 @@
 # Backend Engineering
 
 Current scope: the core curriculum and UI refinement are delivered; the expanded practical
-backend/AI roadmap is still in progress. [PR79](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/79)
-ships the frozen prompt comparison, actual Kubernetes resource incidents and Java OOP source review.
+backend/AI roadmap is still in progress. Releases through [PR90](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/90)
+include the frozen prompt comparison, actual service/cluster exercises and five familiar Java source reviews.
 Use the [current capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
 for what remains. Dated milestones below retain their original evidence; they are not blanket
 completion claims. The [editorial maintenance guide](docs/EDITORIAL_MAINTENANCE.md) defines how to
@@ -615,3 +615,27 @@ Curriculum validation checks the reader's parsed headings: the required Expert m
 The [Spring/JDI exercise](examples/backend-debugging/README.md) also verifies cancellation at
 scope entry and during ordinary child teardown. Its nine native checks retain actual Spring
 launches and JDI events; signal guards alone are not a debugger or learner session.
+
+### Replication and scheduling recovery — October 23 continuation
+
+After the transaction/concurrency exercises, run the [PostgreSQL replication lab](examples/backend-replication/README.md).
+Predict an acknowledged primary write that a paused replica cannot read, recover with a bounded
+replay fence, inspect a deliberately stale promotion after local writer fencing, and rebuild the
+former primary from the selected new history. Two private PostgreSQL 16 clusters and a fresh
+replayed write provide actual evidence; this does not establish multi-host HA or an RTO SLA.
+The runner never attaches to or stops the shared local database. Follow the guide's prerequisites
+and predict/observe/diagnose/repair/change/interview tasks.
+
+The [Pending Pod exercise](examples/backend-operations/README.md#7-diagnose-pending-before-changing-a-probe)
+adds an unsatisfied owned node selector to the existing Kubernetes recovery path. Diagnose from
+PodScheduled and the exact scheduler event, confirm DNS succeeds while the Service has no ready
+endpoints, remove the selector and verify the replacement Pod and an authenticated request.
+The dedicated cluster gate now requires all nine cases, including the original eight; 16 native
+contracts do not substitute for actual kind execution.
+
+The teaching command helpers also retain their existing opt-in cancellation policy through
+scope entry and complete normal cleanup. Local checks pass for debugging (9), engineering (18),
+gateway (19), SSRF (18 with 26 actual HTTP requests), replication guards (18) and operations
+contracts (16). Read the [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) for the exact
+reproductions and remaining unassessed boundaries. Combined final-head service/cluster CI and
+release are still required; these counts are separate evidence scopes, not one platform test total.

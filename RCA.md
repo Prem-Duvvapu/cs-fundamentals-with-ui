@@ -1108,3 +1108,98 @@ attestation. Dedicated final-head actual-service CI remains required. Other help
 being audited separately; this entry does not certify every process wrapper.
 
 **Resolving commit:**ad3281e16a2ed55508d6e544b267c7a9e2182fb4.
+
+## RCA-2026-10-23-12 — engineering command entry and cleanup escaped its opt-in guard
+
+**Observed:** actual TERM/INT on baseline22fab5a fail eight positioned subcases: four caller/nested
+scope-entry cases leave thread-local state installed, two deadline cases leave a READY-confirmed
+child running with stdout open, and two successful-command cases leave stdout open. Exact test
+fallbacks reap owned children; an unrelated group remains alive. The sanitized process-audit
+receipt retains baseline hashes and observations, including controls and evidence limits.
+
+**Cause:** commands.py assigned scope state before its restoration try and performed its finally
+stop/wait/stdout close outside deferral. Startup-only guards did not cover first-signal teardown.
+
+**Resolution:** move assignment into the restoration try and defer complete command cleanup.
+Keep library policy, finite bounds, non-group behavior and exact group ownership. The AI-review
+path opts in; runner.py and linux_probe.py do not. The guide now states that actual boundary.
+
+**Verification/prevention:** three new positioned tests cover all eight failing signal subcases.
+The full18-test discovery passes actual Git/bisect/revert/Java/offline Maven/Linux and patch review;
+root repeats18/18 in41.834s. Source/test discovery in Verify still includes these regressions.
+No real learner or repository-wide arbitrary-BaseException guarantee is inferred. Dedicated final
+integrated checks remain required. See docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md.
+
+**Resolving commit:**d9bc81a9747c35cef69ce48d3b25ff576de96d36.
+
+## RCA-2026-10-23-13 — first cancellation interrupted resolver finalization
+
+**Observed:** four actual TERM/INT subcases against the old SSRF resolver leave an owned timed-out
+worker/pipe or successful worker registry/event incomplete. Timeout cases position the first
+signal at actual KILL after an actual fixture-worker timeout; success cases position it at the
+second communicate. These are trusted checked-in resolver fixture plans, not request exemptions.
+
+**Cause:** existing Popen ownership deferral did not cover Resolver.resolve's complete finally
+stop/communicate/active-registry/event sequence. Correct scope entry alone did not protect it.
+
+**Resolution:** defer the full finalization sequence under the existing executable policy before
+delivering cancellation. Preserve library handlers/masks, numeric-peer/original-host TLS identity,
+all-address/origin validation, request bounds and no-redirect/no-forwarding constraints.
+
+**Verification/prevention:** a282b3e reproduces the four old failures. Fixed18-test actual verifier
+passes without skips, retaining26 actual HTTP requests, TLS, framing rejection/recovery and exact
+cleanup. New tests require closed pipes, terminal waited child, absent PID, cleared registry,
+recorded event, restored policy and recovery while an unrelated group survives. Root repeats
+all18 in7.312s. The source-bound module receipt and dedicated workflow include the new test and
+four cleanup evidence rows. No production egress, IPv6 transport or SIGKILL guarantee is inferred;
+final integrated actual-service CI remains required.
+
+**Resolving commit:**a3679dd793101418e5599401f34497bf03d6d362.
+
+## RCA-2026-10-23-14 — gateway cleanup remained cancellable after safe scope entry
+
+**Observed:** four actual TERM/INT cleanup subcases fail: timeout leaves a READY-confirmed owned
+child/stdout unfinished and successful-command teardown leaves stdout open. Four positioned
+scope-entry controls already pass on the original helper; they are not newly fixed failures.
+
+**Cause:** complete finally stop/wait/pipe close remained outside deferral although assignment,
+scope restoration and exited-leader group ownership had previously been corrected.
+
+**Resolution:** defer the existing complete cleanup sequence. Retain caller/nested policy,
+non-group semantics, finite waits, exact session-group cleanup and unrelated-process survival.
+No auth, proxy, HTTP/log contract, Java fixture, Nginx config or service input changes.
+
+**Verification/prevention:** three added tests retain entry controls plus timeout/success actual
+regressions; all19 native tests pass, independently repeated by root in4.857s. All20 actual
+Nginx HTTP assertions, log distinction, source integrity, one-JVM/PID bound and owned Docker
+cleanup stay mandatory in the dedicated workflow. Local19-test success is not gateway execution;
+final integrated actual-Nginx CI remains required. See the shared sanitized lifecycle audit.
+
+**Resolving commit:**ff1f31ac5fa37aa553fcd487235e1f52c1a85596.
+
+## RCA-2026-10-23-15 — replication receipt staging followed a preexisting symlink
+
+**Observed:** independent actual two-cluster PostgreSQL16.15 review of96b6a51 completes all
+database histories/cleanup but changes a controlled private symlink victim and publishes a
+symlink as its success report. Existing checked_destination protects the final path; it does not
+protect an independently opened fixed sibling .tmp. The selected sanitized evidence is
+docs/evidence/REPLICATION_PUBLICATION_REVIEW_2026-10-23.json; no victim/private path is published.
+
+**Cause:** deterministic staging write_text opens a preexisting link before replace. Final-path
+validation and valid database assertions cannot establish safe report publication ownership.
+
+**Resolution:** write through an exclusively created unpredictable staging handle, close it,
+atomically replace the checked destination and remove exact staging state under deferral. If
+cancellation becomes deliverable after rename, remove only the newly installed device/inode;
+preserve a different file concurrently installed at the destination. CI requires a bounded regular
+nonsymlink receipt. This retains ordinary last-writer replacement, not hostile-filesystem isolation.
+
+**Verification/prevention:** all18 guards pass, including actual TERM/INT at staging creation,
+rename and normal staging cleanup, fixed symlink-victim preservation and concurrent replacement
+preservation. Root repeats18/18 in12.587s; another reviewer repeats four publisher/path cases.
+The corrected local actual receipt binds all three current Python sources and retains four real
+PostgreSQL starts, stale-read/fence, local fenced promotion, fresh rebuild replay and exact cleanup.
+No fsync/host-failure, binary-attestation, multi-host HA or production SLA claim is added. Dedicated
+final-head native actual-service CI and merged release remain required.
+
+**Resolving commit:**9794e2cc9fb5525a9c85c688ed16a05d2c5598fd.

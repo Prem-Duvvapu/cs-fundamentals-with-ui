@@ -1,5 +1,34 @@
 # Backend Engineering — System Architecture & Development Context
 
+`examples/backend-replication` is a separate native PostgreSQL 16 learning module. It creates
+two private mode-0700 clusters with generated SCRAM credentials and ephemeral IPv4-loopback
+listeners, owns four foreground server launches and never attaches to a shared server. Actual
+SQL observes replay pause, a bounded same-timeline freshness fence, acknowledged data absent
+after a deliberately stale promotion, then a fresh rebuild and new replicated write. Old-writer
+process termination/listener refusal precede promotion; this is local fencing, not multi-host HA.
+The source-bound sanitized receipt is published only after owned process/file cleanup through
+an exclusive staging handle and atomic replacement. Cancellation rollback targets only the
+installed device/inode and preserves a concurrently replaced report. Eighteen native guards
+and a dedicated actual-service workflow retain the distinct helper/database evidence scopes.
+
+The operations module adds a ninth actual kind case: an owned Deployment with a fresh selector
+absent from every cluster Node. Raw Pod/ReplicaSet/Deployment UIDs, PodScheduled condition,
+exact-Pod FailedScheduling event, unchanged Service and EndpointSlice identities bind diagnosis
+and recovery. DNS success/connection failure with zero ready endpoints is distinct from an HTTP
+status. Removing only the selector must produce a new scheduled healthy Pod, exact ready endpoint
+and actual authenticated Service200. Its version-3 receipt retains the prior eight required cases;
+the 16 local contracts and actual cluster run remain separate checks.
+
+The existing debugging, engineering, gateway and SSRF executable guards now defer their complete
+owned cleanup before delivering the first pending TERM/INT. Debugging/engineering also restore
+thread-local state if a signal arrives immediately after assignment; SSRF resolver wait/pipe close,
+active registry removal and cleanup-event recording are one deferred finalization boundary.
+These changes retain library caller policy, exact owned groups, finite waits and unchanged imported
+Task Tracker sources. Engineering's AI-review path enters that scope; its original workflow runner
+and Linux probe do not. The [lifecycle audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) distinguishes
+confirmed contract regressions from unguarded startup probes; no repository-wide signal-safety
+certification is inferred. Final integrated service/cluster CI remains required for this continuation.
+
 `AiTelemetry` instruments actual nonstream lexical RAG request/retrieval/context/model/native
 HTTP/validation boundaries only when explicitly enabled. The original no-op constructors/default
 stay compatible. A bounded in-memory SDK exporter emits fixed enum metadata and causal IDs;
