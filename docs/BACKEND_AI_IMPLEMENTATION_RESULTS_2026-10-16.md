@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR85/PR86/PR87/PR89 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR85/PR86/PR87/PR88/PR89 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -25,7 +25,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | AI-08 | Partial: bounded agent, approval and actual MCP | Tools, agents and MCP |
 | AI-09 | Partial: actual paired prompt regression and failure-inclusive reports; human quality open | Quality and regression evaluation |
 | AI-10 | Partial: tenant/citation/action enforcement | Security/privacy |
-| AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; stage telemetry locally verified, release pending | Operations and debugging |
+| AI-11 | Partial: serving diagnosis, actual stream cancellation/timings; PR88 actual RAG/HTTP stage tracing CI verified; tools/collector and broader operations open | Operations and debugging |
 | AI-12 | Partial: actual token usage and failure-inclusive scenario costs; model comparison open | Cost, capacity and model choice |
 | AI-13 | Implemented: measured rule baseline, decision records and counterexamples | Adaptation decisions |
 | AI-14 | PR80 verified: reviewed AI-authored patches, actual Java/Git/Maven and independent regression tests | AI-assisted engineering |
@@ -36,7 +36,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-02 | Partial: actual lexical miss and diagnostic report | Relevant document never retrieved |
 | D-03 | Partial: injected wrong generation with correct retrieval | Correct sources, unsupported answer |
 | D-04 | Partial: JDBC and HTTP tenant tests | Tenant data appears in another answer |
-| D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; AI tracing locally verified, release pending | Slow or hanging response |
+| D-05 | Partial: actual streaming stalls/cancel/deadlines and overload; PR88 actual RAG/HTTP tracing CI verified; broader queue/capacity work open | Slow or hanging response |
 | D-06 | Partial: local commit/restart/duplicate tests | Tool repeats a write after timeout |
 | D-07 | Partial: bounded read-only agent tests | Agent keeps calling tools |
 | D-08 | Partial: actual frozen prompt regression with paired cases; model/context upgrades open | Quality drops after an upgrade |
@@ -53,7 +53,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | PR82 familiar two-entry revision and execution/OOP/primitive/reference reviews verified; remaining notes and real learner pilot open | Java course familiarity |
+| CLOSE-02 | PR82 familiar two-entry revision and execution/OOP/primitive/reference reviews verified; methods/construction continuation locally verified, release pending; 26 sources and real learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -840,3 +840,48 @@ attempts with84 input,28 output and21 cached-input subset tokens. Both dedicated
 gates also pass at that head: all8 actual pgvector cases and all3 actual OCR cases with zero
 skips. Source bytes remain unchanged through the subsequent main integrations. Final integrated
 head checks and release are still required; these synthetic observations do not close live quality.
+
+## PR88 merged release evidence — October 23
+
+PR [88](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/88) merged at
+2026-10-23T18:55:59Z as 438b8651d989941b1be18d156e595505ab1bc08d. Exact head
+05733cf2b9c35ec6bcbfc031857fd97db3d48134 passes all eleven checks: six Verify jobs,
+actual pgvector/OCR, GitGuardian and both Vercel checks. Final practical-ai job
+40006532636/job120595913654 requires the packaged tracing fixture; actual pgvector
+40006532578/job120595761769 and OCR40006532607/job120595762006 require all eight and
+three integration cases respectively without skips. The [persistent actual-CI trace receipt](evidence/AI_STAGE_TRACING_CI_2026-10-23.json)
+retains the preceding successful execution of unchanged tracing source; the final head reruns
+the same gates. This supersedes AI-tracing release-pending notes and the remote qualifiers
+for RCA18/October23-07/08. No live quality, collector, streaming/tool/vector internals,
+provider queue, production capacity or learner result is claimed. All four previously
+unreleased gateway/cache/database/tracing packages have now reached main.
+
+## Java methods and construction continuation — unreleased
+
+Content-only commit 6b0ca1d adds a familiar methods/construction bridge to the canonical OOP
+lesson. The [complete S05 source review](JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) records all
+nine pages, original corrections, an executed Java 17 program, ten expected negative compilations
+and an observed initializer descriptor. The [local receipt](evidence/JAVA_METHODS_SOURCE_2026-10-23.json)
+binds source identity and canonical content. All 16 marked curriculum programs pass; the
+new ConstructorDemo prints 2/5/9 with a prediction and change/debug task.
+
+The lesson has 600 newline-terminated lines, four preserved diagram bodies and 14 unchanged
+interview questions/rubrics. Content validation, all 265 Markdown rendering tests, production
+build, all 295 diagram/590 asset checks and the 109-item migration gate pass. Four actual
+Chromium presentations cover both themes at 375/1440 px with no page overflow, zero article
+axe findings and native same-tab source credit; these are API-fixture presentation observations.
+Five of 31 distinct course source links are now reviewed; 26 remain. The two-entry revision
+pilot is unchanged and real learner/manual accessibility gates remain open. Final integrated
+CI and release are required before this continuation is delivered.
+
+### Rendered-section contract repair — unreleased
+
+The reference DBMS transaction lesson contained eight patch-prefix bytes from 89315267, making
+its required misconception heading ordinary text. The old unanchored regex accepted it. Gate
+3f1c7c5 shares the reader's parsed outline, requires that h3 within Expert and rejects the
+original source before repair; content-only c55471e removes only those eight prefixes. All
+68 lessons and 20 content/migration/charset tests pass, along with 109 migration items and
+295 diagrams/590 assets. The [before/after receipt](evidence/RENDERED_SECTIONS_2026-10-23.json)
+records actual Chromium 0→1 heading and visible→absent marker text in both themes. No SQL/code,
+question, rubric or diagram body changes. RCA-2026-10-23-10 records cause and prevention;
+final integrated CI/release remains required.

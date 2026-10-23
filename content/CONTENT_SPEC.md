@@ -353,6 +353,9 @@ basic-programming audience, runnable example, state trace and explained exercise
 ## 11. What the validator cannot check
 
 `scripts/validate-content.mjs` enforces the structural and answer-depth requirements.
+The required Common Misconceptions subsection must be a rendered level-three heading in the
+Expert tier. The validator shares the reader's parsed outline; code examples, plain text and
+earlier-tier mentions do not satisfy this section requirement.
 Learner clarity, example correctness, prerequisite quality and scenario questions require
 separate verification and human review. The scenario-question exception is deliberate:
 

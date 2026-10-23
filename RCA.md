@@ -1049,3 +1049,32 @@ is examples/backend-persistence/evidence/2026-10-23-local.json. No Docker or SIG
 guarantee is inferred.
 
 **Resolving commit:**8d10fbd.
+
+## RCA-2026-10-23-10 — patch prefixes hid a required lesson section
+
+**Observed:** the DBMS transactions reference lesson retained eight literal leading plus signs
+in ordinary Markdown prose, including `+### Common Misconceptions`. Actual Chromium in both
+themes renders the marker text and zero misconception headings. Blame binds those bytes to
+89315267f2eaee72e73bf58eb1f4986946b78c3b. The final pre-fix main frontend check also passed
+content validation (PR88 job120595913566); previous structural success did not prove a heading.
+
+**Cause:** patch-like addition prefixes were committed as lesson bytes. The exact original
+authoring mechanism is not retained. The validator's unanchored heading regex matches inside
+that paragraph; it can also match code or an earlier tier. It checked a substring rather than
+the reader's rendered section structure.
+
+**Resolution:** remove only the eight prefixes in a one-file content unit. Reuse the reader's
+parsed Markdown outline to require a level-three misconception heading within the Expert tier.
+Code, prose, h4 headings and prior-tier examples cannot substitute for the required section.
+No general ban on legal Markdown plus-list syntax or fenced diff examples is introduced.
+
+**Verification/prevention:** the new gate rejects the original lesson before repair, then all
+68 lessons pass after repair. All 20 content/migration/charset script tests pass, including
+12 validator tests with backtick/tilde/indented code, malformed prefixes, inline formatting,
+LF/CRLF and tier placement. Actual before/after Chromium observes 0→1 misconception headings
+and visible→absent patch text in both themes. All original code/diagram and question/rubric
+text is unchanged; the 109-item literal migration gate and 295-diagram/590-asset check pass.
+The selected receipt is docs/evidence/RENDERED_SECTIONS_2026-10-23.json. Final integrated CI
+remains required; this is a rendering/contract repair, not new learner or technical-review proof.
+
+**Resolving commits:**3f1c7c5 (shared parsed-outline gate),c55471e (exact prose repair).

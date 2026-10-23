@@ -137,6 +137,20 @@ Adding a public `setBalance(int value)` that accepts every integer would break t
 
 **Answer:** the field is private to `BankAccount`. Call a supported operation rather than making the field public; the class should keep responsibility for validating changes.
 
+#### Read a method declaration
+
+Revisiting the familiar course? Its [methods and constructors notes](https://drive.google.com/file/d/1KEMCFaA5phnL1qneiWPPsSeDGoRqFyWK/view) follow method declarations → method forms → construction. Use the account above to recognise that sequence with these corrections.
+
+| Part | In the account example | Meaning |
+|---|---|---|
+| Return declaration | `void` in `deposit`, `int` in `balance` | No result, or an integer result; other methods can return an object reference |
+| Name | `deposit` | The operation; naming methods with a verb is a convention |
+| Parameter | `int amount` | A local variable receiving the argument value |
+| Argument | `250` in `account.deposit(250)` | The value supplied by this call |
+| Body | Validation and addition inside `{ ... }` | The work; `return balanceInCents` gives `balance()` its result |
+
+`main` is `static`, so it has no implicit current account or `this`. It can still call an instance method through an explicit object reference: `account.deposit(250)` already does that. A method that only reads an object's state can still be an instance method; lack of mutation does not require `static`.
+
 ### The four OOP pillars
 
 **Abstraction** means giving callers the operations they need without requiring them to know the internal steps.
@@ -168,6 +182,7 @@ class SmsNotifier implements Notifier {
 `String` represents text. Each class provides the interface's `message()` method with a different result.
 `public` makes these methods accessible to callers; interface implementations must not reduce that access.
 `@Override` asks the compiler to check that the method really implements or overrides an inherited method.
+The interface's `String message();` is implicitly public and abstract: it declares a contract without a body. Abstract methods can appear in interfaces as well as abstract classes.
 
 Inside a method, `Notifier notifier = new EmailNotifier()` declares a reference using the shared interface.
 Calling `notifier.message()` uses the actual object's implementation and returns `Email notification`.
@@ -244,6 +259,8 @@ Ambiguity is a compiler error, not a runtime decision. Calling two unrelated ove
 such as `save(String)` and `save(StringBuilder)`, gives no most-specific target. An explicit cast
 communicates the intended target, but it should not be used to conceal an unclear API.
 
+**Varargs** such as `int... values` let a caller supply zero or more integers, or an existing `int[]`. The parameter is an array inside the method. Only one varargs parameter is allowed, and it must be last; `f(int...)` and `f(int[])` cannot be separate overloads with the same name.
+
 ### Overriding, hiding, and access rules
 
 An override has the same name and parameter types as an inherited instance method. It may return a
@@ -295,33 +312,22 @@ reveals a subtype that violates the contract before a caller discovers it in pro
 ### Object identity, equality, and dispatch
 
 An object reference identifies one object on the heap.
-
 Two references can point at the same mutable object, so a change through one reference is visible through the other.
-
 This is distinct from Java pass-by-value: a method receives a copy of the reference value, not a new object.
 
 Immutable value objects avoid many aliasing bugs.
-
 For example, `Money`, `EmailAddress`, and a validated `OrderId` can expose no mutation and return a new value for every conceptual change.
-
 Records are useful for transparent data carriers when their component values and equality rules match the domain.
-
 Do not use a record merely as a convenient mutable DTO substitute.
 
 Entity objects normally have identity independent of their current fields.
-
 Two database-backed `Customer` objects representing the same persisted ID may be equal by identity even if a display name changes.
-
 Value objects normally compare all meaningful state.
-
 Mixing these equality models in a collection causes difficult cache and ORM bugs.
 
 `equals` and `hashCode` form a contract.
-
 If two objects are equal, they must produce the same hash code during their lifetime in a hash-based collection.
-
 Mutating a key after placing it in a `HashSet` can make it impossible to find or remove.
-
 Prefer immutable keys and avoid equality across a hierarchy unless the full contract is carefully designed.
 
 Every class ultimately inherits methods from `Object`. The default `equals()` compares identity,
@@ -329,7 +335,6 @@ while a value class can override it to compare meaningful state; whenever it doe
 be overridden consistently so equal objects select compatible hash buckets. `toString()` should
 produce a concise diagnostic representation without exposing secrets, triggering lazy database
 loads, or becoming a machine-readable API contract.
-
 In plain API terminology, the equals and hashCode methods define logical equality and hash
 compatibility, while toString supplies diagnostics. The getClass method exposes exact runtime type
 identity. The clone method initiates the legacy copying protocol described below.
@@ -347,79 +352,93 @@ constructor or named factory can validate state and deliberately copy mutable me
 ### Visibility and API boundaries
 
 Java provides `public`, `protected`, package-private, and `private` access.
-
 Start with the narrowest visibility that supports a real collaborator.
-
 Package-private types and members are valuable for keeping implementation details available to nearby code without exporting them as a public framework promise.
+Private access is permitted within the enclosing top-level class or interface, including its nested declarations; unrelated top-level callers do not gain access.
 
 `protected` also permits same-package access. Outside the declaring package, subclass access to an
 instance member is restricted through a receiver of that subclass type or its subtype; it is not
 a general permission to access any superclass instance.
-
 It is therefore a stronger extension commitment than many designs intend.
 
 Public APIs should validate input at their boundary and preserve internal invariants after every call.
-
 Returning a mutable internal `List` lets callers change object state without validation.
-
 Return an immutable snapshot or an unmodifiable view when callers should observe but not own a collection.
-
 Defensive copying is needed when a constructor receives a mutable object that must not later change the new object's state.
-
 For example, copy a caller-provided `List` before storing it in an immutable aggregate.
 
 An API should expose operations rather than representation when possible.
-
 `order.addLine(product, quantity)` communicates validation and state transition.
-
 `getLines().add(...)` makes every caller responsible for the order invariant.
 
 ### Class initialisation and construction order
 
-On the Java 17 baseline, superclass construction precedes the subclass field initialisers and the remaining subclass constructor statements. Java 25 permits restricted statements before constructor delegation; do not apply the older first-statement rule universally.
+A constructor has no declared return type; Java does not secretly add the class as its return type. `new Delivery()` produces the reference after construction succeeds. Writing `void Delivery()` instead declares an ordinary method, which creation does not call.
 
-Field initialisers and instance initialiser blocks execute as part of construction in declared order for each class.
+| Term | Precise meaning for an ordinary Java 17 class |
+|---|---|
+| Default constructor | Compiler-provided when the class declares no constructor |
+| No-argument constructor | Any constructor with zero parameters; it can be written explicitly |
+| Parameterised constructor | Accepts arguments; declaring one removes the implicit default constructor |
+| Private constructor | Restricts creation to its access boundary; a factory may expose controlled creation, but privacy alone does not make a singleton |
 
-Then the subclass constructor body completes its own initialisation.
+**Runnable example — Java 17+, no dependencies.** Save as `ConstructorDemo.java`; run `javac --release 17 ConstructorDemo.java` then `java ConstructorDemo`. Predict all three lines first.
 
-This order matters when constructor arguments call methods or when a parent exposes hooks.
+```java runnable=ConstructorDemo
+class InitialStock {
+    private int units = 2;
+    int units() { return units; }
+}
+class Delivery {
+    private int units = 2;
+    Delivery() { this(3); }
+    Delivery(int extra) { units = units + extra; }
+    void Delivery() { units = 9; }
+    int units() { return units; }
+}
+public class ConstructorDemo {
+    public static void main(String[] args) {
+        System.out.println(new InitialStock().units());
+        Delivery parcel = new Delivery();
+        System.out.println(parcel.units());
+        parcel.Delivery();
+        System.out.println(parcel.units());
+    }
+}
+```
 
-Static initialisation is separate from object construction.
+```text output=ConstructorDemo
+2
+5
+9
+```
 
-A class is initialised when active use requires it, such as invoking a static method or constructing an instance.
+Fields receive default values before constructor processing, even with parameterised constructors. `InitialStock` then runs its field initialiser, changing `units` from 0 to 2; its compiler-provided constructor does not reset it. For `Delivery`, `this(3)` delegates to the other constructor of the same object: its field initialiser runs once, then the constructor adds 3. The later explicit method call sets 9.
 
-Static initialisers should be short and deterministic because failures leave the class unusable for that class loader.
+**Change/debug:** remove `Delivery()`. Why does `new Delivery()` stop compiling even though `void Delivery()` remains? **Answer:** the remaining parameterised constructor prevents an implicit default; the ordinary method cannot initialise the object. Use `new Delivery(3)` or restore the no-argument constructor.
 
-Avoid network calls, environment-dependent work, and registration side effects in static initialisers.
+`this(...)` delegates within the same object; `super(...)` selects a superclass constructor. On Java 17, either explicit invocation must come first. After superclass construction, that class's field/instance initialisers run in source order before the remaining constructor body; a constructor delegating through `this(...)` does not run them again. If neither invocation is written, Java inserts `super()`, requiring an accessible matching parent constructor. A parent can offer both no-argument and parameterised constructors; having the latter does not force every child to pass arguments. Java 25 permits restricted statements before delegation, so do not apply Java 17's first-statement rule universally.
 
-Factories make complex construction clearer.
+Constructors are not inherited or overridden, and cannot be `static`, `final`, `abstract` or `synchronized`. Abstract classes can have constructors used during subclass construction; interfaces cannot declare constructors.
 
-They can validate all required data, choose an implementation, and return an interface rather than exposing a telescoping constructor.
+**Interview framing:** distinguish allocation/default field values, initialisers and constructor work. Explain the selected `this`/`super` chain before predicting field values, and never replace an unknown constructor signature with an assumed no-argument call.
 
-Builders are helpful when a value has many optional fields, but a builder should still validate the final object at `build()` time.
+Static initialisation is separate: active use can initialise a class, such as constructing it or invoking its declared static method. Keep static initialisers short and deterministic; failures can leave the class unusable for that class loader. Avoid network, environment-dependent and registration work there. Factories can validate data and choose an implementation; builders help with optional fields but must validate at `build()` time.
 
 ### Sealed hierarchies and pattern matching
 
 Sealed classes, finalised in Java 17, explicitly list permitted direct subtypes.
-
 They are useful when a domain has a closed set of variants, such as a payment result being `Approved`, `Declined`, or `Retryable`.
 
 Pattern matching for `switch`, finalised in Java 21, lets the compiler check exhaustive type cases over that closed hierarchy. This feature is newer than the Java 17 baseline used by the runnable example.
-
 This gives some benefits of algebraic data types while keeping Java's object model.
-
 Use a sealed hierarchy when new variants require coordinated changes.
-
 Use an interface when independent modules should be able to add implementations.
 
 Pattern matching can make a bounded type decision readable.
-
 It is not a reason to replace polymorphic behaviour everywhere.
-
 Ask whether the code is adding operations to stable types or adding new types to stable operations.
-
 The first case can favour a visitor or pattern match.
-
 The second often favours a virtual method on the shared abstraction.
 
 ---

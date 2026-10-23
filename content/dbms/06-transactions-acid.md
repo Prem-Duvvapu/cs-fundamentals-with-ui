@@ -360,14 +360,14 @@ To understand ARIES deterministically, trace the following concrete log sequence
 4. **Error Boundaries:** InnoDB deadlock victims lose the whole transaction, but a lock-wait timeout normally rolls back only the waiting statement unless configured otherwise. Before retrying a business operation, explicitly end the failed attempt and protect external effects against duplication.
 
 ### A Commit Response Can Be Ambiguous
-+
-+Suppose the database commits a payment, but the connection breaks before the application receives the response. A timeout means the application does not know the outcome; it does not prove rollback.
-+Use a business idempotency key with a uniqueness constraint and reconcile the recorded outcome before retrying. Retrying blindly can create a second payment even when every individual transaction is ACID.
-+An outbox can coordinate a durable database change with later message publication, but the consumer still needs duplicate-safe processing. Explain the transaction boundary and the external-effect boundary separately in an interview.
-+
-+---
-+
-+### Common Misconceptions
+
+Suppose the database commits a payment, but the connection breaks before the application receives the response. A timeout means the application does not know the outcome; it does not prove rollback.
+Use a business idempotency key with a uniqueness constraint and reconcile the recorded outcome before retrying. Retrying blindly can create a second payment even when every individual transaction is ACID.
+An outbox can coordinate a durable database change with later message publication, but the consumer still needs duplicate-safe processing. Explain the transaction boundary and the external-effect boundary separately in an interview.
+
+---
+
+### Common Misconceptions
 
 1. **"Executing COMMIT writes data pages directly to the database tables on disk."**
    *Correction*: A synchronous durable commit normally waits for the required log records, not every modified data page. Pages can be flushed before or after commit by checkpoints or buffer replacement; neither a fixed delay nor a log flush is guaranteed by asynchronous acknowledgement.
