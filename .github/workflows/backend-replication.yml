@@ -1,0 +1,65 @@
+name: Actual PostgreSQL replication and fenced recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/backend-replication/**'
+      - '.github/workflows/backend-replication.yml'
+  pull_request:
+    paths:
+      - 'examples/backend-replication/**'
+      - '.github/workflows/backend-replication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-replication:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Provide major-16 binaries only on this disposable CI host
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-16 postgresql-client-16
+      - name: Actual signal ownership and boundary guards
+        run: python3 -m unittest discover -s examples/backend-replication -p 'test_verify.py' -v
+      - name: Actual private primary standby stale reads fenced promotion and rebuild
+        run: python3 examples/backend-replication/verify.py
+      - name: Require complete source-bound actual recovery evidence
+        run: |
+          python3 - <<'PY'
+          import importlib.util, json, pathlib, sys
+          root = pathlib.Path('examples/backend-replication').resolve()
+          sys.path.insert(0, str(root))
+          spec = importlib.util.spec_from_file_location('replication_verifier', root / 'verify.py')
+          lab = importlib.util.module_from_spec(spec); spec.loader.exec_module(lab)
+          report = json.loads((root / 'target/evidence/verification.json').read_text())
+          assert report['schemaVersion'] == 1 and report['ownedResourcesCleaned'] is True
+          assert 160000 <= report['postgresVersionNum'] < 170000
+          assert report['actualServerStarts'] == {'originalDirectory': 2, 'standbyDirectory': 2}
+          assert report['sourceSha256LF'] == lab.source_hashes()
+          replay, failover, rebuild = (report[name] for name in ('replay', 'failover', 'rebuild'))
+          assert replay['acknowledgedPrimaryIds'] == [1, 2] and replay['pausedReplicaIds'] == [1]
+          assert replay['pausedFence']['reached'] is False and replay['resumedFence']['reached'] is True
+          assert failover['acknowledgedRowsMissingOnSelectedTimeline'] == [3]
+          assert failover['oldPrimaryProcessTerminalBeforePromotion'] and failover['oldPrimaryPortRefusedBeforePromotion']
+          assert failover['oldDiskPresentBeforeRebuild'] is True
+          assert failover['promotedTimeline'] > failover['oldTimeline']
+          assert rebuild['fromPromotedPrimary'] and rebuild['recoveryRoleObserved']
+          assert rebuild['freshWriteReplayedIds'] == [1, 2, 4, 5] and rebuild['freshWriteFence']['reached']
+          print('PASS: actual two-cluster replication, fenced stale failover, fresh rebuild replay and owned cleanup')
+          PY
+      - name: Upload sanitized actual-service receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-replication-evidence
+          path: examples/backend-replication/target/evidence/verification.json
+          if-no-files-found: warn
