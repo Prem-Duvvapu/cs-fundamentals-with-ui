@@ -190,3 +190,9 @@ Predict how six misses overlap, then compare actual full-document and metadata r
 failure fanout and a timed-out load that still owns its slot. Explain why removing that slot early
 can create replacement-load storms, and why two coordinators still need a distributed design.
 Keep snapshot/version correctness separate from latest-at-response and production latency claims.
+
+For session lifetime and long-lived connections, use [the authenticated WebSocket exercise](../examples/backend-websocket/README.md).
+Predict login-CSRF and fixation behavior, inspect the real cookie upgrade, then compare an
+established socket's logout with an upgrade paused across reauthentication. Explain why current
+HTTP authentication alone does not preserve a long-lived connection's authorization. Diagnose
+ACK pressure, idle expiry and message bounds separately; the exercise does not simulate a TCP stall.

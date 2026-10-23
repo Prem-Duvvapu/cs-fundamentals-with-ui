@@ -616,3 +616,33 @@ Linux6.19–7.0.13 range. The service job now uses a supported Ubuntu22.04 LTS r
 checks the actual Docker daemon kernel, while preserving the pinned image and vendor guard.
 RCA-2026-10-23-05 records the evidence and the missing historical exact kernel value. The full
 17-case no-skip run remains required; setup metadata does not close it.
+
+## Authenticated session/WebSocket continuation — unreleased
+
+Source6d5c389 plus the admission correctionb93a49d (integrated337d267/68ab14c) add a narrowly
+scoped session-login/socket exercise using unchanged Task Tracker production source. All22 actual
+HTTP/session/WebSocket cases,9 policy tests and5 Python harness tests pass without skips. Actual
+Java17, Boot4.1.1, Framework7.0.9 and Tomcat11.0.24 are observed. The
+[local final-source receipt](evidence/WEBSOCKET_SESSIONS_2026-10-21.json) binds the checked source,
+JAR and sanitized transport observations. Remote integrated release remains required.
+
+RCA17 records the reproduced invalidation-before-admission defect and live-session membership fix.
+A test-only filter holds a real authenticated upgrade across actual reauthentication; the old
+principal is refused and the fresh session succeeds. Other cases cover fixation/CSRF, exact Origin,
+roles, whole/fragmented message bounds, ACK pressure, command/idle limits, logout, independent
+servlet expiry, unchanged REST checks and shutdown. This is local JSON echo with bounded state,
+not distributed revocation, TCP receive-window saturation, TLS, production capacity or a human
+browser/learner session. BEC12/56 and BE06 advance; broader service/gateway work remains separate.
+
+### WebSocket cold-run preparation and cleanup — October23
+
+PR86's first dedicated job failed with only a generic LabFailure; its raw private output was
+correctly withheld, but the exact failing phase was not retained. An independently controlled
+Maven cache proved old skipTests preparation succeeds without resolving the JUnit provider and
+then fails offline. Sourcef31d66a prepares through all9 policy tests, retains full offline transport
+verification and adds phase/owned-test-line-only diagnostics. The repaired controlled cache passes
+both preparation and offline verification. The [new final-source local receipt](evidence/WEBSOCKET_SESSIONS_2026-10-23.json)
+records all22 actual cases and observed offline/preparation metadata; the October21 receipt remains
+historical. All8 Python guards pass, including scope-entry restoration and first-signal successful
+cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
+records these scoped observations. Remote actual-service CI remains a release gate.

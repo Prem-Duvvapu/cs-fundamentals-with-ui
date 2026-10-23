@@ -574,3 +574,15 @@ readiness; setup failures still block release and do not count toward the requir
 MongoDB CI also checks the actual Docker daemon kernel against the vendor's documented compatibility
 range on a supported LTS runner. A pinned container image does not pin its host kernel; startup
 compatibility and passing the real service tests are separate requirements.
+
+The [session and WebSocket exercise](examples/backend-websocket/README.md) adds a real form-login
+journey around unchanged Task Tracker source. Follow CSRF, fixation protection, exact Origin,
+cookie-only identity, bounded JSON echo, logout/expiry and admission recovery. It reproduces an
+upgrade paused across identity rotation, then verifies rejection and a fresh authenticated socket.
+Run `python3 examples/backend-websocket/verify.py --prepare` with its documented prerequisites;
+the required result is22 actual transport cases and9 policy tests, not a simulated handshake.
+
+The WebSocket preparation command executes policy tests before its offline transport run; skipping
+those tests can leave the JUnit provider missing on a fresh runner. Failed phases expose only
+sanitized phase/test-source diagnostics. See the guide for the cold-provider reproduction and
+scoped cancellation/cleanup guards; normal success still requires every actual transport case.
