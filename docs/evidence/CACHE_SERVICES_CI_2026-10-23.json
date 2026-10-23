@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "sourceHead": "5b8009144fccb9dd1bedaf64496add753a83dd2d",
+  "actualRun": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40000312697",
+  "actualJob": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40000312697/job/120574386977",
+  "jobConclusion": "success",
+  "actualServiceSuites": [
+    {
+      "suite": "RedisIntegrationTests",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "reportSha256": "a112a562cff72a9f23ae5f12f1ee19ea6d3c71ff5414388dba924c1e185fd115"
+    },
+    {
+      "suite": "CacheRecoveryRedisTests",
+      "tests": 5,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "reportSha256": "e4058e0484da918f76a2318d4d6add55bc6d03a92c2b836d6b9053a8f518e60d"
+    },
+    {
+      "suite": "MongoIntegrationTests",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "reportSha256": "418cf4ed56128acc358c3244f4c0e7ec8deb0b51d5fb7f3c26c3cb8a20451375"
+    },
+    {
+      "suite": "CacheMongoIntegrationTests",
+      "tests": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "reportSha256": "52ab8f802aea6ff7b203045f97edf85c0f203780e8f8ecf85b2d29c54e8c69db"
+    }
+  ],
+  "sourceSha256LF": {
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/CoalescedLoads.java": "e17f8284f051ac504cefb231fb704987226a0308c4e8e413c611a645fcd52517",
+    "examples/backend-data-services/src/main/java/com/csfundamentals/dataservices/CacheAsideTickets.java": "33cb6bdc1a6dfaf8b0277ef36c0390c94ddc9b481275b545512fc026a3f943ed",
+    "examples/backend-data-services/verify_cache_recovery.py": "78545df6552ee78ff28b89364b7af3a58475801e116788d85332daeddbf31ee4",
+    ".github/workflows/data-services.yml": "597907ca195d68ddc786c6616f6f931ed5e90fc604cdf00b19637d9b2f1e0238"
+  },
+  "observedDockerRuntime": {
+    "schemaVersion": 1,
+    "dockerKernel": "6.8.0-1064-azure",
+    "architecture": "x86_64",
+    "system": "linux",
+    "dockerServerVersion": "28.0.4",
+    "knownMongoKernelIncompatibilityExcluded": true,
+    "scope": "observed Docker kernel against the documented MongoDB8 incompatibility; not general platform certification",
+    "source": "https://www.mongodb.com/docs/manual/release-notes/8.0/"
+  },
+  "cacheRecovery": {
+    "schemaVersion": 1,
+    "evidence": "actual-redis-controlled-origin",
+    "redisVersion": "8.4.7",
+    "javaRuntime": "17.0.20.1+1",
+    "actualCasesExecuted": 5,
+    "cases": {
+      "cold-burst": {
+        "originFullReads": [
+          6,
+          1
+        ],
+        "metadataReads": [
+          6,
+          6
+        ],
+        "callersPerRun": 6,
+        "ownedKeysDeleted": true
+      },
+      "coordination-scope": {
+        "ownedKeysDeleted": true,
+        "originFullReads": 2,
+        "sharedRedis": true,
+        "coordinatorInstances": 2,
+        "distributedLock": false
+      },
+      "deadline-capacity": {
+        "ownedKeysDeleted": true,
+        "expiredOriginNotCached": true,
+        "rejectedAdmissions": 2,
+        "retainedFlightsWhileOriginBlocked": 1,
+        "originReadsBeforeRelease": 1,
+        "originReadsAfterRecovery": 2,
+        "timedOutCalls": 3
+      },
+      "origin-failure": {
+        "ownedKeysDeleted": true,
+        "errorNotCached": true,
+        "failedOriginReads": 1,
+        "sharedFailures": 6,
+        "totalOriginReadsAfterRecovery": 2
+      },
+      "tenant-version": {
+        "ownedKeysDeleted": true,
+        "tenantIsolation": true,
+        "lateOldVersion": 1,
+        "subsequentCurrentVersion": 2,
+        "independentOriginReads": 3
+      }
+    },
+    "scope": "Actual authenticated Redis; controlled original origin, no MongoDB, cross-process lock, load benchmark or production capacity claim."
+  },
+  "limits": [
+    "Actual seventeen service cases; not a full release check or main merge",
+    "Controlled-origin Redis cases remain separate from actual MongoDB integration",
+    "Per coordinator instance, no distributed lock, failover or production capacity evidence"
+  ]
+}
