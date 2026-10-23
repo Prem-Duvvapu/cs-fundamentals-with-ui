@@ -75,6 +75,7 @@ class ResolverCleanupTests(unittest.TestCase):
             for value, handler in previous.items():
                 self.assertIs(handler, signal.getsignal(value))
             return {'signal': number.name, 'timedOut': timed_out, 'returnCode': process.returncode,
+                    'resolverCalls': resolver.calls, 'recordedChildren': len(resolver.events),
                     'childReaped': True, 'pipesClosed': True, 'registryEmpty': True,
                     'cleanupEventRecorded': True, 'recoverySucceeded': True,
                     'callerPolicyPreserved': True, 'unrelatedGroupPreserved': True}

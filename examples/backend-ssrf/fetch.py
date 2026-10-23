@@ -129,16 +129,17 @@ class Resolver:
                 raise Rejected('resolver_failed') from None
         finally:
             if process is not None:
-                if process.poll() is None:
-                    try:
-                        os.killpg(process.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                process.communicate(timeout=1)
-                with self._lock:
-                    self.active.discard(process.pid)
-                    self.events.append({'timedOut':timed_out, 'returnCode':process.returncode, 'reaped':process.poll() is not None})
-                    del self.events[:-128]
+                with defer_cancellation():
+                    if process.poll() is None:
+                        try:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+                    process.communicate(timeout=1)
+                    with self._lock:
+                        self.active.discard(process.pid)
+                        self.events.append({'timedOut':timed_out, 'returnCode':process.returncode, 'reaped':process.poll() is not None})
+                        del self.events[:-128]
 
 
 def public_address(address):
