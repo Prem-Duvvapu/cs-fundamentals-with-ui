@@ -160,7 +160,8 @@ public final class AiObservabilityDemo {
                 };
                 if (scenario == Scenario.BUDGET) {
                     if (!errors.equals(List.of(AiTelemetry.Code.NONE, AiTelemetry.Code.BUDGET))) throw new IllegalStateException("budget_stage_attribution_missing");
-                } else if (errors.stream().anyMatch(code -> code != expected)) throw new IllegalStateException("stage_failure_attribution_missing");
+                } else if (errors.stream().anyMatch(code -> code != expected))
+                    throw new IllegalStateException("stage_failure_attribution_missing:"+scenario+":"+errors);
                 if (scenario == Scenario.ABSTENTION && !outcomes.equals(List.of(AiTelemetry.Outcome.ABSTAIN)))
                     throw new IllegalStateException("abstention_not_observed");
                 return new Case(scenario.name(), operations, fixture.requests.get(), outcomes, errors);

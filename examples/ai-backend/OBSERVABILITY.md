@@ -64,7 +64,10 @@ new SDK random-ID flags must not be mistaken for broken sampling or propagation.
   server/validation span or HTTP request exists. No token usage is invented for this path.
 - **429:** the client, model and request fail with fixed `RATE_LIMITED`. Answer validation never
   runs. The server independently observes the actual rejection.
-- **Deadline:** the adapter cancels its actual future. The client/model/request record `DEADLINE`.
+- **Deadline:** the adapter cancels its actual future. Either the timed future wait or the native
+  HTTP timeout can finish first. Existing public failure codes remain unchanged; both observed
+  timeout wrappers map to `DEADLINE` at client/model/request, while non-timeout network failures
+  remain `TRANSPORT`.
   The fixture may finish after client cancellation and observe a closed response; that server
   failure is `INTERNAL`, not a claim about a real model provider's internal cancellation.
 - **Invalid JSON/schema/citation:** HTTP can succeed while `VALIDATION` and the request fail.
@@ -126,3 +129,12 @@ Primary sources checked 2026-10-21: [OpenTelemetry Java manual instrumentation](
 [W3C Trace Context](https://www.w3.org/TR/trace-context/),
 [Micrometer timers](https://docs.micrometer.io/micrometer/reference/concepts/timers.html),
 [Ollama native chat response/usage](https://docs.ollama.com/api/chat).
+
+Cancellation ownership also covers the first TERM/INT during a deadline cleanup, before any
+previous cancellation flag exists. An actual READY-confirmed TERM-ignoring child must be killed,
+waited and have its pipe closed before cancellation escapes; an unrelated test group stays alive.
+Scope-entry and ordinary nested restoration remain separate regressions. No live model is called
+by these process tests.
+
+Timeout primary contracts: [JDK17 HttpTimeoutException](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpTimeoutException.html)
+and [timed Future.get](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html#get(long,java.util.concurrent.TimeUnit)).

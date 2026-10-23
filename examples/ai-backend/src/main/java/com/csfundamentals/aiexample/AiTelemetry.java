@@ -106,7 +106,8 @@ public final class AiTelemetry implements AutoCloseable {
         if (failure instanceof OllamaHttpModel.ModelFailure) {
             String code = failure.getMessage();
             if ("provider_http_429".equals(code)) return Code.RATE_LIMITED;
-            if ("provider_deadline".equals(code)) return Code.DEADLINE;
+            if ("provider_deadline".equals(code) || "provider_transport_HttpTimeoutException".equals(code)
+                    || "provider_transport_HttpConnectTimeoutException".equals(code)) return Code.DEADLINE;
             if ("cancelled".equals(code)) return Code.CANCELLED;
             if ("input_limit".equals(code)) return Code.INPUT;
             if ("call_budget_exhausted".equals(code)) return Code.BUDGET;

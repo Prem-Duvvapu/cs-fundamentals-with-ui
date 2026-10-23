@@ -121,7 +121,8 @@ def validate(report):
 
 def source_identity():
     paths = sorted((ROOT/'src/main/java').rglob('*.java')) + [ROOT/'pom.xml',ROOT/'src/main/resources/application.properties',
-        ROOT/'src/test/java/com/csfundamentals/aiexample/AiTelemetryTests.java',Path(__file__).resolve(),
+        ROOT/'src/test/java/com/csfundamentals/aiexample/AiTelemetryTests.java',
+        ROOT/'src/test/java/com/csfundamentals/aiexample/AiDeadlineTelemetryTests.java',Path(__file__).resolve(),
         ROOT/'test_observability.py',ROOT/'OBSERVABILITY.md',ROOT/'compare_tickets.py']
     result = {}
     for path in paths:
