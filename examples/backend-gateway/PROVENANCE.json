@@ -16,7 +16,7 @@
       "maven:3.9-eclipse-temurin-17": "sha256:1a352420f7aba21f5ad08df31bab55f74c013fb491f1ae8ab1dd7ff9ed698584",
       "eclipse-temurin:17-jre": "sha256:e04fa72be13b257a59fdec6dc14af78c8f80f035d3c1ed4e03e45552a231d4c8"
     },
-    "addition": "The owned derived image adds only GatewayProbe.class. It does not change the Task Tracker jar, source or business routes."
+    "addition": "The owned derived image adds only GatewayProbe.class. Its one server JVM observes normalized metadata and performs one fixed unauthenticated service read; it does not change the Task Tracker jar, source or business routes."
   },
   "evidence": {
     "schemaVersion": 1,

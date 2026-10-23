@@ -63,6 +63,8 @@ jobs:
               raise SystemExit('Actual digest-pinned Nginx image required')
           if result.get('networkIsolation')!={'backendInternal':True,'ingressInternal':False,'gatewayNetworkCount':2,'backendNetworkCount':1,'actualPublishedHostIp':'127.0.0.1'} or not result.get('dockerServerVersion'):
               raise SystemExit('Actual internal backend and gateway-only publishing network required')
+          if result.get('diagnosticJvmCount')!=1 or result.get('diagnosticPidsLimit')!=32 or result.get('forwardedMetadata',{}).get('directServiceStatus')!=401:
+              raise SystemExit('Actual single-JVM direct service observation under the declared PID cap required')
           names={'lab.py','commands.py','GatewayProbe.java','nginx.conf','proxy-headers.conf'}
           hashes={name:hashlib.sha256((root/name).read_text().encode()).hexdigest() for name in names}
           if hashes!=result.get('sourceSha256LF'):

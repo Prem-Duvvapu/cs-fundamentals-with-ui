@@ -299,8 +299,14 @@ class Lab:
                      and all(metadata[key]=='' for key in ['Forwarded','X-Forwarded-Host','X-Forwarded-Port','X-Forwarded-Prefix','X-User','X-Auth-Request-User','X-Forwarded-User']))
         self.observations['forwardedMetadata']=metadata
         self.observations['representativeNoCookieGetResponseSetCookie']=False
-        _,direct=self.command(['docker','exec',self.name+'-probe','java','-Xmx32m','-XX:ActiveProcessorCount=1','-cp','/probe','GatewayProbe','direct'])
-        self.require('direct-service-forged-identity-401',json.loads(direct)['directServiceStatus']==401)
+        self.require('direct-service-forged-identity-401',metadata['directServiceStatus']==401)
+        probe=json.loads(self.command(['docker','container','inspect',self.name+'-probe'])[1])[0]
+        _,running=self.command(['docker','top',self.name+'-probe','-eo','pid,comm'])
+        jvms=[line for line in running.splitlines()[1:] if len(line.split())==2 and line.split()[1]=='java']
+        if len(jvms)!=1 or probe['HostConfig']['PidsLimit']!=32:
+            raise LabFailure('one_actual_diagnostic_jvm_with_declared_pid_cap_required')
+        self.observations['diagnosticJvmCount']=len(jvms)
+        self.observations['diagnosticPidsLimit']=probe['HostConfig']['PidsLimit']
         self.require('service-csrf-still-required',self.request('POST','/api/projects',b'{"name":"Gateway original"}',user='alice',headers={'Content-Type':'application/json'},case='csrf-denied')[0]==403)
         alice=self.token('alice')
         status,_,body=self.request('POST','/api/projects',b'{"name":"Gateway original"}',user='alice',headers=alice,case='create')

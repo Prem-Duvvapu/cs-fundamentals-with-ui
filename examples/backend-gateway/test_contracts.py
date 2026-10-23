@@ -122,7 +122,10 @@ class GatewayContracts(unittest.TestCase):
             commands.run(['javac','--release','17','-d',directory,lab.ROOT/'GatewayProbe.java'],lab.ROOT,commands.Budget.start())
             code,text=commands.run(['java','-Xmx32m','-cp',directory,'GatewayProbe','invalid'],lab.ROOT,commands.Budget.start(),check=False)
             self.assertNotEqual(0,code)
-            self.assertIn('fixed_server_or_direct_mode_required',text)
+            self.assertIn('fixed_server_mode_required',text)
+            code,text=commands.run(['java','-Xmx32m','-cp',directory,'GatewayProbe','direct'],lab.ROOT,commands.Budget.start(),check=False)
+            self.assertNotEqual(0,code)
+            self.assertIn('fixed_server_mode_required',text)
 
     def test_actual_command_deadline_output_cap_and_no_unbounded_configuration(self):
         for args,kwargs in [([sys.executable,'-c','import time;time.sleep(5)'],{'timeout':.1}),

@@ -3,7 +3,7 @@
 This exercise puts **actual Nginx in front of the unchanged Task Tracker**. It teaches one
 boundary: a public-facing gateway may normalize forwarding metadata, reject work, and check
 authentication, while the service still owns authentication, CSRF protection, roles and data
-ownership. The small Java `/headers` fixture only observes metadata; it is not a new identity
+ownership. The small Java `/headers` fixture observes metadata and one fixed unauthenticated service read; it is not a new identity
 endpoint or business service.
 
 The native tests compile the Java 17 fixture and test command/cleanup contracts. They do **not**
@@ -35,7 +35,9 @@ sequenceDiagram
         T-->>C: Business response via Nginx
     else authenticated metadata observation
         N->>D: GET /headers with normalized metadata
-        D-->>C: Metadata only, via Nginx
+        D->>T: Fixed GET /api/projects, forged identity headers, no credentials
+        T-->>D: 401 from service authentication
+        D-->>C: Metadata and observed401, via Nginx
     end
 ```
 
@@ -237,3 +239,11 @@ Sources: [Nginx auth_request](https://nginx.org/en/docs/http/ngx_http_auth_reque
 Pinned-image verification is recorded in [PROVENANCE.json](PROVENANCE.json).
 
 Docker network references: [port publication](https://docs.docker.com/engine/network/port-publishing/) and the [upstream internal-only publication report](https://github.com/moby/moby/discussions/53256). The report supports diagnosis, not runtime verification of this lab.
+
+The diagnostic server reuses one bounded Java HTTP client for its fixed unauthenticated service
+read. It does not launch another JVM inside the same32-PID/96MiB container. The journey observes
+one Java process and the configured PID cap after the direct401 check. A prior two-JVM attempt
+failed native thread creation before HttpClient's selector could start; that error is distinct from
+Java heap exhaustion. The failed run did not retain cgroup counter history, so it does not prove
+which OS resource was exhausted. Inspect actual process/thread, PID and memory evidence before
+changing heap settings; reuse the existing diagnostic process for this exercise.
