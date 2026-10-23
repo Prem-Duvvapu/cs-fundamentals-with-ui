@@ -2,6 +2,14 @@
 
 ## Current completion scope — October 21
 
+The [methods/constructors source review](docs/JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) covers
+all nine S05 pages and course entries 7/8. Keep canonical OOP metadata, original questions/rubrics,
+migration literals and diagram bodies; ConstructorDemo's marked Java 17 output is 2/5/9. Preserve
+field defaults versus initialisers, exact default/no-argument distinction, explicit static receiver
+and interface-abstract cases, plus version-bound delegation rules. Source PDFs/images stay external.
+The revision-navigation pilot remains two entries; five source links reviewed does not close the
+26 remaining sources or actual learner recognition/revision/retest requirements.
+
 The [AI stage tracing exercise](examples/ai-backend/OBSERVABILITY.md) is explicitly opt-in and
 uses a bounded local SDK exporter with fixed enum-only metadata. Keep actual RAG/HTTP causal
 parents, pre/post-generation authorization, original prompts/defaults and nullable bounded usage.

@@ -607,3 +607,5 @@ timeout acceptance also requires the actual matching Nginx408 log, so a disconne
 a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.
 
 Practice [PostgreSQL concurrency and access paths](examples/backend-persistence/README.md#6-read-committed-repeatable-read-and-serializable-observe-the-history) after the DBMS lessons. Predict actual snapshots, reproduce write skew and deadlock, retry the whole known-aborted transaction, compare optimistic/pessimistic decisions, and inspect equivalent query results and index work. Finish with mutable-order pagination counterexamples and a real isolated restore. The expanded local runner passes12 actual tests without skips; Docker CI is separate evidence.
+
+The [Java methods/construction review](docs/JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) connects familiar course entries 7/8 to the existing OOP lesson. Read a method declaration, predict field values through a constructor chain, and debug a missing no-argument constructor using the complete Java 17 example. Original notes are credited; the course-order revision pilot still has its two reviewed navigation entries.

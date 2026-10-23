@@ -797,3 +797,14 @@ input/output, offline Maven execution, source binding and actual dump/restore in
 opt-in executable cancellation policy defers through Popen assignment and complete stop/wait/pipe
 closure; library callers retain their handlers/masks. The native14 guards and actual local12
 tests pass separately. Docker CI, other engines, replication, failover and capacity remain separate.
+
+### Java methods and construction source alignment — October 23
+
+The canonical OOP lesson adds a method-reading table, explicit static receiver/interface abstract
+method distinctions and a marked ConstructorDemo. Its 2/5/9 trace separates field defaults,
+initialisers, this-delegation and an ordinary class-named method. Ten independently compiled
+negative snippets accompany the nine-page S05 review; one original check program and javap
+confirm the declared Java 17 boundaries. Canonical topic/question/rubric identities, old code,
+all diagram bodies and two-entry course presentation mapping are preserved. No PDF assets,
+second metadata registry, new runtime dependency or learner evidence is introduced. The source
+ledger now has five of 31 distinct links reviewed; actual recognition and 26 sources remain open.
