@@ -564,7 +564,7 @@ This provides executable debugging evidence; a real learner's IDE session remain
 
 The [gateway exercise](examples/backend-gateway/README.md) connects actual Nginx to the unchanged
 Task Tracker. Predict forwarded-header trust, service authorization/CSRF,429 versus503/504,
-body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its fourteen
+body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its fifteen
 native guards first; actual execution requires the documented local Docker prerequisites and
 all20 assertions with cleanup. Plain loopback HTTP, per-instance limiting and controlled fixtures
 are teaching boundaries rather than a production deployment claim.

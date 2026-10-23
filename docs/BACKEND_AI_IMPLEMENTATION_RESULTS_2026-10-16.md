@@ -609,3 +609,13 @@ offset0 is applied by B without a broker commit, replayed by A with no second ef
 by a fresh offset1 record and actual next-offset2 commit. Both owner threads stop; the generated
 topic/group and job containers are removed. This supersedes Kafka's preceding CI-pending notes,
 not the open multi-broker/failover/process-crash or global exactly-once limitations.
+
+### Gateway real-service setup failure and repair — October23
+
+PR85's first actual-nginx-http run39672590492 failed before HTTP because the internal-only gateway
+had a null actual port binding. Its failed receipt confirms zero cases and successful cleanup;
+this is a release blocker. Source1c095b7 adds a gateway-only publishing bridge, actual network/
+loopback-binding observations, typed missing-binding rejection and cleanup for both exact networks.
+All15 native guards pass. RCA-2026-10-23-01 distinguishes the observation from the upstream report
+and leaves actual20-case CI/release pending. The backend remains on the internal network only;
+the gateway ingress bridge is not a production outbound firewall.

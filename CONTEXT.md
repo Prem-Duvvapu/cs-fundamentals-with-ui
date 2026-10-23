@@ -2,7 +2,7 @@
 
 `examples/backend-gateway` is an isolated Docker learning journey using actual digest-pinned
 Nginx, unchanged Task Tracker build input and a metadata-only Java fixture on a private network.
-Only the gateway publishes an ephemeral loopback port. The service retains authentication,
+Only the gateway joins a second owned publishing bridge and publishes an ephemeral loopback port. The service retains authentication,
 CSRF, role and owner decisions; the fixed GET auth subrequest also consumes service work.
 Actual HTTP/log evidence distinguishes gateway429, service503 and upstream-timeout504, checks
 framing/forwarding, and observes valid reload recovery. Bounded clients/processes, no-skip CI,

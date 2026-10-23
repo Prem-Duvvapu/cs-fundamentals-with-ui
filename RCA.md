@@ -766,3 +766,29 @@ prior startup/scope-entry cancellation and actual Java17 fixture compilation. De
 Nginx/container CI is still required and is not implied by this process-only observation.
 
 **Resolving commit:**99e89a2 (source a5b685edce3a2ca7f3ddf5f65d1eb0d104ed7254).
+
+## RCA-2026-10-23-01 — requested gateway port was not an actual Docker binding
+
+**Observed:** PR85 actual-nginx-http job119474051306 in run39672590492 failed during prepare:
+NetworkSettings.Ports[8080/tcp] was null, then len(null) raised TypeError. No HTTP case executed;
+the failed artifact records an empty case list and verified owned cleanup. Other green checks
+cannot establish this missing integration behavior.
+
+**Cause:** the gateway was attached exclusively to an internal bridge, and the runner treated
+an accepted publish request as an actual host mapping. The null value was also not handled as
+a typed setup failure. Upstream Moby discussion53256 reports the same internal-only mapping
+behavior; that report supports the diagnosis but does not prove this lab's repaired execution.
+
+**Resolution:** retain task/probe only on the owned internal backend network; attach only the
+gateway to a second owned publishing bridge. Inspect actual network membership/internal flags
+and a single127.0.0.1 host binding. Record before-attachment publication/running state and the
+observed Docker server version. Reject absent, multiple, nonloopback or invalid bindings with
+a typed failure. Cleanup checks labels/IDs and removes both exact networks. The ingress bridge
+can provide outbound routing and is explicitly not production egress enforcement.
+
+**Verification/prevention:**15 native guards pass, including null/empty/nonloopback/invalid-port
+rejection and cleanup of the additional network while preserving unrelated resources. Actual
+20-case Nginx CI, source binding, network observations and owned cleanup remain required before
+merge. Do not substitute HostConfig's requested binding or a community report for actual mapping.
+
+**Resolving commit:**1c095b7; final actual-service evidence pending.

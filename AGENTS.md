@@ -5,7 +5,7 @@
 The [gateway lab](examples/backend-gateway/README.md) puts digest-pinned actual Nginx in front
 of unchanged Task Tracker source. Keep the fixed auth subrequest, service CSRF/role/owner checks,
 actual-peer metadata, finite body/time/rate limits and exact labelled-resource cleanup. Native
-fourteen-test success is not Nginx execution: dedicated CI requires all20 actual HTTP assertions,
+fifteen-test success is not Nginx execution: dedicated CI requires all20 actual HTTP assertions,
 source-bound receipt, status/log distinctions and reload-worker replacement with no skips. Owned
 command groups must be stopped even after their launcher exits; preserve caller signal policy,
 non-group semantics and unrelated processes. No production TLS/global-quota/egress claim is made.
