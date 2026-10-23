@@ -352,6 +352,31 @@ limit is enforced through memory controls and potentially OOM killing. A memory 
 is not proof that a process can never be OOM-killed. Bursting and node/system overhead
 still need capacity planning.
 
+
+**Practice: why is this Pod Pending?** Follow the
+[owned scheduling-and-repair exercise](../../examples/backend-operations/README.md#7-diagnose-pending-before-changing-a-probe).
+`Pending` is a phase, not a diagnosis: placement or container setup may still be waiting.
+
+**Predict:** the lab removes old replicas, then requests one replacement whose
+`nodeSelector` requires a label absent from every Node. This is a placement requirement;
+restarting the app or changing readiness cannot make a Node match it.
+
+**Debug:** require `PodScheduled=False` with reason `Unschedulable`, no assigned Node,
+and a matching `FailedScheduling` event from the scheduler for that exact Pod UID.
+Check zero ready Service endpoints separately: DNS can resolve without a usable backend.
+An image-pull warning or Pending alone does not establish this scheduler cause.
+
+**Repair:** remove only the erroneous workload selector. Verify the replacement's
+ownership, assigned Node, Ready condition and exact ready endpoint, then an authenticated
+Service HTTP 200. The lab does not repair the incident by changing Nodes or host settings.
+
+**Interview:** explain symptom → scheduling constraint → observed cause → repair → request
+verification. Deleting the Pod while keeping its bad template just repeats the requirement.
+
+**Evidence boundary:** the dedicated actual-kind CI must complete all nine cases, including
+the eight existing recovery/resource cases, with zero skips and verified cleanup. Passing
+local guard tests cannot substitute for that execution or prove general cluster availability.
+
 ### Production Failure Modes
 
 **`CrashLoopBackOff`.** A container keeps exiting shortly after starting. By default in
