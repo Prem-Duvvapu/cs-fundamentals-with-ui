@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 2,
+  "scenario": "actual-postgresql-concurrency-and-incidents",
+  "testSuites": {
+    "GuardTest": {
+      "tests": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0
+    },
+    "PostgresIncidentTest": {
+      "tests": 3,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0
+    },
+    "PostgresIsolationTest": {
+      "tests": 3,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0
+    },
+    "PostgresLockingTest": {
+      "tests": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0
+    },
+    "PostgresAccessPathTest": {
+      "tests": 2,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0
+    }
+  },
+  "nplusone": {
+    "projects": 3,
+    "tasks": 6,
+    "naive_statements": 4,
+    "fetch_join_statements": 1,
+    "equivalent_results": true
+  },
+  "pool": {
+    "maximum_connections": 2,
+    "waiting_threads_observed": 1,
+    "timeout_ms": 536,
+    "recovered_query": 42
+  },
+  "migration": {
+    "expanded_legacy_write": true,
+    "contract_fence_enforced": true,
+    "ddl_rollback_preserved_rows": true,
+    "committed_contract_breaks_old_reader": true,
+    "reexpanded_rows": 6,
+    "old_writer_restored": true
+  },
+  "isolation": {
+    "postgresReadUncommittedUsesReadCommittedBehavior": true,
+    "runtime": {
+      "javaFeature": 17,
+      "postgresJdbc": "PostgreSQL JDBC Driver 42.7.13",
+      "javaRuntime": "17.0.20.1+1-1-24.04-Ubuntu",
+      "serverVersionNum": 160015
+    },
+    "postgresRepeatableReadPreventsThesePhantoms": true,
+    "ownedSchemaRemoved": true,
+    "histories": [
+      {
+        "uncommittedValue": 10,
+        "requestedJdbcLevel": 1,
+        "afterOtherCommitCount": 2,
+        "freshTransactionValue": 20,
+        "uncommittedCount": 1,
+        "actualServerSetting": "read uncommitted",
+        "afterOtherCommitValue": 20
+      },
+      {
+        "uncommittedValue": 10,
+        "requestedJdbcLevel": 2,
+        "afterOtherCommitCount": 2,
+        "freshTransactionValue": 20,
+        "uncommittedCount": 1,
+        "actualServerSetting": "read committed",
+        "afterOtherCommitValue": 20
+      },
+      {
+        "uncommittedValue": 10,
+        "requestedJdbcLevel": 4,
+        "afterOtherCommitCount": 1,
+        "freshTransactionValue": 20,
+        "uncommittedCount": 1,
+        "actualServerSetting": "repeatable read",
+        "afterOtherCommitValue": 10
+      },
+      {
+        "uncommittedValue": 10,
+        "requestedJdbcLevel": 8,
+        "afterOtherCommitCount": 1,
+        "freshTransactionValue": 20,
+        "uncommittedCount": 1,
+        "actualServerSetting": "serializable",
+        "afterOtherCommitValue": 10
+      }
+    ]
+  },
+  "serialization-retry": {
+    "attempts": [
+      {
+        "outcome": "40001",
+        "transactionId": "1426"
+      },
+      {
+        "outcome": "COMMITTED",
+        "transactionId": "1428"
+      }
+    ],
+    "failedTransactionRejectsFurtherSql": "25P02",
+    "serializableFinalActive": 1,
+    "repeatableReadBothCommittedActive": 0,
+    "ownedWorkersJoined": true
+  },
+  "retry-exhaustion": {
+    "unknownConnectionOutcomeNotRetried": true,
+    "lockTimeoutNotAutomaticallyRetried": true,
+    "serializationAttempts": [
+      {
+        "outcome": "40001",
+        "transactionId": "1443"
+      },
+      {
+        "outcome": "40001",
+        "transactionId": "1445"
+      },
+      {
+        "outcome": "40001",
+        "transactionId": "1447"
+      }
+    ],
+    "nonretryableAttempts": 1,
+    "nonretryableState": "23505",
+    "preservedWinnerValue": 3
+  },
+  "deadlock": {
+    "repairedBothCommitted": true,
+    "repairObservedOneWayWait": true,
+    "repairedValues": [
+      2,
+      2
+    ],
+    "afterVictimRollback": [
+      1,
+      1
+    ],
+    "ownedWorkersJoined": true,
+    "outcomes": [
+      "40P01",
+      "COMMITTED"
+    ],
+    "actualTwoWayBlockerCycle": true
+  },
+  "locking-strategies": {
+    "ownedWorkersJoined": true,
+    "optimistic": [
+      {
+        "transactionIds": [
+          "1406",
+          "1408"
+        ],
+        "changedRows": [
+          0,
+          1
+        ]
+      },
+      {
+        "transactionIds": [
+          "1407"
+        ],
+        "changedRows": [
+          1
+        ]
+      }
+    ],
+    "bothStrategiesFinalVersion": 2,
+    "pessimisticSecondLockedRead": 1,
+    "pessimisticActualWait": true,
+    "bothStrategiesFinalValue": 2,
+    "applicationVersionConflicts": 1
+  },
+  "composite-index": {
+    "indexBytes": 2277376,
+    "broad": [
+      {
+        "Node-Type": "Aggregate",
+        "Plan-Rows": 1,
+        "Actual-Rows": 1,
+        "Actual-Loops": 1,
+        "Shared-Hit-Blocks": 286,
+        "Shared-Read-Blocks": 0
+      },
+      {
+        "Node-Type": "Seq Scan",
+        "Plan-Rows": 20000,
+        "Actual-Rows": 20000,
+        "Actual-Loops": 1,
+        "Rows-Removed-by-Filter": 0,
+        "Shared-Hit-Blocks": 286,
+        "Shared-Read-Blocks": 0
+      }
+    ],
+    "equivalentRows": true,
+    "before": [
+      {
+        "Node-Type": "Limit",
+        "Plan-Rows": 20,
+        "Actual-Rows": 20,
+        "Actual-Loops": 1,
+        "Shared-Hit-Blocks": 286,
+        "Shared-Read-Blocks": 0
+      },
+      {
+        "Node-Type": "Sort",
+        "Plan-Rows": 100,
+        "Actual-Rows": 20,
+        "Actual-Loops": 1,
+        "Sort-Method": "top-N heapsort",
+        "Shared-Hit-Blocks": 286,
+        "Shared-Read-Blocks": 0
+      },
+      {
+        "Node-Type": "Seq Scan",
+        "Plan-Rows": 100,
+        "Actual-Rows": 100,
+        "Actual-Loops": 1,
+        "Rows-Removed-by-Filter": 19900,
+        "Shared-Hit-Blocks": 286,
+        "Shared-Read-Blocks": 0
+      }
+    ],
+    "deepOffset": [
+      {
+        "Node-Type": "Limit",
+        "Plan-Rows": 20,
+        "Actual-Rows": 20,
+        "Actual-Loops": 1,
+        "Shared-Hit-Blocks": 5,
+        "Shared-Read-Blocks": 0
+      },
+      {
+        "Node-Type": "Index Only Scan",
+        "Index-Name": "orders_lookup",
+        "Plan-Rows": 100,
+        "Actual-Rows": 80,
+        "Actual-Loops": 1,
+        "Heap-Fetches": 0,
+        "Shared-Hit-Blocks": 5,
+        "Shared-Read-Blocks": 0
+      }
+    ],
+    "keyset": [
+      {
+        "Node-Type": "Limit",
+        "Plan-Rows": 20,
+        "Actual-Rows": 20,
+        "Actual-Loops": 1,
+        "Shared-Hit-Blocks": 4,
+        "Shared-Read-Blocks": 0
+      },
+      {
+        "Node-Type": "Index Only Scan",
+        "Index-Name": "orders_lookup",
+        "Plan-Rows": 41,
+        "Actual-Rows": 20,
+        "Actual-Loops": 1,
+        "Heap-Fetches": 0,
+        "Shared-Hit-Blocks": 4,
+        "Shared-Read-Blocks": 0
+      }
+    ],
+    "rolledBackIndexedWrite": [
+      {
+        "Node-Type": "ModifyTable",
+        "Plan-Rows": 0,
+        "Actual-Rows": 0,
+        "Actual-Loops": 1,
+        "Shared-Hit-Blocks": 16,
+        "Shared-Read-Blocks": 1,
+        "WAL-Records": 4,
+        "WAL-Bytes": 421
+      },
+      {
+        "Node-Type": "Index Scan",
+        "Index-Name": "orders_path_pkey",
+        "Plan-Rows": 1,
+        "Actual-Rows": 1,
+        "Actual-Loops": 1,
+        "Shared-Hit-Blocks": 3,
+        "Shared-Read-Blocks": 0,
+        "WAL-Records": 0,
+        "WAL-Bytes": 0
+      }
+    ],
+    "after": [
+      {
+        "Node-Type": "Limit",
+        "Plan-Rows": 20,
+        "Actual-Rows": 20,
+        "Actual-Loops": 1,
+        "Shared-Hit-Blocks": 4,
+        "Shared-Read-Blocks": 0
+      },
+      {
+        "Node-Type": "Index Only Scan",
+        "Index-Name": "orders_lookup",
+        "Plan-Rows": 100,
+        "Actual-Rows": 20,
+        "Actual-Loops": 1,
+        "Heap-Fetches": 0,
+        "Shared-Hit-Blocks": 4,
+        "Shared-Read-Blocks": 0
+      }
+    ],
+    "fixtureRows": 20000,
+    "resultRows": 20
+  },
+  "pagination": {
+    "firstPage": [
+      1,
+      2
+    ],
+    "deleteKeyset": [
+      3,
+      4
+    ],
+    "mutableSortKeyKeyset": [
+      3,
+      1
+    ],
+    "insertKeyset": [
+      3,
+      4
+    ],
+    "deleteOffset": [
+      4,
+      5
+    ],
+    "insertOffset": [
+      2,
+      3
+    ],
+    "tieBreaker": "position,id",
+    "repeatableReadRemaining": [
+      3,
+      4
+    ],
+    "keysetIsNotSnapshot": true
+  },
+  "restore": {
+    "source_accounts": 3,
+    "restored_accounts": 3,
+    "restored_entries": 3,
+    "dataset_sha256": "4fd6fd0cbba8c2e1eab08838800b276eba979dc9097f60da52e73445baeb4ed5",
+    "equivalent_dataset": true,
+    "foreign_key_enforced": true,
+    "check_constraint_enforced": true,
+    "next_identity_after_rejected_insert": 5
+  },
+  "postgres_version_num": 160015,
+  "evidence_scope": "Actual local PostgreSQL histories, locking, plans, JPA, Hikari and pg_dump/pg_restore; not production capacity, distributed consistency or HA evidence",
+  "owned_resources_cleaned": true,
+  "actualCaseGroups": 10,
+  "sourceSha256LF": {
+    "pom.xml": "1fff0111dd274e5812abf452ed7493cfd30bd1022e34012497a628b5a75333e3",
+    "processes.py": "66d909a44dbfd253f117cdcc86478ed83636f89aa890d19a060ae72eb900d0dc",
+    "src/main/java/com/csfundamentals/persistencelab/ExpandContract.java": "f201e1d30e37d38d2d5c8dd5e3afa5d887312c9c42d0e855379ff205f74706d8",
+    "src/main/java/com/csfundamentals/persistencelab/LabProject.java": "f7e49e3e3b4a77210145a04f9e646d8f3f8d64d68d07f2dbdfc9610d448cb6e1",
+    "src/main/java/com/csfundamentals/persistencelab/LabTask.java": "647b3604cd796b9cb27671ed2e17ac3ab7b74624c2a07acdd6dd2446c063cdca",
+    "src/main/java/com/csfundamentals/persistencelab/OwnedDatabase.java": "fb359bce678fa615d116bcdd274f6a268c86e35901b9a753b255f820723e3fee",
+    "src/main/java/com/csfundamentals/persistencelab/TestSettings.java": "6acb035903447f47e30abb27c1150b7879c128d6191324a8f342c8fbf6dd439b",
+    "src/main/java/com/csfundamentals/persistencelab/TransactionRetry.java": "09aefebdbf36e9eba4307e93caf579beb3f93f159f475440019f34cf7bb3d10c",
+    "src/test/java/com/csfundamentals/persistencelab/GuardTest.java": "5ba113a9a6e6195a0a44fa7a60e6eaf8c5e2adc9994c185b0db4365bc8e76d63",
+    "src/test/java/com/csfundamentals/persistencelab/PgEvidence.java": "db263b3ed80c951a3b6ed4141b4ccc6c50a552b6d3b9112dd217190d039b0129",
+    "src/test/java/com/csfundamentals/persistencelab/PostgresAccessPathTest.java": "cf0ce998e865f914a462a6565bab19e2d495f7df16f5e832de1b1614078a5908",
+    "src/test/java/com/csfundamentals/persistencelab/PostgresIncidentTest.java": "c15e2e24703a2268cc8a8b05978233de1bdd4672c564ca126e9bb448899829d5",
+    "src/test/java/com/csfundamentals/persistencelab/PostgresIsolationTest.java": "cd9cf949bcb925c7c7f031d1a1f1bf3b469c5914e04604385edeefff998735c8",
+    "src/test/java/com/csfundamentals/persistencelab/PostgresLockingTest.java": "9ae1de05aa2d817cba41c34e2d08ac9d71d25017f38dc1e9e9b976a90f8f7419",
+    "test_verify.py": "f6c5f94058c98f4fad28a5b4935995bd5b4b122a773919ff144c551e6f84bca0",
+    "verify.py": "dffd049f4fe27ae607f00041536bf40e9f5346a33665b069c15174578d2534bb"
+  }
+}
