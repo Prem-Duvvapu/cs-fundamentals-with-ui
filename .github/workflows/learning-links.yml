@@ -61,7 +61,7 @@ jobs:
         run: node scripts/audit-learning-links.mjs --report learning-link-report.json
       - name: Preserve evidence, including confirmed failures and temporary outages
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: learning-link-report
           path: learning-link-report.json

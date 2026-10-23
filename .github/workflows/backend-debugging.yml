@@ -71,7 +71,7 @@ jobs:
           PY
       - name: Upload only sanitized execution records
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-configuration-jdi-evidence
           path: examples/backend-debugging/target/evidence/

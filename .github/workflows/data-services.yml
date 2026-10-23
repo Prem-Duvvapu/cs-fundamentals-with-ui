@@ -170,7 +170,7 @@ jobs:
           PY
       - name: Retain actual service and query-plan reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-data-services-evidence
           path: |
