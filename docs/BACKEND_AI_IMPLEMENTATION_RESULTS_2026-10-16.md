@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR85/PR86/PR87 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR85/PR86/PR87/PR89 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -44,7 +44,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; PR83 configuration and actual JDI CI verified; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore plus PR89 actual concurrency/plans CI; broader database work open | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; PR84 concurrent rebalance/replay/dedup actual CI verified | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability plus PR87 bounded Redis coalescence/recovery CI; eviction/fairness/failover open | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket and PR85 actual gateway; production egress work open | API/security: REST + Spring Security |
@@ -788,3 +788,55 @@ requires17 actual cases and five controlled-origin recovery observations; the so
 execution of unchanged service source. The final integrated head reran the same actual-service
 gate successfully. This supersedes cache release-pending notes without closing production
 eviction, distributed coordination, capacity/fairness or failover. MongoDB's guard was retained.
+## Expanded PostgreSQL concurrency continuation — unreleased
+
+Source8d10fbd extends the existing [persistence incident guide](../examples/backend-persistence/README.md)
+with real PostgreSQL16 isolation histories, repeatable-read write skew, serializable rejection and
+whole fresh-transaction retry, finite exhaustion/nonretryable-state policy, observed two-way blocker
+cycle and consistent-order repair, OCC/pessimistic updates, composite covering-index XML plans and
+mutable-order pagination counterexamples. Existing JPA/pool/migration/restore exercises are retained.
+
+The [final-source local receipt](../examples/backend-persistence/evidence/2026-10-23-local.json)
+records all12 actual tests without skips, ten case groups, source identity, equivalent restored
+data/constraints/sequence state, observed Java17/PostgreSQL16.15/JDBC42.7.13 and exact generated
+role/database removal. All14 Python guards pass, including the positioned actual TERM/INT cleanup
+regression whose original code failed both subcases (RCA-2026-10-23-09). No shared server was stopped.
+
+The dedicated workflow resolves the complete Maven provider graph before provisioning its owned
+PostgreSQL container, then requires the full offline actual suite, case receipt and cleanup. Final
+Docker CI/platform checks and release remain required. Known-aborted retry scheduling is not a
+hard preemption deadline; policy assertions for unknown connections/lock timeouts are not induced
+network-failure evidence. No replication, HA, other-engine, production capacity or human outcome
+is established. This advances BE03 and BEC14–19/23/37/69 without closing their full learning gates.
+
+### Expanded database actual-container execution — release still pending
+
+Actual job40005144815/job120591046795 passes all12 required PostgreSQL tests with zero skips
+and all ten case groups at sourceheada7eccf3ce19342560de3331fb5bc2557dd864b0a. The
+[persistent source-bound CI receipt](evidence/POSTGRES_CONCURRENCY_CI_2026-10-23.json) retains
+actual PostgreSQL160015, observed Java17, real blocker/retry/query/pagination histories, equivalent
+restored data/constraints/sequence state and exact resource cleanup. This supersedes the preceding
+Docker-execution-pending note for that head. Final merged-integration checks and release remain
+required; no production performance, replication or participant result is inferred.
+
+## PR89 merged release evidence — October23
+
+PR [89](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/89) merged at
+2026-10-23T18:48:29Z as8bda98028301c8c32fdb88857fdb5c682f29747c. Exact head
+13a1240c5660a070f8676c18f50faeb3cb5b9311 passes all ten checks, including actual
+PostgreSQL job40005762899/job120593124527 and every core Verify job. The dedicated gate
+requires12 tests with zero skips, ten source-bound case groups, restore invariants and exact
+cleanup. The [persistent receipt](evidence/POSTGRES_CONCURRENCY_CI_2026-10-23.json) retains
+the earlier actual execution of identical module source; final integration reruns the same
+mandatory gate successfully. This supersedes database execution/release-pending notes and
+RCA-2026-10-23-09's remote-evidence qualifier. Replication/HA/capacity and learners remain open.
+
+### AI actual-CI observation — final release still pending
+
+The [actual CI trace receipt](evidence/AI_STAGE_TRACING_CI_2026-10-23.json) binds all51 observed
+source files at a7731b6 to the actual packaged12-scenario/14-operation/11-HTTP/83-span fixture
+from job40004727845/job120589615850. Owned resources close; usage remains7 known/5 unknown
+attempts with84 input,28 output and21 cached-input subset tokens. Both dedicated regression
+gates also pass at that head: all8 actual pgvector cases and all3 actual OCR cases with zero
+skips. Source bytes remain unchanged through the subsequent main integrations. Final integrated
+head checks and release are still required; these synthetic observations do not close live quality.

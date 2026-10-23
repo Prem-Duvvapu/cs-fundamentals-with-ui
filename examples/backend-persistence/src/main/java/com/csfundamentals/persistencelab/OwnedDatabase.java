@@ -10,10 +10,12 @@ public final class OwnedDatabase implements AutoCloseable {
     public final String schema="lab_schema_"+UUID.randomUUID().toString().replace("-","");
     public final HikariDataSource pool;
     private SessionFactory factory;
-    public OwnedDatabase(TestSettings settings) throws Exception {
+    public OwnedDatabase(TestSettings settings) throws Exception { this(settings,2); }
+    public OwnedDatabase(TestSettings settings,int maximumConnections) throws Exception {
+        if(maximumConnections<2 || maximumConnections>3)throw new IllegalArgumentException("Only two workers and one optional observer are allowed");
         HikariConfig configuration=new HikariConfig();
         configuration.setJdbcUrl(settings.url()); configuration.setUsername(settings.user()); configuration.setPassword(settings.password());
-        configuration.setMaximumPoolSize(2); configuration.setMinimumIdle(0); configuration.setConnectionTimeout(500);
+        configuration.setMaximumPoolSize(maximumConnections); configuration.setMinimumIdle(0); configuration.setConnectionTimeout(500);
         configuration.setValidationTimeout(250); configuration.setInitializationFailTimeout(1500);
         configuration.addDataSourceProperty("connectTimeout","2"); configuration.addDataSourceProperty("socketTimeout","3");
         configuration.addDataSourceProperty("options","-c statement_timeout=3000 -c lock_timeout=1000 -c idle_in_transaction_session_timeout=5000");

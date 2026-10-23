@@ -9,6 +9,16 @@ HTTP timeout wrappers and timed Future.get deadlines share the DEADLINE trace ca
 changing the original public exception. No payload, tenant/source IDs, raw exceptions/events or
 trace-ID metric labels may enter exports. Preserve source/JAR binding, owned cleanup and the
 packaged fixture in practical-ai CI. Streaming/tools/collector/live-quality remain separate work.
+The [PostgreSQL incident/concurrency lab](examples/backend-persistence/README.md) requires all12
+actual tests without skips, ten case groups, source-byte integrity, real dump/restore invariants
+and exact generated role/database cleanup. Preserve actual two-connection isolation histories,
+observed blocker cycles/repair, whole fresh-transaction retry with finite scheduling/attempt caps,
+OCC/pessimistic waits, equivalent XML query plans and mutable-key pagination counterexamples.
+A40001/40P01-only sample policy is not a universal retry rule; unknown commit outcomes are not
+blindly repeated. Keep bounded nonblocking stdin/stdout/stderr, Popen assignment ownership and
+complete child cleanup under cancellation deferral. Do not stop the shared local PostgreSQL server.
+Native/local success is separate from dedicated Docker actual-service CI or learner evidence.
+
 The [cache coalescing exercise](examples/backend-data-services/README.md#6-measure-and-limit-a-cold-key-stampede)
 extends the existing cache-aside path through an optional per-instance bounded coordinator. Keep
 canonical tenant/version checks, the unchanged default constructor, finite waiter/flight limits,
