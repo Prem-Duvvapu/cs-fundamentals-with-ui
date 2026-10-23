@@ -1,6 +1,7 @@
 """Actual owned process probes; no Redis global configuration or external service needed."""
 import os
 from pathlib import Path
+import select
 import signal
 import subprocess
 import sys
@@ -13,6 +14,48 @@ import verify_redis as owned
 
 
 class OwnedRedisRunnerTests(unittest.TestCase):
+    @unittest.skipUnless(hasattr(signal,'pthread_sigmask'),'POSIX signals required')
+    def test_first_term_int_during_normal_cleanup_waits_reaps_and_closes_before_delivery(self):
+        previous={number:signal.getsignal(number) for number in (signal.SIGTERM,signal.SIGINT)}
+        original_mask=signal.pthread_sigmask(signal.SIG_BLOCK,set())
+        real_killpg=os.killpg
+        unrelated=subprocess.Popen([sys.executable,'-c','import time;time.sleep(20)'],start_new_session=True)
+        try:
+            for number in previous:
+                with self.subTest(signal=number.name):
+                    process=None;deliveries=[]
+                    mask=original_mask-set(previous)
+                    signal.pthread_sigmask(signal.SIG_SETMASK,mask)
+                    def positioned(group,value):
+                        real_killpg(group,value)
+                        if process is not None and group==process.pid and value==signal.SIGTERM and not deliveries:
+                            deliveries.append(number)
+                            os.kill(os.getpid(),number)
+                            self.assertTrue(owned._cancellation.state['requested'])
+                            self.assertFalse(owned._cancellation.state['delivered'])
+                            self.assertIsNone(process.poll())
+                    try:
+                        with self.assertRaises(owned.Cancelled):
+                            with owned.cancellation_signals(),patch.object(os,'killpg',positioned):
+                                with owned.owned_process([sys.executable,'-c',
+                                        'import signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);'
+                                        'print("READY",flush=True);time.sleep(20)'],stdout=subprocess.PIPE) as process:
+                                    self.assertTrue(select.select([process.stdout],[],[],2)[0],'Owned child readiness deadline')
+                                    self.assertEqual(b'READY\n',process.stdout.readline())
+                        self.assertEqual([number],deliveries)
+                        self.assertEqual(-signal.SIGKILL,process.returncode)
+                        self.assertTrue(process.stdout.closed)
+                        with self.assertRaises(ProcessLookupError):os.kill(process.pid,0)
+                        self.assertIsNone(unrelated.poll())
+                        for value,handler in previous.items():self.assertIs(handler,signal.getsignal(value))
+                        self.assertEqual(mask,signal.pthread_sigmask(signal.SIG_BLOCK,set()))
+                    finally:
+                        if process is not None:owned.stop(process)
+        finally:
+            owned.stop(unrelated)
+            for number,handler in previous.items():signal.signal(number,handler)
+            signal.pthread_sigmask(signal.SIG_SETMASK,original_mask)
+
     @unittest.skipUnless(hasattr(signal,'pthread_sigmask') and hasattr(signal,'pthread_kill'),'POSIX signals required')
     def test_positioned_popen_term_int_live_thread_preserves_handlers_masks_and_reaps_child(self):
         numbers=(signal.SIGTERM,signal.SIGINT)

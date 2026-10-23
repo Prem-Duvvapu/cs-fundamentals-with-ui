@@ -76,10 +76,11 @@ def owned_process(command,**options):
         yield process
     finally:
         if process is not None:
-            try:stop(process)
-            finally:
-                for stream in (process.stdin,process.stdout,process.stderr):
-                    if stream is not None:stream.close()
+            with defer_cancellation():
+                try:stop(process)
+                finally:
+                    for stream in (process.stdin,process.stdout,process.stderr):
+                        if stream is not None:stream.close()
 
 
 def resp(*parts):

@@ -323,10 +323,14 @@ an old receipt cannot satisfy the XML/report gate.
 
 The native runner uses a private generated Redis configuration/password and exact
 new-session process ownership for Redis and Maven. A scoped TERM/INT policy defers
-cancellation across Popen assignment, restores caller handlers/masks and always
+cancellation across Popen assignment and the complete stop/wait/stream-close
+cleanup, restores caller handlers/masks and always
 signals an owned group even if its launcher already exited. Regression probes
 observe actual child cleanup, other-thread signal delivery, partial-entry rollback
 and an exited leader's descendant while an unrelated process group stays running.
+A first TERM/INT arriving during ordinary successful cleanup is deferred until a
+TERM-ignoring owned child has been killed/waited and its pipes closed; cancellation
+does not interrupt that cleanup midway.
 Only direct children are waited/reaped; descendant termination is not a claim of
 reaping grandchildren. Imports alone do not replace a host's signal policy.
 Run its local checks with:
