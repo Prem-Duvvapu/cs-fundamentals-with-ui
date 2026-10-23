@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "sourceHead": "adb58ff1ae906b7a67fc307efa79b9cd1fe5b1ce",
+  "actualRun": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39999159858",
+  "job": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39999159858/job/120570429199",
+  "artifactSha256": "7b5bc3df53f4271611228007d12ef6eecf64e7f8b3dc5efa6f8973dd68bd3c14",
+  "observed": {
+    "redisRunning": true,
+    "mongoRunning": false,
+    "mongoExitCode": 1,
+    "mongoOomKilled": false,
+    "mongoStartupMessageId": 12257600,
+    "mongoKernelCompatibilityGuardObserved": true,
+    "actualServiceCasesExecuted": 0
+  },
+  "vendorIssue": "https://jira.mongodb.org/browse/SERVER-121912",
+  "vendorReleaseNotes": "https://www.mongodb.com/docs/manual/release-notes/8.0/",
+  "limits": [
+    "The failed run did not retain its exact Docker kernel version",
+    "Startup diagnostics are not test completion or cache-correctness evidence",
+    "The repaired supported-runner execution remains pending"
+  ]
+}

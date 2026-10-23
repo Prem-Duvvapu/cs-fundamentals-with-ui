@@ -1,5 +1,15 @@
 # Backend Engineering — System Architecture & Development Context
 
+`CoalescedLoads` is an optional bounded coordinator in the existing backend-data-services module.
+It shares concurrent misses by canonical namespace/tenant/ID/version, limits callers and distinct
+loads with no executor queue, and retains a timed-out flight until its origin operation exits.
+The unchanged constructor remains ordinary cache-aside. Actual Redis tests compare six overlapping
+full origin reads with one while retaining six metadata checks; another test shows two coordinator
+objects still perform two reads. Controlled-origin failures are separate from actual MongoDB
+integration. Deadlines do not cover initial lookups or roll back already-started valid Redis writes.
+Native child cleanup and the dedicated all-services gate preserve exact ownership and evidence.
+Failed CI startup retains bounded credential-redacted state/log diagnostics for exact job containers
+before teardown; a startup artifact never counts as service-case execution.
 `examples/backend-gateway` is an isolated Docker learning journey using actual digest-pinned
 Nginx, unchanged Task Tracker build input and a Java metadata/fixed-service-read fixture on a private network.
 Only the gateway joins a second owned publishing bridge and publishes an ephemeral loopback port. The service retains authentication,
@@ -756,6 +766,10 @@ tests, Git diff checks and offline Maven resolution. It accepts no external patc
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
 
+The data-services job records the actual Docker daemon kernel/version on its Ubuntu22.04 LTS
+runner before starting pinned MongoDB8. It rejects the vendor's known incompatible kernel range;
+containers retain the host kernel. The startup guard is never disabled. This runtime observation
+is separate from the mandatory17 actual Redis/Mongo/combined cases and bounded failure diagnostics.
 The gateway stalled-body observation records received HTTP status separately from EOF-before-status.
 Acceptance additionally requires the matching access-log408. A wire close alone is insufficient;
 Nginx timeout finalization can terminate a request without sending a response status. Failed-run

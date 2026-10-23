@@ -10,11 +10,15 @@ public final class CacheAsideTickets {
     private final CachePort cache;
     private final String namespace;
     private final long ttlMs;
+    private final CoalescedLoads loads;
     public record Result(Ticket ticket, String cacheState, long remainingTtlMs) {}
     public record Write(Ticket ticket, boolean invalidated) {}
     public CacheAsideTickets(TicketSource source, CachePort cache, String namespace, long ttlMs) {
+        this(source,cache,namespace,ttlMs,null);
+    }
+    public CacheAsideTickets(TicketSource source, CachePort cache, String namespace, long ttlMs, CoalescedLoads loads) {
         LocalServices.namespace(namespace); RedisCache.ttl(ttlMs);
-        this.source = source; this.cache = cache; this.namespace = namespace; this.ttlMs = ttlMs;
+        this.source = source; this.cache = cache; this.namespace = namespace; this.ttlMs = ttlMs; this.loads = loads;
     }
     public String key(String principal, String id, long version) {
         LocalServices.id(id); if (version < 1) throw new IllegalArgumentException("invalid_version");
@@ -34,20 +38,39 @@ public final class CacheAsideTickets {
         var version = authoritative(() -> source.version(principal, id));
         if (version.isEmpty()) return Optional.empty();
         String key = key(principal, id, version.getAsLong());
-        boolean unavailable = false;
+        Lookup lookup = cached(principal,id,version.getAsLong(),key);
+        if (lookup.result().isPresent()) return lookup.result();
+        if (loads == null) return fill(principal,id,lookup.unavailable(),null);
+        return loads.load(key,budget -> {
+            budget.check();
+            // A previously completed flight may have filled Redis after this caller's first miss.
+            Lookup again = lookup.unavailable() ? lookup : cached(principal,id,version.getAsLong(),key);
+            budget.check();
+            if (again.result().isPresent()) return again.result();
+            return fill(principal,id,again.unavailable(),budget);
+        });
+    }
+    private record Lookup(Optional<Result> result, boolean unavailable) {}
+    private Lookup cached(String principal, String id, long version, String key) {
         try {
             var cached = cache.read(key);
             if (cached.isPresent()) {
                 try {
                     var ticket = Ticket.parse(Document.parse(cached.get().json()));
-                    if (ticket.version() == version.getAsLong() && ticket.id().equals(id)
+                    if (ticket.version() == version && ticket.id().equals(id)
                             && ticket.tenant().equals(Ticket.tenant(principal)) && cached.get().remainingTtlMs() > 0)
-                        return Optional.of(new Result(ticket, "hit-verified-version", cached.get().remainingTtlMs()));
+                        return new Lookup(Optional.of(new Result(ticket, "hit-verified-version", cached.get().remainingTtlMs())),false);
                 } catch (RuntimeException corrupt) { /* Reject rather than return an unvalidated cache envelope. */ }
                 cache.remove(key);
             }
-        } catch (CachePort.Unavailable failure) { unavailable = true; }
+            return new Lookup(Optional.empty(),false);
+        } catch (CachePort.Unavailable failure) { return new Lookup(Optional.empty(),true); }
+    }
+    private Optional<Result> fill(String principal, String id, boolean unavailable, CoalescedLoads.Budget budget) {
+        if (budget != null) budget.check();
         var canonical = authoritative(() -> source.find(principal, id));
+        // A late source result must not populate Redis after the shared load budget expired.
+        if (budget != null) budget.check();
         if (canonical.isEmpty()) return Optional.empty();
         var ticket = check(principal, id, canonical.get());
         if (!unavailable) try { cache.put(key(principal, id, ticket.version()), ticket.document().toJson(), ttlMs); }
