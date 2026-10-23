@@ -286,6 +286,19 @@ function checkHtmlOutsideCode(source) {
   return matches
 }
 
+export async function hasExpertMisconceptionsSection(source) {
+  // Share the reader's parsed heading semantics: text and fenced examples are not sections.
+  const { parseMarkdownOutline } = await import(pathToFileURL(
+    path.resolve(REPO_ROOT, 'frontend/src/utils/markdownOutline.js')
+  ).href)
+  let inExpert = false
+  for (const heading of parseMarkdownOutline(source)) {
+    if (heading.level === 2) inExpert = heading.title === 'Expert Level'
+    if (inExpert && heading.level === 3 && heading.title.toLowerCase() === 'common misconceptions') return true
+  }
+  return false
+}
+
 export async function validateFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8')
   const lines = content.split('\n')
@@ -363,8 +376,8 @@ export async function validateFile(filePath) {
   }
 
   // 4. Common Misconceptions
-  if (!/###\s+Common Misconceptions/i.test(content)) {
-    errors.push('Missing "### Common Misconceptions" section')
+  if (!await hasExpertMisconceptionsSection(content)) {
+    errors.push('Missing rendered "### Common Misconceptions" section in Expert tier')
   }
 
   // 5. Interview Questions

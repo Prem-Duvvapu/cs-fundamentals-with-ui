@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "source": "S05",
+  "entries": [
+    7,
+    8
+  ],
+  "publicDocument": "https://drive.google.com/file/d/1KEMCFaA5phnL1qneiWPPsSeDGoRqFyWK/view",
+  "documentBytes": 3320264,
+  "documentSha256": "285dffd82af4a01ee397e5e52ea0eb32cda361fc3d94e64f4a0f9fad2be076a8",
+  "pdfPagesInspected": 9,
+  "inspection": "Page-separated text and all nine 2x page renders including embedded code images",
+  "reader": "PyMuPDF2.0; isolated external review environment only",
+  "javaRuntime": "17.0.20.1+1-1-24.04-Ubuntu",
+  "compilerRelease": 17,
+  "canonicalContentCommit": "6b0ca1d",
+  "canonicalLessonBlob": "7fa7fe6841edb2bef8c5ee652b82d267033ab8eb",
+  "canonicalLessonSha256LF": "b0ff560b5dd88c79798a5d0da05f6294b2ec182b0c6e80e5825c59e351f0ace4",
+  "positiveProgramSha256": "080eb45f817e90828dba4a7d01feb4062c38edb82ec3868aa0fce87eed2aa4f6",
+  "positiveStdout": "PASS: methods and constructor source checks",
+  "constructorDescriptor": "()V",
+  "intentionallyInvalidCases": [
+    {
+      "case": "BadConstructorReturn",
+      "exitCode": 1,
+      "sourceSha256": "4cd585ca4140cf8c0813f4b3175ea0310b326ed123d1516e07a0e89eddfa1aa4",
+      "diagnosticSha256": "dc8ba2503174c1e8269f4c53cc475895575c4b03ccc1c965169026bcdb975037"
+    },
+    {
+      "case": "MissingParentNoArg",
+      "exitCode": 1,
+      "sourceSha256": "24e2fc9d5917ccae6dc463e5cbe225d05b93feebf772492a22f8844127fe64ab",
+      "diagnosticSha256": "82503f84012cf349e041ef22232721ef5e312a153adbfe809cc58ff4e7898e96"
+    },
+    {
+      "case": "BadVarargsPosition",
+      "exitCode": 1,
+      "sourceSha256": "b732a3509161b5741b4dba17aa8275e0b46291f00c379b13249b080228888d3d",
+      "diagnosticSha256": "90bbc9dec9a82affaadd99d06569ce70d985e2335a67e590298651c363884eff"
+    },
+    {
+      "case": "ReturnOnlyOverload",
+      "exitCode": 1,
+      "sourceSha256": "987a129048936cec8667ef0e213241a89e8ff1d1b0aaad91995d1daf786c1d8a",
+      "diagnosticSha256": "77c3f4dd330bfc6786f9a1cd69bf61e2ac08deea635c6b721298b35edbf6cd5a"
+    },
+    {
+      "case": "VarargsArrayOverload",
+      "exitCode": 1,
+      "sourceSha256": "278cfb1a40d35f2820436e04ae7887dc229edf14dca77abc255877136d57218b",
+      "diagnosticSha256": "6b564b0532ebd5f58e2adfb04eef6d898bc50d7482ae6324af6adbff90e0e9d1"
+    },
+    {
+      "case": "MissingReturnPath",
+      "exitCode": 1,
+      "sourceSha256": "f4556a3f3d95bdb329e6873cda21083487cf138db7adfe85ac01ac54de9a6321",
+      "diagnosticSha256": "25956ee5a676cd4cf2d2c693d0ec9fa32ba62b548a38a189c7574953a471186f"
+    },
+    {
+      "case": "StaticConstructor",
+      "exitCode": 1,
+      "sourceSha256": "25b2f8809e424bdfe42adb32141f416e136486d9db635efcd364883d43e5e06e",
+      "diagnosticSha256": "d4888439ebc864f26dfcaa9443d89fb35967b7911e8fa7105b76dfc0e54693a4"
+    },
+    {
+      "case": "FinalConstructor",
+      "exitCode": 1,
+      "sourceSha256": "8876e391b8f4fdcb049d141a7af0953a00eb043764b89c607bf1c26bbdedcdf4",
+      "diagnosticSha256": "db50f34a4cc7c0a4c17110c75bfada870be6611082fe661774c55aee1e5d750a"
+    },
+    {
+      "case": "AbstractConstructor",
+      "exitCode": 1,
+      "sourceSha256": "9728515eec0b00e9c713228c970418d19c561aff5adad77c8278705cbc53f430",
+      "diagnosticSha256": "3f7e4cadd68dc53456d4a69c7ecfae48fc4d7af2f2abca682b3bebf95ed7d26a"
+    },
+    {
+      "case": "SynchronizedConstructor",
+      "exitCode": 1,
+      "sourceSha256": "63a3cd75c0a94d1a1ef5f1f48fe11902fb02a340923b8c92121582d96acacbab",
+      "diagnosticSha256": "b4d30f0ae3a9c30f9dcf488e78f539b1ccd961800841112f55777a4f3492001d"
+    }
+  ],
+  "markedJavaProgramsVerified": 16,
+  "markdownRenderingTestsPassed": 265,
+  "localPresentation": {
+    "evidence": "Actual Chromium presentation with canonical lesson/API fixtures",
+    "cases": [
+      {
+        "theme": "light",
+        "width": 375,
+        "sourceNativeSameTab": true,
+        "constructorExamplePresent": true,
+        "expectedOutputPresent": true,
+        "pageOverflow": false,
+        "axeArticleViolations": 0,
+        "javascriptErrors": 0
+      },
+      {
+        "theme": "light",
+        "width": 1440,
+        "sourceNativeSameTab": true,
+        "constructorExamplePresent": true,
+        "expectedOutputPresent": true,
+        "pageOverflow": false,
+        "axeArticleViolations": 0,
+        "javascriptErrors": 0
+      },
+      {
+        "theme": "dark",
+        "width": 375,
+        "sourceNativeSameTab": true,
+        "constructorExamplePresent": true,
+        "expectedOutputPresent": true,
+        "pageOverflow": false,
+        "axeArticleViolations": 0,
+        "javascriptErrors": 0
+      },
+      {
+        "theme": "dark",
+        "width": 1440,
+        "sourceNativeSameTab": true,
+        "constructorExamplePresent": true,
+        "expectedOutputPresent": true,
+        "pageOverflow": false,
+        "axeArticleViolations": 0,
+        "javascriptErrors": 0
+      }
+    ],
+    "scope": "Not actual backend, learner, screen-reader or browser zoom evidence"
+  },
+  "preservation": {
+    "canonicalQuestionTextAndRubricsUnchanged": true,
+    "originalCodeFencesUnchanged": true,
+    "originalFourDiagramBodiesUnchanged": true,
+    "simulationMigrationGate": "109/109 resolved; zero pending",
+    "diagramsGate": "295 manifest entries;590 current theme assets"
+  },
+  "limitations": [
+    "No learner recognition or explanation/build/debug session",
+    "No screen-reader, manual keyboard or actual browser-zoom evidence",
+    "Presentation uses canonical content with API fixtures; not actual backend evidence",
+    "Only Java17 executed; Java25 rule is documentation-backed, not executed",
+    "Five of31 distinct course source links now factually reviewed;26 remain",
+    "PDF/text/renders stay outside repository; public access is not reproduction permission"
+  ]
+}
