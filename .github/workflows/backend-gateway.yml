@@ -1,0 +1,107 @@
+name: Backend gateway lab
+on:
+  push:
+    branches: [main]
+    paths: ['examples/backend-gateway/**', 'examples/java-spring/task-tracker/**', '.github/workflows/backend-gateway.yml']
+  pull_request:
+    paths: ['examples/backend-gateway/**', 'examples/java-spring/task-tracker/**', '.github/workflows/backend-gateway.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  actual-nginx-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Native guards and Java compilation (not Nginx proof)
+        run: python3 -m unittest discover -s examples/backend-gateway -p test_contracts.py -v
+      - name: Actual owned Nginx to unchanged Task Tracker HTTP journey
+        run: python3 examples/backend-gateway/lab.py --run-docker
+      - name: Require every actual HTTP assertion, source receipt and owned cleanup
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+          root=Path('examples/backend-gateway')
+          result=json.loads((root/'build/evidence/result.json').read_text())
+          expected={
+            'unknown-host-400', 'missing-auth-401-despite-identity-headers', 'invalid-auth-401',
+            'forwarding-headers-sanitized', 'direct-service-forged-identity-401',
+            'service-csrf-still-required', 'authenticated-owner-create-201', 'owner-read-200',
+            'different-owner-404-despite-forged-identity', 'viewer-read-200',
+            'viewer-write-403-with-valid-csrf', 'body-cap-413', 'chunked-body-cap-413',
+            'stalled-body-inactivity-408', 'genuine-task-tracker-503', 'gateway-upstream-inactivity-504',
+            'gateway-burst-429-and-admitted-200', 'rate-limit-retry-guidance',
+            'valid-reload-and-request-recovery', 'logs-separate-gateway-429-from-upstream-503'
+          }
+          if (result.get('schemaVersion')!=1 or result.get('scenario')!='actual-nginx-task-tracker-http'
+              or result.get('actualCasesExecuted')!=20 or len(result.get('cases',[]))!=20
+              or set(result['cases'])!=expected or result.get('skipped')!=0
+              or result.get('cleanupVerified') is not True
+              or not re.fullmatch('[a-f0-9]{64}',result.get('gatewayContainerId',''))
+              or not re.fullmatch('sha256:[a-f0-9]{64}',result.get('gatewayResolvedImageId',''))
+              or result.get('nginxVersion')!='1.30.6' or not 20<=result.get('httpCalls',0)<=128
+              or result.get('representativeNoCookieGetResponseSetCookie') is not False):
+              raise SystemExit('All 20 actual Nginx assertions, no skips and verified cleanup are mandatory')
+          import sys
+          sys.path.insert(0,str(root))
+          import lab
+          if result.get('nginxImage')!=lab.NGINX:
+              raise SystemExit('Actual digest-pinned Nginx image required')
+          if result.get('networkIsolation')!={'backendInternal':True,'ingressInternal':False,'gatewayNetworkCount':2,'backendNetworkCount':1,'actualPublishedHostIp':'127.0.0.1'} or not result.get('dockerServerVersion'):
+              raise SystemExit('Actual internal backend and gateway-only publishing network required')
+          if result.get('diagnosticJvmCount')!=1 or result.get('diagnosticPidsLimit')!=32 or result.get('forwardedMetadata',{}).get('directServiceStatus')!=401:
+              raise SystemExit('Actual single-JVM direct service observation under the declared PID cap required')
+          names={'lab.py','commands.py','GatewayProbe.java','nginx.conf','proxy-headers.conf'}
+          hashes={name:hashlib.sha256((root/name).read_text().encode()).hexdigest() for name in names}
+          if hashes!=result.get('sourceSha256LF'):
+              raise SystemExit('Receipt must match exact LF-normalized executed sources')
+          workers=result['reloadWorkers']
+          if len(workers['before'])!=1 or len(workers['after'])!=1 or not set(workers['before']).isdisjoint(workers['after']):
+              raise SystemExit('Actual distinct Nginx reload worker required')
+          proof=result['statusEvidence']
+          rejected=proof['gatewayRejected']
+          failed=proof['upstreamFailure']
+          timeout=proof['upstreamTimeout']
+          forwarded=proof['forwardingObservation']
+          body_timeout=proof['stalledBodyTimeout']
+          observation=result['stalledBodyObservation']
+          if len(body_timeout)!=1 or body_timeout[0]['status']!=408 or not (
+              observation=={'wireOutcome':'http-response','httpStatus':408,'elapsedMillis':observation['elapsedMillis']}
+              or observation=={'wireOutcome':'closed-before-status','httpStatus':None,'elapsedMillis':observation['elapsedMillis']}):
+              raise SystemExit('Actual body-timeout log408 and separately observed wire result required; arbitrary disconnect is insufficient')
+          if not rejected or any(item['status']!=429 or item['limit']!='REJECTED' or item['upstream'] not in ('','-') for item in rejected):
+              raise SystemExit('Actual gateway rejection with no main upstream required')
+          if len(failed)!=1 or failed[0]['status']!=503 or failed[0]['upstream']!='503':
+              raise SystemExit('Actual service-generated upstream 503 required')
+          if len(timeout)!=1 or timeout[0]['status']!=504 or timeout[0]['upstream']!='504':
+              raise SystemExit('Actual main-upstream timeout 504 required')
+          if len(forwarded)!=1 or forwarded[0]['peer']!=result['forwardedMetadata']['X-Real-IP']:
+              raise SystemExit('Diagnostic client IP must match actual gateway peer')
+          if not (root/'build/evidence/gateway.log').is_file():
+              raise SystemExit('Actual sanitized gateway access log required')
+          print('Twenty actual Nginx HTTP assertions, source receipt and exact owned cleanup passed.')
+          PY
+      - name: Retry exact owned cleanup on failure or cancellation
+        if: always()
+        run: python3 examples/backend-gateway/lab.py --cleanup
+      - name: Retain sanitized synthetic evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateway-evidence
+          path: examples/backend-gateway/build/evidence/
+          if-no-files-found: warn

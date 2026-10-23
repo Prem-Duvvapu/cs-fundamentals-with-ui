@@ -562,6 +562,17 @@ then uses real JDI breakpoints, stepping and a caught exception on owned Java pr
 `python3 examples/backend-debugging/verify.py` with the documented cached dependencies and JDK.
 This provides executable debugging evidence; a real learner's IDE session remains separate.
 
+The [gateway exercise](examples/backend-gateway/README.md) connects actual Nginx to the unchanged
+Task Tracker. Predict forwarded-header trust, service authorization/CSRF,429 versus503/504,
+body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its sixteen
+native guards first; actual execution requires the documented local Docker prerequisites and
+all20 assertions with cleanup. Plain loopback HTTP, per-instance limiting and controlled fixtures
+are teaching boundaries rather than a production deployment claim.
+
+The gateway diagnostic reuses one bounded server JVM for its fixed unauthenticated service read.
+CI requires the observed single-JVM/32-PID setup; native-thread creation failure is diagnosed
+separately from heap exhaustion, and all20 actual HTTP assertions remain mandatory.
+
 The [session and WebSocket exercise](examples/backend-websocket/README.md) adds a real form-login
 journey around unchanged Task Tracker source. Follow CSRF, fixation protection, exact Origin,
 cookie-only identity, bounded JSON echo, logout/expiry and admission recovery. It reproduces an
@@ -579,3 +590,6 @@ retrieval, context, model HTTP and answer validation. Predict which stages run f
 429, deadline or revoked source, then inspect actual causal spans and failure-inclusive counters.
 Telemetry is off by default; the fixed local fixture needs no live model or collector. Run the
 documented build, Python guards and packaged verifier; unknown usage is not zero or billing proof.
+The gateway exercise distinguishes a received response from an idle-body connection close. Its
+timeout acceptance also requires the actual matching Nginx408 log, so a disconnect never becomes
+a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.

@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-21",
+  "sourceHead": "9cc3fc411863c7d64d410db1cac552e784a625bb",
+  "actualCiRun": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39671778169",
+  "actualCiJob": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39671778169/job/119471229127",
+  "jobConclusion": "success",
+  "sourceSha256LF": {
+    "examples/backend-messaging/src/test/java/com/csfundamentals/messaging/KafkaRebalanceBrokerTest.java": "5aa934562332bee75eeee4a89ce62472b6c8bc573bad4e9cefc6ef9129e05cea",
+    ".github/workflows/backend-messaging.yml": "82594894116cca7e485bf65f210755398bef93d48300815194a569fc482c6755",
+    "examples/backend-messaging/pom.xml": "5f48540acbffb3ee0e14e85d859680419ff9948d8150b61a67c3533d70a97904"
+  },
+  "artifactReportSha256": "80ea3fbe2a4250ec96bf12fda9f8b7be9356c2a91d57ae15b127c0ce469e8148",
+  "actualBrokerSuites": [
+    {
+      "suite": "KafkaBrokerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "9cf9102ccbb2e205d9254b195fc08493c0da3af88004cd091416714f8aeaab82"
+    },
+    {
+      "suite": "KafkaRebalanceBrokerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "c2ce6c0d7fc0f775535fcd3175d42230f51485aaf2973917a43b6c9019b09f69"
+    },
+    {
+      "suite": "RabbitBrokerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "reportSha256": "7dff63a423062df497045dcc111a3fe6ccb7e22a1114f40f2767273c83c23f0f"
+    }
+  ],
+  "observations": {
+    "schemaVersion": 1,
+    "scenario": "actual-classic-group-controlled-member-departure",
+    "processCrash": false,
+    "autoCommit": false,
+    "groupProtocol": "classic",
+    "kafkaClientVersion": "4.3.1",
+    "javaRuntime": "17.0.20.1+1",
+    "topic": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-events",
+    "group": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker",
+    "brokerClusterId": "5L6g3nShT-eMCtK--X86sw",
+    "initialSingleMember": {
+      "assignor": "range",
+      "state": "Stable",
+      "members": [
+        {
+          "clientId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-a",
+          "partitions": [
+            0,
+            1
+          ],
+          "memberId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-a-fc2fdafe-46b4-4bf2-a64e-006898232294"
+        }
+      ]
+    },
+    "twoMemberGroup": {
+      "assignor": "range",
+      "state": "Stable",
+      "members": [
+        {
+          "clientId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-a",
+          "partitions": [
+            0
+          ],
+          "memberId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-a-fc2fdafe-46b4-4bf2-a64e-006898232294"
+        },
+        {
+          "clientId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-b",
+          "partitions": [
+            1
+          ],
+          "memberId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-b-21b88f02-ebec-48e7-b641-3e382f3d744f"
+        }
+      ]
+    },
+    "withheldDelivery": {
+      "member": "b",
+      "partition": 1,
+      "offset": 0,
+      "eventId": "rebalance-withheld",
+      "applied": true,
+      "offsetCommitted": false
+    },
+    "beforeDepartureOffsets": [
+      {
+        "partition": 0,
+        "nextOffset": 1
+      }
+    ],
+    "withheldRecord": {
+      "partition": 1,
+      "brokerOffsetCommitted": false,
+      "eventId": "rebalance-withheld",
+      "localEffect": 1,
+      "offset": 0
+    },
+    "replay": {
+      "member": "a",
+      "partition": 1,
+      "offset": 0,
+      "eventId": "rebalance-withheld",
+      "applied": false,
+      "offsetCommitted": true
+    },
+    "survivingMemberGroup": {
+      "assignor": "range",
+      "state": "Stable",
+      "members": [
+        {
+          "clientId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-a",
+          "partitions": [
+            0,
+            1
+          ],
+          "memberId": "lab-rebalance-14e728e9-752a-4c0c-9b26-248ce865ee35-worker-a-fc2fdafe-46b4-4bf2-a64e-006898232294"
+        }
+      ]
+    },
+    "afterRecoveryOffsets": [
+      {
+        "partition": 0,
+        "nextOffset": 1
+      },
+      {
+        "partition": 1,
+        "nextOffset": 2
+      }
+    ],
+    "finalProjection": {
+      "normal": 1,
+      "replayedIncludingFreshMarker": 2
+    },
+    "freshMarkerAccepted": true,
+    "pendingWakeupCloseBoundaryExecuted": true,
+    "callbacks": {
+      "b": [
+        {
+          "member": "b",
+          "phase": "assigned",
+          "partitions": [
+            1
+          ],
+          "generation": 2,
+          "completedOffsets": []
+        },
+        {
+          "member": "b",
+          "phase": "revoked",
+          "partitions": [
+            1
+          ],
+          "generation": 2,
+          "completedOffsets": []
+        }
+      ],
+      "a": [
+        {
+          "member": "a",
+          "phase": "assigned",
+          "partitions": [
+            0,
+            1
+          ],
+          "generation": 1,
+          "completedOffsets": []
+        },
+        {
+          "member": "a",
+          "phase": "revoked",
+          "partitions": [
+            0,
+            1
+          ],
+          "generation": 1,
+          "completedOffsets": []
+        },
+        {
+          "member": "a",
+          "phase": "assigned",
+          "partitions": [
+            0
+          ],
+          "generation": 2,
+          "completedOffsets": []
+        },
+        {
+          "member": "a",
+          "phase": "revoked",
+          "partitions": [
+            0
+          ],
+          "generation": 2,
+          "completedOffsets": [
+            {
+              "partition": 0,
+              "nextOffset": 1
+            }
+          ]
+        },
+        {
+          "member": "a",
+          "phase": "assigned",
+          "partitions": [
+            0,
+            1
+          ],
+          "generation": 3,
+          "completedOffsets": []
+        },
+        {
+          "member": "a",
+          "phase": "revoked",
+          "partitions": [
+            0,
+            1
+          ],
+          "generation": 3,
+          "completedOffsets": [
+            {
+              "partition": 1,
+              "nextOffset": 2
+            }
+          ]
+        }
+      ]
+    },
+    "deliveries": {
+      "b": [
+        {
+          "member": "b",
+          "partition": 1,
+          "offset": 0,
+          "eventId": "rebalance-withheld",
+          "applied": true,
+          "offsetCommitted": false
+        }
+      ],
+      "a": [
+        {
+          "member": "a",
+          "partition": 0,
+          "offset": 0,
+          "eventId": "rebalance-normal",
+          "applied": true,
+          "offsetCommitted": true
+        },
+        {
+          "member": "a",
+          "partition": 1,
+          "offset": 0,
+          "eventId": "rebalance-withheld",
+          "applied": false,
+          "offsetCommitted": true
+        },
+        {
+          "member": "a",
+          "partition": 1,
+          "offset": 1,
+          "eventId": "rebalance-after",
+          "applied": true,
+          "offsetCommitted": true
+        }
+      ]
+    },
+    "ownerThreadsDistinct": true,
+    "actualCasesExecuted": 1,
+    "skipped": 0,
+    "ownerThreadsStopped": true,
+    "ownedBrokerResourcesDeleted": true
+  },
+  "limits": [
+    "Controlled graceful member departure; no process-crash claim",
+    "One Kafka broker; no broker failover or replication durability claim",
+    "Local H2 inbox/projection atomicity; no global exactly-once claim",
+    "Single bounded test; no capacity measurement"
+  ]
+}

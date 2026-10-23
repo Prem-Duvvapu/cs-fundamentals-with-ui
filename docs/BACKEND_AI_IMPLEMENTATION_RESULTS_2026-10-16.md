@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR83 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -47,7 +47,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT, signed webhooks and PR81 registered-partner SSRF; production gateway/egress work open | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket; gateway/egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
@@ -581,6 +581,56 @@ review finds no remaining concrete blocker. The dedicated actual-brokers workflo
 three broker test classes without skips plus the complete rebalance receipt. Actual execution and
 release remain pending until that job succeeds; no native observation is promoted to broker evidence.
 
+## Nginx gateway continuation — unreleased
+
+Sources132f5b3/33f15ce/a5b685e (integratedb1570bc/3c2cfe1/99e89a2) add the isolated
+[gateway learning journey](../examples/backend-gateway/README.md). The unchanged service retains
+Basic authentication, role/owner checks and CSRF while actual Nginx controls routing, forwarding,
+request bounds and a per-peer limiter. The auth subrequest is a fixed one-row read, not a new
+stateless authentication service. Native14/14 guards pass independently, including Java17 fixture
+compilation and the leader-exit descendant cleanup regression recorded in RCA16.
+
+The dedicated actual-nginx-http job must execute all20 HTTP assertions without skips and verify
+source hashes, actual Nginx1.30.6, worker replacement, response/log distinctions, and exact labelled
+resource cleanup. No local Docker/Nginx execution is claimed. TLS, multi-node fairness, production
+proxy trust/egress, capacity and cloud policy remain separate work. Final-head CI/release is pending.
+
+## PR84 merged release evidence — October 21
+
+PR [84](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/84) merged at
+2026-10-21T20:40:52Z as941e8a2d979f317e61fe92087893d22adecb63f9. All ten checks passed at
+exact head9cc3fc411863c7d64d410db1cac552e784a625bb, including actual-brokers, Verify's six jobs,
+GitGuardian and both Vercel checks. The [actual broker job](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39671778169/job/119471229127)
+ran all22 tests without skips, required the three broker suites and verified exact cleanup.
+
+The [persistent sanitized receipt](evidence/KAFKA_REBALANCE_2026-10-21.json) retains the original
+artifact/report and executed-source hashes. Actual broker state moves one→two→one; partition1,
+offset0 is applied by B without a broker commit, replayed by A with no second effect, then followed
+by a fresh offset1 record and actual next-offset2 commit. Both owner threads stop; the generated
+topic/group and job containers are removed. This supersedes Kafka's preceding CI-pending notes,
+not the open multi-broker/failover/process-crash or global exactly-once limitations.
+
+### Gateway real-service setup failure and repair — October23
+
+PR85's first actual-nginx-http run39672590492 failed before HTTP because the internal-only gateway
+had a null actual port binding. Its failed receipt confirms zero cases and successful cleanup;
+this is a release blocker. Source1c095b7 adds a gateway-only publishing bridge, actual network/
+loopback-binding observations, typed missing-binding rejection and cleanup for both exact networks.
+All15 native guards pass. RCA-2026-10-23-01 distinguishes the observation from the upstream report
+and leaves actual20-case CI/release pending. The backend remains on the internal network only;
+the gateway ingress bridge is not a production outbound firewall.
+
+### Gateway actual network proof and diagnostic resource repair — October23
+
+Run39996822363 confirms the original network diagnosis: actual Docker29.4.2 reports running Nginx
+with null publication before ingress attachment, then the correct loopback mapping and internal-
+only backend membership afterward. Four real HTTP assertions pass. A second diagnostic JVM then
+fails native thread creation under the configured32-PID/96MiB probe limits. The failed receipt
+records cleanup; exact cgroup exhaustion was not observed. Source2f326b6 reuses the existing server
+JVM for the same fixed forged-identity service request, retaining all20 assertions and requiring
+an observed single JVM/PID cap. All15 native guards pass. RCA-2026-10-23-02 records evidence and
+limits; complete actual Nginx CI remains pending before merge.
+
 ## Authenticated session/WebSocket continuation — unreleased
 
 Source6d5c389 plus the admission correctionb93a49d (integrated337d267/68ab14c) add a narrowly
@@ -629,3 +679,22 @@ Existing practical-ai CI now runs the packaged trace and its privacy/causal/owne
 retains only the bounded sanitized observation JSON. No collector, streaming/tool/vector internals,
 provider queue, live quality/cost or learner gate is closed. Dedicated real pgvector/OCR, all final-
 head platform checks and merge remain required before release.
+## PR86 merged release evidence — October23
+
+PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged at
+2026-10-23T18:05:39Z asb1487113ba27b35cf1a4e85e83659a9d5a119c3f. Exact head
+f7b2a41d4d3ad054e021bc0bdd81aa41c81fcd41 passed all ten checks: actual-session-websocket,
+Verify's six jobs, GitGuardian and both Vercel checks. The actual job39998324394 observes Java
+17.0.20.1+1, all22 transport cases,9 preparation policy tests followed by offline verification,
+source hashes matching the submitted head, closed application contexts and zero active reservations.
+This supersedes earlier WebSocket release-pending notes, not human/browser, distributed-session
+or TCP-stall limitations. Core platform and real-backend browser checks also pass.
+
+### Gateway timeout evidence correction — October23
+
+Run39999874593 proves13 actual HTTP assertions and the single-JVM32-PID diagnostic setup before
+a stalled-body EOF defeats the old client408 expectation. Source0e4192e records wire outcome
+separately and additionally requires the exact Nginx log408, while retaining logs on failed runs.
+All16 native guards pass, including controlled realTCP408-versus-EOF distinction; final actual
+Nginx all20-case execution remains pending. RCA-2026-10-23-06 records the missing historical logs
+and selected-source finalization behavior without claiming every disconnect is a timeout.
