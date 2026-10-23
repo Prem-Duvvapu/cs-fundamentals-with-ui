@@ -51,15 +51,27 @@ jobs:
           docker run --detach --name "$data_mongo_container" --publish 127.0.0.1:27019:27017 \
             --env MONGO_INITDB_ROOT_USERNAME=lab_owner --env "MONGO_INITDB_ROOT_PASSWORD=$DATA_MONGO_PASSWORD" \
             mongo:8.0@sha256:4a4ab5d4834207389e0d7270fac988e21ffedccecba77991a552f755df229907
+          data_redis_ready=false
           for data_attempt in $(seq 1 45); do
-            if docker exec --env "REDISCLI_AUTH=$DATA_REDIS_PASSWORD" "$data_redis_container" redis-cli ping; then break; fi
+            if docker exec --env "REDISCLI_AUTH=$DATA_REDIS_PASSWORD" "$data_redis_container" redis-cli ping; then data_redis_ready=true; break; fi
+            if [ "$(docker inspect --format '{{.State.Running}}' "$data_redis_container")" != true ]; then
+              echo 'Owned Redis exited before readiness' >&2
+              exit 1
+            fi
             sleep 1
           done
+          if [ "$data_redis_ready" != true ]; then echo 'Owned Redis readiness deadline' >&2; exit 1; fi
+          data_mongo_ready=false
           for data_attempt in $(seq 1 45); do
             if docker exec --env DATA_MONGO_PASSWORD "$data_mongo_container" mongosh --quiet --eval \
-              'const a=db.getSiblingDB("admin"); a.auth("lab_owner",process.env.DATA_MONGO_PASSWORD); if(a.runCommand({ping:1}).ok!==1)quit(2);'; then break; fi
+              'const a=db.getSiblingDB("admin"); a.auth("lab_owner",process.env.DATA_MONGO_PASSWORD); if(a.runCommand({ping:1}).ok!==1)quit(2);'; then data_mongo_ready=true; break; fi
+            if [ "$(docker inspect --format '{{.State.Running}}' "$data_mongo_container")" != true ]; then
+              echo 'Owned MongoDB exited before readiness' >&2
+              exit 1
+            fi
             sleep 1
           done
+          if [ "$data_mongo_ready" != true ]; then echo 'Owned MongoDB readiness deadline' >&2; exit 1; fi
           docker exec "$data_redis_container" redis-server --version
           docker exec --env "REDISCLI_AUTH=$DATA_REDIS_PASSWORD" "$data_redis_container" redis-cli CONFIG GET maxmemory maxmemory-policy
           docker exec --env DATA_MONGO_PASSWORD "$data_mongo_container" mongosh --quiet --eval \
@@ -95,6 +107,34 @@ jobs:
         run: python3 examples/backend-data-services/verify_cache_recovery.py
       - name: Native runner ownership and cancellation regressions
         run: python3 -m unittest discover -s examples/backend-data-services -p 'test_owned_redis.py'
+      - name: Retain bounded owned-service startup diagnostics on failure
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess
+          from pathlib import Path
+          run_id, attempt = os.environ['GITHUB_RUN_ID'], os.environ['GITHUB_RUN_ATTEMPT']
+          if not re.fullmatch('[0-9]{1,20}', run_id) or not re.fullmatch('[0-9]{1,6}', attempt):
+              raise SystemExit('Exact generated job identity required')
+          secrets = [os.environ.get(key, '') for key in ('DATA_REDIS_PASSWORD', 'DATA_MONGO_PASSWORD', 'DATA_MONGO_URI')]
+          result = {'schemaVersion':1, 'scope':'owned CI service startup only; no test completion claim', 'services':{}}
+          for role in ('redis','mongo'):
+              name = f'cs-data-{role}-{run_id}-{attempt}'
+              info = subprocess.run(['docker','container','inspect',name], capture_output=True, timeout=8)
+              value = {'inspectionSucceeded': info.returncode == 0}
+              if info.returncode == 0:
+                  state = json.loads(info.stdout)[0]['State']
+                  value.update(running=state['Running'], exitCode=state['ExitCode'], oomKilled=state['OOMKilled'])
+                  log = subprocess.run(['docker','logs','--tail','30',name], capture_output=True, timeout=8)
+                  text = (log.stdout+log.stderr).decode('utf-8','replace')[-16384:]
+                  for secret in secrets:
+                      if secret: text = text.replace(secret, '[REDACTED]')
+                  value['startupLogTail'] = text
+              result['services'][role] = value
+          target = Path('examples/backend-data-services/target/service-startup.json')
+          target.parent.mkdir(parents=True, exist_ok=True)
+          target.write_text(json.dumps(result, indent=2)+'\n')
+          PY
       - name: Retain actual service and query-plan reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -103,6 +143,7 @@ jobs:
           path: |
             examples/backend-data-services/target/surefire-reports/
             examples/backend-data-services/target/cache-recovery-evidence.json
+            examples/backend-data-services/target/service-startup.json
           if-no-files-found: warn
       - name: Remove only this job's containers and owned anonymous volumes
         if: always() && env.DATA_REDIS_CONTAINER != ''

@@ -390,3 +390,8 @@ only valid choices. Recheck compatibility and rerun actual tests before upgradin
 - [Docker Official Redis image definition](https://github.com/docker-library/redis) and [MongoDB image definition](https://github.com/docker-library/mongo).
 
 For the coalescing addition, primary API contracts checked 2026-10-21: [Java 17 SynchronousQueue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/SynchronousQueue.html), [CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html), and [Redis distributed-lock limitations](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/). No distributed lock is used here.
+
+If an owned CI service exits before readiness, the job fails immediately and retains a bounded
+credential-redacted startup log plus running/exit/OOM state for its two exact job containers.
+This is setup evidence, not a passing service test; the17-case gate remains mandatory. Diagnostics
+are gathered before exact teardown, without dumping environment or application data.

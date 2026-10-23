@@ -597,3 +597,12 @@ actual children. The dedicated data-services workflow must run all17 real Redis/
 cases with zero skips and validate the five-case receipt before release. Controlled origin is not
 MongoDB failure evidence; coordination is per instance, not distributed locking/failover, and the
 load budget starts after initial lookups. Production eviction/capacity/fairness remain separate.
+
+### Cache integration setup evidence pending — October23
+
+PR87's actual-service run39998627475 stopped before Maven: the exact owned MongoDB container
+exited before authenticated readiness while Redis8.4.7 was running. No service cases executed and
+no test artifact existed. Exit/OOM state and container logs were not retained, so the cause is
+unproven. The next head adds immediate stopped-container failure and bounded credential-redacted
+startup diagnostics before exact teardown. The17-case no-skip requirement is unchanged; there is
+no model/test-quality or MongoDB correctness claim from this setup observation.

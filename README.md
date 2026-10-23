@@ -567,3 +567,6 @@ measures overlapping misses against actual Redis and compares ordinary reads wit
 coalescing. Follow shared failures, timeout/capacity recovery and tenant/version checks before
 explaining the measured6→1 full origin reads. All six metadata reads remain. Native Redis evidence
 is distinct from combined MongoDB CI; the coordinator does not implement a distributed lock.
+
+Data-services CI retains bounded, credential-redacted diagnostics if an owned service exits before
+readiness; setup failures still block release and do not count toward the required service cases.

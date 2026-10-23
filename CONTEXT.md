@@ -8,6 +8,8 @@ full origin reads with one while retaining six metadata checks; another test sho
 objects still perform two reads. Controlled-origin failures are separate from actual MongoDB
 integration. Deadlines do not cover initial lookups or roll back already-started valid Redis writes.
 Native child cleanup and the dedicated all-services gate preserve exact ownership and evidence.
+Failed CI startup retains bounded credential-redacted state/log diagnostics for exact job containers
+before teardown; a startup artifact never counts as service-case execution.
 
 `examples/backend-debugging` imports Task Tracker source/resources unchanged through an isolated
 Boot 4.1.1/Java-17-targeted Maven module. Its normal SpringApplication observer reads one nonsecret

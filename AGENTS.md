@@ -8,6 +8,8 @@ canonical tenant/version checks, the unchanged default constructor, finite waite
 shared deadlines, failure propagation and timed-out worker ownership until actual completion.
 The budget begins after initial metadata/cache lookup; separate instances do not share a lock.
 Require actual Redis/Mongo cases without skips and exact owned keys/database/process cleanup.
+If a CI service exits, retain bounded credential-redacted startup state/logs before teardown;
+never replace the actual-service gate with setup success.
 Defer the first cancellation through complete normal cleanup, not only Popen assignment.
 
 When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
