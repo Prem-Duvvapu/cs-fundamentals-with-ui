@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR83 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -47,7 +47,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT, signed webhooks and PR81 registered-partner SSRF; production gateway/egress work open | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket; gateway/egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
@@ -646,3 +646,35 @@ records all22 actual cases and observed offline/preparation metadata; the Octobe
 historical. All8 Python guards pass, including scope-entry restoration and first-signal successful
 cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
 records these scoped observations. Remote actual-service CI remains a release gate.
+
+## PR84 merged release evidence — October21
+
+PR [84](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/84) merged as
+941e8a2d979f317e61fe92087893d22adecb63f9 at2026-10-21T20:40:52Z. All ten checks passed at
+head9cc3fc411863c7d64d410db1cac552e784a625bb. Actual broker job39671778169 executes all22
+messaging tests with zero skips. The [persistent source-bound receipt](evidence/KAFKA_REBALANCE_2026-10-21.json)
+records independent one→two→one broker assignments, exact partition1/offset0 replay without a
+second local effect, fresh work and final offset2, actual revocation commits and owned cleanup.
+This supersedes Kafka's earlier CI-pending notes without claiming multi-broker failover or global
+exactly-once behavior.
+
+## PR86 merged release evidence — October23
+
+PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged as
+b1487113ba27b35cf1a4e85e83659a9d5a119c3f at2026-10-23T18:05:39Z. All ten checks passed on
+headf7b2a41d4d3ad054e021bc0bdd81aa41c81fcd41, including the actual session/WebSocket job and
+all platform/browser checks. The [actual CI receipt](evidence/WEBSOCKET_CI_2026-10-23.json)
+records22 real transport cases,9 preparation policy tests, offline verification, observed Java17,
+matching source hashes, context closure and zero retained reservations. It supersedes earlier
+WebSocket release-pending statements; human/browser and distributed-session limits remain.
+
+### All17 actual data-service cases verified — release still pending
+
+Actual run40000312697/job120574386977 passes all17 Redis/Mongo/combined cases without skips,
+including the5 controlled-origin Redis recovery cases and4 actual cache/MongoDB integration cases.
+The [source-bound CI receipt](evidence/CACHE_SERVICES_CI_2026-10-23.json) records Docker daemon
+kernel6.8.0-1064-azure/x86_64 and Docker28.0.4 on the supported runner. This establishes actual
+service execution for head5b8009144fccb9dd1bedaf64496add753a83dd2d and supersedes the earlier
+unknown startup-cause/pending actual-service observations for that scope. The branch now includes
+merged PR86; final integrated-head checks and merge remain required. No production capacity,
+distributed lock, failover or human learning gate is closed.

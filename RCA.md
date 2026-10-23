@@ -854,3 +854,8 @@ entry TERM/INT cover caller and nested restoration. Final remote CI remains requ
 failure is not declared fully diagnosed until the new actual-service check passes.
 
 **Resolving commit:**f31d66a; source-bound final local receipt WEBSOCKET_SESSIONS_2026-10-23.json.
+
+**RCA-2026-10-23-05 verification update:** actual job120574386977/run40000312697 observes
+Docker kernel6.8.0-1064-azure and executes all17 service cases without skips. The selected CI
+receipt is docs/evidence/CACHE_SERVICES_CI_2026-10-23.json. Historical exact bad-kernel value stays
+unknown; no guard was disabled and no test gate was weakened. Final integrated release is pending.
