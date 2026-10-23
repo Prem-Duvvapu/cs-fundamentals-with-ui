@@ -597,3 +597,16 @@ roles, whole/fragmented message bounds, ACK pressure, command/idle limits, logou
 servlet expiry, unchanged REST checks and shutdown. This is local JSON echo with bounded state,
 not distributed revocation, TCP receive-window saturation, TLS, production capacity or a human
 browser/learner session. BEC12/56 and BE06 advance; broader service/gateway work remains separate.
+
+### WebSocket cold-run preparation and cleanup — October23
+
+PR86's first dedicated job failed with only a generic LabFailure; its raw private output was
+correctly withheld, but the exact failing phase was not retained. An independently controlled
+Maven cache proved old skipTests preparation succeeds without resolving the JUnit provider and
+then fails offline. Sourcef31d66a prepares through all9 policy tests, retains full offline transport
+verification and adds phase/owned-test-line-only diagnostics. The repaired controlled cache passes
+both preparation and offline verification. The [new final-source local receipt](evidence/WEBSOCKET_SESSIONS_2026-10-23.json)
+records all22 actual cases and observed offline/preparation metadata; the October21 receipt remains
+historical. All8 Python guards pass, including scope-entry restoration and first-signal successful
+cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
+records these scoped observations. Remote actual-service CI remains a release gate.

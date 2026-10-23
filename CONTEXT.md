@@ -6,7 +6,9 @@ session login while original REST checks remain. Live authenticated session/prin
 and atomic pre101 admission protect the bounded same-connection JSON echo; destroy/ID-change
 listeners revoke membership and close sockets. A test-only filter positions a genuine upgrade
 across actual reauthentication. Policy, ACK/queue/idle/lease limits and observed Tomcat settings
-are distinct from kernel TCP backpressure. Source-bound local receipts and dedicated actual CI
+are distinct from kernel TCP backpressure. Maven preparation runs the policy suite to resolve
+its dynamically selected test provider before full offline transport verification. Failure receipts
+retain fixed phases/test-line diagnostics without raw payloads or exceptions. Source-bound local receipts and dedicated actual CI
 preserve privacy, process ownership and cleanup; no platform route or learner analytics changes.
 
 `examples/backend-debugging` imports Task Tracker source/resources unchanged through an isolated

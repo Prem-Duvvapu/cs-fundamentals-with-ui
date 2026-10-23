@@ -10,6 +10,11 @@ lock, and stale requests cannot register themselves. Preserve the positioned act
 regression,22 HTTP/session/socket cases,9 policy tests, bounded ACK/queue/native timeouts, actual
 expiry and exact cleanup. No TCP-stall, distributed-session or GUI/browser evidence is implied.
 
+Preparation executes all nine policy tests so a fresh Maven cache includes the dynamic test
+provider; the complete transport run still uses -o. Preserve the offline/preparation receipt gates
+and fixed phase/source-line-only failure diagnostics. Scope-entry state changes and complete child
+cleanup must sit inside their restoration/deferral guards, including the first signal on success.
+
 When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
 evidence in the affected lesson and run `node scripts/audit-simulation-questions.mjs --check`.
 Preserving question IDs, code blocks and diagrams alone does not preserve these prose citations;

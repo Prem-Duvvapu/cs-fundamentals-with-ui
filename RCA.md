@@ -770,3 +770,37 @@ Boot4.1.1,Framework7.0.9 and Tomcat11.0.24; dedicated final-head CI remains requ
 orders around revocation, not just closing already-admitted sockets.
 
 **Resolving commit:**68ab14c (source b93a49d; original module6d5c389).
+
+## RCA-2026-10-23-03 — WebSocket preparation hid offline test prerequisites
+
+**Observed:** PR86 actual-session-websocket job119475144049 in run39672905738 returned only
+LabFailure with no completed transport receipt. That historical report does not identify a unique
+Maven failure phase. A separate controlled repository overlay omitted only Surefire's dynamically
+selected JUnit provider: old skipTests packaging exited0, then offline verification exited1 with
+surefire-junit-platform unavailable. The original local warm cache masked this prerequisite defect.
+
+**Cause:** preparing package dependencies with tests skipped does not execute provider selection.
+The failure report suppressed all child output, including safe phase/test identity, so it could
+not distinguish missing prerequisites from a transport assertion. Local success was insufficient
+fresh-runner evidence; no runtime claim is inferred from the old generic failure.
+
+**Resolution:** prepare packages while running all9 policy tests, require their no-skip report,
+then run the full verification offline. Record observed preparation test count and offline mode.
+Failure receipts expose only fixed phase, exit code, a missing-provider boolean, owned suite names
+and source-line numbers from new bounded reports. Raw messages, credentials, cookies, paths and
+response bodies are excluded. Stale or foreign reports cannot supply diagnostics.
+
+The module also contained the reviewed scope-entry and normal-cleanup guard gaps: place thread-
+local state assignment inside restoration try and defer the first TERM/INT through complete
+termination/wait/pipe close. Existing caller policy, masks, nested state and other groups remain.
+
+**Verification/prevention:** the controlled missing-provider overlay now downloads the provider
+through actual policy preparation and passes offline verification (both exits0). All22 actual
+HTTP/session/socket cases,9 policy tests and8 Python guards pass on final local sources. Diagnostic
+privacy/staleness cases pass. Actual first-signal cleanup tests use a READY-confirmed TERM-ignoring
+child; the original close implementation fails both signal subcases, while the fix requires the
+child already killed/waited, pipes closed and an unrelated group alive. Actual positioned scope-
+entry TERM/INT cover caller and nested restoration. Final remote CI remains required; the old
+failure is not declared fully diagnosed until the new actual-service check passes.
+
+**Resolving commit:**f31d66a; source-bound final local receipt WEBSOCKET_SESSIONS_2026-10-23.json.
