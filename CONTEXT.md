@@ -9,6 +9,17 @@ framing/forwarding, and observes valid reload recovery. Bounded clients/processe
 source hashes and exact container/network/tag cleanup are mandatory. The diagnostic server reuses one JVM under its32-PID cap; direct401 observation does not start another process. The native guards are
 separate from actual Nginx evidence; no platform routes or shared learner telemetry are added.
 
+`examples/backend-websocket` extends unchanged Task Tracker sources in an isolated Boot4.1.1
+module with the matching WebSocket starter. A narrow ordered chain establishes real servlet
+session login while original REST checks remain. Live authenticated session/principal membership
+and atomic pre101 admission protect the bounded same-connection JSON echo; destroy/ID-change
+listeners revoke membership and close sockets. A test-only filter positions a genuine upgrade
+across actual reauthentication. Policy, ACK/queue/idle/lease limits and observed Tomcat settings
+are distinct from kernel TCP backpressure. Maven preparation runs the policy suite to resolve
+its dynamically selected test provider before full offline transport verification. Failure receipts
+retain fixed phases/test-line diagnostics without raw payloads or exceptions. Source-bound local receipts and dedicated actual CI
+preserve privacy, process ownership and cleanup; no platform route or learner analytics changes.
+
 `examples/backend-debugging` imports Task Tracker source/resources unchanged through an isolated
 Boot 4.1.1/Java-17-targeted Maven module. Its normal SpringApplication observer reads one nonsecret
 property, ordered source origins, actual bound actuator exposure and profile-selected beans. Owned

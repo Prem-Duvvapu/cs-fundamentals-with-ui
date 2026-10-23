@@ -1,0 +1,56 @@
+name: Backend authenticated WebSocket
+
+on:
+  push:
+    branches: [main]
+    paths: ['examples/backend-websocket/**', 'examples/java-spring/task-tracker/**', '.github/workflows/backend-websocket.yml']
+  pull_request:
+    paths: ['examples/backend-websocket/**', 'examples/java-spring/task-tracker/**', '.github/workflows/backend-websocket.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-session-websocket:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Guard tests and actual offline Spring/JDK transport
+        working-directory: examples/backend-websocket
+        run: |
+          python3 -m unittest -v test_verify.py
+          python3 verify.py --prepare
+      - name: Require every actual case with no skipped tests
+        working-directory: examples/backend-websocket
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from verify import CASES, validate
+          report = json.loads(Path('target/evidence/verification.json').read_text())
+          assert report['status'] == 'passed'
+          assert report['importedTaskTrackerSourceUnchanged'] is True
+          assert report['mavenVerificationOffline'] is True
+          assert report['preparationPolicyTestsExecuted'] == 9
+          validate(report['transport'])
+          assert len(report['transport']['passedCases']) == 22 == len(CASES)
+          assert report['transport']['ordinaryLimits']['active'] == 0
+          print('Actual Java17 HTTP/session/WebSocket cases, capacity and cleanup verified; no skips.')
+          PY
+      - name: Upload sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authenticated-websocket-evidence
+          path: examples/backend-websocket/target/evidence/*.json
+          if-no-files-found: warn

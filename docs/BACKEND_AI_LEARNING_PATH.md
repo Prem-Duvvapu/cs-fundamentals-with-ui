@@ -190,3 +190,9 @@ Predict whether forged identity metadata or gateway authentication can bypass se
 or CSRF. Explain429/503/504 using the actual main-upstream log evidence, not status alone.
 Compare a valid reload with unchanged service work after a client timeout. Native guards and
 actual Docker/Nginx observations are separate; follow the exact owned cleanup procedure.
+
+For session lifetime and long-lived connections, use [the authenticated WebSocket exercise](../examples/backend-websocket/README.md).
+Predict login-CSRF and fixation behavior, inspect the real cookie upgrade, then compare an
+established socket's logout with an upgrade paused across reauthentication. Explain why current
+HTTP authentication alone does not preserve a long-lived connection's authorization. Diagnose
+ACK pressure, idle expiry and message bounds separately; the exercise does not simulate a TCP stall.
