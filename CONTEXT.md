@@ -746,3 +746,8 @@ compares reviewed fixture patches using actual Java 17 compilation, independent 
 tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
+
+The data-services job records the actual Docker daemon kernel/version on its Ubuntu22.04 LTS
+runner before starting pinned MongoDB8. It rejects the vendor's known incompatible kernel range;
+containers retain the host kernel. The startup guard is never disabled. This runtime observation
+is separate from the mandatory17 actual Redis/Mongo/combined cases and bounded failure diagnostics.

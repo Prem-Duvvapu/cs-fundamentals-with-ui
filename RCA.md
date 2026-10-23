@@ -765,3 +765,28 @@ skips, actual Redis8.6.2/Java17, owned workspace removed. Actual combined MongoD
 CI. Cover first cancellation during normal completion as well as startup and already-cancelled work.
 
 **Resolving commit:**eeea2db (source fa91c02a5cb8247f1b718803704dc5141b088f6f).
+
+## RCA-2026-10-23-05 — MongoDB refused the CI host kernel before tests
+
+**Observed:** PR87 run39999159858/job120570429199 retained the owned service state: Redis running,
+MongoDB exited1, oomKilled=false. MongoDB message12257600 explicitly identifies its kernel
+compatibility guard and SERVER-121912. No Maven/service cases executed. The earlier run failed
+similarly without retaining sufficient startup evidence; it was not a cache assertion failure.
+
+**Cause:** an image digest pins database/userspace bytes, not the Docker daemon host kernel.
+The unqualified latest runner could use a kernel in MongoDB8's documented TCMalloc-incompatible
+range. The failed artifact did not retain the exact kernel version, so no exact value is invented.
+Official MongoDB8.0 notes identify Linux6.19 through7.0.13 and state7.0.14+ resolves that issue.
+
+**Resolution:** use the supported Ubuntu22.04 LTS service runner, observe the actual Docker daemon
+kernel/architecture/OS/version before service creation and explicitly reject the documented range.
+Keep the pinned MongoDB image and its startup guard. Retain bounded runtime metadata with failure
+artifacts; do not downgrade to an old image or disable a guard to manufacture test execution.
+
+**Verification/prevention:** the [selected actual startup receipt](docs/evidence/MONGODB_STARTUP_2026-10-23.json)
+records state, vendor message ID and original artifact hash without credentials or raw private
+configuration. The next final-head job must observe a permitted daemon kernel and execute all17
+actual service cases with zero skips. An allowed kernel excludes this one incompatibility; it does
+not certify every future platform. Real service verification and merge remain pending.
+
+**Resolving commit:**ce4a103; supported-runner execution pending.

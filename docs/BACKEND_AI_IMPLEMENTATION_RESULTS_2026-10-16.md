@@ -606,3 +606,13 @@ no test artifact existed. Exit/OOM state and container logs were not retained, s
 unproven. The next head adds immediate stopped-container failure and bounded credential-redacted
 startup diagnostics before exact teardown. The17-case no-skip requirement is unchanged; there is
 no model/test-quality or MongoDB correctness claim from this setup observation.
+
+### MongoDB startup cause established — October23
+
+The next retained [actual startup receipt](evidence/MONGODB_STARTUP_2026-10-23.json) shows the
+MongoDB kernel-compatibility guard (message12257600/SERVER-121912), exit1 and no OOM kill; Redis
+is running and no service cases execute. Official MongoDB8.0 notes identify the incompatible
+Linux6.19–7.0.13 range. The service job now uses a supported Ubuntu22.04 LTS runner and records/
+checks the actual Docker daemon kernel, while preserving the pinned image and vendor guard.
+RCA-2026-10-23-05 records the evidence and the missing historical exact kernel value. The full
+17-case no-skip run remains required; setup metadata does not close it.

@@ -570,3 +570,7 @@ is distinct from combined MongoDB CI; the coordinator does not implement a distr
 
 Data-services CI retains bounded, credential-redacted diagnostics if an owned service exits before
 readiness; setup failures still block release and do not count toward the required service cases.
+
+MongoDB CI also checks the actual Docker daemon kernel against the vendor's documented compatibility
+range on a supported LTS runner. A pinned container image does not pin its host kernel; startup
+compatibility and passing the real service tests are separate requirements.
