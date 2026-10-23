@@ -581,6 +581,41 @@ review finds no remaining concrete blocker. The dedicated actual-brokers workflo
 three broker test classes without skips plus the complete rebalance receipt. Actual execution and
 release remain pending until that job succeeds; no native observation is promoted to broker evidence.
 
+## Bounded cache recovery continuation — unreleased
+
+Sourcesd96b999/fa91c02 (integrated733def5/eeea2db) extend the existing data-services lab with
+optional per-coordinator coalescence. All13 default contracts pass;17 actual service cases remain
+explicit skips without their prerequisites. Final native Redis verification executes9 cases without
+skips, including the five new controlled-origin scenarios. The
+[source-matched local receipt](evidence/CACHE_RECOVERY_2026-10-23.json) preserves actual versions,
+source/report hashes,6→1 full origin reads with6→6 metadata reads, failure/deadline/capacity recovery,
+tenant/revision behavior and two independent coordinators still producing two origin reads.
+
+Independent review found and fixed first-cancellation interruption during normal cleanup; all4
+Python ownership tests pass and RCA-2026-10-23-04 records the failing original mutation and passing
+actual children. The dedicated data-services workflow must run all17 real Redis/Mongo/combined
+cases with zero skips and validate the five-case receipt before release. Controlled origin is not
+MongoDB failure evidence; coordination is per instance, not distributed locking/failover, and the
+load budget starts after initial lookups. Production eviction/capacity/fairness remain separate.
+
+### Cache integration setup evidence pending — October23
+
+PR87's actual-service run39998627475 stopped before Maven: the exact owned MongoDB container
+exited before authenticated readiness while Redis8.4.7 was running. No service cases executed and
+no test artifact existed. Exit/OOM state and container logs were not retained, so the cause is
+unproven. The next head adds immediate stopped-container failure and bounded credential-redacted
+startup diagnostics before exact teardown. The17-case no-skip requirement is unchanged; there is
+no model/test-quality or MongoDB correctness claim from this setup observation.
+
+### MongoDB startup cause established — October23
+
+The next retained [actual startup receipt](evidence/MONGODB_STARTUP_2026-10-23.json) shows the
+MongoDB kernel-compatibility guard (message12257600/SERVER-121912), exit1 and no OOM kill; Redis
+is running and no service cases execute. Official MongoDB8.0 notes identify the incompatible
+Linux6.19–7.0.13 range. The service job now uses a supported Ubuntu22.04 LTS runner and records/
+checks the actual Docker daemon kernel, while preserving the pinned image and vendor guard.
+RCA-2026-10-23-05 records the evidence and the missing historical exact kernel value. The full
+17-case no-skip run remains required; setup metadata does not close it.
 ## Nginx gateway continuation — unreleased
 
 Sources132f5b3/33f15ce/a5b685e (integratedb1570bc/3c2cfe1/99e89a2) add the isolated
@@ -661,6 +696,37 @@ historical. All8 Python guards pass, including scope-entry restoration and first
 cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
 records these scoped observations. Remote actual-service CI remains a release gate.
 
+## PR84 receipt reconciliation — October21
+
+PR [84](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/84) merged as
+941e8a2d979f317e61fe92087893d22adecb63f9 at2026-10-21T20:40:52Z. All ten checks passed at
+head9cc3fc411863c7d64d410db1cac552e784a625bb. Actual broker job39671778169 executes all22
+messaging tests with zero skips. The [persistent source-bound receipt](evidence/KAFKA_REBALANCE_2026-10-21.json)
+records independent one→two→one broker assignments, exact partition1/offset0 replay without a
+second local effect, fresh work and final offset2, actual revocation commits and owned cleanup.
+This supersedes Kafka's earlier CI-pending notes without claiming multi-broker failover or global
+exactly-once behavior.
+
+## PR86 actual-CI receipt reconciliation — October23
+
+PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged as
+b1487113ba27b35cf1a4e85e83659a9d5a119c3f at2026-10-23T18:05:39Z. All ten checks passed on
+headf7b2a41d4d3ad054e021bc0bdd81aa41c81fcd41, including the actual session/WebSocket job and
+all platform/browser checks. The [actual CI receipt](evidence/WEBSOCKET_CI_2026-10-23.json)
+records22 real transport cases,9 preparation policy tests, offline verification, observed Java17,
+matching source hashes, context closure and zero retained reservations. It supersedes earlier
+WebSocket release-pending statements; human/browser and distributed-session limits remain.
+
+### All17 actual data-service cases verified — release still pending
+
+Actual run40000312697/job120574386977 passes all17 Redis/Mongo/combined cases without skips,
+including the5 controlled-origin Redis recovery cases and4 actual cache/MongoDB integration cases.
+The [source-bound CI receipt](evidence/CACHE_SERVICES_CI_2026-10-23.json) records Docker daemon
+kernel6.8.0-1064-azure/x86_64 and Docker28.0.4 on the supported runner. This establishes actual
+service execution for head5b8009144fccb9dd1bedaf64496add753a83dd2d and supersedes the earlier
+unknown startup-cause/pending actual-service observations for that scope. The branch now includes
+merged PR86; final integrated-head checks and merge remain required. No production capacity,
+distributed lock, failover or human learning gate is closed.
 ## PR86 merged release evidence — October23
 
 PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged at
@@ -701,3 +767,13 @@ Docker CI/platform checks and release remain required. Known-aborted retry sched
 hard preemption deadline; policy assertions for unknown connections/lock timeouts are not induced
 network-failure evidence. No replication, HA, other-engine, production capacity or human outcome
 is established. This advances BE03 and BEC14–19/23/37/69 without closing their full learning gates.
+
+### Expanded database actual-container execution — release still pending
+
+Actual job40005144815/job120591046795 passes all12 required PostgreSQL tests with zero skips
+and all ten case groups at sourceheada7eccf3ce19342560de3331fb5bc2557dd864b0a. The
+[persistent source-bound CI receipt](evidence/POSTGRES_CONCURRENCY_CI_2026-10-23.json) retains
+actual PostgreSQL160015, observed Java17, real blocker/retry/query/pagination histories, equivalent
+restored data/constraints/sequence state and exact resource cleanup. This supersedes the preceding
+Docker-execution-pending note for that head. Final merged-integration checks and release remain
+required; no production performance, replication or participant result is inferred.

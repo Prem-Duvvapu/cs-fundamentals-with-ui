@@ -185,6 +185,11 @@ can succeed before its offset commit. Follow the exact record after member depar
 why the durable inbox suppresses a second effect. Compare that controlled close with the separate
 actual process-crash saga cases; neither implies global exactly-once processing.
 
+For caching incidents, use [the measured cold-key exercise](../examples/backend-data-services/README.md#6-measure-and-limit-a-cold-key-stampede).
+Predict how six misses overlap, then compare actual full-document and metadata reads. Diagnose
+failure fanout and a timed-out load that still owns its slot. Explain why removing that slot early
+can create replacement-load storms, and why two coordinators still need a distributed design.
+Keep snapshot/version correctness separate from latest-at-response and production latency claims.
 For the gateway boundary, use [Nginx to Task Tracker](../examples/backend-gateway/README.md).
 Predict whether forged identity metadata or gateway authentication can bypass service ownership
 or CSRF. Explain429/503/504 using the actual main-upstream log evidence, not status alone.
