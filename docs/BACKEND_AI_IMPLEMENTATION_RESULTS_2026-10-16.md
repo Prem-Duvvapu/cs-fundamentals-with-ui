@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR81 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -42,18 +42,18 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-08 | Partial: actual frozen prompt regression with paired cases; model/context upgrades open | Quality drops after an upgrade |
 | D-09 | Partial: failure-inclusive cost arithmetic and unknown-usage diagnosis; comparative budget report open | Costs rise without more useful results |
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
-| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR labs; IDE/config open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
+| BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; configuration and JDI locally verified, release pending; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
-| BE-04 / P0 | Partial: durable local and actual-broker CI verified; extensions open | Messaging: distributed DBMS + Spring async |
+| BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT, signed webhooks and PR81 registered-partner SSRF; production gateway/egress work open | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket; gateway/egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | Inventory and execution/OOP/primitive/reference reviews verified; two-entry familiar revision view locally implemented; remaining notes and real learner pilot open | Java course familiarity |
+| CLOSE-02 | PR82 familiar two-entry revision and execution/OOP/primitive/reference reviews verified; remaining notes and real learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -511,3 +511,172 @@ explanation at600 lines; the unchanged migration gate passes109/109. RCA15 recor
 local gate and requires it for future paraphrases as well as deletions. No migration ledger or
 test is weakened; final-head CI remains required. The final integrated reader/component run passes
 269 tests and the full content gate passes68/68 with83 mappings.
+
+## PR82 merged release evidence — October 21
+
+PR [82](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/82) merged at
+2026-10-21T20:14:42Z as 0b934e5369b535bb788c228b74e6103635499dd1. Exact head
+ed9703fb551894e27ab44b031d874530f0f8f51c passed all nine checks: Verify frontend/backend/
+practical-ai/labs/containers/real-backend-journey, GitGuardian and both Vercel checks.
+Frontend includes the full familiar-revision keyboard/history/shared-state journey, open-content
+axe scans in both themes, all830 unit tests,590 diagram decodes,68/83 content checks and the
+unchanged109-entry migration gate. The real-backend check independently follows the new course
+link to actual rendered content and checks canonical titles/counts. This supersedes preceding
+PR82 release-pending statements; no learner recognition, screen-reader or zoom session is claimed.
+
+## Configuration and JDI continuation — unreleased
+
+Source c8e92fc0930c298b16eb90c40a1a0fda081d73df (integrated 1148cf4) supplies
+`examples/backend-debugging`. Six actual launches demonstrate resource/profile/environment/CLI
+precedence with safe origins, real bound exposure and health/metrics HTTP, plus typed bad-port
+configuration-condition conversion and repaired startup. Unchanged TaskTracker source/resources
+provide real default/production beans; no test-property precedence or actuator/env endpoint is used.
+
+The actual JDI exercise compiles unchanged domain source with debug symbols, launches its own
+synthetic target behind an ephemeral loopback listener, evaluates three observed breakpoint states
+with one match, steps into service/repository and observes the caught IllegalArgumentException.
+All six native tests pass, including real cancellation ownership, bounded execution/output, report
+privacy, source preservation and cleanup. Dedicated final-head CI must prove the actual integration
+cases; compilation or the four guard tests alone cannot close them. No GUI/human IDE, unfamiliar
+repository, private configuration inspection or production debugger session is claimed.
+
+Follow-up ef46260a570a582b160332ea767be7e7ccf4c564 (integrated 9fa4862) records the actual
+runtime of every Spring child, including failed startup, the debugger and its attached debuggee.
+Compiler target17 is separate metadata; all actual child feature gates require17. Protocol-reported
+debuggee version may omit a build suffix and is not substituted for Runtime.version(). The final
+six-test run and exact workflow evidence checks pass with imported sources and cleanup verified.
+The [persistent local receipt](evidence/BACKEND_DEBUGGING_2026-10-21.json) retains actual safe
+origins, runtime/event observations and source/report hashes. No other-major runtime was executed;
+negative receipt tests are not a cross-JDK experiment. Remote release CI remains required.
+
+## PR83 merged release evidence — October 21
+
+PR [83](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/83) merged at
+2026-10-21T20:31:47Z as fb2fd2d6cdfb4e2bb6eaa7f3036b6567a5435b4d. Exact head
+79b16209708f87843ed97513b7cc8a8cb71fa4a9 passed all ten checks: dedicated actual-spring-jdi;
+Verify frontend/backend/practical-ai/labs/containers/real-backend-journey; GitGuardian and both
+Vercel checks. The dedicated job requires six actual Spring configuration launches, observed
+Java17 runtimes, actual JDI breakpoint/step/exception events and owned cleanup with zero skips.
+This supersedes the configuration/JDI module's preceding release-pending statements. It does
+not establish GUI IDE proficiency, other-major compatibility or a real learner session.
+
+## Concurrent Kafka recovery continuation — unreleased
+
+Sources59ac491/2f8ebb0 (rebased integration; original local0aa6bb7/305da3b) add a real Kafka group scenario to the existing
+messaging lab. Two owner threads poll a fresh two-partition topic; broker membership/assignment and
+callbacks independently establish one→two→one ownership. The departing member commits a local
+effect without its offset. The survivor must observe the identical partition/offset/event, report
+durable deduplication, accept a fresh marker and demonstrate actual final broker commits. The
+owned topic/group, owner threads and job containers must all be removed before cleanup is claimed.
+
+Independent review identified pending-wakeup ordering around explicit unsubscribe. The final test
+uses owner-thread close, whose pinned Kafka client disables wakeups before revocation, and forces
+a wakeup immediately before close with completed offsets still present. A successful callback commit
+and matching final broker offset are mandatory; genuine errors are not swallowed. This is controlled
+member close, not process kill, session expiry, broker failover, throughput or global exactly-once proof.
+
+The initial native suite discovered22 tests, passing19 with the three actual broker cases explicitly
+skipped because Docker is unavailable locally. Final source compilation passes and independent
+review finds no remaining concrete blocker. The dedicated actual-brokers workflow requires all
+three broker test classes without skips plus the complete rebalance receipt. Actual execution and
+release remain pending until that job succeeds; no native observation is promoted to broker evidence.
+
+## Nginx gateway continuation — unreleased
+
+Sources132f5b3/33f15ce/a5b685e (integratedb1570bc/3c2cfe1/99e89a2) add the isolated
+[gateway learning journey](../examples/backend-gateway/README.md). The unchanged service retains
+Basic authentication, role/owner checks and CSRF while actual Nginx controls routing, forwarding,
+request bounds and a per-peer limiter. The auth subrequest is a fixed one-row read, not a new
+stateless authentication service. Native14/14 guards pass independently, including Java17 fixture
+compilation and the leader-exit descendant cleanup regression recorded in RCA16.
+
+The dedicated actual-nginx-http job must execute all20 HTTP assertions without skips and verify
+source hashes, actual Nginx1.30.6, worker replacement, response/log distinctions, and exact labelled
+resource cleanup. No local Docker/Nginx execution is claimed. TLS, multi-node fairness, production
+proxy trust/egress, capacity and cloud policy remain separate work. Final-head CI/release is pending.
+
+## PR84 merged release evidence — October 21
+
+PR [84](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/84) merged at
+2026-10-21T20:40:52Z as941e8a2d979f317e61fe92087893d22adecb63f9. All ten checks passed at
+exact head9cc3fc411863c7d64d410db1cac552e784a625bb, including actual-brokers, Verify's six jobs,
+GitGuardian and both Vercel checks. The [actual broker job](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/39671778169/job/119471229127)
+ran all22 tests without skips, required the three broker suites and verified exact cleanup.
+
+The [persistent sanitized receipt](evidence/KAFKA_REBALANCE_2026-10-21.json) retains the original
+artifact/report and executed-source hashes. Actual broker state moves one→two→one; partition1,
+offset0 is applied by B without a broker commit, replayed by A with no second effect, then followed
+by a fresh offset1 record and actual next-offset2 commit. Both owner threads stop; the generated
+topic/group and job containers are removed. This supersedes Kafka's preceding CI-pending notes,
+not the open multi-broker/failover/process-crash or global exactly-once limitations.
+
+### Gateway real-service setup failure and repair — October23
+
+PR85's first actual-nginx-http run39672590492 failed before HTTP because the internal-only gateway
+had a null actual port binding. Its failed receipt confirms zero cases and successful cleanup;
+this is a release blocker. Source1c095b7 adds a gateway-only publishing bridge, actual network/
+loopback-binding observations, typed missing-binding rejection and cleanup for both exact networks.
+All15 native guards pass. RCA-2026-10-23-01 distinguishes the observation from the upstream report
+and leaves actual20-case CI/release pending. The backend remains on the internal network only;
+the gateway ingress bridge is not a production outbound firewall.
+
+### Gateway actual network proof and diagnostic resource repair — October23
+
+Run39996822363 confirms the original network diagnosis: actual Docker29.4.2 reports running Nginx
+with null publication before ingress attachment, then the correct loopback mapping and internal-
+only backend membership afterward. Four real HTTP assertions pass. A second diagnostic JVM then
+fails native thread creation under the configured32-PID/96MiB probe limits. The failed receipt
+records cleanup; exact cgroup exhaustion was not observed. Source2f326b6 reuses the existing server
+JVM for the same fixed forged-identity service request, retaining all20 assertions and requiring
+an observed single JVM/PID cap. All15 native guards pass. RCA-2026-10-23-02 records evidence and
+limits; complete actual Nginx CI remains pending before merge.
+
+## Authenticated session/WebSocket continuation — unreleased
+
+Source6d5c389 plus the admission correctionb93a49d (integrated337d267/68ab14c) add a narrowly
+scoped session-login/socket exercise using unchanged Task Tracker production source. All22 actual
+HTTP/session/WebSocket cases,9 policy tests and5 Python harness tests pass without skips. Actual
+Java17, Boot4.1.1, Framework7.0.9 and Tomcat11.0.24 are observed. The
+[local final-source receipt](evidence/WEBSOCKET_SESSIONS_2026-10-21.json) binds the checked source,
+JAR and sanitized transport observations. Remote integrated release remains required.
+
+RCA17 records the reproduced invalidation-before-admission defect and live-session membership fix.
+A test-only filter holds a real authenticated upgrade across actual reauthentication; the old
+principal is refused and the fresh session succeeds. Other cases cover fixation/CSRF, exact Origin,
+roles, whole/fragmented message bounds, ACK pressure, command/idle limits, logout, independent
+servlet expiry, unchanged REST checks and shutdown. This is local JSON echo with bounded state,
+not distributed revocation, TCP receive-window saturation, TLS, production capacity or a human
+browser/learner session. BEC12/56 and BE06 advance; broader service/gateway work remains separate.
+
+### WebSocket cold-run preparation and cleanup — October23
+
+PR86's first dedicated job failed with only a generic LabFailure; its raw private output was
+correctly withheld, but the exact failing phase was not retained. An independently controlled
+Maven cache proved old skipTests preparation succeeds without resolving the JUnit provider and
+then fails offline. Sourcef31d66a prepares through all9 policy tests, retains full offline transport
+verification and adds phase/owned-test-line-only diagnostics. The repaired controlled cache passes
+both preparation and offline verification. The [new final-source local receipt](evidence/WEBSOCKET_SESSIONS_2026-10-23.json)
+records all22 actual cases and observed offline/preparation metadata; the October21 receipt remains
+historical. All8 Python guards pass, including scope-entry restoration and first-signal successful
+cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
+records these scoped observations. Remote actual-service CI remains a release gate.
+
+## PR86 merged release evidence — October23
+
+PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged at
+2026-10-23T18:05:39Z asb1487113ba27b35cf1a4e85e83659a9d5a119c3f. Exact head
+f7b2a41d4d3ad054e021bc0bdd81aa41c81fcd41 passed all ten checks: actual-session-websocket,
+Verify's six jobs, GitGuardian and both Vercel checks. The actual job39998324394 observes Java
+17.0.20.1+1, all22 transport cases,9 preparation policy tests followed by offline verification,
+source hashes matching the submitted head, closed application contexts and zero active reservations.
+This supersedes earlier WebSocket release-pending notes, not human/browser, distributed-session
+or TCP-stall limitations. Core platform and real-backend browser checks also pass.
+
+### Gateway timeout evidence correction — October23
+
+Run39999874593 proves13 actual HTTP assertions and the single-JVM32-PID diagnostic setup before
+a stalled-body EOF defeats the old client408 expectation. Source0e4192e records wire outcome
+separately and additionally requires the exact Nginx log408, while retaining logs on failed runs.
+All16 native guards pass, including controlled realTCP408-versus-EOF distinction; final actual
+Nginx all20-case execution remains pending. RCA-2026-10-23-06 records the missing historical logs
+and selected-source finalization behavior without claiming every disconnect is a timeout.

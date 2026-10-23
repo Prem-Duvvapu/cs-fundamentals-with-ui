@@ -530,6 +530,13 @@ tests, Git diff checks and offline Maven resolution. It accepts no external patc
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
 
+The [Kafka rebalance exercise](examples/backend-messaging/README.md#9-watch-a-partition-move-between-concurrent-consumers)
+runs two consumer owner threads in one real broker group. It observes assignment/revocation, commits
+a local effect while withholding its broker offset, closes that member and verifies exact replay,
+durable deduplication and fresh work after recovery. Dedicated broker CI must execute the case;
+native compilation and skipped broker tests do not establish it. This is controlled member departure,
+separate from the existing process-crash saga exercises.
+
 The [SSRF exercise](examples/backend-ssrf/README.md) teaches registered-partner outbound requests:
 strict operation/origin policy, all-address validation, numeric-peer connection with original-host
 TLS verification, redirect refusal and bounded resolver/response work. Actual owned loopback HTTP
@@ -547,3 +554,37 @@ The [six-page reference-notes review](docs/JAVA_REFERENCES_SOURCE_REVIEW_2026-10
 the source's wrapper/pass-by-reference explanation. The memory lesson now traces boxing,
 immutable Integer alias reassignment and null unboxing in Java 17, retaining existing examples,
 diagrams, question identities and saved answers.
+
+The [configuration and debugger exercise](examples/backend-debugging/README.md) runs the unchanged
+Task Tracker to show which Spring property source wins, which profile-selected beans are active,
+and what HTTP endpoints are actually exposed. It reproduces an invalid-port startup and its repair,
+then uses real JDI breakpoints, stepping and a caught exception on owned Java processes. Run
+`python3 examples/backend-debugging/verify.py` with the documented cached dependencies and JDK.
+This provides executable debugging evidence; a real learner's IDE session remains separate.
+
+The [gateway exercise](examples/backend-gateway/README.md) connects actual Nginx to the unchanged
+Task Tracker. Predict forwarded-header trust, service authorization/CSRF,429 versus503/504,
+body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its sixteen
+native guards first; actual execution requires the documented local Docker prerequisites and
+all20 assertions with cleanup. Plain loopback HTTP, per-instance limiting and controlled fixtures
+are teaching boundaries rather than a production deployment claim.
+
+The gateway diagnostic reuses one bounded server JVM for its fixed unauthenticated service read.
+CI requires the observed single-JVM/32-PID setup; native-thread creation failure is diagnosed
+separately from heap exhaustion, and all20 actual HTTP assertions remain mandatory.
+
+The [session and WebSocket exercise](examples/backend-websocket/README.md) adds a real form-login
+journey around unchanged Task Tracker source. Follow CSRF, fixation protection, exact Origin,
+cookie-only identity, bounded JSON echo, logout/expiry and admission recovery. It reproduces an
+upgrade paused across identity rotation, then verifies rejection and a fresh authenticated socket.
+Run `python3 examples/backend-websocket/verify.py --prepare` with its documented prerequisites;
+the required result is22 actual transport cases and9 policy tests, not a simulated handshake.
+
+The WebSocket preparation command executes policy tests before its offline transport run; skipping
+those tests can leave the JUnit provider missing on a fresh runner. Failed phases expose only
+sanitized phase/test-source diagnostics. See the guide for the cold-provider reproduction and
+scoped cancellation/cleanup guards; normal success still requires every actual transport case.
+
+The gateway exercise distinguishes a received response from an idle-body connection close. Its
+timeout acceptance also requires the actual matching Nginx408 log, so a disconnect never becomes
+a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.

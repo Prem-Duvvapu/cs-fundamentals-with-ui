@@ -2,10 +2,53 @@
 
 ## Current completion scope — October 21
 
+The [gateway lab](examples/backend-gateway/README.md) puts digest-pinned actual Nginx in front
+of unchanged Task Tracker source. Keep the fixed auth subrequest, service CSRF/role/owner checks,
+actual-peer metadata, finite body/time/rate limits and exact labelled-resource cleanup. Native
+sixteen-test success is not Nginx execution: dedicated CI requires all20 actual HTTP assertions,
+source-bound receipt, status/log distinctions and reload-worker replacement with no skips. Owned
+command groups must be stopped even after their launcher exits; preserve caller signal policy,
+non-group semantics and unrelated processes. No production TLS/global-quota/egress claim is made.
+The diagnostic fixture reuses its one server JVM and bounded HTTP client for the fixed forged-
+identity service read. Keep the observed single-JVM/32-PID gate; do not start a second diagnostic
+JVM inside that same finite container or infer heap exhaustion from a native-thread error.
+Preserve timeout wire/log separation: EOF is not a receivedHTTP408. The stalled-body case must
+also have its exact Nginx access-log408; arbitrary disconnects never satisfy it. Retain bounded
+redacted gateway logs before failed-run teardown and preserve cancellation through cleanup.
+
+The [session/WebSocket lab](examples/backend-websocket/README.md) imports unchanged Task Tracker
+source and adds only its explicit lab routes and ordered session-login chain. Keep real form
+login/CSRF/ID rotation, exact bound Origin, cookie-only identity and service authorization. Upgrade
+admission requires a live session-ID/principal registration; invalidation and admission share a
+lock, and stale requests cannot register themselves. Preserve the positioned actual reauthentication
+regression,22 HTTP/session/socket cases,9 policy tests, bounded ACK/queue/native timeouts, actual
+expiry and exact cleanup. No TCP-stall, distributed-session or GUI/browser evidence is implied.
+
+Preparation executes all nine policy tests so a fresh Maven cache includes the dynamic test
+provider; the complete transport run still uses -o. Preserve the offline/preparation receipt gates
+and fixed phase/source-line-only failure diagnostics. Scope-entry state changes and complete child
+cleanup must sit inside their restoration/deferral guards, including the first signal on success.
+
 When editing curriculum prose, search `content/SIMULATION_QUESTION_MIGRATION.json` for literal
 evidence in the affected lesson and run `node scripts/audit-simulation-questions.mjs --check`.
 Preserving question IDs, code blocks and diagrams alone does not preserve these prose citations;
 run this gate for compression/paraphrase as well as simulator deletion. See RCA15.
+
+The [Spring configuration/JDI lab](examples/backend-debugging/README.md) must keep imported Task
+Tracker source/resources unchanged. Preserve actual Environment origins, bound exposure, HTTP and
+profile-selected bean checks; never replace them with a hand-built precedence resolver. Bad-port
+failure occurs during real configuration-condition conversion before ordinary binding finishes.
+JDI may listen only on its ephemeral loopback endpoint for its fixed owned target; keep event/thread/
+frame identity, finite waits, cleanup and source checks. Preserve sanitized reports, cancellation
+ownership guards and dedicated actual-service CI. A JDI fixture is not a GUI or participant session.
+
+The actual messaging gate now includes `KafkaRebalanceBrokerTest`. Keep two concurrent consumer
+owner threads, broker-described disjoint assignments, real revocation callbacks, exact uncommitted
+partition/offset/event replay, durable inbox deduplication and fresh recovery commits. Only wakeup
+may cross consumer threads. Owner-thread close must handle a deliberately pending wakeup while
+still committing completed revoked offsets; do not swallow callback/commit errors. Require all
+three actual broker classes with zero skips, bounded joins and deletion of exact generated resources.
+Native compilation or nineteen tests with three broker skips is not rebalance execution evidence.
 
 The [registered-partner SSRF lab](examples/backend-ssrf/README.md) is independent of the platform
 runtime. Keep exact operator origins/operations, all-answer address validation, pinned numeric

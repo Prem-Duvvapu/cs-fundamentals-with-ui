@@ -740,3 +740,173 @@ compression and paraphrase, not just simulator deletion; a semantic equivalent d
 an intentionally literal evidence contract. Final-head CI must rerun before merge.
 
 **Resolving commit:** 7ea7a72 (source c0a424a500db4ab0b6cfcfd26195d075d6234ab4).
+
+## RCA-2026-10-21-16 — gateway launcher exit left an owned descendant running
+
+**Observed:** independent prerelease review of gateway source33f15ce launched a disposable
+new-session command whose leader exited0 while a live descendant retained stdout. The actual
+deadline returned with the captured pipe closed but the owned descendant still running. The
+reviewer removed only that newly created group afterward. No Docker service or foreign process
+was used in this reproduction.
+
+**Cause:** commands.stop() gated process-group signalling on the direct child's poll() result.
+An exited launcher does not establish that its owned group or inherited pipe writers stopped.
+The existing startup tests covered an executing leader and missed this later lifetime boundary.
+
+**Resolution:** signal the owned new-session group even after its leader exits, bounded-wait the
+direct child and close the pipe. Keep non-group mode limited to its individual child and leave
+unrelated groups alone. A grandchild reaped by its OS parent is not falsely reported as reaped
+by this runner; the regression requires it absent or no longer running.
+
+**Verification/prevention:** the positioned regression waits for actual leader exit before
+exercising deadline and TERM/INT paths. It requires the direct launcher reaped, captured stdout
+closed, descendant absent/nonrunning, original handlers restored and a separate real group still
+alive. A second actual non-group timeout forbids killpg. All14 native guards pass, including
+prior startup/scope-entry cancellation and actual Java17 fixture compilation. Dedicated actual
+Nginx/container CI is still required and is not implied by this process-only observation.
+
+**Resolving commit:**99e89a2 (source a5b685edce3a2ca7f3ddf5f65d1eb0d104ed7254).
+
+## RCA-2026-10-23-01 — requested gateway port was not an actual Docker binding
+
+**Observed:** PR85 actual-nginx-http job119474051306 in run39672590492 failed during prepare:
+NetworkSettings.Ports[8080/tcp] was null, then len(null) raised TypeError. No HTTP case executed;
+the failed artifact records an empty case list and verified owned cleanup. Other green checks
+cannot establish this missing integration behavior.
+
+**Cause:** the gateway was attached exclusively to an internal bridge, and the runner treated
+an accepted publish request as an actual host mapping. The null value was also not handled as
+a typed setup failure. Upstream Moby discussion53256 reports the same internal-only mapping
+behavior; that report supports the diagnosis but does not prove this lab's repaired execution.
+
+**Resolution:** retain task/probe only on the owned internal backend network; attach only the
+gateway to a second owned publishing bridge. Inspect actual network membership/internal flags
+and a single127.0.0.1 host binding. Record before-attachment publication/running state and the
+observed Docker server version. Reject absent, multiple, nonloopback or invalid bindings with
+a typed failure. Cleanup checks labels/IDs and removes both exact networks. The ingress bridge
+can provide outbound routing and is explicitly not production egress enforcement.
+
+**Verification/prevention:**15 native guards pass, including null/empty/nonloopback/invalid-port
+rejection and cleanup of the additional network while preserving unrelated resources. Actual
+20-case Nginx CI, source binding, network observations and owned cleanup remain required before
+merge. Do not substitute HostConfig's requested binding or a community report for actual mapping.
+
+**Resolving commit:**1c095b7; final actual-service evidence pending.
+
+## RCA-2026-10-23-02 — a second gateway diagnostic JVM exceeded its finite setup
+
+**Observed:** actual job120562398597 in run39996822363 now confirms the network repair on
+Docker29.4.2: Nginx was running with null publication before the ingress join; afterward its actual
+loopback mapping and isolated backend membership passed. Four actual HTTP cases passed. The next
+docker exec started a second Java process in the probe's configured32-PID/96MiB container and
+failed pthread_create(EAGAIN), then OutOfMemoryError while starting HttpClient's selector thread.
+The failed receipt confirms exact cleanup. No cgroup counter history was retained, so the exact
+exhausted OS resource is not independently proven and this is not Java heap-exhaustion evidence.
+
+**Cause:** an unnecessary second JVM duplicated runtime/thread overhead inside a finite container.
+Native compilation could not reveal the actual container resource interaction.
+
+**Resolution:** the existing diagnostic server performs the same fixed unauthenticated GET with
+forged identity metadata through one shared bounded HTTP client. It returns the observed service401
+alongside sanitized forwarding metadata. No target URL or credentials are accepted or forwarded.
+The harness observes one Java process and the declared32-PID cap; old direct-launch mode is rejected.
+The20 mandatory HTTP assertions and the service's unchanged security boundary remain intact.
+
+**Verification/prevention:** all15 native guards pass, including actual Java17 compilation and
+rejection of unknown/obsolete launch modes before network access. Exact-head actual Nginx CI must
+still establish all20 cases, actual single-JVM/network observations and cleanup. Keep setup and
+native compilation distinct from real container execution; inspect process/PID/native-memory
+constraints before treating every OutOfMemoryError as a heap-size problem.
+
+**Resolving commit:**2f326b6; actual final-service verification pending.
+
+## RCA-2026-10-21-17 — late WebSocket admission revived a revoked session
+
+**Observed:** prerelease review identified invalidate-before-reserve ordering in source6d5c389.
+A focused actual registry regression failed: after invalidate(oldId) returned with no reservations,
+reserve(alice,oldId) still returned a new reservation. The old test covered only invalidation
+following admission. No released platform endpoint or external session was affected.
+
+**Cause:** invalidation closed existing reservations but recorded no live authentication state;
+reserve accepted any retained request's principal and session ID. A request authenticated before
+reauthentication can reach the endpoint later. Tomcat getId alone does not establish validity.
+
+**Resolution:** successful form login registers the live session ID and principal in a bounded
+map; destruction/rotation removes membership under the admission lock. Admission never creates
+authentication membership, checks the exact principal and rejects stale requests with401.
+Registration validates servlet session liveness under the same lock; bind also rechecks membership.
+The map has at most32 entries, removes destroyed IDs and clears at shutdown, avoiding unbounded
+revocation tombstones. Existing connection/capacity release remains idempotent.
+
+**Verification/prevention:**9 policy tests pass, including late admission after invalidation,
+a retained Alice principal against Bob's rotated session, and registration after destruction.
+The real transport test pauses an actual authenticated Alice upgrade after the security chain,
+performs Bob form login/ID rotation over HTTP, then releases the request:401 is mandatory and a
+fresh Bob socket must echo successfully. All22 actual transport cases and5 Python harness guards
+pass, preserving established-socket logout, independent actual expiry, original REST owner/CSRF,
+ACK/message limits and cleanup. The sanitized source-bound receipt records actual Java17,
+Boot4.1.1,Framework7.0.9 and Tomcat11.0.24; dedicated final-head CI remains required. Cover both
+orders around revocation, not just closing already-admitted sockets.
+
+**Resolving commit:**68ab14c (source b93a49d; original module6d5c389).
+
+## RCA-2026-10-23-03 — WebSocket preparation hid offline test prerequisites
+
+**Observed:** PR86 actual-session-websocket job119475144049 in run39672905738 returned only
+LabFailure with no completed transport receipt. That historical report does not identify a unique
+Maven failure phase. A separate controlled repository overlay omitted only Surefire's dynamically
+selected JUnit provider: old skipTests packaging exited0, then offline verification exited1 with
+surefire-junit-platform unavailable. The original local warm cache masked this prerequisite defect.
+
+**Cause:** preparing package dependencies with tests skipped does not execute provider selection.
+The failure report suppressed all child output, including safe phase/test identity, so it could
+not distinguish missing prerequisites from a transport assertion. Local success was insufficient
+fresh-runner evidence; no runtime claim is inferred from the old generic failure.
+
+**Resolution:** prepare packages while running all9 policy tests, require their no-skip report,
+then run the full verification offline. Record observed preparation test count and offline mode.
+Failure receipts expose only fixed phase, exit code, a missing-provider boolean, owned suite names
+and source-line numbers from new bounded reports. Raw messages, credentials, cookies, paths and
+response bodies are excluded. Stale or foreign reports cannot supply diagnostics.
+
+The module also contained the reviewed scope-entry and normal-cleanup guard gaps: place thread-
+local state assignment inside restoration try and defer the first TERM/INT through complete
+termination/wait/pipe close. Existing caller policy, masks, nested state and other groups remain.
+
+**Verification/prevention:** the controlled missing-provider overlay now downloads the provider
+through actual policy preparation and passes offline verification (both exits0). All22 actual
+HTTP/session/socket cases,9 policy tests and8 Python guards pass on final local sources. Diagnostic
+privacy/staleness cases pass. Actual first-signal cleanup tests use a READY-confirmed TERM-ignoring
+child; the original close implementation fails both signal subcases, while the fix requires the
+child already killed/waited, pipes closed and an unrelated group alive. Actual positioned scope-
+entry TERM/INT cover caller and nested restoration. Final remote CI remains required; the old
+failure is not declared fully diagnosed until the new actual-service check passes.
+
+**Resolving commit:**f31d66a; source-bound final local receipt WEBSOCKET_SESSIONS_2026-10-23.json.
+
+## RCA-2026-10-23-06 — gateway timeout expectation confused server and wire status
+
+**Observed:** actual gateway job120572873600 in run39999874593 passes13 HTTP assertions,
+including the direct service401, and observes one diagnostic JVM under the configured32-PID cap.
+The stalled-body client then receives EOF before any HTTP status, raising RemoteDisconnected.
+Cleanup succeeds. The old failed run did not retain gateway logs before teardown, so its server
+status is not invented from that EOF.
+
+**Cause:** the test assumed every request classified408 by Nginx must transmit a408 status line.
+Selected Nginx1.30.6 ngx_http_finalize_request sends request-timeout outcomes through request
+termination before the normal special-response path. Server classification and client observation
+are different evidence. The late-only log collection hid the missing distinction on early failure.
+
+**Resolution:** record HTTP408 and EOF-before-status as separate wire outcomes; never relabel EOF.
+Final acceptance also requires exactly the stalled-body access-log entry with status408, so arbitrary
+disconnects cannot pass. Keep all20 assertions. Retain bounded credential-redacted gateway logs
+before failed-run cleanup; cancellation still propagates after owned cleanup.
+
+**Verification/prevention:** all16 native guards pass. A real owned TCP fixture separately emits408
+or closes after reading the first body byte; the client must report the two different outcomes,
+without a fabricated status or leaked thread. These fixtures are not Nginx evidence. Final actual
+CI must establish the wire observation plus matching server408 and all remaining cases. The prior
+run's missing log cannot be retroactively inferred. Source: Nginx1.30.6 request finalization and
+client_body_timeout documentation, checked2026-10-23.
+
+**Resolving commit:**0e4192e; final actual Nginx evidence pending.

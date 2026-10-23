@@ -172,3 +172,27 @@ an allowed hostname alone is insufficient, then observe all-answer checks, pinne
 original-host TLS identity and redirect refusal. Distinguish a policy rejection before HTTP from
 a transport failure. Keep application destination authorization separate from production egress
 enforcement; the Python laboratory does not add a Spring controller or arbitrary-URL crawler.
+
+To debug configuration and execution, use [actual Spring and JDI](../examples/backend-debugging/README.md).
+Predict which value wins across the resource file, profile, environment and CLI; inspect the running
+application's property origins and actual HTTP exposure. Reproduce and repair the bad override.
+Then inspect a conditional breakpoint, step into the existing service/repository and observe a
+caught exception. Explain the evidence before translating those steps into your own IDE workflow.
+
+For messaging recovery, predict the [concurrent Kafka handoff](../examples/backend-messaging/README.md#9-watch-a-partition-move-between-concurrent-consumers)
+before running it against the owned broker: two group members each own a partition; a local write
+can succeed before its offset commit. Follow the exact record after member departure and explain
+why the durable inbox suppresses a second effect. Compare that controlled close with the separate
+actual process-crash saga cases; neither implies global exactly-once processing.
+
+For the gateway boundary, use [Nginx to Task Tracker](../examples/backend-gateway/README.md).
+Predict whether forged identity metadata or gateway authentication can bypass service ownership
+or CSRF. Explain429/503/504 using the actual main-upstream log evidence, not status alone.
+Compare a valid reload with unchanged service work after a client timeout. Native guards and
+actual Docker/Nginx observations are separate; follow the exact owned cleanup procedure.
+
+For session lifetime and long-lived connections, use [the authenticated WebSocket exercise](../examples/backend-websocket/README.md).
+Predict login-CSRF and fixation behavior, inspect the real cookie upgrade, then compare an
+established socket's logout with an upgrade paused across reauthentication. Explain why current
+HTTP authentication alone does not preserve a long-lived connection's authorization. Diagnose
+ACK pressure, idle expiry and message bounds separately; the exercise does not simulate a TCP stall.

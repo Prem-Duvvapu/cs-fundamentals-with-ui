@@ -1,5 +1,45 @@
 # Backend Engineering — System Architecture & Development Context
 
+`examples/backend-gateway` is an isolated Docker learning journey using actual digest-pinned
+Nginx, unchanged Task Tracker build input and a Java metadata/fixed-service-read fixture on a private network.
+Only the gateway joins a second owned publishing bridge and publishes an ephemeral loopback port. The service retains authentication,
+CSRF, role and owner decisions; the fixed GET auth subrequest also consumes service work.
+Actual HTTP/log evidence distinguishes gateway429, service503 and upstream-timeout504, checks
+framing/forwarding, and observes valid reload recovery. Bounded clients/processes, no-skip CI,
+source hashes and exact container/network/tag cleanup are mandatory. The diagnostic server reuses one JVM under its32-PID cap; direct401 observation does not start another process. The native guards are
+separate from actual Nginx evidence; no platform routes or shared learner telemetry are added.
+
+`examples/backend-websocket` extends unchanged Task Tracker sources in an isolated Boot4.1.1
+module with the matching WebSocket starter. A narrow ordered chain establishes real servlet
+session login while original REST checks remain. Live authenticated session/principal membership
+and atomic pre101 admission protect the bounded same-connection JSON echo; destroy/ID-change
+listeners revoke membership and close sockets. A test-only filter positions a genuine upgrade
+across actual reauthentication. Policy, ACK/queue/idle/lease limits and observed Tomcat settings
+are distinct from kernel TCP backpressure. Maven preparation runs the policy suite to resolve
+its dynamically selected test provider before full offline transport verification. Failure receipts
+retain fixed phases/test-line diagnostics without raw payloads or exceptions. Source-bound local receipts and dedicated actual CI
+preserve privacy, process ownership and cleanup; no platform route or learner analytics changes.
+
+`examples/backend-debugging` imports Task Tracker source/resources unchanged through an isolated
+Boot 4.1.1/Java-17-targeted Maven module. Its normal SpringApplication observer reads one nonsecret
+property, ordered source origins, actual bound actuator exposure and profile-selected beans. Owned
+HTTP launches compare resource defaults, production profile, environment and CLI, followed by a real
+bad-port conversion failure and repaired startup. The separate JDI fixture compiles unchanged domain
+sources with debug symbols, binds an ephemeral loopback listener and launches only its known target.
+Real frames/events establish conditional checks, steps and a caught exception. Bounded execution,
+exact process-group cleanup, sanitized evidence and imported-source checks are mandatory; the module
+adds no platform endpoint, production debugger listener or arbitrary external attach command.
+
+`KafkaRebalanceBrokerTest` extends the existing messaging module without changing outbox/saga
+implementation. Two independent owner threads poll a fresh two-partition topic/group; broker Admin
+state and real rebalance callbacks establish disjoint ownership. One member commits a DurableStore
+effect but withholds its Kafka offset, then closes; the survivor replays the same partition/offset/
+event, suppresses a second local effect, accepts a fresh marker and commits recovery offsets.
+Owner-thread close disables pending wakeups before revocation; the actual test injects that boundary
+and requires successful final callback commits. The existing broker workflow refuses skipped cases
+and requires a sanitized JSON receipt plus exact topic/group/thread/container cleanup. This does
+not establish process crash, broker failover, multiple broker durability or global exactly-once work.
+
 The isolated [SSRF module](examples/backend-ssrf/README.md) implements operator-registered partner
 document requests, bounded subprocess resolution, all-address policy, numeric-peer HTTP/TLS with
 original-host certificate verification, no redirects and byte/deadline/admission limits. It adds
@@ -715,3 +755,8 @@ compares reviewed fixture patches using actual Java 17 compilation, independent 
 tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
+
+The gateway stalled-body observation records received HTTP status separately from EOF-before-status.
+Acceptance additionally requires the matching access-log408. A wire close alone is insufficient;
+Nginx timeout finalization can terminate a request without sending a response status. Failed-run
+logs are retained before cleanup, without swallowing cancellation or changing the20-case gate.
