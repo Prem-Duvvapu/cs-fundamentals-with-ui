@@ -1,4 +1,6 @@
 import contextlib
+import commands
+import signal
 import json
 import os
 from pathlib import Path
@@ -77,6 +79,100 @@ class EngineeringWorkflowTests(unittest.TestCase):
             self.assertFalse(Path(f'/proc/{pid_file.read_text()}').exists())
             with self.assertRaisesRegex(LabFailure, 'output limit'):
                 run([sys.executable, '-c', 'print("x"*10000)'], root, Budget.start(5), output_limit=100)
+
+
+class CommandCancellationLifecycleTests(unittest.TestCase):
+    def test_actual_term_int_after_state_assignment_restore_caller_and_nested_scopes(self):
+        import inspect
+        class CallerCancelled(RuntimeError):pass
+        original_handlers={number:signal.getsignal(number) for number in (signal.SIGTERM,signal.SIGINT)}
+        original_state=getattr(commands._cancellation,'state',None)
+        original_mask=signal.pthread_sigmask(signal.SIG_BLOCK,set())
+        original_trace=sys.gettrace()
+        source,first=inspect.getsourcelines(commands.cancellation_guard.__wrapped__)
+        boundary=first+next(index for index,line in enumerate(source) if line.strip()=='_cancellation.state = state')+1
+        code=commands.cancellation_guard.__wrapped__.__code__
+        def caller_cancel(_number,_frame):raise CallerCancelled()
+        try:
+            signal.pthread_sigmask(signal.SIG_UNBLOCK,{signal.SIGTERM,signal.SIGINT})
+            expected_mask=signal.pthread_sigmask(signal.SIG_BLOCK,set())
+            for number in (signal.SIGTERM,signal.SIGINT):
+                for nested in (False,True):
+                    with self.subTest(signal=number,nested=nested):
+                        for item in original_handlers:signal.signal(item,caller_cancel)
+                        delivered=[]
+                        def positioned(frame,event,_argument):
+                            if frame.f_code is code and event=='line' and frame.f_lineno==boundary and not delivered:
+                                delivered.append(number);os.kill(os.getpid(),number)
+                            return positioned
+                        def exercise(expected_exception):
+                            outer=getattr(commands._cancellation,'state',None)
+                            handlers={item:signal.getsignal(item) for item in original_handlers}
+                            try:
+                                sys.settrace(positioned)
+                                with self.assertRaises(expected_exception):
+                                    with commands.cancellation_guard():self.fail('Actual signal must cancel before entry returns')
+                            finally:sys.settrace(original_trace)
+                            self.assertEqual([number],delivered)
+                            self.assertIs(outer,getattr(commands._cancellation,'state',None))
+                            self.assertEqual(expected_mask,signal.pthread_sigmask(signal.SIG_BLOCK,set()))
+                            for item,handler in handlers.items():self.assertEqual(handler,signal.getsignal(item))
+                        try:
+                            if nested:
+                                with commands.cancellation_guard():exercise(commands.LabFailure)
+                            else:exercise(CallerCancelled)
+                        finally:commands._cancellation.state=original_state
+        finally:
+            sys.settrace(original_trace);commands._cancellation.state=original_state
+            for item,handler in original_handlers.items():signal.signal(item,handler)
+            signal.pthread_sigmask(signal.SIG_SETMASK,original_mask)
+
+    def _first_cleanup_signal(self,successful):
+        import select
+        real_spawn=subprocess.Popen
+        real_stop=commands.stop
+        before={number:signal.getsignal(number) for number in (signal.SIGTERM,signal.SIGINT)}
+        mask=signal.pthread_sigmask(signal.SIG_BLOCK,set())
+        unrelated=real_spawn([sys.executable,'-c','import time;time.sleep(20)'],start_new_session=True,
+                             stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        try:
+            for number in (signal.SIGTERM,signal.SIGINT):
+                with self.subTest(signal=number,successful=successful):
+                    created=[];delivered=[]
+                    def spawn(*args,**kwargs):
+                        child=real_spawn(*args,**kwargs);created.append(child)
+                        if not successful:
+                            self.assertTrue(select.select([child.stdout],[],[],2)[0],'Actual child must report readiness')
+                            self.assertEqual(b'READY\n',child.stdout.readline())
+                        return child
+                    def positioned(child,group=True):
+                        if not delivered:delivered.append(number);os.kill(os.getpid(),number)
+                        return real_stop(child,group)
+                    script=('print("success")' if successful else
+                            'import signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);print("READY",flush=True);time.sleep(20)')
+                    try:
+                        with commands.cancellation_guard(),patch.object(commands.subprocess,'Popen',side_effect=spawn),patch.object(commands,'stop',side_effect=positioned):
+                            with self.assertRaisesRegex(commands.LabFailure,'cancelled'):
+                                commands.run([sys.executable,'-c',script],Path(commands.__file__).parent,
+                                             commands.Budget.start(5),timeout=2 if successful else .08)
+                        self.assertEqual([number],delivered)
+                        child=created[0]
+                        self.assertEqual(0 if successful else -signal.SIGKILL,child.returncode)
+                        self.assertFalse(Path('/proc/'+str(child.pid)).exists())
+                        self.assertTrue(child.stdout.closed)
+                        self.assertIsNone(unrelated.poll(),'Cleanup must preserve the independent process group')
+                        self.assertEqual(mask,signal.pthread_sigmask(signal.SIG_BLOCK,set()))
+                        for item,handler in before.items():self.assertEqual(handler,signal.getsignal(item))
+                    finally:
+                        for child in created:
+                            real_stop(child);child.stdout.close()
+        finally:real_stop(unrelated)
+
+    def test_first_term_int_during_deadline_cleanup_reap_ready_child_before_cancel(self):
+        self._first_cleanup_signal(False)
+
+    def test_first_term_int_after_success_close_pipe_before_cancel(self):
+        self._first_cleanup_signal(True)
 
 
 if __name__ == '__main__':
