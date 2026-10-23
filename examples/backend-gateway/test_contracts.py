@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import socketserver
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,37 @@ import lab
 
 
 class GatewayContracts(unittest.TestCase):
+    def test_stalled_body_keeps_a_wire_disconnect_distinct_from_an_http408(self):
+        for response,kind,status in [(b'', 'closed-before-status', None),
+                (b'HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n', 'http-response', 408)]:
+            seen=[]
+            class Handler(socketserver.BaseRequestHandler):
+                def handle(self):
+                    self.request.settimeout(2)
+                    data=b''
+                    while b'\r\n\r\n' not in data and len(data)<8192:
+                        chunk=self.request.recv(4096)
+                        if not chunk: return
+                        data+=chunk
+                    body=data.split(b'\r\n\r\n',1)[1]
+                    seen.append(body[:1] or self.request.recv(1))
+                    if response: self.request.sendall(response)
+            with self.subTest(kind=kind),socketserver.TCPServer(('127.0.0.1',0),Handler) as server:
+                server.timeout=3
+                worker=threading.Thread(target=server.handle_request)
+                worker.start()
+                try:
+                    instance=lab.Lab('gw-0123456789abcdef')
+                    instance.port=server.server_address[1]
+                    observation=instance.stalled_body({})
+                    self.assertEqual(kind,observation['wireOutcome'])
+                    self.assertEqual(status,observation['httpStatus'])
+                    self.assertGreaterEqual(observation['elapsedMillis'],0)
+                finally:
+                    worker.join(4)
+                    self.assertFalse(worker.is_alive())
+                self.assertEqual([b'{'],seen)
+
     def test_only_actual_exact_loopback_binding_is_accepted(self):
         for published in (None,[],[{'HostIp':'0.0.0.0','HostPort':'12345'}],
                           [{'HostIp':'127.0.0.1','HostPort':'0'}],

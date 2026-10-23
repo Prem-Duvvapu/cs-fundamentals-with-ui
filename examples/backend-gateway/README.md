@@ -107,7 +107,7 @@ requires the complete case set and the 429/503 upstream evidence.
 | Bob presents forged Alice metadata | Service 404 for Alice's project; identity comes from authenticated principal |
 | Viewer reads; viewer writes with valid CSRF | 200 then role-based 403 |
 | Known-length or chunked body exceeding 1 KiB | Gateway 413; chunked framing does not bypass the body cap |
-| Body sends one byte then becomes idle | Gateway 408 from the one-second body inactivity timeout |
+| Body sends one byte then becomes idle | Nginx logs408 for the one-second body timeout; the client may receive EOF before an HTTP status |
 | Existing dependency `failure` scenario | Genuine Task Tracker 503 with `DEPENDENCY_FAILURE`; main upstream status is `503` |
 | Existing dependency `slow` scenario through `/timeout` | Gateway 504 before response headers, with a deliberately short 20 ms upstream read inactivity timeout |
 | Eight requests vary forged X-Forwarded-For | Some admitted 200 and some gateway 429 share the actual peer bucket |
@@ -247,3 +247,13 @@ failed native thread creation before HttpClient's selector could start; that err
 Java heap exhaustion. The failed run did not retain cgroup counter history, so it does not prove
 which OS resource was exhausted. Inspect actual process/thread, PID and memory evidence before
 changing heap settings; reuse the existing diagnostic process for this exercise.
+
+Keep wire outcome separate from server log status. In this pinned Nginx version, request timeout
+finalization can terminate the request rather than send a408 response header. The stalled-body
+case records an actual408 response or EOF-before-status as different outcomes; EOF never becomes
+a fabricated client408. Acceptance additionally requires the exact stalled-body access-log entry
+to contain408, so an arbitrary disconnect cannot pass the timeout exercise. On an early failure,
+bounded redacted gateway logs are retained before cleanup for the same distinction.
+
+Primary implementation: [Nginx1.30.6 request finalization](https://github.com/nginx/nginx/blob/release-1.30.6/src/http/ngx_http_request.c)
+and [client-body timeout](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout).

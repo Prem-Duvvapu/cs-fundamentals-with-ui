@@ -77,6 +77,12 @@ jobs:
           failed=proof['upstreamFailure']
           timeout=proof['upstreamTimeout']
           forwarded=proof['forwardingObservation']
+          body_timeout=proof['stalledBodyTimeout']
+          observation=result['stalledBodyObservation']
+          if len(body_timeout)!=1 or body_timeout[0]['status']!=408 or not (
+              observation=={'wireOutcome':'http-response','httpStatus':408,'elapsedMillis':observation['elapsedMillis']}
+              or observation=={'wireOutcome':'closed-before-status','httpStatus':None,'elapsedMillis':observation['elapsedMillis']}):
+              raise SystemExit('Actual body-timeout log408 and separately observed wire result required; arbitrary disconnect is insufficient')
           if not rejected or any(item['status']!=429 or item['limit']!='REJECTED' or item['upstream'] not in ('','-') for item in rejected):
               raise SystemExit('Actual gateway rejection with no main upstream required')
           if len(failed)!=1 or failed[0]['status']!=503 or failed[0]['upstream']!='503':

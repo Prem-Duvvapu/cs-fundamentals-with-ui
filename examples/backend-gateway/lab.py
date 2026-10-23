@@ -259,9 +259,14 @@ class Lab:
             for key,value in headers.items():
                 connection.putheader(key,value)
             connection.endheaders(b'{')
-            response=connection.getresponse()
-            response.read(65537)
-            return response.status
+            started=time.monotonic()
+            try:
+                response=connection.getresponse()
+            except http.client.RemoteDisconnected:
+                return {'wireOutcome':'closed-before-status','httpStatus':None,'elapsedMillis':round((time.monotonic()-started)*1000)}
+            if len(response.read(65537))>65536:
+                raise LabFailure('stalled_body_response_limit')
+            return {'wireOutcome':'http-response','httpStatus':response.status,'elapsedMillis':round((time.monotonic()-started)*1000)}
         finally:
             connection.close()
 
@@ -320,7 +325,10 @@ class Lab:
         self.require('body-cap-413',self.request('POST','/api/projects',b'x'*2048,user='alice',headers=alice,case='body-cap')[0]==413)
         self.require('chunked-body-cap-413',self.request('POST','/api/projects',iter([b'x'*600]*3),user='alice',headers=alice,case='chunked-cap',chunked=True)[0]==413)
         start=time.monotonic()
-        self.require('stalled-body-inactivity-408',self.stalled_body(alice)==408)
+        stalled=self.stalled_body(alice)
+        self.observations['stalledBodyObservation']=stalled
+        self.require('stalled-body-inactivity-408',stalled['httpStatus']==408
+                     or stalled['wireOutcome']=='closed-before-status' and stalled['httpStatus'] is None)
         self.observations['stalledBodyElapsedMillis']=round((time.monotonic()-start)*1000)
         status,_,body=self.request('POST','/api/observability/probe?scenario=failure',b'',user='alice',headers=alice,case='upstream-503')
         self.require('genuine-task-tracker-503',status==503 and json.loads(body).get('detail')=='DEPENDENCY_FAILURE')
@@ -357,11 +365,14 @@ class Lab:
         failure=[item for item in entries if item['case']=='upstream-503']
         observed_headers=[item for item in entries if item['case']=='headers']
         timeout=[item for item in entries if item['case']=='timeout-504']
+        body_timeout=[item for item in entries if item['case']=='stalled-body']
         self.require('logs-separate-gateway-429-from-upstream-503',bool(rate) and all(item['limit']=='REJECTED' and item['upstream'] in ('','-') for item in rate)
                      and len(failure)==1 and failure[0]['status']==503 and failure[0]['upstream']=='503'
                      and len(observed_headers)==1 and observed_headers[0]['peer']==metadata['X-Real-IP']
-                     and len(timeout)==1 and timeout[0]['status']==504 and timeout[0]['upstream']=='504')
-        self.observations['statusEvidence']={'gatewayRejected':rate,'upstreamFailure':failure,'upstreamTimeout':timeout,'forwardingObservation':observed_headers}
+                     and len(timeout)==1 and timeout[0]['status']==504 and timeout[0]['upstream']=='504'
+                     and len(body_timeout)==1 and body_timeout[0]['status']==408)
+        self.observations['statusEvidence']={'gatewayRejected':rate,'upstreamFailure':failure,'upstreamTimeout':timeout,
+                                          'forwardingObservation':observed_headers,'stalledBodyTimeout':body_timeout}
         self.observations['actualCasesExecuted']=len(self.cases)
         self.observations['httpCalls']=self.calls
         self.observations['skipped']=0
@@ -382,13 +393,18 @@ def main():
             lab.prepare(); lab.journey()
         finally:
             try:
-                if lab.owns:
-                    cleanup()
-                lab.observations['cleanupVerified']=True
+                if lab.owns and len(lab.cases)!=20:
+                    code,logs=lab.command(['docker','logs','--tail','200',lab.name+'-edge'],check=False,output_limit=65536)
+                    if code==0: lab.save('gateway.log',logs)
             finally:
-                if EVIDENCE.exists():
-                    lab.observations['sourceSha256LF']={name:hashlib.sha256((ROOT/name).read_text().encode()).hexdigest() for name in ['lab.py','commands.py','GatewayProbe.java','nginx.conf','proxy-headers.conf']}
-                    lab.save('result.json',lab.observations)
+                try:
+                    if lab.owns:
+                        cleanup()
+                    lab.observations['cleanupVerified']=True
+                finally:
+                    if EVIDENCE.exists():
+                        lab.observations['sourceSha256LF']={name:hashlib.sha256((ROOT/name).read_text().encode()).hexdigest() for name in ['lab.py','commands.py','GatewayProbe.java','nginx.conf','proxy-headers.conf']}
+                        lab.save('result.json',lab.observations)
         print('Actual gateway cases passed:',len(lab.cases))
 
 
