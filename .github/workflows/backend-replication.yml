@@ -40,7 +40,9 @@ jobs:
           sys.path.insert(0, str(root))
           spec = importlib.util.spec_from_file_location('replication_verifier', root / 'verify.py')
           lab = importlib.util.module_from_spec(spec); spec.loader.exec_module(lab)
-          report = json.loads((root / 'target/evidence/verification.json').read_text())
+          receipt = root / 'target/evidence/verification.json'
+          assert receipt.is_file() and not receipt.is_symlink() and 0 < receipt.stat().st_size <= 32768
+          report = json.loads(receipt.read_text())
           assert report['schemaVersion'] == 1 and report['ownedResourcesCleaned'] is True
           assert 160000 <= report['postgresVersionNum'] < 170000
           assert report['actualServerStarts'] == {'originalDirectory': 2, 'standbyDirectory': 2}

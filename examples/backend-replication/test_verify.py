@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import os
 from pathlib import Path
 import signal
@@ -184,6 +185,76 @@ class ReplicationGuardTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);(root/'alias').symlink_to(root,target_is_directory=True)
             with self.assertRaises(processes.LabFailure):lab.checked_destination(root/'alias'/'receipt.json')
+
+    def test_publication_does_not_follow_fixed_staging_symlink_or_publish_a_link(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary)
+            victim=root/'victim.txt';victim.write_text('original reviewer-owned bytes')
+            report=root/'receipt.json';fixed=report.with_suffix('.tmp');fixed.symlink_to(victim)
+            previous={item:signal.getsignal(item) for item in (signal.SIGTERM,signal.SIGINT)}
+            lab.publish_report(report,'{"complete":true}\n')
+            self.assertEqual('original reviewer-owned bytes',victim.read_text())
+            self.assertTrue(fixed.is_symlink())
+            self.assertFalse(report.is_symlink());self.assertTrue(report.is_file())
+            self.assertEqual({'complete':True},json.loads(report.read_text()))
+            self.assertEqual([],list(root.glob('.owned-replication-report-*')))
+            for item,handler in previous.items():self.assertIs(handler,signal.getsignal(item))
+
+    def test_publication_error_and_actual_term_int_remove_only_owned_staging_and_receipt(self):
+        real_create=tempfile.NamedTemporaryFile
+        real_replace=Path.replace
+        real_unlink=Path.unlink
+        previous={item:signal.getsignal(item) for item in (signal.SIGTERM,signal.SIGINT)}
+        mask=signal.pthread_sigmask(signal.SIG_BLOCK,set())
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);foreign=root/'foreign.txt';foreign.write_text('keep unrelated file')
+            report=root/'receipt.json'
+            with patch.object(Path,'replace',side_effect=OSError('positioned publication error')):
+                with self.assertRaises(OSError):lab.publish_report(report,'{}')
+            self.assertFalse(report.exists());self.assertEqual([],list(root.glob('.owned-replication-report-*')))
+            with self.assertRaises(processes.LabFailure):lab.publish_report(report,'x'*32769)
+            for number in previous:
+                for position in ('created','renamed','cleanup'):
+                    handles=[]
+                    def create(*args,**kwargs):
+                        stream=real_create(*args,**kwargs);handles.append(stream)
+                        if position=='created':os.kill(os.getpid(),number)
+                        return stream
+                    def replace(source,destination):
+                        result=real_replace(source,destination)
+                        if position=='renamed':os.kill(os.getpid(),number)
+                        return result
+                    def unlink(path,*args,**kwargs):
+                        if position=='cleanup' and path.name.startswith('.owned-replication-report-'):
+                            os.kill(os.getpid(),number)
+                        return real_unlink(path,*args,**kwargs)
+                    with self.subTest(signal=number,position=position):
+                        with processes.cancellation_guard():
+                            with patch.object(lab.tempfile,'NamedTemporaryFile',side_effect=create),patch.object(Path,'replace',new=replace),patch.object(Path,'unlink',new=unlink):
+                                with self.assertRaisesRegex(processes.LabFailure,'cancelled'):lab.publish_report(report,'{}')
+                        self.assertEqual(1,len(handles));self.assertTrue(handles[0].closed)
+                        self.assertFalse(report.exists());self.assertEqual([],list(root.glob('.owned-replication-report-*')))
+                        self.assertEqual('keep unrelated file',foreign.read_text())
+                        self.assertEqual(mask,signal.pthread_sigmask(signal.SIG_BLOCK,set()))
+                        for item,handler in previous.items():self.assertIs(handler,signal.getsignal(item))
+
+    def test_cancelled_publisher_does_not_unlink_a_concurrent_replacement(self):
+        real_replace=Path.replace
+        for number in (signal.SIGTERM,signal.SIGINT):
+            with tempfile.TemporaryDirectory() as temporary:
+                root=Path(temporary);report=root/'receipt.json'
+                foreign=root/'other-publish.json';foreign.write_text('independent replacement')
+                def replace(source,destination):
+                    result=real_replace(source,destination)
+                    real_replace(foreign,destination)
+                    os.kill(os.getpid(),number)
+                    return result
+                with processes.cancellation_guard():
+                    with patch.object(Path,'replace',new=replace):
+                        with self.assertRaisesRegex(processes.LabFailure,'cancelled'):lab.publish_report(report,'{}')
+                self.assertEqual('independent replacement',report.read_text())
+                self.assertFalse(report.is_symlink())
+                self.assertEqual([],list(root.glob('.owned-replication-report-*')))
 
     def test_ambient_pg_destinations_and_injection_variables_are_removed(self):
         with patch.dict(os.environ,{'PGHOST':'remote.invalid','PGHOSTADDR':'remote.invalid','PGSERVICE':'foreign',

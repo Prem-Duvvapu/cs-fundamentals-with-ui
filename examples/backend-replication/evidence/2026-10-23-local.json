@@ -24,12 +24,12 @@
     "pausedFence": {
       "reached": false,
       "checks": 4,
-      "elapsedMs": 243
+      "elapsedMs": 232
     },
     "resumedFence": {
       "reached": true,
       "checks": 1,
-      "elapsedMs": 17
+      "elapsedMs": 16
     },
     "recoveredReplicaIds": [
       1,
@@ -62,7 +62,7 @@
       2,
       4
     ],
-    "observedStopToCheckedWriteMs": 437,
+    "observedStopToCheckedWriteMs": 416,
     "automaticFailover": false,
     "multiHostFencing": false
   },
@@ -83,12 +83,12 @@
     "rebuildFence": {
       "reached": true,
       "checks": 1,
-      "elapsedMs": 16
+      "elapsedMs": 15
     },
     "freshWriteFence": {
       "reached": true,
       "checks": 1,
-      "elapsedMs": 16
+      "elapsedMs": 20
     }
   },
   "limits": {
@@ -109,7 +109,7 @@
   "ownedResourcesCleaned": true,
   "sourceSha256LF": {
     "processes.py": "5d0f30b0332db16d4accf909bc1a836bca802c50114ed354a8a0d6a931d7df5b",
-    "test_verify.py": "961339bb268290d6968d6e300d043234f6516c55734ab07e5372048db4e8f6e9",
-    "verify.py": "e9e01e36f4f1f14291b76046b652f88c6d4509cee59d3f7b2118464e57c26d25"
+    "test_verify.py": "23cde634e5c724932fa8939b9b4bae075fcbe89aed825f4c76970da771879f28",
+    "verify.py": "7773b88ebca3495571d39964d2c59ae5e97028d700c3ce255c7d000bd003ace9"
   }
 }

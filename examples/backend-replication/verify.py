@@ -41,6 +41,43 @@ def checked_destination(path):
     return path
 
 
+def publish_report(path, encoded):
+    require(len(encoded.encode()) <= 32768, 'Sanitized evidence byte cap')
+    path = checked_destination(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path = checked_destination(path)
+    stream = temporary = identity = None
+    published = False
+    try:
+        # Defer through assignment, rename and complete normal staging cleanup.
+        with defer_cancellation():
+            try:
+                stream = tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', prefix='.owned-replication-report-',
+                    suffix='.json', dir=path.parent, delete=False)
+                temporary = Path(stream.name)
+                stat = os.fstat(stream.fileno())
+                identity = (stat.st_dev, stat.st_ino)
+                stream.write(encoded)
+                stream.close()
+                temporary.replace(path)
+                published = True
+            finally:
+                try:
+                    if stream is not None:
+                        stream.close()
+                finally:
+                    if temporary is not None:
+                        temporary.unlink(missing_ok=True)
+    except BaseException:
+        # A signal deferred across rename must not leave a new apparent success receipt.
+        with defer_cancellation():
+            if published and path.exists():
+                stat = path.lstat()
+                if (stat.st_dev, stat.st_ino) == identity:
+                    path.unlink()
+        raise
+
+
 def postgres_tools(directory, budget):
     require(directory.is_absolute() and directory.is_dir(), 'An installed absolute PostgreSQL binary directory is required')
     binaries = {name: directory / name for name in TOOLS}
@@ -372,11 +409,7 @@ def verify(binary_directory, report_path):
     report['ownedResourcesCleaned'] = True
     report['sourceSha256LF'] = before
     encoded = json.dumps(report, indent=2) + '\n'
-    require(len(encoded.encode()) <= 32768, 'Sanitized evidence byte cap')
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = report_path.with_suffix('.tmp')
-    temporary.write_text(encoded)
-    temporary.replace(report_path)
+    publish_report(report_path, encoded)
     print('PASS: actual stale read, bounded replay fence, fenced stale failover and rebuilt replica recovery; exact cleanup.')
     print('Evidence: ' + str(report_path))
 
