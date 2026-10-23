@@ -34,8 +34,8 @@ def cancellation_guard(error=LabFailure, message='Owned command cancelled'):
             state['delivered'] = True
             raise error(message)
 
-    _cancellation.state = state
     try:
+        _cancellation.state = state
         for number in previous:
             signal.signal(number, cancel)
         yield
@@ -127,26 +127,27 @@ class OwnedProcess:
         return self.process.wait(timeout=1), bytes(self.output)
 
     def close(self):
-        if self.selector is not None:
-            self.selector.close()
-        if self.process is None:
-            return
-        # Kill only the new session's group, including descendants after launcher exit.
-        try:
-            os.killpg(self.process.pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
-        try:
+        with defer_cancellation():
+            if self.selector is not None:
+                self.selector.close()
+            if self.process is None:
+                return
+            # Kill only the new session's group, including descendants after launcher exit.
+            try:
+                os.killpg(self.process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                self.process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                pass
+            try:
+                os.killpg(self.process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
             self.process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            pass
-        try:
-            os.killpg(self.process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        self.process.wait(timeout=2)
-        self.process.stdout.close()
-        self.process.stdin.close()
+            self.process.stdout.close()
+            self.process.stdin.close()
 
     def __exit__(self, *_):
         self.close()
