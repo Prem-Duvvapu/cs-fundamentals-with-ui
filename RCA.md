@@ -963,3 +963,26 @@ run's missing log cannot be retroactively inferred. Source: Nginx1.30.6 request 
 client_body_timeout documentation, checked2026-10-23.
 
 **Resolving commit:**0e4192e; final actual Nginx evidence pending.
+
+## RCA-2026-10-23-09 — first cancellation escaped persistence child cleanup
+
+**Observed:** the expanded persistence command helper performed its final stop/wait/pipe closure
+outside cancellation deferral. A positioned test sent the first actual TERM and INT when a
+READY-confirmed TERM-ignoring owned child entered deadline cleanup. Both original subcases
+returned with child.returncode=None; test fallback removed and waited only its exact children.
+
+**Cause:** startup ownership deferral did not cover first cancellation during ordinary teardown.
+The earlier SQL-resource cleanup guard and startup-signal cases exercised different boundaries.
+
+**Resolution:** defer the entire owned child stop/wait/stream-close sequence, then propagate the
+pending cancellation. Preserve non-group/library behavior and caller signal handlers/masks.
+
+**Verification/prevention:** the original implementation fails both new signal subcases; the
+corrected14-test guard suite passes. The positioned test requires SIGKILL fallback completed,
+direct child reaped/PID absent, all pipes closed, caller policy restored and another real process
+group alive. Actual final-source PostgreSQL16.15 verification also passes all12 tests without
+skips, ten case groups, real backup/restore and exact owned database/role removal. Source receipt
+is examples/backend-persistence/evidence/2026-10-23-local.json. No Docker or SIGKILL-cleanup
+guarantee is inferred.
+
+**Resolving commit:**8d10fbd.

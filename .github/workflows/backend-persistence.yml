@@ -32,6 +32,8 @@ jobs:
           python-version: '3.12'
       - name: Verify provisioning and privacy guards
         run: python3 -m unittest discover -s examples/backend-persistence -p 'test_verify.py' -v
+      - name: Resolve the declared Maven graph before the bounded offline verifier
+        run: timeout 180s mvn -B -ntp -f examples/backend-persistence/pom.xml verify
       - name: Start only this job's PostgreSQL with a generated password
         shell: bash
         run: |
@@ -50,13 +52,35 @@ jobs:
           done
           echo 'Owned PostgreSQL failed its readiness deadline' >&2
           exit 1
-      - name: Actual Hibernate pool migration dump and restore evidence
+      - name: Actual PostgreSQL concurrency plans Hibernate pool migration dump and restore
         env:
           PERSISTENCE_ADMIN_MODE: tcp
           PERSISTENCE_ADMIN_HOST: '127.0.0.1'
           PERSISTENCE_ADMIN_PORT: '55432'
           PERSISTENCE_ADMIN_USER: postgres
         run: python3 examples/backend-persistence/verify.py
+      - name: Require all actual suites and source-bound cleanup evidence
+        run: |
+          python3 - <<'PY'
+          import importlib.util, json, pathlib, sys
+          root = pathlib.Path('examples/backend-persistence').resolve()
+          sys.path.insert(0, str(root))
+          spec = importlib.util.spec_from_file_location('persistence_verifier', root / 'verify.py')
+          lab = importlib.util.module_from_spec(spec); spec.loader.exec_module(lab)
+          report = json.loads((root / 'target/evidence/verification.json').read_text())
+          assert report['schemaVersion'] == 2 and report['actualCaseGroups'] == 10
+          assert report['owned_resources_cleaned'] is True
+          assert 160000 <= report['postgres_version_num'] < 170000
+          assert report['sourceSha256LF'] == lab.source_hashes()
+          assert report['testSuites'] == {name: dict(tests=count, skipped=0, failures=0, errors=0) for name, count in lab.SUITES.items()}
+          assert report['restore']['equivalent_dataset'] is True
+          assert report['deadlock']['actualTwoWayBlockerCycle'] is True
+          assert report['deadlock']['repairedBothCommitted'] is True
+          assert [item['outcome'] for item in report['serialization-retry']['attempts']] == ['40001', 'COMMITTED']
+          assert len(report['retry-exhaustion']['serializationAttempts']) == 3
+          assert report['pagination']['mutableSortKeyKeyset'] == [3, 1]
+          print('PASS: 12 actual tests, 10 case groups, source integrity and cleanup')
+          PY
       - name: Upload actual test and restore evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -44,7 +44,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; configuration and JDI locally verified, release pending; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore; expanded concurrency/plans locally verified, release pending | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket; gateway/egress work open | API/security: REST + Spring Security |
@@ -746,3 +746,34 @@ separately and additionally requires the exact Nginx log408, while retaining log
 All16 native guards pass, including controlled realTCP408-versus-EOF distinction; final actual
 Nginx all20-case execution remains pending. RCA-2026-10-23-06 records the missing historical logs
 and selected-source finalization behavior without claiming every disconnect is a timeout.
+
+## Expanded PostgreSQL concurrency continuation — unreleased
+
+Source8d10fbd extends the existing [persistence incident guide](../examples/backend-persistence/README.md)
+with real PostgreSQL16 isolation histories, repeatable-read write skew, serializable rejection and
+whole fresh-transaction retry, finite exhaustion/nonretryable-state policy, observed two-way blocker
+cycle and consistent-order repair, OCC/pessimistic updates, composite covering-index XML plans and
+mutable-order pagination counterexamples. Existing JPA/pool/migration/restore exercises are retained.
+
+The [final-source local receipt](../examples/backend-persistence/evidence/2026-10-23-local.json)
+records all12 actual tests without skips, ten case groups, source identity, equivalent restored
+data/constraints/sequence state, observed Java17/PostgreSQL16.15/JDBC42.7.13 and exact generated
+role/database removal. All14 Python guards pass, including the positioned actual TERM/INT cleanup
+regression whose original code failed both subcases (RCA-2026-10-23-09). No shared server was stopped.
+
+The dedicated workflow resolves the complete Maven provider graph before provisioning its owned
+PostgreSQL container, then requires the full offline actual suite, case receipt and cleanup. Final
+Docker CI/platform checks and release remain required. Known-aborted retry scheduling is not a
+hard preemption deadline; policy assertions for unknown connections/lock timeouts are not induced
+network-failure evidence. No replication, HA, other-engine, production capacity or human outcome
+is established. This advances BE03 and BEC14–19/23/37/69 without closing their full learning gates.
+
+### Expanded database actual-container execution — release still pending
+
+Actual job40005144815/job120591046795 passes all12 required PostgreSQL tests with zero skips
+and all ten case groups at sourceheada7eccf3ce19342560de3331fb5bc2557dd864b0a. The
+[persistent source-bound CI receipt](evidence/POSTGRES_CONCURRENCY_CI_2026-10-23.json) retains
+actual PostgreSQL160015, observed Java17, real blocker/retry/query/pagination histories, equivalent
+restored data/constraints/sequence state and exact resource cleanup. This supersedes the preceding
+Docker-execution-pending note for that head. Final merged-integration checks and release remain
+required; no production performance, replication or participant result is inferred.

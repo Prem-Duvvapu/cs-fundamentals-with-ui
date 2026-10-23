@@ -1,6 +1,6 @@
 # Persistence incident lab
 
-Practice four database incidents using **actual PostgreSQL, Hibernate/JPA, HikariCP and PostgreSQL backup tools**. The data is a small original fixture; there is no real account, payment, customer or external service. Read the linked lessons for the concepts, then use this lab to predict a failure, observe evidence, diagnose it, apply a fix and explain its limits.
+Practice database histories, concurrency repairs, query plans and the original incidents using **actual PostgreSQL, Hibernate/JPA, HikariCP and PostgreSQL backup tools**. The data is a small original fixture; there is no real account, payment, customer or external service. Read the linked lessons for the concepts, then use this lab to predict a failure, observe evidence, diagnose it, apply a fix and explain its limits.
 
 Prerequisites: [JPA entity lifecycle and N+1](../../content/java-spring/04-jpa-hibernate-lifecycle.md), [query optimization](../../content/dbms/08-query-optimization.md), [transactions and recovery](../../content/dbms/06-transactions-acid.md), [practical SQL](../../content/dbms/12-sql-querying.md) and [production testing](../../content/java-spring/11-spring-testing-production.md).
 
@@ -15,7 +15,7 @@ python3 -m unittest discover -s examples/backend-persistence -p 'test_verify.py'
 mvn -B -f examples/backend-persistence/pom.xml verify
 ```
 
-The first command checks five provisioning/privacy guards without connecting to a database. The default Maven run passes two Java guards and **skips the three actual PostgreSQL tests**. It does not prove N+1, connection recovery, migrations or restore.
+The first command runs **13 provisioning, privacy, cancellation and process-budget guards** without connecting to PostgreSQL. The Maven command resolves the declared dependencies, passes two Java guards and **skips ten actual PostgreSQL tests**. It does not prove database behavior. Run it once before the actual runner: the runner uses offline Maven with empty settings and a finite deadline, so an empty dependency cache fails rather than silently using a different graph. The dedicated workflow performs this dependency-resolution step explicitly.
 
 To run the complete exercise against an already-running local server:
 
@@ -43,7 +43,7 @@ The `read` example is for zsh; in bash use `read -rs -p 'Local generated adminis
 The actual runner:
 
 1. Generates a unique application role and two unique databases.
-2. Executes all five Maven tests with actual database tests enabled, then rejects skipped/error/failure results.
+2. Executes all **12 Maven tests** across five suites with the ten actual database tests enabled, then rejects missing/skipped/error/failure results.
 3. Dumps a separate original fixture and restores it into the second fresh database.
 4. Checks data, constraints and sequence behavior.
 5. Removes only its two databases and its role, including failure paths; publishes the combined success report only after cleanup succeeds.
@@ -132,9 +132,109 @@ Each read uses a fresh `EntityManager`. Fixture creation is outside the measured
 
 **Explain in an interview.** “A backup is credible when I have restored it into isolation and checked data plus application invariants. I measure restore duration and recovery objectives separately. A successful small logical restore is not evidence of high availability or a production recovery SLA.”
 
-## 6. Boundaries, evidence and cleanup
+## 6. Read committed, repeatable read and serializable: observe the history
 
-The success evidence [2026-10-18-local.json](evidence/2026-10-18-local.json) was recorded on an actual local PostgreSQL 16.15 server, with **5/5 Maven tests, no skips**, five Python guard tests, actual dump/restore and successful resource cleanup. It is a sanitized small-fixture result, not a generated benchmark. The pool's observed milliseconds vary between runs.
+Read [transactions](../../content/dbms/06-transactions-acid.md) and [concurrency control](../../content/dbms/07-concurrency-control.md), then inspect `PostgresIsolationTest`. Each history uses two real JDBC connections and committed SQL, not an in-memory isolation simulator.
+
+**Predict.** A reader sees `(id=1,value=10)`. Another transaction changes it to 20 and inserts a matching second row. What can the reader see before the writer commits, after that commit, and in a fresh transaction?
+
+| Requested isolation | While writer is uncommitted | Reader after writer commits | Fresh reader transaction |
+| --- | --- | --- | --- |
+| Read uncommitted | Original value 10, count 1 | Value 20, count 2 | Value 20 |
+| Read committed | Original value 10, count 1 | Value 20, count 2 | Value 20 |
+| Repeatable read | Original value 10, count 1 | Value 10, count 1 | Value 20 |
+| Serializable | Original value 10, count 1 | Value 10, count 1 | Value 20 |
+
+**Observe.** These assertions deliberately capture PostgreSQL 16 behavior. Its read-uncommitted setting behaves as read committed; its repeatable-read snapshot prevents the phantom in this history. A generic minimum-guarantees table is insufficient to predict an engine's behavior. The report retains the requested JDBC value, actual `SHOW transaction_isolation` text and observed values/counts.
+
+**Diagnose.** Read committed takes a new snapshot for each statement. Repeatable read keeps the transaction snapshot. That repeatable view does not alone protect a constraint involving several rows: the separate duty-roster history starts with two active workers; two repeatable-read transactions each read two, deactivate a different worker, and both commit with **zero active**. No single row suffered a lost update, but the cross-row invariant failed.
+
+**Fix.** The serializable variant performs the same overlapping read decisions. PostgreSQL rejects one transaction with `40001`. A command in that still-failed transaction returns `25P02`; repeating only the failed statement cannot repair it. `TransactionRetry.run` rolls back, closes the borrow and starts the **whole decision** in a fresh transaction. Its second read sees one active worker and leaves that worker active. The recorded transaction IDs differ.
+
+**Change.** In the private fixture, replace serializable with repeatable read while keeping the invariant assertion: predict why the assertion fails. Restore the original level. Explain why locking every relevant invariant row can be another design, and why locking only the row each worker modifies would not protect this example.
+
+**Interview answer.** “I choose isolation from the invariant and the engine's actual behavior. PostgreSQL repeatable read prevents these phantom reads yet permits this write skew. Serializable detects the conflicting decisions; I retry the complete aborted transaction, re-read and revalidate, with a finite attempt budget.”
+
+## 7. Retry a known aborted transaction, stop when the budget ends
+
+**Predict.** Is a duplicate-key error retryable? Is a connection drop during commit proof that no change committed?
+
+**Observe.** The exhaustion case forces **three actual `40001` conflicts** against successive competing commits. The helper stops at three fresh transaction IDs and preserves the competitor's value 3. A real duplicate-key `23505` stops after one attempt. The helper also excludes `08006` and lock-timeout `55P03` from automatic retry; those exclusions are policy assertions, not induced network-failure evidence.
+
+**Diagnose.** Only `40001` and `40P01` are recognized as known-aborted transaction states in this small helper. It never converts unknown commit outcome into “failed, safe to repeat.” An external side effect inside the closure would not be undone by SQL rollback. Use idempotency/outbox mechanisms for that boundary.
+
+**Fix.** Keep the unit of retry an entire bounded transaction. The sample caps attempts at three, schedules no retry after its eight-second budget, and uses a small fixed 10/20 ms teaching delay. Statement/socket/connection deadlines remain independent bounds. This is not a hard preemption deadline or a measured production contention/backoff policy.
+
+**Change.** Set the maximum attempts to one: the successful-recovery scenario must stop with its first serialization failure. Restore the original. Explain how exponential backoff with jitter and a caller deadline would be selected under measured load rather than copied blindly.
+
+**Interview answer.** “Retrying the whole transaction can recover a known serialization abort; it does not make arbitrary errors or unknown commits safe. I cap attempts and total scheduling time, re-read state on each attempt, and keep nontransactional effects outside the retry closure.”
+
+## 8. Actual deadlock, lock-order repair, optimistic versus pessimistic updates
+
+`PostgresLockingTest` uses two worker-owned connections plus one observer. Only its generated schema contains fixture rows.
+
+**Predict.** Worker A updates row 1 then row 2; worker B updates row 2 then row 1. Both hold their first row lock before proceeding. How does this differ from one worker simply waiting for another?
+
+**Observe.** The observer reads `pg_stat_activity` and `pg_blocking_pids` until it sees both directed blocking edges. PostgreSQL chooses one `40P01` victim; its whole transaction is rolled back. The other commits and both row values become 1. The test does not assume which worker loses.
+
+**Fix.** Both repaired workers acquire rows in order 1 then 2. The observer proves the second waits for the first while the reverse edge is absent. Release the holder: both commit and values become 2. Consistent order repairs this two-row workload; other tables, triggers and resources must follow a consistent order too in a real system.
+
+**Diagnose.** A `55P03` lock timeout in the earlier lab is not a `40P01` deadlock. One blocking edge is not a cycle. Correlate blockers, transaction age and the actual SQL state; abort/retry policy must preserve the business invariant.
+
+The second test compares two concurrent counter updates:
+
+| Strategy | Actual observation | Final value/version |
+| --- | --- | --- |
+| Optimistic `UPDATE ... WHERE version=?` | Both read version 0; one update changes zero rows and rolls back; a fresh decision/transaction succeeds | 2 / 2 |
+| Pessimistic `SELECT ... FOR UPDATE` | Observer proves the second worker waits; after release it reads the committed winner's value 1 | 2 / 2 |
+
+**Change.** Remove the optimistic version predicate in the private experiment. Which assertion now fails, and what additional read-modify-write pattern would produce an actual lost update? Restore it. For the deadlock repair, reverse only one worker's row order and predict the return of the cycle.
+
+**Interview answer.** “Optimistic concurrency detects a stale application version by affected-row count; pessimistic locking waits before making the protected decision. Both still use database locks. I choose from conflict rate, invariant scope and wait budgets, then test both successful final state and conflict behavior.”
+
+## 9. Composite covering index: preserve results, inspect actual work
+
+`PostgresAccessPathTest` seeds **20,000 synthetic rows** and uses real `EXPLAIN (ANALYZE, BUFFERS, FORMAT XML)`. The fixed query filters `tenant=42 AND status='open'`, orders by `created_seq,id`, returns payload, and limits to 20.
+
+**Predict.** Which columns should establish the equality prefix and ordering? Does `INCLUDE(payload)` make payload another search key?
+
+**Observe.** Before the index the plan uses a sequential scan and sort. The index `(tenant,status,created_seq,id) INCLUDE(payload)` yields equivalent ordered rows via an index-only scan without a sort. The fixture explicitly vacuums/analyzes first; its observed heap-fetch count is zero. A broad aggregate still chooses a sequential scan. The receipt records sanitized node types, actual/estimated rows, buffers, index size and write WAL counters; it records no query or data values from outside this fixture.
+
+**Diagnose.** A covering index can answer this projection, but visibility checks can still require heap access when pages are not all-visible. `INCLUDE` increases index storage/write work without extending the search-key order. The broad-query case prevents treating “any sequential scan” as a performance bug.
+
+**Fix.** Compare result equality and plan work for the actual query. The deep-offset query reads **80 index rows** to return 20; the equivalent tuple-cursor query reads **20**. An `EXPLAIN ANALYZE ... UPDATE` actually executes the update: this test uses an explicit transaction, observes nonzero WAL records, rolls back, and rechecks original query results. Rollback does not erase already-generated WAL. These counts are fixture observations, not throughput or latency promises.
+
+**Change.** Remove `INCLUDE(payload)` and predict why the index-only assertion fails. Restore it. Explain the difference between estimated rows, actual rows per loop, buffer activity and wall-clock latency before proposing an index for production.
+
+**Interview answer.** “I start from filters, ordering and projection, then compare plans and equivalent output. This selective query benefits from the composite covering index, while the broad query does not. I account for visibility, write amplification, index size and workload rather than claiming every index is an improvement.”
+
+## 10. Pagination under insert, delete and mutable ordering
+
+The small feed orders by **`position,id`**: the unique ID is a tie-breaker, not a claim that position never changes. First page `[1,2]` ends at tuple `(20,2)`.
+
+| Change between pages | Offset page (`OFFSET 2`) | Keyset page (`WHERE (position,id)>(20,2)`) |
+| --- | --- | --- |
+| Insert ID 6 before the cursor | `[2,3]`: duplicates ID 2 | `[3,4]` |
+| Delete ID 1 before the cursor | `[4,5]`: skips ID 3 | `[3,4]` |
+| Move seen ID 1 after the cursor and unseen ID 4 before it | Not asserted in this case | `[3,1]`: repeats ID 1 and misses moved ID 4 |
+
+**Predict.** Why does a stable tie-breaker avoid equal-key ambiguity but fail to freeze mutable sort values?
+
+**Observe.** A separate repeatable-read transaction retains `[3,4]` as the remaining page despite concurrent insert/delete/reorder commits. Both offset and keyset agree within that snapshot. The test commits that short snapshot afterward; it does not keep a transaction open across web requests.
+
+**Diagnose.** Keyset pagination avoids positional shifts from the first two mutations and limits deep-offset scan work. It is not automatically a snapshot of a changing result set. Decide whether the product promises a live feed, immutable-order traversal, or a stable export. Filters, tenant authorization and the whole ordering tuple must belong to the cursor contract; this SQL exercise does not implement a public cursor API.
+
+**Change.** Remove `id` from `ORDER BY` in a private experiment. Explain why equal positions lose a deterministic order even if one execution happens to look stable. Restore the tie-breaker, then describe the retention and database cost of a long-lived snapshot versus materializing an export.
+
+**Interview answer.** “I use keyset pagination for stable ordered traversal and deep-page efficiency, with a unique tie-breaker. Concurrent updates to the ordering key can still repeat or miss rows. For a stable export I need an explicit snapshot/materialization design and its lifetime/capacity limits.”
+
+## 11. Boundaries, evidence and cleanup
+
+The historical success evidence [2026-10-18-local.json](evidence/2026-10-18-local.json) was recorded on an actual local PostgreSQL 16.15 server, with **5/5 Maven tests, no skips**, five Python guard tests, actual dump/restore and successful resource cleanup. It is a sanitized small-fixture result, not a generated benchmark. The pool's observed milliseconds vary between runs.
+
+The expanded [2026-10-23 local receipt](evidence/2026-10-23-local.json) records PostgreSQL 16.15, Java 17.0.20.1 and **12/12 Maven tests with zero skips**, all ten case groups, equivalent restored data and exact resource cleanup. The 14 Python guards also passed separately, including actual first TERM/INT during child cleanup. This local run does not establish Docker execution.
+
+The expanded runner now requires **12/12 Maven tests with zero skips**, all ten case reports and actual restore before publishing success. Its receipt binds the normalized source hashes before/after execution and records the observed PostgreSQL, JDBC and Java runtime in the isolation case. Inspect `target/evidence/verification.json` from your run; the older five-test receipt does not establish the new cases.
 
 The [dedicated workflow](../../.github/workflows/backend-persistence.yml) exercises the same actual runner with a pinned PostgreSQL 16.15 image, generated secrets and a no-skip gate. Its container provisioning/transport still requires its own CI run; the committed local evidence is not a claim that GitHub Actions or Docker ran locally.
 
@@ -144,12 +244,24 @@ The [dedicated workflow](../../.github/workflows/backend-persistence.yml) exerci
 | Administrator destination | Explicit socket or `127.0.0.1` TCP mode; no ambient `PGHOSTADDR`, service or options override |
 | Ownership | UUID-generated DBs/role/schema; strict identifiers; cleanup targets only tracked resources |
 | Credentials | Generated runtime secrets, environment transport, no secret CLI argument; administrator variables excluded from Maven's environment |
-| Connection work | Pool max 2, 500 ms acquisition, 250 ms validation; JDBC connect 2 s and socket 3 s |
-| SQL | 3 s statement, 1 s lock, 5 s idle-in-transaction limits; bounded backfill |
-| Processes | 30 s PG-tool deadline; Maven 180 s, then terminate/kill only its owned process group |
-| Resources | JUnit 30 s/test; owned executors/connections/EntityManagers/pools closed; temporary archive removed |
+| Connection work | Pool max 2 (3 for two-worker-plus-observer tests), generated role connection limit 4, 500 ms acquisition, 250 ms validation; JDBC connect 2 s and socket 3 s |
+| SQL | 3 s statement, 1 s default lock, 5 s idle-in-transaction limits; concurrency histories use explicit 2.2 s lock / 2.5 s statement limits; bounded backfill |
+| Processes | 480 s work budget, separate 90 s exact-cleanup budget; 30 s PG tools, Maven 180 s; finite binary input/output and owned process-group termination |
+| Resources | JUnit 30 s/original test, 35 s/concurrency test; owned executors/connections/EntityManagers/pools closed; temporary archive removed |
 | Publication | Previous success report removed at run start; new success only after cleanup; failed/skipped actual tests reject verification |
 
 Runtime artifacts stay under ignored `target/`; only reviewed sanitized evidence is committed. No learner telemetry is collected. The module deliberately does not add a second CRUD app, an in-memory substitute for PostgreSQL evidence, production credentials, or cloud dependencies.
 
+TERM/INT cancellation is opt-in for the executable, leaves library callers’ signal handlers/masks unchanged, and defers delivery across process ownership and exact database cleanup. Repeated cancellation cannot interrupt that finite cleanup; SIGKILL or host failure can. Twelve actual tests and successful cleanup must be established by the runner, not inferred from compilation or guard tests.
+
 Primary references: [Hibernate fetching strategies](https://docs.hibernate.org/orm/7.4/userguide/html_single/#fetching), [Hikari configuration](https://github.com/brettwooldridge/HikariCP#configuration-knobs-baby), [PostgreSQL 16 pg_dump](https://www.postgresql.org/docs/16/app-pgdump.html), [pg_restore](https://www.postgresql.org/docs/16/app-pgrestore.html), [ALTER TABLE locks and constraints](https://www.postgresql.org/docs/16/sql-altertable.html) and [sequence non-rollback behavior](https://www.postgresql.org/docs/16/functions-sequence.html). Versions and references checked 2026-10-18.
+
+Concurrency references checked 2026-10-23: [PostgreSQL 16 isolation](https://www.postgresql.org/docs/16/transaction-iso.html), [explicit locking and deadlocks](https://www.postgresql.org/docs/16/explicit-locking.html), [index-only scans and visibility](https://www.postgresql.org/docs/16/indexes-index-only-scans.html), and [LIMIT/OFFSET ordering and work](https://www.postgresql.org/docs/16/queries-limit.html). These explain the engine behavior the fixed local histories exercise.
+
+The command helper defers cancellation through the complete stop/wait/pipe-close sequence. A
+positioned regression sends the first actual TERM or INT after a READY-confirmed, TERM-ignoring
+child reaches cleanup. The owned child must be killed and waited, its pipes closed, caller
+handlers/masks restored and a separate process group left alive before cancellation is delivered.
+This is bounded executable cleanup, not a SIGKILL or production database recovery guarantee.
+
+Primary PostgreSQL16 references checked2026-10-23: [transaction isolation](https://www.postgresql.org/docs/16/transaction-iso.html), [serialization failure handling](https://www.postgresql.org/docs/16/mvcc-serialization-failure-handling.html), [explicit locking/deadlocks](https://www.postgresql.org/docs/16/explicit-locking.html) and [index-only/covering scans](https://www.postgresql.org/docs/16/indexes-index-only-scans.html). The sample deliberately rejects23505 automatically; PostgreSQL documents cases where application-specific retry may be appropriate. Determine that from the invariant rather than treating every unique violation as transient or permanently nonretryable.

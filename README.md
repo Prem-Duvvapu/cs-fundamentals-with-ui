@@ -600,3 +600,5 @@ scoped cancellation/cleanup guards; normal success still requires every actual t
 The gateway exercise distinguishes a received response from an idle-body connection close. Its
 timeout acceptance also requires the actual matching Nginx408 log, so a disconnect never becomes
 a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.
+
+Practice [PostgreSQL concurrency and access paths](examples/backend-persistence/README.md#6-read-committed-repeatable-read-and-serializable-observe-the-history) after the DBMS lessons. Predict actual snapshots, reproduce write skew and deadlock, retry the whole known-aborted transaction, compare optimistic/pessimistic decisions, and inspect equivalent query results and index work. Finish with mutable-order pagination counterexamples and a real isolated restore. The expanded local runner passes12 actual tests without skips; Docker CI is separate evidence.
