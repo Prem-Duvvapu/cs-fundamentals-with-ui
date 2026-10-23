@@ -17,7 +17,7 @@ exact-Pod FailedScheduling event, unchanged Service and EndpointSlice identities
 and recovery. DNS success/connection failure with zero ready endpoints is distinct from an HTTP
 status. Removing only the selector must produce a new scheduled healthy Pod, exact ready endpoint
 and actual authenticated Service200. Its version-3 receipt retains the prior eight required cases;
-the 16 local contracts and actual cluster run remain separate checks.
+the 17 local contracts and actual cluster run remain separate checks.
 
 The existing debugging, engineering, gateway and SSRF executable guards now defer their complete
 owned cleanup before delivering the first pending TERM/INT. Debugging/engineering also restore
@@ -36,6 +36,12 @@ on normal/error caller/nested exits; four helpers also exercise partial-entry ro
 no mask, import-time policy, frozen prompt/default or business behavior. Current native guard
 results and before/after source identities are retained in the lifecycle evidence, separate from
 the required actual service jobs. The full Spring/JDI rerun passes all11 tests locally.
+
+EndpointSlice parsing shares one bounded shape check between ordinary observation and scheduling
+ownership validation. Null/missing/empty endpoint arrays mean no backends; malformed arrays still
+fail, and empty data cannot bypass Service/namespace identity. The scale-to-zero observation is
+saved before the Pending mutation so final CI can inspect the actual drained slices. RCA17 below
+means RCA-2026-10-23-17; its first actual failed run cleaned up but did not complete all nine cases.
 
 `AiTelemetry` instruments actual nonstream lexical RAG request/retrieval/context/model/native
 HTTP/validation boundaries only when explicitly enabled. The original no-op constructors/default

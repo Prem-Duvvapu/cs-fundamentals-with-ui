@@ -65,7 +65,7 @@ From the repository root, first run the native contracts:
 python3 -m unittest discover -s examples/backend-operations -p test_contracts.py -v
 ```
 
-These **16** tests validate ownership, context selection, credential redaction,
+These **17** tests validate ownership, context selection, credential redaction,
 resource/probe manifests, reviewed base pins, cleanup decisions and an actual
 owned subprocess deadline. They compile `ResourceProbe.java` for Java 17 and reject
 unknown modes before work. Resource guards reject an ordinary exit 137 masquerading
@@ -313,6 +313,13 @@ before changing heap, container limits or workload concurrency.”
 
 
 ## 7. Diagnose Pending before changing a probe
+
+The drain can produce an EndpointSlice with `endpoints: null`, an omitted field or an empty array.
+The runner treats each as zero backends while still validating exact Service/namespace ownership;
+wrong-shaped scalar/object values are rejected. It retains the actual drained-slice response before
+the scheduling mutation. The [versioned API type](https://github.com/kubernetes/api/blob/v0.37.0/discovery/v1/types.go#L49-L54)
+declares an optional endpoint slice. Native shape checks supplement the required actual cluster
+run; they do not manufacture a successful Service observation.
 
 **New extension status:** native guards pass; the ninth actual case is not verified
 until the mandatory fresh-kind CI run succeeds. No local Docker run is claimed.

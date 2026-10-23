@@ -946,3 +946,13 @@ persistence15, Redis5, WebSocket9 and AI comparison16. The refreshed actual priv
 receipt and actual SSRF receipt bind their current executable/guard sources. RCA-2026-10-23-16
 records the separate failure boundary and limitations. No frozen prompts/defaults or live model
 quality changes. Final-head actual domain/service/cluster CI and merged release remain required.
+
+### First actual scheduling run exposed null EndpointSlices — rerun required
+
+Atb13114c, all other dedicated service checks pass, while actual kind40019384412 fails during
+the scale-to-zero drain with TypeError from a null endpoints field. The failure receipt records
+five cases and cleanup, not nine-case success. Fixcc7e16d accepts the API's null/missing/empty
+arrays in both readers, rejects malformed values and keeps ownership checks. All17 native
+contracts pass; actual drained slices are now retained and revalidated. The
+[failed-run record](evidence/EMPTY_ENDPOINT_SLICE_2026-10-23.json) and RCA-2026-10-23-17 retain
+the evidence and limits. Full final-head CI and the complete actual cluster rerun remain required.

@@ -636,6 +636,11 @@ contracts do not substitute for actual kind execution.
 The teaching command helpers also retain their existing opt-in cancellation policy through
 scope entry and complete normal cleanup. Local checks cover debugging (11), engineering (20),
 gateway (21), SSRF (20 with 26 actual HTTP requests), replication guards (19) and operations
-contracts (16); five debugging process guards and its six actual Spring/JDI tests are distinct. Read the [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) for the exact
+contracts (17); five debugging process guards and its six actual Spring/JDI tests are distinct. Read the [process audit](docs/PROCESS_LIFECYCLE_AUDIT_2026-10-23.md) for the exact
 reproductions and remaining unassessed boundaries. Combined final-head service/cluster CI and
 release are still required; these counts are separate evidence scopes, not one platform test total.
+
+The first actual nine-case cluster attempt exposed a drained EndpointSlice with null endpoints.
+The reader now accepts null/missing/empty arrays as no backends while rejecting malformed values
+and retaining Service/namespace ownership checks. The 17 local contracts pass; the complete actual
+cluster rerun remains required before release.

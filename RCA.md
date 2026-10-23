@@ -1243,3 +1243,30 @@ partial-entry rollback where implemented, startup ownership and successful/timeo
 
 **Resolving commits:**19c406231fff51732cc0272a2dbeb35c024312a7,
 7d6a0f221f614dfad2dbd1e7198179d0ee21f89c,1bde055a743b6b173aeecfab54f31df2238331ba.
+
+## RCA-2026-10-23-17 — a drained EndpointSlice used a null endpoint array
+
+**Observed:** actual kind run40019384412/job120639672759 atb13114c fails after scaling the owned
+Deployment to zero. Lab.endpoints iterates item.get('endpoints',[]) and raises TypeError because
+the returned field is null. Its final receipt records five executed cases and verified cleanup;
+the new scheduling and resource cases are not completed. The drained raw response was not saved
+before failure, so the traceback—not a reconstructed fixture—is the retained actual observation.
+
+**Cause:** the existing reader's default handles an omitted field but not an explicit null value.
+The new scale-to-zero case exposes an empty API shape that previous guards modelled only as an
+empty list. The scheduling-specific reader repeats the same assumption. Kubernetes api/v0.37.0
+discovery/v1 declares Endpoints as an optional slice; nil/empty are not usable backend entries.
+
+**Resolution:** share endpoint-array decoding that accepts null/missing/empty as no entries and
+rejects non-array or non-object values. Preserve ownership validation before decoding the owned
+slices. Save the actual drained EndpointSlices and require no ready endpoints in final CI before
+the Pending mutation. Keep all original eight cases plus the ninth scheduler/recovery case.
+
+**Verification/prevention:** tests-first70ad3e0 fails against the old reader (one failure/five
+errors) on null/malformed variants. Fixed17-test native suite passes in2.956s, exercising both
+readers, omitted/empty/null variants, malformed values and foreign namespace/Service owners even
+with no endpoints. The sanitized record is docs/evidence/EMPTY_ENDPOINT_SLICE_2026-10-23.json.
+All final-head actual checks and a complete nine-case kind rerun remain required; the failed
+five-case cleanup receipt or17 native guards cannot substitute for that execution.
+
+**Resolving commit:**cc7e16db40530c42f269d55725c68fcfa7a5d44e.

@@ -12,6 +12,12 @@ startup/child-cleanup fixes. Current local suites: debugging11, engineering20, g
 SSRF20/26HTTP, replication19, persistence15, cache5, WebSocket9 and AI comparison16.
 Native guards never replace required actual domain/service/cluster execution.
 
+EndpointSlice arrays may be null when the owned workload is drained. Keep shared null/missing/
+empty handling and malformed-array rejection in both normal and scheduling readers; an empty
+array must not bypass Service/namespace ownership checks. Retain raw drained-slice evidence and
+all17 native contracts. A cleanup-success receipt from the first failed five-case run is not
+nine-case execution proof; require the final actual kind gate. See RCA-2026-10-23-17.
+
 The [replication lab](examples/backend-replication/README.md) may operate only on its two generated
 private PostgreSQL 16 clusters, never the shared local server. Preserve actual recovery/pause/LSN
 and timeline checks, old-writer process/listener fencing before promotion, missing acknowledged row
@@ -25,7 +31,7 @@ The operations gate now requires nine actual kind cases and schemaVersion3, incl
 eight. The Pending case must keep exact scheduler reason/event and Pod/ReplicaSet/Deployment/
 Service/EndpointSlice ownership, zero endpoints, actual DNS success plus connection failure, then
 selector-only repair and fresh authenticated Service200. Do not mutate Nodes or substitute Pending
-alone for a diagnosis. Sixteen local contracts do not establish actual cluster execution.
+alone for a diagnosis. Seventeen local contracts do not establish actual cluster execution.
 
 Engineering/gateway command cleanup and SSRF resolver finalization must remain wholly deferred
 under the existing opt-in policy, including first cancellation on success and timeout. SSRF must
