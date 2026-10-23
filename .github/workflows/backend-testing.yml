@@ -43,7 +43,7 @@ jobs:
       - name: Actual PostgreSQL Testcontainers HTTP concurrency and error-inclusive load
         run: python3 examples/backend-testing/verify.py
       - name: Upload sanitized actual evidence only
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: actual-testcontainers-http-load
           path: examples/backend-testing/target/evidence/*.json
