@@ -564,7 +564,7 @@ This provides executable debugging evidence; a real learner's IDE session remain
 
 The [gateway exercise](examples/backend-gateway/README.md) connects actual Nginx to the unchanged
 Task Tracker. Predict forwarded-header trust, service authorization/CSRF,429 versus503/504,
-body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its fifteen
+body limits and reload behavior, then inspect the source-bound HTTP receipt. Run its sixteen
 native guards first; actual execution requires the documented local Docker prerequisites and
 all20 assertions with cleanup. Plain loopback HTTP, per-instance limiting and controlled fixtures
 are teaching boundaries rather than a production deployment claim.
@@ -584,3 +584,7 @@ The WebSocket preparation command executes policy tests before its offline trans
 those tests can leave the JUnit provider missing on a fresh runner. Failed phases expose only
 sanitized phase/test-source diagnostics. See the guide for the cold-provider reproduction and
 scoped cancellation/cleanup guards; normal success still requires every actual transport case.
+
+The gateway exercise distinguishes a received response from an idle-body connection close. Its
+timeout acceptance also requires the actual matching Nginx408 log, so a disconnect never becomes
+a fabricated client status. Sixteen native guards precede the mandatory20 actual HTTP cases.

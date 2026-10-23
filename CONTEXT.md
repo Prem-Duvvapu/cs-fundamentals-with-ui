@@ -755,3 +755,8 @@ compares reviewed fixture patches using actual Java 17 compilation, independent 
 tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
+
+The gateway stalled-body observation records received HTTP status separately from EOF-before-status.
+Acceptance additionally requires the matching access-log408. A wire close alone is insufficient;
+Nginx timeout finalization can terminate a request without sending a response status. Failed-run
+logs are retained before cleanup, without swallowing cancellation or changing the20-case gate.

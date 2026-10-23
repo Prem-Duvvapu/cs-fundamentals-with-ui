@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR84 (October 21) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged PR86 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -47,7 +47,7 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | BE-03 / P0 | Partial: real PG/JPA/pool/migration/restore labs | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; concurrent rebalance extension compiled/reviewed, actual CI pending | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability lab | Reliability: Spring caching/async + network application layer |
-| BE-06 / P1 | Partial: actual OAuth/JWT, signed webhooks and PR81 registered-partner SSRF; production gateway/egress work open | API/security: REST + Spring Security |
+| BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket; gateway/egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
 | BE-08 / P1 | Partial: actual kind recovery, heap/cgroup OOM and CPU throttling CI verified; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
@@ -660,3 +660,23 @@ records all22 actual cases and observed offline/preparation metadata; the Octobe
 historical. All8 Python guards pass, including scope-entry restoration and first-signal successful
 cleanup; the original cleanup implementation fails both new signal subcases. RCA-2026-10-23-03
 records these scoped observations. Remote actual-service CI remains a release gate.
+
+## PR86 merged release evidence — October23
+
+PR [86](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/86) merged at
+2026-10-23T18:05:39Z asb1487113ba27b35cf1a4e85e83659a9d5a119c3f. Exact head
+f7b2a41d4d3ad054e021bc0bdd81aa41c81fcd41 passed all ten checks: actual-session-websocket,
+Verify's six jobs, GitGuardian and both Vercel checks. The actual job39998324394 observes Java
+17.0.20.1+1, all22 transport cases,9 preparation policy tests followed by offline verification,
+source hashes matching the submitted head, closed application contexts and zero active reservations.
+This supersedes earlier WebSocket release-pending notes, not human/browser, distributed-session
+or TCP-stall limitations. Core platform and real-backend browser checks also pass.
+
+### Gateway timeout evidence correction — October23
+
+Run39999874593 proves13 actual HTTP assertions and the single-JVM32-PID diagnostic setup before
+a stalled-body EOF defeats the old client408 expectation. Source0e4192e records wire outcome
+separately and additionally requires the exact Nginx log408, while retaining logs on failed runs.
+All16 native guards pass, including controlled realTCP408-versus-EOF distinction; final actual
+Nginx all20-case execution remains pending. RCA-2026-10-23-06 records the missing historical logs
+and selected-source finalization behavior without claiming every disconnect is a timeout.

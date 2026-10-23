@@ -883,3 +883,30 @@ entry TERM/INT cover caller and nested restoration. Final remote CI remains requ
 failure is not declared fully diagnosed until the new actual-service check passes.
 
 **Resolving commit:**f31d66a; source-bound final local receipt WEBSOCKET_SESSIONS_2026-10-23.json.
+
+## RCA-2026-10-23-06 — gateway timeout expectation confused server and wire status
+
+**Observed:** actual gateway job120572873600 in run39999874593 passes13 HTTP assertions,
+including the direct service401, and observes one diagnostic JVM under the configured32-PID cap.
+The stalled-body client then receives EOF before any HTTP status, raising RemoteDisconnected.
+Cleanup succeeds. The old failed run did not retain gateway logs before teardown, so its server
+status is not invented from that EOF.
+
+**Cause:** the test assumed every request classified408 by Nginx must transmit a408 status line.
+Selected Nginx1.30.6 ngx_http_finalize_request sends request-timeout outcomes through request
+termination before the normal special-response path. Server classification and client observation
+are different evidence. The late-only log collection hid the missing distinction on early failure.
+
+**Resolution:** record HTTP408 and EOF-before-status as separate wire outcomes; never relabel EOF.
+Final acceptance also requires exactly the stalled-body access-log entry with status408, so arbitrary
+disconnects cannot pass. Keep all20 assertions. Retain bounded credential-redacted gateway logs
+before failed-run cleanup; cancellation still propagates after owned cleanup.
+
+**Verification/prevention:** all16 native guards pass. A real owned TCP fixture separately emits408
+or closes after reading the first body byte; the client must report the two different outcomes,
+without a fabricated status or leaked thread. These fixtures are not Nginx evidence. Final actual
+CI must establish the wire observation plus matching server408 and all remaining cases. The prior
+run's missing log cannot be retroactively inferred. Source: Nginx1.30.6 request finalization and
+client_body_timeout documentation, checked2026-10-23.
+
+**Resolving commit:**0e4192e; final actual Nginx evidence pending.
