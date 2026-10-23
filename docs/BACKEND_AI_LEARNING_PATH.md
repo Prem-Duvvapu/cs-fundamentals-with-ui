@@ -185,6 +185,12 @@ can succeed before its offset commit. Follow the exact record after member depar
 why the durable inbox suppresses a second effect. Compare that controlled close with the separate
 actual process-crash saga cases; neither implies global exactly-once processing.
 
+For the gateway boundary, use [Nginx to Task Tracker](../examples/backend-gateway/README.md).
+Predict whether forged identity metadata or gateway authentication can bypass service ownership
+or CSRF. Explain429/503/504 using the actual main-upstream log evidence, not status alone.
+Compare a valid reload with unchanged service work after a client timeout. Native guards and
+actual Docker/Nginx observations are separate; follow the exact owned cleanup procedure.
+
 For session lifetime and long-lived connections, use [the authenticated WebSocket exercise](../examples/backend-websocket/README.md).
 Predict login-CSRF and fixation behavior, inspect the real cookie upgrade, then compare an
 established socket's logout with an upgrade paused across reauthentication. Explain why current

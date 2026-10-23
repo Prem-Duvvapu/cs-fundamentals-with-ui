@@ -1,5 +1,14 @@
 # Backend Engineering — System Architecture & Development Context
 
+`examples/backend-gateway` is an isolated Docker learning journey using actual digest-pinned
+Nginx, unchanged Task Tracker build input and a Java metadata/fixed-service-read fixture on a private network.
+Only the gateway joins a second owned publishing bridge and publishes an ephemeral loopback port. The service retains authentication,
+CSRF, role and owner decisions; the fixed GET auth subrequest also consumes service work.
+Actual HTTP/log evidence distinguishes gateway429, service503 and upstream-timeout504, checks
+framing/forwarding, and observes valid reload recovery. Bounded clients/processes, no-skip CI,
+source hashes and exact container/network/tag cleanup are mandatory. The diagnostic server reuses one JVM under its32-PID cap; direct401 observation does not start another process. The native guards are
+separate from actual Nginx evidence; no platform routes or shared learner telemetry are added.
+
 `examples/backend-websocket` extends unchanged Task Tracker sources in an isolated Boot4.1.1
 module with the matching WebSocket starter. A narrow ordered chain establishes real servlet
 session login while original REST checks remain. Live authenticated session/principal membership
@@ -746,3 +755,8 @@ compares reviewed fixture patches using actual Java 17 compilation, independent 
 tests, Git diff checks and offline Maven resolution. It accepts no external patch/source input;
 a temporary folder is not a sandbox. The Java primitive lesson now includes the S03 source-review
 teaching corrections while preserving existing diagrams, questions and learner identities.
+
+The gateway stalled-body observation records received HTTP status separately from EOF-before-status.
+Acceptance additionally requires the matching access-log408. A wire close alone is insufficient;
+Nginx timeout finalization can terminate a request without sending a response status. Failed-run
+logs are retained before cleanup, without swallowing cancellation or changing the20-case gate.

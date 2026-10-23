@@ -2,6 +2,20 @@
 
 ## Current completion scope — October 21
 
+The [gateway lab](examples/backend-gateway/README.md) puts digest-pinned actual Nginx in front
+of unchanged Task Tracker source. Keep the fixed auth subrequest, service CSRF/role/owner checks,
+actual-peer metadata, finite body/time/rate limits and exact labelled-resource cleanup. Native
+sixteen-test success is not Nginx execution: dedicated CI requires all20 actual HTTP assertions,
+source-bound receipt, status/log distinctions and reload-worker replacement with no skips. Owned
+command groups must be stopped even after their launcher exits; preserve caller signal policy,
+non-group semantics and unrelated processes. No production TLS/global-quota/egress claim is made.
+The diagnostic fixture reuses its one server JVM and bounded HTTP client for the fixed forged-
+identity service read. Keep the observed single-JVM/32-PID gate; do not start a second diagnostic
+JVM inside that same finite container or infer heap exhaustion from a native-thread error.
+Preserve timeout wire/log separation: EOF is not a receivedHTTP408. The stalled-body case must
+also have its exact Nginx access-log408; arbitrary disconnects never satisfy it. Retain bounded
+redacted gateway logs before failed-run teardown and preserve cancellation through cleanup.
+
 The [session/WebSocket lab](examples/backend-websocket/README.md) imports unchanged Task Tracker
 source and adds only its explicit lab routes and ordered session-login chain. Keep real form
 login/CSRF/ID rotation, exact bound Origin, cookie-only identity and service authorization. Upgrade
