@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "execution": "actual-owned-loopback-http-and-tls",
-  "executedAt": "2026-10-23T20:01:32.940159+00:00",
+  "executedAt": "2026-10-23T20:21:07.065895+00:00",
   "addressPolicyVersion": "partner-address-v1-2026-10-21",
   "runtime": {
     "python": "3.13.3",
@@ -14,10 +14,11 @@
     "fixtures.py": "8c709d1a48f2f4d6befe8da752d3eac0069f69702f921b75f92f808f793c0dc4",
     "test_fetch.py": "7650eb798f11f24430b0f192c7b1d20b4b5035e51f07d80365ba156a764daa2b",
     "test_resolver_cleanup.py": "1c11914cecdbf2fda9abac1593269fec9d1a76d751dea84beb9fe20b60d6c84f",
-    "verify.py": "dd00eef1d99c213195454c18c07255a6b56773cf61ec7e5849c65d5249327342",
-    "cancellation.py": "a4365aad5367ae166f144b0001879d2f135b624194396a69ec24d22149cb24a8"
+    "test_scope_restoration.py": "18b7f913e6a663e25b39de06f7aa29d2278b98d962b06339b2c50936fff82558",
+    "verify.py": "ad646416b11815282e159395a88a284972f22c63901562086dcb8f2360f82284",
+    "cancellation.py": "d54b5d939ce405774a766532a3a0cef90f5ea1b37e5e03ee2ac08387bffd7b7e"
   },
-  "testsRun": 18,
+  "testsRun": 20,
   "failures": 0,
   "errors": 0,
   "skipped": 0,
@@ -94,7 +95,7 @@
       "childExitCode": -9,
       "childReaped": true,
       "httpRequests": 0,
-      "elapsedMillis": 153
+      "elapsedMillis": 154
     },
     {
       "case": "actual_redirects_same_authority_and_decoy",
@@ -116,7 +117,7 @@
       "case": "actual_stalled_body_and_slow_drip_deadlines",
       "failedRequests": 2,
       "overallBudgetMillis": 500,
-      "slowDripElapsedMillis": 502
+      "slowDripElapsedMillis": 501
     },
     {
       "case": "actual_spawn_ownership_term_int_and_threaded_delivery",
@@ -211,6 +212,128 @@
       "recoverySucceeded": true,
       "callerPolicyPreserved": true,
       "unrelatedGroupPreserved": true
+    }
+  ],
+  "scopeRestorationCases": [
+    {
+      "signal": "SIGTERM",
+      "nested": false,
+      "mode": "normal",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGTERM",
+      "nested": false,
+      "mode": "body-error",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGTERM",
+      "nested": false,
+      "mode": "entry-rollback",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGTERM",
+      "nested": true,
+      "mode": "normal",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGTERM",
+      "nested": true,
+      "mode": "body-error",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGTERM",
+      "nested": true,
+      "mode": "entry-rollback",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGINT",
+      "nested": false,
+      "mode": "normal",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGINT",
+      "nested": false,
+      "mode": "body-error",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGINT",
+      "nested": false,
+      "mode": "entry-rollback",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGINT",
+      "nested": true,
+      "mode": "normal",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGINT",
+      "nested": true,
+      "mode": "body-error",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
+    },
+    {
+      "signal": "SIGINT",
+      "nested": true,
+      "mode": "entry-rollback",
+      "actualSignals": 1,
+      "callerExceptionPreserved": true,
+      "handlersRestored": true,
+      "outerStateRestored": true,
+      "maskPreserved": true
     }
   ],
   "limitsOfEvidence": [
