@@ -10,6 +10,7 @@ public class AiBackendApplication {
         if (args.length > 0 && args[0].equals("--observe-fixture")) { AiObservabilityDemo.run(args); return; }
         if (args.length > 0 && args[0].equals("--stream-check")) { StreamingOllamaDemo.run(args); return; }
         if (args.length > 0 && args[0].equals("--evaluate-workflow")) { EvaluateWorkflow.run(args); return; }
+        if (args.length > 0 && args[0].equals("--evaluate-semantic")) { SemanticEvaluation.run(args); return; }
         if (args.length > 0 && args[0].equals("--evaluate-rag")) { EvaluateKnowledge.run(args); return; }
         if (args.length > 0 && (args[0].equals("--evaluate") || args[0].equals("--evaluate-rules"))) { EvaluateTickets.run(args); return; }
         if (args.length == 2 && args[0].equals("--mcp-server")) { ReadOnlyMcpDemo.server(args[1]); return; }
