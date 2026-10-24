@@ -26,8 +26,10 @@ and [Java learning plan](../JAVA_LEARNING_PLAN.md) alongside this record.
   The references/nonprimitive-values PDF now has a [six-page review](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md)
   for entry 6, including wrapper and reference-copy corrections. The shared methods/constructors
   PDF now has a [nine-page review](JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) for entries 7/8,
-  with constructor/default/initialiser and static/abstract-method corrections. Five of 31 distinct
-  links have factual reviews; 26 remain. Remaining notes still need review.
+  with constructor/default/initialiser and static/abstract-method corrections. The memory/GC PDF
+  now has a [twelve-page review](JAVA_MEMORY_SOURCE_REVIEW_2026-10-24.md) for entry 9, with original
+  Java 17 checks and a reference-wrapper exercise. Six of 31 distinct links have factual reviews;
+  25 remain. Remaining notes still need review.
   Do not label a destination reviewed from its heading alone.
 
 No license or reproduction permission is inferred from a public link or the repository owner.
@@ -53,7 +55,7 @@ learner pilot remain open; this inventory and automated UI checks do not prove f
 | 6 | References and non-primitive values | [References and non-primitive values](../content/java-spring/01c-java-memory-model.md) | S04 | [All 6 pages reviewed](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md); boxed-alias/null-unboxing bridge integrated; learner pilot pending |
 | 7 | Methods | [Methods](../content/java-spring/01d-java-oop-pillars.md) | S05 | [All 9 pages reviewed](JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md); corrected method/construction bridge; learner pilot pending |
 | 8 | Constructors | [Constructors](../content/java-spring/01d-java-oop-pillars.md) | S05 | [All 9 pages reviewed](JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md); corrected method/construction bridge; learner pilot pending |
-| 9 | Memory and garbage collection | [Memory and garbage collection](../content/java-spring/01-jvm-gc.md) | S06 | Source text/images not reviewed |
+| 9 | Memory and garbage collection | [Memory and garbage collection](../content/java-spring/01-jvm-gc.md) | S06 | [All 12 pages reviewed](JAVA_MEMORY_SOURCE_REVIEW_2026-10-24.md); reference-wrapper and GC-version bridge; learner pilot pending |
 | 10 | Class forms | [Class forms](../content/java-spring/01d-java-oop-pillars.md) | S07 | Source text/images not reviewed |
 | 11 | Generic classes | [Generic classes](../content/java-spring/01g-java-generics.md) | S07 | Source text/images not reviewed |
 | 12 | Enums, POJOs and final classes | [Enums, POJOs and final classes](../content/java-spring/01e-java-static-final-records.md) | S08 | Source text/images not reviewed |
@@ -99,7 +101,7 @@ instead of duplicating opaque share-query strings. No original note contents are
 | S03 | 4, 5 | [Source S03](https://drive.google.com/file/d/1vWVJ9nAIbih0vier0XD-jFaUCujWuYnU/view) | Public PDF downloaded October 21, 2,507,604 bytes | [10-page review and Java 17 checks](JAVA_PRIMITIVES_SOURCE_REVIEW_2026-10-21.md) |
 | S04 | 6 | [Source S04](https://drive.google.com/file/d/1y23GVqAKPxQ72ZAP1_uOsJW2XfnBDhX5/view) | Public PDF downloaded October 21, 1,796,305 bytes | [6-page review and Java 17 checks](JAVA_REFERENCES_SOURCE_REVIEW_2026-10-21.md) |
 | S05 | 7, 8 | [Source S05](https://drive.google.com/file/d/1KEMCFaA5phnL1qneiWPPsSeDGoRqFyWK/view) | Public PDF downloaded October 23; 3,320,264 bytes | [Nine-page text/image review and Java 17 checks](JAVA_METHODS_SOURCE_REVIEW_2026-10-23.md) |
-| S06 | 9 | [Source S06](https://drive.google.com/file/d/1VLbaVl69r9FlKw2q_nI4qS6mlGx1t9Js/view) | 200 viewer/HTML; document content unverified | Pending |
+| S06 | 9 | [Source S06](https://drive.google.com/file/d/1VLbaVl69r9FlKw2q_nI4qS6mlGx1t9Js/view) | Public PDF downloaded October 23; 4,334,529 bytes | [12-page text/image review and Java 17 checks](JAVA_MEMORY_SOURCE_REVIEW_2026-10-24.md) |
 | S07 | 10, 11 | [Source S07](https://drive.google.com/file/d/1eE5Pculcp0qem6tMPHDz9h-jhMclzGIt/view) | 200 viewer/HTML; document content unverified | Pending |
 | S08 | 12 | [Source S08](https://notebook.zohopublic.in/public/notes/u3i1se962d56445eb4118ab4e4c0ca99e4728) | 200 HTML shell; note content unverified | Pending |
 | S09 | 13 | [Source S09](https://notebook.zohopublic.in/public/notes/u3i1s340edd3a883b4ef7ac90874731c865b0) | 200 HTML shell; note content unverified | Pending |

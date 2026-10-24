@@ -1,6 +1,22 @@
 # AI Agent Context — Backend Engineering
 
-## Current completion scope — October 23
+## Current completion scope — October 24
+
+The [S06 memory/GC review](docs/JAVA_MEMORY_SOURCE_REVIEW_2026-10-24.md) was completed before
+the user's stop request. Its original ReferenceHandleDemo deliberately calls clear(), retains a
+strong owner with reachabilityFence and never treats clearing as actual GC reclamation. Preserve
+its marked Java17 outputs, PermGen/Java8 and CMS/Java14 boundaries, old code/diagrams/questions/
+rubrics and migration owners. Six distinct course sources are reviewed,25 remain; the two-entry
+navigation pilot and real learner gates stay unchanged. New feature work is paused by the user.
+The unfinished semantic evaluator is saved on its separate pushed branch, not released or verified.
+
+PR91's exact7144f1e passes all19 checks and merged as39a3102, including all nine actual kind cases,
+native two-cluster replication and every affected actual-service gate. Use its
+[release receipt](docs/evidence/PR91_RELEASE_2026-10-23.json) to supersede earlier pending notes for
+that scope. Keep the actual raw null-drain observation, scheduling repair and cleanup requirements.
+The DBMS and Kubernetes prose bridges link existing exercises; preserve the original headings,
+question/rubric identities, code, diagrams and literal migration evidence when editing them.
+Neither release nor lesson links close broader distributed/cloud or human-learning requirements.
 
 Scope exit must restore both original handlers and outer thread-local state even if the first
 actual TERM/INT reaches an already restored caller handler that raises. Preserve nested finally
@@ -157,7 +173,7 @@ performed and revisions/retesting are recorded. UI/browser checks do not close C
 The core curriculum and UI refinement are delivered. The expanded practical plan remains active;
 use [the capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
 and its dated merged-release evidence, not earlier historical pending counts, for current scope.
-PR79 verified all eight actual kind recovery/resource cases with cleanup; cloud IAM/network cases
+PR91 verified all nine actual kind recovery/resource/scheduling cases with cleanup; cloud IAM/network cases
 remain open. Both frozen model prompts fail the held-out field gate and keep the original default.
 Follow [editorial maintenance](docs/EDITORIAL_MAINTENANCE.md) when correcting claims or dependencies;
 keep declared, resolved and executed compatibility distinct. No prepared protocol or AI-authored

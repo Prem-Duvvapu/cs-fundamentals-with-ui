@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "scope": "Final-head GitHub checks, separately observed merged state and downloaded actual-service receipts; no production or human-learning claim",
+  "merge": {
+    "headRefOid": "7144f1e3f76144ba06c47bb6fad05cb0f7ee4847",
+    "mergeCommit": {
+      "oid": "39a31023e83c39ac16167f98cd20d73da1f3a7bd"
+    },
+    "mergedAt": "2026-10-23T20:42:09Z",
+    "number": 91,
+    "state": "MERGED",
+    "url": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/91"
+  },
+  "finalHeadChecks": {
+    "headRefOid": "7144f1e3f76144ba06c47bb6fad05cb0f7ee4847",
+    "mergeStateStatus": "CLEAN",
+    "number": 91,
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:37:04Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449149/job/120643337710",
+        "name": "actual-pdf-and-ocr",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "AI document extraction and OCR"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:24Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449156/job/120643337981",
+        "name": "actual-replication",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Actual PostgreSQL replication and fenced recovery"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:50Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449284/job/120643338306",
+        "name": "actual-spring-jdi",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Actual Spring configuration and Java debugger"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:09Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449215/job/120643339244",
+        "name": "actual-http-tls",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Backend SSRF lab"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449218/job/120643338058",
+        "name": "actual-session-websocket",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Backend authenticated WebSocket"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449190/job/120643337982",
+        "name": "redis-mongodb",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Backend data services"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:37:03Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449210/job/120643338154",
+        "name": "actual-nginx-http",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Backend gateway lab"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:39:07Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449377/job/120643340305",
+        "name": "actual-kind-recovery",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Backend operations lab"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:35Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449174/job/120643337975",
+        "name": "actual-postgresql",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Backend persistence incident lab"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:53Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449209/job/120643337955",
+        "name": "pgvector",
+        "startedAt": "2026-10-23T20:35:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Vector retrieval"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:40:19Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449363/job/120643340306",
+        "name": "frontend",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:37:29Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449363/job/120643340191",
+        "name": "backend",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:37:39Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449363/job/120643340184",
+        "name": "practical-ai",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:56Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449363/job/120643340044",
+        "name": "real-backend-journey",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:37:30Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449363/job/120643340257",
+        "name": "containers",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:30Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/actions/runs/40020449363/job/120643340355",
+        "name": "labs",
+        "startedAt": "2026-10-23T20:35:55Z",
+        "status": "COMPLETED",
+        "workflowName": "Verify"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:35:51Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-10-23T20:35:49Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel",
+        "startedAt": "2026-10-23T20:36:03Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/prems-projects-e49be5f8/cs-fundamentals-with-ui/JCob2v5VbCpJD2z3mos5BgQRVgn4"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-23T20:36:04Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://vercel.com/github",
+        "name": "Vercel Preview Comments",
+        "startedAt": "2026-10-23T20:36:04Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "url": "https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/91"
+  },
+  "actualEvidence": {
+    "operations": {
+      "run": 40020449377,
+      "job": 120643340305,
+      "schemaVersion": 3,
+      "cases": 9,
+      "schedulingCases": 1,
+      "resourceCases": 3,
+      "skipped": 0,
+      "cleanupVerified": true,
+      "schedulerReason": "Unschedulable",
+      "unavailableService": {
+        "dnsResolved": true,
+        "connectionUnavailable": true
+      },
+      "recoveredService": {
+        "dnsResolved": true,
+        "authenticatedStatus": 200
+      },
+      "drainedEndpointShapes": [
+        "NoneType"
+      ],
+      "resultRawSha256": "9b2f1abcbbac54563e3242f0784b89d23a5b5fba5fe912576033ded7942fbbf9",
+      "rawSchedulingEvidenceSha256": {
+        "pending-endpoint-slices.json": "90700226a18ddf2ff29015dee09cd9bb25fe67eea5be357f3dfa5160216970a0",
+        "pending-pod.json": "b0206a3194fe1d87025f19d5a1ebe9349436cc3d2d691e9993bd8caca25ddc5d",
+        "pending-replicaset.json": "882fd52899e984ad71e61ee0e0c1a4b95912dcded5ea4fcae32b71d9ddbe89cd",
+        "pending-scheduler-events.json": "46262df88544d1469a09834d1556a950b90d4abfc0dbd227a1253e1f3ed6dae7",
+        "scheduled-endpoint-slices.json": "42c13277d04cb1a19c938f651c9dd43c9abfe55dbe7708d968acb27b37a3eadb",
+        "scheduled-pod.json": "6df89fe2e8c6ed42d291b511b8b66f6d6c76a63d2c4db41f8561359909b0ff1f",
+        "scheduled-replicaset.json": "6eab6c4d122c32e45699df8c3561ef4cb25a97c685fa45179d7b4a43c379a03e",
+        "scheduling-drained-endpoint-slices.json": "90700226a18ddf2ff29015dee09cd9bb25fe67eea5be357f3dfa5160216970a0",
+        "scheduling-initial-deployment.json": "7160560e757eedcb765dbd780d0e21fa414db8a23684d11957715aef411c3945",
+        "scheduling-nodes.json": "6ea72de1ee0140160871cc82052950510527ef472a778336edd1a13cf27db5ac",
+        "scheduling-recovered-deployment.json": "1458905c48cb2e5bb4006b2a2677b19221c8582a382c8e36cc7b0a37a3da033d",
+        "scheduling-recovered-service.json": "81ed523d11922b950a3bf5ee96b423a844d4693f17f1fccb9dfcda215667d8fe",
+        "scheduling-service.json": "81ed523d11922b950a3bf5ee96b423a844d4693f17f1fccb9dfcda215667d8fe"
+      }
+    },
+    "replication": {
+      "run": 40020449156,
+      "report": {
+        "schemaVersion": 1,
+        "scenario": "actual-private-postgresql-replication",
+        "postgresVersionNum": 160015,
+        "durability": {
+          "synchronousCommit": "on",
+          "fsync": "on",
+          "fullPageWrites": "on",
+          "synchronousStandbyNames": "",
+          "replicationMode": "asynchronous"
+        },
+        "replay": {
+          "initialIds": [
+            1
+          ],
+          "acknowledgedPrimaryIds": [
+            1,
+            2
+          ],
+          "pausedReplicaIds": [
+            1
+          ],
+          "commitFlushLsn": "0/3000170",
+          "pausedFence": {
+            "reached": false,
+            "checks": 4,
+            "elapsedMs": 209
+          },
+          "resumedFence": {
+            "reached": true,
+            "checks": 1,
+            "elapsedMs": 14
+          },
+          "recoveredReplicaIds": [
+            1,
+            2
+          ],
+          "sameTimelineFenceOnly": true,
+          "pauseIsNetworkPartition": false
+        },
+        "failover": {
+          "oldPrimaryAcknowledgedIds": [
+            1,
+            2,
+            3
+          ],
+          "promotedIdsBeforeNewWrite": [
+            1,
+            2
+          ],
+          "acknowledgedRowsMissingOnSelectedTimeline": [
+            3
+          ],
+          "oldDiskPresentBeforeRebuild": true,
+          "oldPrimaryProcessTerminalBeforePromotion": true,
+          "oldPrimaryPortRefusedBeforePromotion": true,
+          "oldTimeline": 1,
+          "promotedTimeline": 2,
+          "unreplicatedCommitFlushLsn": "0/3000218",
+          "newPrimaryIds": [
+            1,
+            2,
+            4
+          ],
+          "observedStopToCheckedWriteMs": 316,
+          "automaticFailover": false,
+          "multiHostFencing": false
+        },
+        "rebuild": {
+          "fromPromotedPrimary": true,
+          "recoveryRoleObserved": true,
+          "initialIds": [
+            1,
+            2,
+            4
+          ],
+          "freshWriteReplayedIds": [
+            1,
+            2,
+            4,
+            5
+          ],
+          "rebuildFence": {
+            "reached": true,
+            "checks": 1,
+            "elapsedMs": 14
+          },
+          "freshWriteFence": {
+            "reached": true,
+            "checks": 1,
+            "elapsedMs": 13
+          }
+        },
+        "limits": {
+          "ownedClusters": 2,
+          "maxConnectionsPerCluster": 8,
+          "sharedBuffersMiBPerCluster": 16,
+          "workBudgetSeconds": 180,
+          "startupPollSeconds": 8,
+          "clientSeconds": 3,
+          "sqlMilliseconds": 2000,
+          "privateLogBytesPerCluster": 524288
+        },
+        "actualServerStarts": {
+          "originalDirectory": 2,
+          "standbyDirectory": 2
+        },
+        "scope": "Two private processes on one host; replay pause is not a network partition; local fencing is not STONITH; observed recovery duration is not an RTO SLA; no production capacity or multi-host HA proof",
+        "ownedResourcesCleaned": true,
+        "sourceSha256LF": {
+          "processes.py": "d4f7cb4cd9e91b64cd1ffdf251fc464b577acf3e342f34c629e70168019b261c",
+          "test_verify.py": "559c9a36f4a62449cc4c900b7535e26f3176c3e98c8a96ce60f08714d17b67e7",
+          "verify.py": "7773b88ebca3495571d39964d2c59ae5e97028d700c3ce255c7d000bd003ace9"
+        }
+      },
+      "reportRawSha256": "46b549975c778445659524700aa02aba477b8bb9dfb182f0804c443ee6c0d423"
+    },
+    "ssrf": {
+      "run": 40020449215,
+      "tests": 20,
+      "skipped": 0,
+      "httpRequests": 26,
+      "cleanupVerified": true,
+      "restorationRows": 12,
+      "sourceSha256LF": {
+        "fetch.py": "e15738e1a0058afc2f429304822d40656408a04bbcac8d7e63a37cf22db5d3e5",
+        "resolver_worker.py": "0ad23504c83cdfaf3004a92af779d2c98fca1520ff978849c22876efdd6d9ba5",
+        "fixtures.py": "8c709d1a48f2f4d6befe8da752d3eac0069f69702f921b75f92f808f793c0dc4",
+        "test_fetch.py": "7650eb798f11f24430b0f192c7b1d20b4b5035e51f07d80365ba156a764daa2b",
+        "test_resolver_cleanup.py": "1c11914cecdbf2fda9abac1593269fec9d1a76d751dea84beb9fe20b60d6c84f",
+        "test_scope_restoration.py": "18b7f913e6a663e25b39de06f7aa29d2278b98d962b06339b2c50936fff82558",
+        "verify.py": "ad646416b11815282e159395a88a284972f22c63901562086dcb8f2360f82284",
+        "cancellation.py": "d54b5d939ce405774a766532a3a0cef90f5ea1b37e5e03ee2ac08387bffd7b7e"
+      },
+      "reportRawSha256": "80845f3c89b149b9b97d62a2a207611029b1b77dc1f02b17ee400ddf90b9171c"
+    },
+    "debugging": {
+      "run": 40020449284,
+      "configurationCount": 6,
+      "importedSourcesUnchanged": true,
+      "ownedWorkspaceRemoved": true,
+      "configurationRawSha256": "46c4ffa92ba21550efd90e0ab0460058b1b3dbdfa248aa496a5a90a0f69e9138",
+      "debuggerRawSha256": "3326c1ecb532671dba13733106dbd9d25671a9a5e81ed67b348696027b5a5e68"
+    },
+    "gateway": {
+      "run": 40020449210,
+      "cases": 20,
+      "skipped": 0,
+      "cleanupVerified": true,
+      "sourceSha256LF": {
+        "lab.py": "db45458f59eeda6aa38e101cafc571cda8bdb760773baa68e2bf1da6e6072a65",
+        "commands.py": "a3463193689ffeb2d05bb1c082de9a442fd2904239b68168952ff6348f64c539",
+        "GatewayProbe.java": "b86e11f7e49ab077d2974336d606a9f0ca0588ba53d417f676bd33eaca0ff2e4",
+        "nginx.conf": "54890c8eaa93d9ba50d174e268f21b5bf8a2c80677d5e4cc3603cef2235034cb",
+        "proxy-headers.conf": "ddcc2da3edd64ee7058e74d231d0736130e63bcfdc74ef1af59a94b7c81390e2"
+      },
+      "reportRawSha256": "792665d9431a705fe433942641633a85d24ba3767eb0fa83f2288f323565241d"
+    },
+    "persistence": {
+      "run": 40020449174,
+      "suites": [
+        {
+          "name": "com.csfundamentals.persistencelab.GuardTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.persistencelab.PostgresAccessPathTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.persistencelab.PostgresIncidentTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.persistencelab.PostgresIsolationTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.persistencelab.PostgresLockingTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "caseGroups": 10,
+      "ownedResourcesCleaned": true,
+      "sourceSha256LF": {
+        "pom.xml": "1fff0111dd274e5812abf452ed7493cfd30bd1022e34012497a628b5a75333e3",
+        "processes.py": "d4aed451b7a127e1a52735a66d5de3cf2d1c2f910238820aabba83d3ddaf4a67",
+        "src/main/java/com/csfundamentals/persistencelab/ExpandContract.java": "f201e1d30e37d38d2d5c8dd5e3afa5d887312c9c42d0e855379ff205f74706d8",
+        "src/main/java/com/csfundamentals/persistencelab/LabProject.java": "f7e49e3e3b4a77210145a04f9e646d8f3f8d64d68d07f2dbdfc9610d448cb6e1",
+        "src/main/java/com/csfundamentals/persistencelab/LabTask.java": "647b3604cd796b9cb27671ed2e17ac3ab7b74624c2a07acdd6dd2446c063cdca",
+        "src/main/java/com/csfundamentals/persistencelab/OwnedDatabase.java": "fb359bce678fa615d116bcdd274f6a268c86e35901b9a753b255f820723e3fee",
+        "src/main/java/com/csfundamentals/persistencelab/TestSettings.java": "6acb035903447f47e30abb27c1150b7879c128d6191324a8f342c8fbf6dd439b",
+        "src/main/java/com/csfundamentals/persistencelab/TransactionRetry.java": "09aefebdbf36e9eba4307e93caf579beb3f93f159f475440019f34cf7bb3d10c",
+        "src/test/java/com/csfundamentals/persistencelab/GuardTest.java": "5ba113a9a6e6195a0a44fa7a60e6eaf8c5e2adc9994c185b0db4365bc8e76d63",
+        "src/test/java/com/csfundamentals/persistencelab/PgEvidence.java": "db263b3ed80c951a3b6ed4141b4ccc6c50a552b6d3b9112dd217190d039b0129",
+        "src/test/java/com/csfundamentals/persistencelab/PostgresAccessPathTest.java": "cf0ce998e865f914a462a6565bab19e2d495f7df16f5e832de1b1614078a5908",
+        "src/test/java/com/csfundamentals/persistencelab/PostgresIncidentTest.java": "c15e2e24703a2268cc8a8b05978233de1bdd4672c564ca126e9bb448899829d5",
+        "src/test/java/com/csfundamentals/persistencelab/PostgresIsolationTest.java": "cd9cf949bcb925c7c7f031d1a1f1bf3b469c5914e04604385edeefff998735c8",
+        "src/test/java/com/csfundamentals/persistencelab/PostgresLockingTest.java": "9ae1de05aa2d817cba41c34e2d08ac9d71d25017f38dc1e9e9b976a90f8f7419",
+        "test_verify.py": "c1e33ff5464779ad6d7dc1cabb301faef16b6e721f06abb7deae7c6b35f4e865",
+        "verify.py": "dffd049f4fe27ae607f00041536bf40e9f5346a33665b069c15174578d2534bb"
+      },
+      "reportRawSha256": "8af463ca0d480b08fe221ab842af6a01365b9a5b823eac8d90eea899dd60ba00"
+    },
+    "dataServices": {
+      "run": 40020449190,
+      "suites": [
+        {
+          "name": "com.csfundamentals.dataservices.CacheContractTests",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.dataservices.CacheMongoIntegrationTests",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.dataservices.CacheRecoveryRedisTests",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.dataservices.CoalescingContractTests",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.dataservices.MongoIntegrationTests",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.csfundamentals.dataservices.RedisIntegrationTests",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "actualServiceCases": 17,
+      "cacheActualCases": 5,
+      "cacheReportRawSha256": "465e20158c2fd04272a0603fb21a88052bea7e23f3f449b8895d922626a13077"
+    },
+    "websocket": {
+      "run": 40020449218,
+      "status": "passed",
+      "passedCases": [
+        "anonymous_upgrade_401",
+        "form_login_csrf_password_cross_session_and_fixation",
+        "authenticated_viewer_upgrade_403",
+        "missing_null_cross_duplicate_origins_and_query_rejected",
+        "failed_upgrade_releases_pre101_admission",
+        "cookie_only_principal_and_same_connection_json_echo",
+        "actual_fragmented_text_reassembled_once",
+        "graceful_disconnect_and_authenticated_reconnect",
+        "global_and_principal_connection_caps_recover",
+        "strict_schema_duplicate_unknown_nested_trailing_and_ack_rejected",
+        "binary_message_rejected",
+        "whole_and_fragmented_message_buffer_limits",
+        "actual_unacknowledged_application_pressure",
+        "actual_ack_deadline",
+        "actual_socket_idle_deadline",
+        "finite_per_connection_command_count",
+        "reauthentication_rotation_closes_old_identity_socket",
+        "held_authenticated_upgrade_rejected_after_concurrent_reauthentication",
+        "csrf_logout_invalidates_cookie_closes_socket_releases_capacity",
+        "unchanged_task_tracker_basic_csrf_and_owner_contract",
+        "application_shutdown_socket_and_registry_cleanup",
+        "independent_actual_servlet_idle_expiry_and_socket_consequence"
+      ],
+      "importedTaskTrackerSourceUnchanged": true,
+      "mavenVerificationOffline": true,
+      "preparationPolicyTestsExecuted": 9,
+      "moduleSourceSha256": {
+        "examples/backend-websocket/pom.xml": "0af8e92447ca70ea2a28a4615253e5e6dad046ac556c9b9f3bb2f02306a371f7",
+        "examples/backend-websocket/processes.py": "ad7966d9aa6666516f4dcda8c763805f7a92002c1777f8e9531ccb88d10a4fed",
+        "examples/backend-websocket/src/main/java/com/csfundamentals/websocketlab/EchoRegistry.java": "85f246429c8b011fbec32b41c4cd808d2fe21247be0b4ca26ba1397c98a4b1d4",
+        "examples/backend-websocket/src/main/java/com/csfundamentals/websocketlab/HandshakePolicy.java": "6e5fc21f5ba79d43409b48843194d27e8f46f029db04d86b66347b54beb712f1",
+        "examples/backend-websocket/src/main/java/com/csfundamentals/websocketlab/Protocol.java": "fb3724a2a03e1ebfb7a5a304b35af36dc6234552678bf85b580cfbefdad0358f",
+        "examples/backend-websocket/src/main/java/com/csfundamentals/websocketlab/SessionController.java": "5bfea84677ddbd811acbf1a4d30cda491f9eed9ba8e49ed6eac30b1d6978c036",
+        "examples/backend-websocket/src/main/java/com/csfundamentals/websocketlab/WebSocketLab.java": "305b62b87eef18aacaf544cd69a952cf87ba004b96ec54c3db2f4b285aa754f0",
+        "examples/backend-websocket/src/test/java/com/csfundamentals/websocketlab/PolicyTest.java": "fdbffc5dd027446e166ad7a99041c54a8e6f5bc820bfad6e782137d4016032fe",
+        "examples/backend-websocket/src/test/java/com/csfundamentals/websocketlab/WebSocketTransportTest.java": "98888fb5cdced0d7d31fff9aeaee9e8dd675d6e36fb74af564e7ff3d82e82a48",
+        "examples/backend-websocket/test_verify.py": "79cf75ca8d4216a58dcca45b1c9c1954edfdd56a7eca179d00fae7ed0ccd7b22",
+        "examples/backend-websocket/verify.py": "35b1f0b03af66e363b222a0840594deaf1c64f95c0b7718d72c8970cd8eecad7"
+      },
+      "reportRawSha256": "68afe58c5c9dc4ac58c243332cf381a7497ece671dac0a800ad8a7f64336c938"
+    }
+  },
+  "limitations": [
+    "Native PG replication is distinct from persistence Docker execution",
+    "Ops raw observation hashes bind retained artifact bytes; its reporter adds no before/after source-byte attestation",
+    "No multi-host HA, production egress/capacity, live AI quality, participant, manual screen-reader or zoom evidence"
+  ]
+}

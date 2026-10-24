@@ -1,5 +1,28 @@
 # Backend Engineering — System Architecture & Development Context
 
+PR91 merged as39a31023e83c39ac16167f98cd20d73da1f3a7bd after all19 checks passed at
+7144f1e3f76144ba06c47bb6fad05cb0f7ee4847. Its [release receipt](docs/evidence/PR91_RELEASE_2026-10-23.json)
+retains exact checks and actual service observations; the downloaded nine-case kind run includes
+the actual null drained EndpointSlice and successful repair/cleanup. This supersedes the pending
+qualifiers below for that source only. Native PostgreSQL replication and Docker persistence remain
+different executions. The data-service XML contains30 total tests, including the17 required actual
+service cases; a total alone does not prove their execution.
+
+Two canonical lesson bridges expose the new exercises through existing Markdown link resolution:
+the distributed database Beginner replication section and Kubernetes resource/scheduling practice.
+Only prose/links are added; all question IDs, rubric content, original headings, diagram sources
+and progress/navigation identities are preserved. No renderer, route, CSS or metadata registry
+is added. Their separate single-file source commits retain the authoring contract and migration gate.
+
+The completed S06 memory/GC continuation changes only the canonical JVM lesson in its content
+unit, adding one stable heading and a marked ReferenceHandleDemo. Explicit clear() plus a retained
+strong owner/fence produces deterministic output without asserting GC timing. Original headings,
+diagram/code bodies and question/rubric identities remain intact. The separate review/evidence
+binds12 inspected PDF pages and Java17 observations; later-JDK documentation is not executed
+compatibility proof. The source ledger now records six reviews and25 remaining sources.
+The user paused feature work; unfinished semantic code and its separate holdout are pushed only
+on their own branches with no actual pgvector semantic completion claim.
+
 `examples/backend-replication` is a separate native PostgreSQL 16 learning module. It creates
 two private mode-0700 clusters with generated SCRAM credentials and ephemeral IPv4-loopback
 listeners, owns four foreground server launches and never attaches to a shared server. Actual

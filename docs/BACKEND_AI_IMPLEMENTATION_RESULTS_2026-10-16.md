@@ -10,7 +10,7 @@ Implementation is in progress. Fixture checks, actual HTTP calls to a local fake
 
 ## Capability ledger
 
-This table includes merged PR85/PR86/PR87/PR88/PR89/PR90 (October 23) and the explicitly unreleased continuation below. The dated checkpoints
+This table includes merged releases through PR91 and the completed lesson/source-review evidence below. New feature work is paused by the user. The dated checkpoints
 are history; later release evidence supersedes earlier CI-pending statements only for that scope.
 
 | Requirement | Status | Intended outcome / evidence |
@@ -44,16 +44,16 @@ are history; later release evidence supersedes earlier CI-pending statements onl
 | D-10 | Partial: bounded document fixtures and unknown/provenance checks | PDF/image output misses a value |
 | BE-01 / P0 | Partial: real deadlock/memory/highCPU/JFR; PR83 configuration and actual JDI CI verified; human IDE work open | Debugging workflow: JVM, concurrency, Spring boot/MVC |
 | BE-02 / P0 | Partial: real opt-in trace/metrics and incident exercise | Observability: Spring testing/production + cloud operations |
-| BE-03 / P0 | Partial: PR89 actual concurrency/plans CI; two-cluster replication/rebuild locally verified, final CI/release pending; broader database work open | Database incidents: SQL, optimizer, transactions, JPA |
+| BE-03 / P0 | Partial: PR89 concurrency/plans and PR91 actual two-cluster replication/rebuild CI verified; sharding/partition/recovery/HA requirements remain open | Database incidents: SQL, optimizer, transactions, JPA |
 | BE-04 / P0 | Partial: durable local and existing actual-broker CI verified; PR84 concurrent rebalance/replay/dedup actual CI verified | Messaging: distributed DBMS + Spring async |
 | BE-05 / P0 | Partial: real HTTP reliability plus PR87 bounded Redis coalescence/recovery CI; eviction/fairness/failover open | Reliability: Spring caching/async + network application layer |
 | BE-06 / P1 | Partial: actual OAuth/JWT, webhooks, SSRF and PR86 sessions/WebSocket and PR85 actual gateway; production egress work open | API/security: REST + Spring Security |
 | BE-07 / P1 | Verified: actual PostgreSQL/Testcontainers, HTTP concurrency/load, causal flaky fix; rollback linked | Testing/delivery: Spring testing + CI/CD |
-| BE-08 / P1 | Partial: original eight actual kind cases CI verified; ninth Pending/Unschedulable case locally guard-tested, actual CI/release pending; IAM/network/cloud cases open | Operations: Docker/Kubernetes/cloud |
+| BE-08 / P1 | Partial: PR91 all nine actual kind recovery/resource/scheduling cases CI verified; IAM/network/cloud cases remain open | Operations: Docker/Kubernetes/cloud |
 | BE-09 / P1 | Partial: actual Git/Linux/offlineMaven/refactor; manual checks open | Everyday engineering: Java execution/Boot + CI/CD |
 | BE-10 / P1 | Verified: actual Java21 bounded platform/virtual-thread comparison and no-skip CI | Modern Java choices: JVM/concurrency + Spring |
 | CLOSE-01 | Partial: inventory/docs and link-monitor automation | Reconcile status documentation and outdated topic tooling |
-| CLOSE-02 | PR82 familiar two-entry revision and execution/OOP/primitive/reference reviews verified; PR90 methods/construction review verified; 26 sources and real learner pilot open | Java course familiarity |
+| CLOSE-02 | PR82/PR90 familiar revision and first five reviews verified; S06 memory/GC review completed with Java17 evidence;25 sources and real learner pilot open | Java course familiarity |
 | CLOSE-03 | Manual protocol ready; actual assistive-technology/zoom sessions pending | Manual accessibility |
 | CLOSE-04 | AI explain/build/debug protocol ready; actual learner/retest evidence pending | Learner comprehension |
 | CLOSE-05 | Maintenance process and compatibility inventory prepared; recurring execution remains ongoing | Editorial maintenance |
@@ -956,3 +956,53 @@ arrays in both readers, rejects malformed values and keeps ownership checks. All
 contracts pass; actual drained slices are now retained and revalidated. The
 [failed-run record](evidence/EMPTY_ENDPOINT_SLICE_2026-10-23.json) and RCA-2026-10-23-17 retain
 the evidence and limits. Full final-head CI and the complete actual cluster rerun remain required.
+
+## PR91 merged release evidence — October 23
+
+PR [91](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/91) merged at
+2026-10-23T20:42:09Z as39a31023e83c39ac16167f98cd20d73da1f3a7bd. Exact head
+7144f1e3f76144ba06c47bb6fad05cb0f7ee4847 passes all19 checks: six Verify jobs, ten
+dedicated actual-service jobs, GitGuardian and both Vercel checks. The
+[release record](evidence/PR91_RELEASE_2026-10-23.json) retains the check snapshot, separately
+observed merged state and eight downloaded actual-service evidence summaries.
+
+Actual kind40020449377/job120643340305 executes all nine cases with zero skips and verified
+cleanup. Its retained drained EndpointSlice actually contains null endpoints; the unchanged
+Service, exact scheduler cause, replacement readiness and authenticated recovery satisfy the
+final gate. Actual replication40020449156 observes PostgreSQL16.15, all four foreground starts,
+stale/fenced/promoted/rebuilt histories and source-bound cleanup. Actual SSRF40020449215 retains
+20 tests,26 HTTP/TLS requests,12 restoration rows and eight source hashes. Spring/JDI,
+Nginx20 cases, WebSocket22 transport cases, Redis/MongoDB17 actual cases and PostgreSQL12 total
+tests/ten case groups all pass their required gates. Data-service XML also has13 contract tests;
+the30 total does not replace the independently required17 actual service cases. Actual pgvector
+and OCR regressions pass as well. Verify40020449363 passes the full platform/browser/example scope.
+
+This supersedes the preceding replication/scheduling/lifecycle release qualifiers and
+RCA-2026-10-23-11–17's final-CI qualifiers only. Native replication is separate from Docker
+persistence. No global wrapper certification, multi-host HA, cloud IAM/network, semantic model
+quality or human learner/manual accessibility result is inferred; those roadmap requirements remain.
+
+### Canonical practice bridges — implementation evidence
+
+Single-file content commits45211ce andc602f6b connect Beginner replication and Kubernetes
+scheduling explanations to the existing runnable guides with predict/observe/repair/interview
+tasks. They preserve all original question/rubric/code/diagram bodies, heading IDs and migration
+literals. The separate file checks pass590/599 validator lines respectively, all68 lessons and
+83 coverage entries,109 migration items and265 renderer tests for each unit. Integrated content,
+diagram and final-head platform CI are required release gates for these lesson links.
+
+### Completed S06 memory/GC review and user-requested pause — October 24
+
+The lesson changes, review and Java checks were completed before the stop request; content-only
+a27b56f and review-only4df3d48 package that completed work. The
+[review](JAVA_MEMORY_SOURCE_REVIEW_2026-10-24.md) and
+[receipt](evidence/JAVA_MEMORY_SOURCE_2026-10-24.json) bind all12 source pages, original Java17
+checks,561-line JVM lesson and the new deterministic reference-wrapper example. All17 marked
+Java programs,265 renderer tests and109 migration items pass its unit gates. Six sources are
+reviewed,25 remain; no learner/manual accessibility gate or course-order expansion is closed.
+
+New feature work is paused. The unfinished semantic runtime/evaluator is committed and pushed on
+`feat/2026-10-23-learned-semantic` at a6bd0dc, with the separate independent20-case holdout on
+`feat/2026-10-23-semantic-independent-holdout` at014fda6. Its earlier owned embedding preflight
+does not verify later untested helper edits; packaging succeeded with tests skipped. Neither
+unfinished implementation nor model-quality/actual pgvector semantic evidence is merged here.
