@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-23",
+  "completedDate": "2026-10-24",
+  "source": "S06",
+  "entries": [
+    9
+  ],
+  "publicDocument": "https://drive.google.com/file/d/1VLbaVl69r9FlKw2q_nI4qS6mlGx1t9Js/view",
+  "documentTitle": "#9_Memory_Management.pdf",
+  "documentBytes": 4334529,
+  "documentSha256": "b39e7fa642ee3396546578cedac64c04c8e02e3fe864e2951d2bf9655867bbe8",
+  "publicAccess": {
+    "viewerHttpStatus": 200,
+    "viewerBytes": 88522,
+    "downloadHttpStatus": 200,
+    "downloadContentType": "application/octet-stream",
+    "pdfSignatureVerified": true,
+    "downloadByteCap": 10485760,
+    "requestTimeoutSeconds": 20,
+    "credentialsUsed": false,
+    "accessBypassUsed": false
+  },
+  "pdfPagesInspected": 12,
+  "inspection": "All page-separated text and every 144-DPI page render, including page 2 embedded IDE/code image",
+  "reader": "PyMuPDF 2.0",
+  "pages": [
+    {
+      "page": 1,
+      "textCharacters": 3170,
+      "embeddedImages": 0,
+      "textSha256": "9e08e16cddf48608b1c96319ae63da55a817d703669c76cdba42680e8892b429",
+      "renderSha256": "5bb8c84fe6fea5e8af8585dcb2450c2f3a7ff032c9d6fe378a26a3f58c82c421"
+    },
+    {
+      "page": 2,
+      "textCharacters": 1458,
+      "embeddedImages": 1,
+      "textSha256": "5b2aeda2c8e3e66a86b3ad753e575604b6e12fc7fc5eabef695c2409f48fc470",
+      "renderSha256": "0656c3082b92e1c049270b05546847774bf1c621cf8a300a622591fd9ae4fbdb"
+    },
+    {
+      "page": 3,
+      "textCharacters": 2044,
+      "embeddedImages": 0,
+      "textSha256": "514eef23cd8b0eebabb42e605dd2de6a11739f8000f0783064462818a2c8434b",
+      "renderSha256": "55cf7372a59f9c9f2feff3ea0041ae00810ee72fb6fde2775334225c0d4440d5"
+    },
+    {
+      "page": 4,
+      "textCharacters": 1986,
+      "embeddedImages": 0,
+      "textSha256": "669ac79963fd9b3159e15c51f60eab2cdce65f0e595bb795799a60454bfc9be1",
+      "renderSha256": "4b5ce2d75e1b0add4482ef50229dadf23ef307409a3b43890dfd9c459449e057"
+    },
+    {
+      "page": 5,
+      "textCharacters": 2175,
+      "embeddedImages": 0,
+      "textSha256": "f4b1e2965432f88117d7e5b270763f03d53d64596a067878d727275b80706208",
+      "renderSha256": "ae66162bf8b40284d2d72df9180016535b91cfb578c29836bf0fe3b52790728a"
+    },
+    {
+      "page": 6,
+      "textCharacters": 2135,
+      "embeddedImages": 0,
+      "textSha256": "2207ba5509af07709c05ed4bfe4eefb59256e2e1aa8646f88d327dc4bc4bf908",
+      "renderSha256": "276b4b2b87285585d5221525ce413e33f7df12d626f02f2b5c96187d242b9aee"
+    },
+    {
+      "page": 7,
+      "textCharacters": 3974,
+      "embeddedImages": 0,
+      "textSha256": "58592d1b3a9d9bc742d7f4a55bd1920b00089f91b9afaacf1e2f7b288088120c",
+      "renderSha256": "58b39b1bf5c78c3ea31086e79426d7a8a3edad2feeeda14f9f6da05290b2d244"
+    },
+    {
+      "page": 8,
+      "textCharacters": 2107,
+      "embeddedImages": 0,
+      "textSha256": "7748b13fef684b4343337daaebb8fccf6dc0c0cf5a429399abbcdfc1871696ce",
+      "renderSha256": "53552446fb3c760761a1cf8168ac843f9e522f945975c9b6149a7a8f4ce196fb"
+    },
+    {
+      "page": 9,
+      "textCharacters": 2543,
+      "embeddedImages": 0,
+      "textSha256": "58a942e8dd2ed8c2783d5aa8f2cd9264812cbcfe00ddef8f8ca72e6165369214",
+      "renderSha256": "34bd2e0d6cc7ad91212e3883246e3f06f677b63f18b830e1348edca19e1d998d"
+    },
+    {
+      "page": 10,
+      "textCharacters": 2143,
+      "embeddedImages": 0,
+      "textSha256": "65d3d5ec0a2943018d5df85a8bbae186827678987260dc84ef43689731536612",
+      "renderSha256": "87433ee3d4b3a9a0da43bad0d5c3acbc0d18fcc23afc8b07bdbd10e1a68184ed"
+    },
+    {
+      "page": 11,
+      "textCharacters": 1795,
+      "embeddedImages": 0,
+      "textSha256": "405e2ee21e67ac3b20b2b2fde8f8804856af4889fc86e45fd9c8bb373c49680c",
+      "renderSha256": "b06711f388e111d4e83da791516a44b8cd2ac69bf928753abf63efee9624d48d"
+    },
+    {
+      "page": 12,
+      "textCharacters": 850,
+      "embeddedImages": 0,
+      "textSha256": "7cb6bf2aa9ae7116b0ca5bbab29afbfe08c5e6dd894677beb67504e90d488a35",
+      "renderSha256": "e2c15872db9fd101dd486969f48e388b5308cfeadedaa70864effb8dc2439331"
+    }
+  ],
+  "javaRuntime": "OpenJDK Runtime Environment (build 17.0.20.1+1-1-24.04-Ubuntu)",
+  "compilerRelease": 17,
+  "sourceProgramsSha256": {
+    "NoClearReferenceDemo.java": "b317c409aeca969e0dfd4aa71de3a41c13629bc39652c9ee0ac082312a96bad1",
+    "ReferenceHandleDemo.java": "4f61b495ddb9df1126f1f8fc2665efb5f1d9157a6c6762ab23be7677d3bec6c3",
+    "HumongousAllocationCheck.java": "4d8b88e960bb0f0e221cc7e6f5fe1f3c5930dcb2c7e26c91f88e1cf5842abd48",
+    "MemorySourceChecks.java": "b254516512e891ed7c0919f5642b3e028899322baf5562bf19655d3a61b59d83"
+  },
+  "executedCommands": [
+    {
+      "case": "compile",
+      "command": [
+        "javac",
+        "--release",
+        "17",
+        "-Xlint:all",
+        "MemorySourceChecks.java",
+        "HumongousAllocationCheck.java",
+        "ReferenceHandleDemo.java",
+        "NoClearReferenceDemo.java"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "reference-checks",
+      "command": [
+        "java",
+        "-Xms16m",
+        "-Xmx32m",
+        "-XX:ActiveProcessorCount=2",
+        "MemorySourceChecks"
+      ],
+      "exitCode": 0,
+      "stdout": "literal identity and distinct equal string: PASS\nstrong owner and explicit reference clearing: PASS\nobserved HotSpot Metaspace non-heap pool: PASS\njava feature: 17\n",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "explicit-gc-disabled",
+      "command": [
+        "java",
+        "-Xms16m",
+        "-Xmx32m",
+        "-XX:ActiveProcessorCount=2",
+        "-XX:+DisableExplicitGC",
+        "MemorySourceChecks"
+      ],
+      "exitCode": 0,
+      "stdout": "literal identity and distinct equal string: PASS\nstrong owner and explicit reference clearing: PASS\nobserved HotSpot Metaspace non-heap pool: PASS\njava feature: 17\n",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "learner-demo-retained-owner",
+      "command": [
+        "java",
+        "-Xmx32m",
+        "ReferenceHandleDemo"
+      ],
+      "exitCode": 0,
+      "stdout": "same referent: true\nwrapper exists: true\nreferent cleared: true\nstrong reference exists: true\n",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "learner-without-clear",
+      "command": [
+        "java",
+        "-Xmx32m",
+        "NoClearReferenceDemo"
+      ],
+      "exitCode": 0,
+      "stdout": "same referent: true\nwrapper exists: true\nreferent cleared: false\nstrong reference exists: true\n",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "humongous-allocation",
+      "command": [
+        "java",
+        "-Xms32m",
+        "-Xmx32m",
+        "-XX:ActiveProcessorCount=2",
+        "-XX:+UseG1GC",
+        "-XX:G1HeapRegionSize=1m",
+        "-Xlog:gc+heap=info:file=owned-gc.log",
+        "HumongousAllocationCheck"
+      ],
+      "exitCode": 0,
+      "stdout": "live array: 42\n",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "cms-removed",
+      "command": [
+        "java",
+        "-XX:+UseConcMarkSweepGC",
+        "-version"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderrSha256": "3a8d27c460cc30e0d84048078ddefa4839d7c81e1bf7cc2a89d26083ecaf2edd"
+    },
+    {
+      "case": "ergonomic-1",
+      "command": [
+        "java",
+        "-Xmx32m",
+        "-XX:ActiveProcessorCount=1",
+        "-XX:+PrintCommandLineFlags",
+        "-version"
+      ],
+      "exitCode": 0,
+      "stdout": "-XX:ActiveProcessorCount=1 -XX:InitialHeapSize=33554432 -XX:MaxHeapSize=33554432 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:-THPStackMitigation -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC \n",
+      "stderrSha256": "cbb14dcffd945ca71615f0afb1c2d03d409199caaafc4483b47d40cad2e5e4f5",
+      "observedCollector": "-XX:+UseSerialGC"
+    },
+    {
+      "case": "ergonomic-2",
+      "command": [
+        "java",
+        "-Xmx32m",
+        "-XX:ActiveProcessorCount=2",
+        "-XX:+PrintCommandLineFlags",
+        "-version"
+      ],
+      "exitCode": 0,
+      "stdout": "-XX:ActiveProcessorCount=2 -XX:ConcGCThreads=1 -XX:G1ConcRefinementThreads=2 -XX:GCDrainStackTargetSize=64 -XX:InitialHeapSize=33554432 -XX:MarkStackSize=4194304 -XX:MaxHeapSize=33554432 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:-THPStackMitigation -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseG1GC \n",
+      "stderrSha256": "cbb14dcffd945ca71615f0afb1c2d03d409199caaafc4483b47d40cad2e5e4f5",
+      "observedCollector": "-XX:+UseG1GC"
+    },
+    {
+      "case": "runtime",
+      "command": [
+        "java",
+        "-version"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderrSha256": "cbb14dcffd945ca71615f0afb1c2d03d409199caaafc4483b47d40cad2e5e4f5"
+    }
+  ],
+  "boundedExecution": {
+    "commandCount": 10,
+    "javaLaunchCount": 9,
+    "timeoutSecondsPerCommand": 20,
+    "largestConfiguredHeapMiB": 32,
+    "capturedBytesPerCommandCheckedMaximum": 65536
+  },
+  "observedHumongousRegions": "3->3",
+  "gcTimingGuaranteed": false,
+  "laterJdkExecuted": false,
+  "canonicalContentCommit": "a27b56fda5b8acaf5a73c3123aecc7d1aee89453",
+  "canonicalLessonBlob": "0755b67ff2ca87c2acf5c012fe2bcc1f3c856e51",
+  "preservation": {
+    "base": "7144f1e",
+    "lesson": "content/java-spring/01-jvm-gc.md",
+    "lineCount": 561,
+    "diagrams": 6,
+    "originalFencesPreserved": 8,
+    "newFences": 10,
+    "oldOutlineIdsPreserved": 18,
+    "newHeading": "strong-owners-and-weak-or-soft-handles",
+    "questions": 14,
+    "rubrics": 2,
+    "migrationEntries": 6,
+    "literalMigrationQuotes": 0,
+    "allQuestionObjectsUnchanged": true,
+    "wholeMisconceptionInterviewFurtherReadingTailUnchanged": true,
+    "lessonSha256LF": "54df36de9b55215672251b295e688456db41890ea8927514512496fcf0532694",
+    "diagramSourcesSha256": "2574ef545ee01b00741ff1cd470109f684bb8d510b8255bfe902dfc0d95fe35a",
+    "runnableSourceSha256": "4f61b495ddb9df1126f1f8fc2665efb5f1d9157a6c6762ab23be7677d3bec6c3"
+  },
+  "verification": {
+    "content": {
+      "exitCode": 0,
+      "logSha256": "551f0ac414e5a797582741ca104ee7c80436442dc3642e16eeefd0e1f1c82014"
+    },
+    "migration": {
+      "exitCode": 0,
+      "logSha256": "15ee71766a1071f8c3bfbed7350d41f3712b4fdda1e7e62f22f4d80938d852e9"
+    },
+    "markedJavaExamples": {
+      "exitCode": 0,
+      "logSha256": "f560f45768007ca2c9935bcbbc014309bed349d565f6ae061cbafdebf65ed888"
+    },
+    "markdownRenderer": {
+      "exitCode": 0,
+      "logSha256": "e0170c9c48c8b094a2d0ef0a30ac18e9217cf6afd083875299b248d60a68b6a0"
+    },
+    "markedJavaExampleCount": 17,
+    "markdownRendererTests": 265,
+    "migrationResolved": 109,
+    "migrationPending": 0
+  },
+  "publicationLimits": [
+    "Source PDF, rendered pages, extracted text and request headers remain private and are not redistributed",
+    "Original code and API checks do not prove GC timing, physical variable addresses or production performance",
+    "No Java 8, 21, 23 or 24 execution was performed",
+    "No course-order pilot expansion, learner recognition, manual screen-reader or browser-zoom session",
+    "Integrated final-head CI and merge are not claimed"
+  ]
+}
