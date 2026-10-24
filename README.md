@@ -1,7 +1,7 @@
 # Backend Engineering
 
 Current scope: the core curriculum and UI refinement are delivered; the expanded practical
-backend/AI roadmap is still in progress. Releases through [PR90](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/90)
+backend/AI roadmap is still in progress. Releases through [PR91](https://github.com/Prem-Duvvapu/cs-fundamentals-with-ui/pull/91)
 include the frozen prompt comparison, actual service/cluster exercises and five familiar Java source reviews.
 Use the [current capability ledger](docs/BACKEND_AI_IMPLEMENTATION_RESULTS_2026-10-16.md#capability-ledger)
 for what remains. Dated milestones below retain their original evidence; they are not blanket
@@ -644,3 +644,18 @@ The first actual nine-case cluster attempt exposed a drained EndpointSlice with 
 The reader now accepts null/missing/empty arrays as no backends while rejecting malformed values
 and retaining Service/namespace ownership checks. The 17 local contracts pass; the complete actual
 cluster rerun remains required before release.
+
+PR91 is now merged after all 19 final-head checks passed, including the complete nine-case kind
+rerun and actual PostgreSQL replication. The [release receipt](docs/evidence/PR91_RELEASE_2026-10-23.json)
+supersedes the continuation's CI-pending statements above for that release only. The DBMS
+replication section and Kubernetes scheduling practice now link directly to the exercises with
+prediction, diagnosis, repair and interview tasks. Broader practical and human-learning gates
+remain in the capability ledger.
+
+The completed [memory/GC source review](docs/JAVA_MEMORY_SOURCE_REVIEW_2026-10-24.md) adds an
+original runnable weak-reference wrapper exercise and version corrections to the JVM lesson.
+Six course sources are reviewed;25 remain. Clearing a wrapper's link is taught separately from
+actual garbage collection, and the two-entry course-order pilot remains unchanged.
+
+New feature work is paused at the user's request. The unfinished semantic evaluator is saved on
+`feat/2026-10-23-learned-semantic` with its verification limits; it is not part of the delivered app.
