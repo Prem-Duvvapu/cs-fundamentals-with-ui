@@ -41,7 +41,7 @@ The native method stack supports code reached through JNI or JVM runtime interna
 
 Objects created with `new` normally live on the heap.
 
-In HotSpot, class metadata is held in metaspace outside the Java heap. The JVM specification defines a method area but does not require this physical layout.
+In HotSpot, class metadata is held in metaspace outside the Java heap. The JVM specification defines a method area but does not require this physical layout. HotSpot replaced PermGen in Java 8; objects held by static fields still follow ordinary heap reachability.
 
 HotSpot's code cache contains JIT-compiled native instructions. Virtual-thread stacks can use heap-resident stack chunks; the diagram separates conceptual roles rather than requiring one native stack per Java thread.
 
@@ -122,6 +122,49 @@ Production code should not depend on it for correctness or resource release.
 Use try-with-resources for files, sockets, database connections, and other external resources.
 
 Their lifetime is separate from the reachability of the Java wrapper object.
+
+### Strong owners and weak or soft handles
+
+A reference object is a wrapper around a link to another object, called its **referent**. A variable can strongly hold the wrapper while its link to the target is weak or soft. Reference strength is not determined by whether the variable sits on a stack.
+
+| Reference | What keeps the target available? | What the caller must handle |
+|---|---|---|
+| Ordinary strong reference | A needed strong path from a GC root | Remove every unwanted owner to make the target collectible |
+| `WeakReference<T>` | The weak link does not keep an otherwise weakly reachable target alive | After clearing, `get()` returns `null`; the wrapper variable can remain non-null |
+| `SoftReference<T>` | The collector decides when to clear softly reachable targets in response to memory demand | No promised lifetime, cache size or expiry time; another strong owner still keeps the target live |
+
+Here `<Object>` names the target type. Save this original Java 17 program as `ReferenceHandleDemo.java` and run `javac --release 17 ReferenceHandleDemo.java`, then `java ReferenceHandleDemo`:
+
+```java runnable=ReferenceHandleDemo
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+
+public class ReferenceHandleDemo {
+    public static void main(String[] args) {
+        Object task = new Object();
+        WeakReference<Object> handle = new WeakReference<>(task);
+        System.out.println("same referent: " + (handle.get() == task));
+        handle.clear();
+        System.out.println("wrapper exists: " + (handle != null));
+        System.out.println("referent cleared: " + (handle.get() == null));
+        System.out.println("strong reference exists: " + (task != null));
+        Reference.reachabilityFence(task);
+    }
+}
+```
+
+```text output=ReferenceHandleDemo
+same referent: true
+wrapper exists: true
+referent cleared: true
+strong reference exists: true
+```
+
+`clear()` deliberately clears the wrapped link; it does not set `handle` or `task` to `null` or prove that GC ran. `reachabilityFence(task)` keeps the strong target reachable through that point, independently of JIT lifetime optimisations.
+
+**Predict:** Does clearing the link destroy the wrapper? **Answer:** No; only `handle.get()` becomes `null`. **Change:** Remove `clear()`; the retained strong owner means the third output becomes `false`. **Debug:** Check the result of `get()` before dereferencing it, rather than checking only whether the wrapper exists.
+
+When revisiting the [familiar memory-management notes](https://drive.google.com/file/d/1VLbaVl69r9FlKw2q_nI4qS6mlGx1t9Js/view), keep wrapper identity, target reachability and actual collection separate. The [Java 17 weak](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ref/WeakReference.html) and [soft reference contracts](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ref/SoftReference.html) define those different lifetimes.
 
 ### Thread states explain waiting
 
@@ -261,7 +304,7 @@ Take a heap dump near the high baseline and inspect dominator paths before chang
 
 ### Collector selection and pause goals
 
-The default collector depends on the JDK, hardware, and runtime ergonomics.
+The default collector depends on the JDK, hardware, and runtime ergonomics. CMS was removed in JDK 14 and is not a Java 17 collector option.
 
 G1 is a general-purpose collector designed to balance throughput and predictable pauses through region-based collection.
 
