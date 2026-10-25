@@ -96,7 +96,7 @@ jobs:
       - run: python3 -m unittest discover -s scripts -p test_topic_inventory.py -v
       - name: Retain bounded AI stage observations
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ai-stage-observations
           path: examples/ai-backend/build/evidence/observability.json

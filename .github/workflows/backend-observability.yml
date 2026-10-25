@@ -38,7 +38,7 @@ jobs:
         run: python3 examples/java-spring/task-tracker/verify_http.py --observability
       - name: Upload test evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: observability-test-evidence
           path: examples/java-spring/task-tracker/target/surefire-reports/

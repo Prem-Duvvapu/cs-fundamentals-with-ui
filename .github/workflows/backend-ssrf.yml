@@ -70,7 +70,7 @@ jobs:
           PY
       - name: Retain sanitized synthetic evidence only
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-ssrf-evidence
           path: examples/backend-ssrf/build/evidence/
