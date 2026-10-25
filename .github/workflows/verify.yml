@@ -30,7 +30,7 @@ jobs:
       # browser binary (large, versioned by package-lock.json) but still install OS-level deps
       # every run, since those aren't part of the cached directory.
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
