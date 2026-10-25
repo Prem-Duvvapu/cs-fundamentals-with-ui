@@ -13,7 +13,7 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           # jsdom 30 / vitest 5 (A-10) require Node >=22.22.2 — on Node 20 every test file fails
@@ -53,7 +53,7 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -71,7 +71,7 @@ jobs:
   practical-ai:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -107,7 +107,7 @@ jobs:
     # Spring Boot API (catalog, outlines, content, search, interview, server-side simulation).
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -131,7 +131,7 @@ jobs:
   containers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build -t task-tracker-learning examples/java-spring/task-tracker
       - run: |
           docker run -d --name task-tracker-check -p 127.0.0.1:9191:9191 -e TASK_TRACKER_ALICE_PASSWORD=ci-alice -e TASK_TRACKER_BOB_PASSWORD=ci-bob -e TASK_TRACKER_VIEWER_PASSWORD=ci-viewer task-tracker-learning
@@ -165,7 +165,7 @@ jobs:
   labs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
